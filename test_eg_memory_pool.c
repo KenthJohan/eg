@@ -5,12 +5,12 @@
 #include <unistd.h>
 #include <flecs.h>
 
-#include "eg_mempool.h"
+#include "eg_memory_pool.h"
 
 
 
 int main(int argc, char *argv[])
 {
-	test_eg_mempool();
+	test_eg_memory_pool();
 	return 0;
 }

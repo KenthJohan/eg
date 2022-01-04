@@ -1,9 +1,4 @@
 #pragma once
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <ck_ring.h>
-#include <ck_queue.h>
 #include <ck_stack.h>
 
 

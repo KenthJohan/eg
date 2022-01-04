@@ -12,9 +12,9 @@ QMAKE_CFLAGS += -Wno-missing-field-initializers
 
 INCLUDEPATH += ck/include
 
-SOURCES += test_eg_mempool.c
-SOURCES += eg_mempool.c
-HEADERS += eg_mempool.h
+SOURCES += test_eg_memory_pool.c
+SOURCES += eg_memory_pool.c
+HEADERS += eg_memory_pool.h
 
 
 LIBS += -lmingw32

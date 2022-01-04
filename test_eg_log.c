@@ -9,8 +9,6 @@
 
 
 
-//https://www.flecs.dev/explorer/?remote=true
-
 void main_init()
 {
 #ifdef _WIN32

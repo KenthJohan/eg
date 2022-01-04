@@ -1,20 +1,18 @@
 #include "eg_memory_pool.h"
-#include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
-#include <ck_ring.h>
-#include <ck_backoff.h>
+#include <stdlib.h>
+//#include <stdio.h>
 
 
 
 //https://stackoverflow.com/questions/11376288/fast-computing-of-log2-for-64-bit-integers
 #define LOG2(x) ((unsigned) (8*sizeof (unsigned long long) - __builtin_clzll((x)) - 1))
 #define POW2(x) (1 << (x))
-#define POW2_NEAREST(x) 1 << (32 - __builtin_clz((x) - 1));
+//#define POW2_NEAREST(x) 1 << (32 - __builtin_clz((x) - 1));
 
 
 
-void * eg_mempool_malloc(unsigned size)
+void * eg_memory_pool_malloc(unsigned size)
 {
 	void * v = malloc(size);
 	return v;
@@ -28,7 +26,7 @@ void eg_memory_pool_init(struct eg_memory_pool * pool)
 	for (int i = 0; i < EG_MEMORY_POOL_GRID_COUNT; ++i)
 	{
 		ck_stack_init(pool->stack + i);
-		size_t size = POW2(i);
+		//size_t size = POW2(i);
 		//printf("grid=%i, size=%i\n", i, (int)size);
 	}
 }
@@ -48,7 +46,7 @@ struct eg_memory_entry * eg_memory_pool_get_grid(struct eg_memory_pool * pool, u
 	else
 	{
 		int size = POW2(grid);
-		entry = eg_mempool_malloc(sizeof(struct eg_memory_entry) + size);
+		entry = eg_memory_pool_malloc(sizeof(struct eg_memory_entry) + size);
 		entry->grid = grid;
 		//printf("Malloc size=%i, grid=%i\n", size, grid);
 	}
@@ -103,7 +101,7 @@ void test_eg_memory_pool()
 		struct eg_memory_entry * m5 = eg_memory_pool_get(&pool, 666);
 		assert(strcmp((char*)m1->memory, "Entry 100") == 0);
 		assert(strcmp((char*)m2->memory, "Entry 1253") == 0);
-		assert(strcmp((char*)m3->memory, "Entry 444") == 0);
+		assert(strcmp((char*)m3->memory, "Entry 444") == 0);// Note: this is before Entry 333
 		assert(strcmp((char*)m4->memory, "Entry 333") == 0);
 		assert(strcmp((char*)m5->memory, "Entry 666") == 0);
 	}
