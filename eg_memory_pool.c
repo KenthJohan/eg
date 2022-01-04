@@ -10,7 +10,25 @@
 #define POW2(x) (1 << (x))
 //#define POW2_NEAREST(x) 1 << (32 - __builtin_clz((x) - 1));
 
-
+void eg_memory_entry_assert(struct eg_memory_pool * pool, struct eg_memory_entry * entry)
+{
+	if (pool == NULL)
+	{
+		assert(0);
+	}
+	if (entry == NULL)
+	{
+		assert(0);
+	}
+	if (pool != entry->pool)
+	{
+		assert(0);
+	}
+	if (entry->grid > EG_MEMORY_POOL_GRID_COUNT)
+	{
+		assert(0);
+	}
+}
 
 void * eg_memory_pool_malloc(unsigned size)
 {
@@ -23,6 +41,8 @@ void * eg_memory_pool_malloc(unsigned size)
 void eg_memory_pool_init(struct eg_memory_pool * pool)
 {
 	assert(pool);
+	pool->amount_malloc = 0;
+	pool->amount_reuse = 0;
 	for (int i = 0; i < EG_MEMORY_POOL_GRID_COUNT; ++i)
 	{
 		ck_stack_init(pool->stack + i);
@@ -41,31 +61,46 @@ struct eg_memory_entry * eg_memory_pool_get_grid(struct eg_memory_pool * pool, u
 	if (ref)
 	{
 		entry = eg_memory_entry_get(ref);
+		pool->amount_reuse++;
 		//printf("Reuse grid=%i\n", grid);
 	}
 	else
 	{
 		int size = POW2(grid);
 		entry = eg_memory_pool_malloc(sizeof(struct eg_memory_entry) + size);
+		entry->pool = pool;
 		entry->grid = grid;
+		pool->amount_malloc++;
+		entry->id = pool->amount_malloc;
 		//printf("Malloc size=%i, grid=%i\n", size, grid);
 	}
+	eg_memory_entry_assert(pool, entry);
 	return entry;
 }
 
 void eg_memory_pool_reclaim(struct eg_memory_pool * pool, struct eg_memory_entry * entry)
 {
 	assert(pool);
+	eg_memory_entry_assert(pool, entry);
 	ck_stack_push_mpmc(pool->stack + entry->grid, &entry->next);
 }
 
 
-struct eg_memory_entry * eg_memory_pool_get(struct eg_memory_pool * pool, unsigned size)
+struct eg_memory_entry * eg_memory_pool_get(struct eg_memory_pool * pool, int size)
 {
 	assert(pool);
 	int grid = LOG2(size);
-	return eg_memory_pool_get_grid(pool, grid);
+	int size2 = POW2(grid);
+	if(size < size2)
+	{
+		assert(0);
+	}
+	struct eg_memory_entry * entry;
+	entry = eg_memory_pool_get_grid(pool, grid);
+	entry->requested_size = size;
+	return entry;
 }
+
 
 
 

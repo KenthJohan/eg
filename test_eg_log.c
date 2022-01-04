@@ -21,13 +21,23 @@ static void main_init()
 }
 
 
+static void * thread1(void *arg)
+{
+	int i = INT_MAX;
+	while(1)
+	{
+		ecs_os_sleep(0,40000);
+		ecs_trace("Testing %i", i--);
+	}
+}
+
 static void * thread2(void *arg)
 {
 	int i = 0;
 	while(1)
 	{
-		ecs_os_sleep(1,0);
-		ecs_trace("Testing %i %i", i++, stall);
+		ecs_os_sleep(0,50000);
+		ecs_trace("Testing %i", i++);
 	}
 }
 
@@ -37,10 +47,9 @@ static void * thread3(void *arg)
 	while(1)
 	{
 		ecs_os_sleep(0,50000);
-		ecs_trace("Testing %i %i", i++, stall);
+		ecs_trace("Testing %x", i++);
 	}
 }
-
 
 // https://www.flecs.dev/explorer/?remote=true
 int main(int argc, char *argv[])
@@ -61,11 +70,12 @@ int main(int argc, char *argv[])
 	ecs_trace("Testing %p", world);
 
 
+	ecs_os_thread_t t1 = ecs_os_thread_new(thread1, NULL);
 	ecs_os_thread_t t2 = ecs_os_thread_new(thread2, NULL);
 	ecs_os_thread_t t3 = ecs_os_thread_new(thread3, NULL);
 
 
-	ecs_set(world, EcsWorld, EcsRest, {0});
+	//ecs_set(world, EcsWorld, EcsRest, {0});
 	while (1)
 	{
 		ecs_os_sleep(1,0);

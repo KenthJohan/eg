@@ -87,6 +87,7 @@ static void eg_log_msg1(int32_t level, const char *file, int32_t line, const cha
 	char const * text = get_text(level);
 	int len = strlen(msg);
 	struct eg_memory_entry * entry = eg_memory_pool_get(&pool, len);
+	eg_memory_entry_assert(&pool, entry);
 	char * buf = (char*)entry->memory;
 	char indent[32] = {'\0'};
 	if (level >= 0)
@@ -133,9 +134,11 @@ static bool consume_print(enum channel q)
 	rv = ck_ring_dequeue_mpmc(g_ring+q, g_rbuffer[q], (void*)&entry);
 	if (rv == true)
 	{
+		eg_memory_entry_assert(&pool, entry);
 		char * buf = (char*)entry->memory;
 		//printf("Q%i: %s\n", q, buf);
-		printf("%s\n", q, buf);
+		printf("q=%i, reuses=%i, mallocs=%i, id=%i", q, pool.amount_reuse, pool.amount_malloc, entry->id);
+		printf("%s\n", buf);
 		eg_memory_pool_reclaim(&pool, entry);
 	}
 	return rv;
