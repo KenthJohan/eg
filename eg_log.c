@@ -129,23 +129,25 @@ static bool consume_print(enum channel q)
 {
 	struct eg_memory_entry * entry;
 	bool rv;
+	// TODO: Print a batch of messages.
 	rv = ck_ring_dequeue_mpmc(g_ring+q, g_rbuffer[q], (void*)&entry);
 	if (rv == true)
 	{
 		char * buf = (char*)entry->memory;
-		printf("Q%i: %s\n", q, buf);
+		//printf("Q%i: %s\n", q, buf);
+		printf("%s\n", q, buf);
 		eg_memory_pool_reclaim(&pool, entry);
 	}
 	return rv;
 }
 
-int stall = 0;
-static void * thread1(void *arg)
+
+//static int g_stall_count = 0;
+static void * eg_log_printer_thread(void * arg)
 {
 	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 	while(1)
 	{
-		//ecs_os_sleep(1,0);
 		bool rv = consume_print(CHANNEL_STDERR) || consume_print(CHANNEL_STDOUT);
 		if (rv == true)
 		{
@@ -153,32 +155,15 @@ static void * thread1(void *arg)
 		}
 		else
 		{
-			stall++;
-			ck_pr_stall();
+			//g_stall_count++;
+			//ck_pr_stall();
 			ecs_os_sleep(0, backoff);
 			ck_backoff_eb(&backoff);
 		}
 	}
 }
 
-static void * thread2(void *arg)
-{
-	int i = 0;
-	while(1)
-	{
-		ecs_os_sleep(1,0);
-		ecs_trace("Testing %i %i", i++, stall);
-	}
-}
-static void * thread3(void *arg)
-{
-	int i = 0;
-	while(1)
-	{
-		ecs_os_sleep(0,50000);
-		ecs_trace("Testing %i %i", i++, stall);
-	}
-}
+
 
 void FlecsComponentsEgLogImport(ecs_world_t *world)
 {
@@ -192,9 +177,7 @@ void FlecsComponentsEgLogImport(ecs_world_t *world)
 	eg_memory_pool_init(&pool);
 
 	ecs_os_api.log_ = eg_log_msg1;
-	ecs_os_thread_t t1 = ecs_os_thread_new(thread1, NULL);
-	ecs_os_thread_t t2 = ecs_os_thread_new(thread2, NULL);
-	//ecs_os_thread_t t3 = ecs_os_thread_new(thread3, NULL);
+	ecs_os_thread_t t1 = ecs_os_thread_new(eg_log_printer_thread, NULL);
 }
 
 

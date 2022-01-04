@@ -9,7 +9,7 @@
 
 
 
-void main_init()
+static void main_init()
 {
 #ifdef _WIN32
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -18,6 +18,27 @@ void main_init()
 	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	SetConsoleMode (hOut, dwMode);
 #endif
+}
+
+
+static void * thread2(void *arg)
+{
+	int i = 0;
+	while(1)
+	{
+		ecs_os_sleep(1,0);
+		ecs_trace("Testing %i %i", i++, stall);
+	}
+}
+
+static void * thread3(void *arg)
+{
+	int i = 0;
+	while(1)
+	{
+		ecs_os_sleep(0,50000);
+		ecs_trace("Testing %i %i", i++, stall);
+	}
 }
 
 
@@ -38,6 +59,12 @@ int main(int argc, char *argv[])
 	ecs_trace("Testing %p", world);
 	ecs_trace("Testing %p", world);
 	ecs_trace("Testing %p", world);
+
+
+	ecs_os_thread_t t2 = ecs_os_thread_new(thread2, NULL);
+	ecs_os_thread_t t3 = ecs_os_thread_new(thread3, NULL);
+
+
 	ecs_set(world, EcsWorld, EcsRest, {0});
 	while (1)
 	{
