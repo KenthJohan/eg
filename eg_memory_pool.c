@@ -59,8 +59,8 @@ void * eg_memory_pool_malloc(unsigned size)
 void eg_memory_pool_init(struct eg_memory_pool * pool)
 {
 	EG_ASSERT(pool);
-	pool->amount_malloc = 0;
-	pool->amount_reuse = 0;
+	pool->amount_malloc = 0; // Not necessary
+	pool->amount_reuse = 0; // Not necessary
 	for (int i = 0; i < EG_MEMORY_POOL_GRID_COUNT; ++i)
 	{
 		ck_stack_init(pool->stack + i);
@@ -69,7 +69,7 @@ void eg_memory_pool_init(struct eg_memory_pool * pool)
 }
 
 
-struct eg_memory_entry * eg_memory_pool_get_grid(struct eg_memory_pool * pool, uint32_t grid)
+struct eg_memory_entry * eg_memory_pool_request_by_grid(struct eg_memory_pool * pool, uint32_t grid)
 {
 	EG_ASSERT(pool);
 	EG_ASSERT(grid < EG_MEMORY_POOL_GRID_COUNT);
@@ -102,14 +102,14 @@ void eg_memory_pool_reclaim(struct eg_memory_pool * pool, struct eg_memory_entry
 }
 
 
-struct eg_memory_entry * eg_memory_pool_get(struct eg_memory_pool * pool, uint32_t requested_size)
+struct eg_memory_entry * eg_memory_pool_request(struct eg_memory_pool * pool, uint32_t requested_size)
 {
 	EG_ASSERT(pool);
 	uint32_t grid = LOG2(requested_size) + 1;
 	uint32_t size = POW2(grid);
 	EG_ASSERT(requested_size < size);
 	struct eg_memory_entry * entry;
-	entry = eg_memory_pool_get_grid(pool, grid);
+	entry = eg_memory_pool_request_by_grid(pool, grid);
 	entry->requested_size = requested_size; // Not necessary
 	return entry;
 }
@@ -124,11 +124,11 @@ void test_eg_memory_pool()
 	struct eg_memory_pool pool;
 	eg_memory_pool_init(&pool);
 	{
-		struct eg_memory_entry * m1 = eg_memory_pool_get(&pool, 100);
-		struct eg_memory_entry * m2 = eg_memory_pool_get(&pool, 1253);
-		struct eg_memory_entry * m3 = eg_memory_pool_get(&pool, 333);
-		struct eg_memory_entry * m4 = eg_memory_pool_get(&pool, 444);
-		struct eg_memory_entry * m5 = eg_memory_pool_get(&pool, 666);
+		struct eg_memory_entry * m1 = eg_memory_pool_request(&pool, 100);
+		struct eg_memory_entry * m2 = eg_memory_pool_request(&pool, 1253);
+		struct eg_memory_entry * m3 = eg_memory_pool_request(&pool, 333);
+		struct eg_memory_entry * m4 = eg_memory_pool_request(&pool, 444);
+		struct eg_memory_entry * m5 = eg_memory_pool_request(&pool, 666);
 		sprintf((char*)m1->memory, "Entry %i", 100);
 		sprintf((char*)m2->memory, "Entry %i", 1253);
 		sprintf((char*)m3->memory, "Entry %i", 333);
@@ -142,11 +142,11 @@ void test_eg_memory_pool()
 	}
 
 	{
-		struct eg_memory_entry * m1 = eg_memory_pool_get(&pool, 100);
-		struct eg_memory_entry * m2 = eg_memory_pool_get(&pool, 1253);
-		struct eg_memory_entry * m3 = eg_memory_pool_get(&pool, 333);
-		struct eg_memory_entry * m4 = eg_memory_pool_get(&pool, 444);
-		struct eg_memory_entry * m5 = eg_memory_pool_get(&pool, 666);
+		struct eg_memory_entry * m1 = eg_memory_pool_request(&pool, 100);
+		struct eg_memory_entry * m2 = eg_memory_pool_request(&pool, 1253);
+		struct eg_memory_entry * m3 = eg_memory_pool_request(&pool, 333);
+		struct eg_memory_entry * m4 = eg_memory_pool_request(&pool, 444);
+		struct eg_memory_entry * m5 = eg_memory_pool_request(&pool, 666);
 		EG_ASSERT(strcmp((char*)m1->memory, "Entry 100") == 0);
 		EG_ASSERT(strcmp((char*)m2->memory, "Entry 1253") == 0);
 		EG_ASSERT(strcmp((char*)m3->memory, "Entry 444") == 0);// Note: this is before Entry 333

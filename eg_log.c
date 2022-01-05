@@ -86,7 +86,7 @@ static void eg_log_msg(int32_t level, const char *file, int32_t line, const char
 	char const * color = eg_get_log_color(level);
 	char const * text = eg_get_log_title(level);
 	int len = strlen(msg);
-	struct eg_memory_entry * entry = eg_memory_pool_get(&pool, len);
+	struct eg_memory_entry * entry = eg_memory_pool_request(&pool, len);
 	eg_memory_pool_assert(&pool, entry);
 	char * buf = (char*)entry->memory;
 	char indent[32] = {'\0'};
