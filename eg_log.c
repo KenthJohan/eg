@@ -87,7 +87,7 @@ static void eg_log_msg1(int32_t level, const char *file, int32_t line, const cha
 	char const * text = get_text(level);
 	int len = strlen(msg);
 	struct eg_memory_entry * entry = eg_memory_pool_get(&pool, len);
-	eg_memory_entry_assert(&pool, entry);
+	eg_memory_pool_assert(&pool, entry);
 	char * buf = (char*)entry->memory;
 	char indent[32] = {'\0'};
 	if (level >= 0)
@@ -107,12 +107,12 @@ static void eg_log_msg1(int32_t level, const char *file, int32_t line, const cha
 	enum channel q;
 	if (level < 0)
 	{
-		sprintf(buf, "%s%s"ECS_NORMAL": %s%s:%d: %s", color, text, indent, file, line, msg);
+		sprintf(buf, "%s%s"ECS_NORMAL": %s%s:%d: %s\n", color, text, indent, file, line, msg);
 		q = CHANNEL_STDERR;
 	}
 	else
 	{
-		sprintf(buf, "%s%s"ECS_NORMAL":%s %s", color, text, indent, msg);
+		sprintf(buf, "%s%s"ECS_NORMAL":%s %s\n", color, text, indent, msg);
 		q = CHANNEL_STDOUT;
 	}
 	enqueue_blocking(q, entry);
@@ -134,11 +134,20 @@ static bool consume_print(enum channel q)
 	rv = ck_ring_dequeue_mpmc(g_ring+q, g_rbuffer[q], (void*)&entry);
 	if (rv == true)
 	{
-		eg_memory_entry_assert(&pool, entry);
+		eg_memory_pool_assert(&pool, entry);
 		char * buf = (char*)entry->memory;
 		//printf("Q%i: %s\n", q, buf);
-		printf("q=%i, reuses=%i, mallocs=%i, id=%i", q, pool.amount_reuse, pool.amount_malloc, entry->id);
-		printf("%s\n", buf);
+		//printf("q=%i, reuses=%i, mallocs=%i, id=%i", q, pool.amount_reuse, pool.amount_malloc, entry->id);
+		//printf("%s\n", buf);
+		switch (q)
+		{
+		case CHANNEL_STDOUT:
+			fputs(buf, stdout);
+			break;
+		case CHANNEL_STDERR:
+			fputs(buf, stderr);
+			break;
+		}
 		eg_memory_pool_reclaim(&pool, entry);
 	}
 	return rv;
@@ -182,6 +191,4 @@ void FlecsComponentsEgLogImport(ecs_world_t *world)
 	ecs_os_api.log_ = eg_log_msg1;
 	ecs_os_thread_t t1 = ecs_os_thread_new(eg_log_printer_thread, NULL);
 }
-
-
 

@@ -1,7 +1,8 @@
 #include "eg_memory_pool.h"
-#include <assert.h>
 #include <stdlib.h>
-//#include <stdio.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 
 
 
@@ -10,25 +11,43 @@
 #define POW2(x) (1 << (x))
 //#define POW2_NEAREST(x) 1 << (32 - __builtin_clz((x) - 1));
 
-void eg_memory_entry_assert(struct eg_memory_pool * pool, struct eg_memory_entry * entry)
+#if 1
+#define EG_ASSERT(x) (void)((!!(x)) || (eg_soft_assert(__FILE__, __LINE__, #x),0) || (__builtin_trap(),0))
+void eg_soft_assert(char const * file, int line, char const * e)
 {
-	if (pool == NULL)
-	{
-		assert(0);
-	}
-	if (entry == NULL)
-	{
-		assert(0);
-	}
-	if (pool != entry->pool)
-	{
-		assert(0);
-	}
-	if (entry->grid > EG_MEMORY_POOL_GRID_COUNT)
-	{
-		assert(0);
-	}
+	fprintf(stderr, "%s:%i: %s\n", file, line, e);
 }
+#else
+#define EG_ASSERT(x)
+#endif
+
+#if 0
+#define EG_TRACE(...) eg_trace(__FILE__, __LINE__, __VA_ARGS__)
+void eg_trace(const char *file, int32_t line, const char *fmt, ...)
+{
+	char buf[1024];
+	char * p = buf;
+	va_list args;
+	va_start(args, fmt);
+	p += snprintf(p, 512, "%s:%i:", file, line);
+	vsnprintf(p, 512, fmt, args);
+	fputs(buf, stdout);
+	va_end(args);
+}
+#else
+#define EG_TRACE(...)
+#endif
+
+
+
+void eg_memory_pool_assert(struct eg_memory_pool * pool, struct eg_memory_entry * entry)
+{
+	EG_ASSERT(pool != NULL);
+	EG_ASSERT(entry != NULL);
+	EG_ASSERT(pool == entry->pool);
+	EG_ASSERT(entry->grid < EG_MEMORY_POOL_GRID_COUNT);
+}
+
 
 void * eg_memory_pool_malloc(unsigned size)
 {
@@ -37,67 +56,61 @@ void * eg_memory_pool_malloc(unsigned size)
 }
 
 
-
 void eg_memory_pool_init(struct eg_memory_pool * pool)
 {
-	assert(pool);
+	EG_ASSERT(pool);
 	pool->amount_malloc = 0;
 	pool->amount_reuse = 0;
 	for (int i = 0; i < EG_MEMORY_POOL_GRID_COUNT; ++i)
 	{
 		ck_stack_init(pool->stack + i);
-		//size_t size = POW2(i);
-		//printf("grid=%i, size=%i\n", i, (int)size);
+		EG_TRACE("grid=%i, size=%i\n", i, (int)POW2(i));
 	}
 }
 
 
-struct eg_memory_entry * eg_memory_pool_get_grid(struct eg_memory_pool * pool, unsigned grid)
+struct eg_memory_entry * eg_memory_pool_get_grid(struct eg_memory_pool * pool, uint32_t grid)
 {
-	assert(pool);
-	assert(grid < EG_MEMORY_POOL_GRID_COUNT);
+	EG_ASSERT(pool);
+	EG_ASSERT(grid < EG_MEMORY_POOL_GRID_COUNT);
 	ck_stack_entry_t *ref = ck_stack_pop_mpmc(pool->stack + grid);
 	struct eg_memory_entry * entry;
 	if (ref)
 	{
 		entry = eg_memory_entry_get(ref);
-		pool->amount_reuse++;
-		//printf("Reuse grid=%i\n", grid);
+		ck_pr_faa_32(&pool->amount_reuse, 1); // Not necessary
+		EG_TRACE("Reuse grid=%i\n", grid);
 	}
 	else
 	{
-		int size = POW2(grid);
+		uint32_t size = POW2(grid);
 		entry = eg_memory_pool_malloc(sizeof(struct eg_memory_entry) + size);
-		entry->pool = pool;
-		entry->grid = grid;
-		pool->amount_malloc++;
-		entry->id = pool->amount_malloc;
-		//printf("Malloc size=%i, grid=%i\n", size, grid);
+		entry->pool = pool; // Not necessary
+		entry->grid = grid; // Not necessary
+		entry->id = ck_pr_faa_32(&pool->amount_malloc, 1); // Not necessary
+		EG_TRACE("Malloc size=%i, grid=%i\n", size, grid);
 	}
-	eg_memory_entry_assert(pool, entry);
+	eg_memory_pool_assert(pool, entry);
 	return entry;
 }
 
 void eg_memory_pool_reclaim(struct eg_memory_pool * pool, struct eg_memory_entry * entry)
 {
-	assert(pool);
-	eg_memory_entry_assert(pool, entry);
+	EG_ASSERT(pool);
+	eg_memory_pool_assert(pool, entry);
 	ck_stack_push_mpmc(pool->stack + entry->grid, &entry->next);
 }
 
 
-struct eg_memory_entry * eg_memory_pool_get(struct eg_memory_pool * pool, int size)
+struct eg_memory_entry * eg_memory_pool_get(struct eg_memory_pool * pool, uint32_t requested_size)
 {
-	assert(pool);
-	int grid = LOG2(size);
-	int size2 = POW2(grid);
-	if(size < size2)
-	{
-		assert(0);
-	}
+	EG_ASSERT(pool);
+	uint32_t grid = LOG2(requested_size) + 1;
+	uint32_t size = POW2(grid);
+	EG_ASSERT(requested_size < size);
 	struct eg_memory_entry * entry;
 	entry = eg_memory_pool_get_grid(pool, grid);
-	entry->requested_size = size;
+	entry->requested_size = requested_size; // Not necessary
 	return entry;
 }
 
@@ -134,11 +147,11 @@ void test_eg_memory_pool()
 		struct eg_memory_entry * m3 = eg_memory_pool_get(&pool, 333);
 		struct eg_memory_entry * m4 = eg_memory_pool_get(&pool, 444);
 		struct eg_memory_entry * m5 = eg_memory_pool_get(&pool, 666);
-		assert(strcmp((char*)m1->memory, "Entry 100") == 0);
-		assert(strcmp((char*)m2->memory, "Entry 1253") == 0);
-		assert(strcmp((char*)m3->memory, "Entry 444") == 0);// Note: this is before Entry 333
-		assert(strcmp((char*)m4->memory, "Entry 333") == 0);
-		assert(strcmp((char*)m5->memory, "Entry 666") == 0);
+		EG_ASSERT(strcmp((char*)m1->memory, "Entry 100") == 0);
+		EG_ASSERT(strcmp((char*)m2->memory, "Entry 1253") == 0);
+		EG_ASSERT(strcmp((char*)m3->memory, "Entry 444") == 0);// Note: this is before Entry 333
+		EG_ASSERT(strcmp((char*)m4->memory, "Entry 333") == 0);
+		EG_ASSERT(strcmp((char*)m5->memory, "Entry 666") == 0);
 	}
 }
 
