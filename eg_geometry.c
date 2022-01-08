@@ -5,7 +5,6 @@ ECS_COMPONENT_DECLARE(EgRectangleF32);
 ECS_COMPONENT_DECLARE(EgRectangleI32);
 ECS_COMPONENT_DECLARE(EgPosition2F32);
 ECS_COMPONENT_DECLARE(EgPosition2I32);
-ECS_COMPONENT_DECLARE(EgWindow);
 
 
 
@@ -16,7 +15,6 @@ void FlecsComponentsEgGeometryImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgRectangleI32);
 	ECS_COMPONENT_DEFINE(world, EgPosition2F32);
 	ECS_COMPONENT_DEFINE(world, EgPosition2I32);
-	ECS_COMPONENT_DEFINE(world, EgWindow);
 
 	ecs_set_name_prefix(world, "Eg");
 
@@ -52,12 +50,6 @@ void FlecsComponentsEgGeometryImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_struct_init(world, &(ecs_struct_desc_t) {
-	.entity.entity = ecs_id(EgWindow),
-	.members = {
-	{ .name = "title", .type = ecs_id(ecs_string_t) }
-	}
-	});
 
 }
 

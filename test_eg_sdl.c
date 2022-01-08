@@ -7,6 +7,7 @@
 
 #include "eg_sdl.h"
 #include "eg_geometry.h"
+#include "eg_window.h"
 
 
 
@@ -23,6 +24,7 @@ int main(int argc, char *argv[])
 
 	ECS_IMPORT(world, FlecsComponentsEgSDL);
 	ECS_IMPORT(world, FlecsComponentsEgGeometry);
+	ECS_IMPORT(world, FlecsComponentsEgWindow);
 
 	ecs_entity_t e = ecs_new(world, 0);
 	ecs_set(world, e, EgWindow, {NULL});

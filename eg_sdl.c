@@ -1,5 +1,6 @@
 #include "eg_sdl.h"
 #include "eg_geometry.h"
+#include "eg_window.h"
 #include <SDL2/SDL.h>
 
 typedef struct
@@ -63,7 +64,9 @@ void FlecsComponentsEgSDLImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, FlecsComponentsEgSDL);
 	ECS_IMPORT(world, FlecsComponentsEgGeometry);
+	ECS_IMPORT(world, FlecsComponentsEgWindow);
 	ecs_set_name_prefix(world, "Eg");
+	
 	SDL_Init(SDL_INIT_VIDEO);
 	
 	ECS_COMPONENT_DEFINE(world, Eg_SDL_Window);

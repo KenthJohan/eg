@@ -15,6 +15,7 @@ INCLUDEPATH += ck/include
 SOURCES += test_eg_sdl.c
 SOURCES += eg_sdl.c
 SOURCES += eg_geometry.c
+SOURCES += eg_window.c
 SOURCES += flecs.c
 
 
