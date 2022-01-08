@@ -20,6 +20,9 @@ SOURCES += flecs.c
 
 
 HEADERS += flecs.h
+HEADERS += eg_sdl.h
+HEADERS += eg_geometry.h
+HEADERS += eg_window.h
 
 
 LIBS += -lmingw32 -lSDL2main -lSDL2 -lws2_32

@@ -21,6 +21,7 @@ void Create_Window(ecs_iter_t *it)
 		if (w[i].title) {snprintf(title, 128, "%", title);}
 		else {snprintf(title, 128, "Undefined title %s:%i", __FILE__, __LINE__);}
 		ecs_trace("Creating SDL Window 0x%x : %s", it->entities[i], title);
+		// https://wiki.libsdl.org/SDL_CreateWindow
 		SDL_Window * window = SDL_CreateWindow(
 			title,
 			SDL_WINDOWPOS_UNDEFINED,
@@ -33,12 +34,14 @@ void Create_Window(ecs_iter_t *it)
     }
 }
 
+
 void Destroy_Window(ecs_iter_t *it)
 {
     Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
     for (int i = 0; i < it->count; i ++)
     {
 		SDL_Window * window = w[i].window;
+		// https://wiki.libsdl.org/SDL_GetWindowTitle
 		char const * title = SDL_GetWindowTitle(window);
 		ecs_trace("Removing SDL Window 0x%x : %s", it->entities[i], title);
 		SDL_DestroyWindow(window);
@@ -48,17 +51,41 @@ void Destroy_Window(ecs_iter_t *it)
 
 void Update_Window(ecs_iter_t *it)
 {
-    Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
+    Eg_SDL_Window *s = ecs_term(it, Eg_SDL_Window, 1);
+    EgWindow *w = ecs_term(it, EgWindow, 2);
     for (int i = 0; i < it->count; i ++)
     {
-		w[i].elapsed_milliseconds = SDL_GetTicks();
-		if(w[i].elapsed_milliseconds > 1000*5)
+		uint64_t * userinput = w[i].userinput;
+		// https://wiki.libsdl.org/SDL_GetTicks
+		s[i].elapsed_milliseconds = SDL_GetTicks();
+		if(s[i].elapsed_milliseconds > 1000*10)
 		{
 			//ecs_remove(it->world, it->entities[i], Eg_SDL_Window);
 			ecs_delete(it->world, it->entities[i]);
 		}
+		
+		SDL_Event event;
+		while(SDL_PollEvent(&event))
+		{
+			switch(event.type)
+			{
+			case SDL_KEYDOWN:
+				if(event.key.keysym.sym < (64*4)){EG_USRINPUT_ADD(userinput, event.key.keysym.sym);}
+				break;
+			case SDL_KEYUP:
+				if(event.key.keysym.sym < (64*4)){EG_USRINPUT_DEL(userinput, event.key.keysym.sym);}
+				break;
+			}
+		}
+		
+		if(EG_USRINPUT_GET(userinput, SDLK_ESCAPE))
+		{
+			ecs_delete(it->world, it->entities[i]);
+		}
+		
     }
 }
+
 
 void FlecsComponentsEgSDLImport(ecs_world_t *world)
 {
@@ -73,7 +100,7 @@ void FlecsComponentsEgSDLImport(ecs_world_t *world)
 
     ECS_OBSERVER(world, Create_Window, EcsOnSet, EgWindow, EgRectangleI32);
 	ECS_TRIGGER(world, Destroy_Window, EcsOnRemove, Eg_SDL_Window);
-	ECS_SYSTEM(world, Update_Window, EcsOnUpdate, Eg_SDL_Window);
+	ECS_SYSTEM(world, Update_Window, EcsOnUpdate, Eg_SDL_Window, EgWindow);
 	
 }
 
