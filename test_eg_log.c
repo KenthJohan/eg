@@ -26,8 +26,8 @@ static void * thread1(void *arg)
 	int i = INT_MAX;
 	while(1)
 	{
-		ecs_os_sleep(0,40000);
-		ecs_trace("Testing %i", i--);
+		ecs_os_sleep(0,100000000);
+		ecs_trace("thread1 %i", i--);
 	}
 }
 
@@ -36,8 +36,8 @@ static void * thread2(void *arg)
 	int i = 0;
 	while(1)
 	{
-		ecs_os_sleep(0,50000);
-		ecs_trace("Testing %i", i++);
+		ecs_os_sleep(0,500000000);
+		ecs_trace("thread2 %i", i++);
 	}
 }
 
@@ -46,8 +46,8 @@ static void * thread3(void *arg)
 	int i = 0;
 	while(1)
 	{
-		ecs_os_sleep(0,50000);
-		ecs_trace("Testing %x", i++);
+		ecs_os_sleep(0,800000000);
+		ecs_trace("thread3 %x", i++);
 	}
 }
 
@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	ecs_os_thread_t t3 = ecs_os_thread_new(thread3, NULL);
 
 
-	//ecs_set(world, EcsWorld, EcsRest, {0});
+	ecs_set(world, EcsWorld, EcsRest, {0});
 	while (1)
 	{
 		ecs_os_sleep(1,0);

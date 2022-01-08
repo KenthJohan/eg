@@ -36,7 +36,7 @@ enum eg_log_channel
 	EG_LOG_CHANNEL_STDERR,
 	EG_LOG_CHANNEL_COUNT
 };
-#define EG_LOG_RING_CAPACITY 64
+#define EG_LOG_RING_CAPACITY 16
 static ck_ring_t g_ring[EG_LOG_CHANNEL_COUNT];
 static ck_ring_buffer_t * g_ringbuf[EG_LOG_CHANNEL_COUNT];
 static struct eg_memory_pool pool;
@@ -137,7 +137,7 @@ static bool consume_print(enum eg_log_channel channel)
 		eg_memory_pool_assert(&pool, entry);
 		char * buf = (char*)entry->memory;
 		//printf("Q%i: %s\n", q, buf);
-		//printf("q=%i, reuses=%i, mallocs=%i, id=%i", q, pool.amount_reuse, pool.amount_malloc, entry->id);
+		printf("reuses=%i, mallocs=%i, id=%i:   ", pool.amount_reuse, pool.amount_malloc, entry->id);
 		//printf("%s\n", buf);
 		switch (channel)
 		{

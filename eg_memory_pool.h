@@ -26,7 +26,7 @@ void eg_memory_pool_assert(struct eg_memory_pool * pool, struct eg_memory_entry 
 void eg_memory_pool_init(struct eg_memory_pool * pool);
 void eg_memory_pool_reclaim(struct eg_memory_pool * pool, struct eg_memory_entry * entry);
 struct eg_memory_entry * eg_memory_pool_get_grid(struct eg_memory_pool * pool, uint32_t grid);
-struct eg_memory_entry * eg_memory_pool_get(struct eg_memory_pool * pool, uint32_t size);
+struct eg_memory_entry * eg_memory_pool_request(struct eg_memory_pool * pool, uint32_t size);
 
 void test_eg_memory_pool();
 

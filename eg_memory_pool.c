@@ -52,6 +52,7 @@ void eg_memory_pool_assert(struct eg_memory_pool * pool, struct eg_memory_entry 
 void * eg_memory_pool_malloc(unsigned size)
 {
 	void * v = malloc(size);
+	memset(v, 0, size);
 	return v;
 }
 
