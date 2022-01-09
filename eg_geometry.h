@@ -25,11 +25,18 @@ typedef struct
 	ecs_i32_t height;
 } EgRectangleI32;
 
+typedef struct
+{
+	ecs_f32_t x;
+	ecs_f32_t y;
+} EgVelocity2F32;
+
 
 extern ECS_COMPONENT_DECLARE(EgRectangleF32);
 extern ECS_COMPONENT_DECLARE(EgRectangleI32);
 extern ECS_COMPONENT_DECLARE(EgPosition2F32);
 extern ECS_COMPONENT_DECLARE(EgPosition2I32);
+extern ECS_COMPONENT_DECLARE(EgVelocity2F32);
 
 
 void FlecsComponentsEgGeometryImport(ecs_world_t *world);

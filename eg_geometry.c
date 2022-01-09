@@ -5,16 +5,18 @@ ECS_COMPONENT_DECLARE(EgRectangleF32);
 ECS_COMPONENT_DECLARE(EgRectangleI32);
 ECS_COMPONENT_DECLARE(EgPosition2F32);
 ECS_COMPONENT_DECLARE(EgPosition2I32);
-
+ECS_COMPONENT_DECLARE(EgVelocity2F32);
 
 
 void FlecsComponentsEgGeometryImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, FlecsComponentsEgGeometry);
+
 	ECS_COMPONENT_DEFINE(world, EgRectangleF32);
 	ECS_COMPONENT_DEFINE(world, EgRectangleI32);
 	ECS_COMPONENT_DEFINE(world, EgPosition2F32);
 	ECS_COMPONENT_DEFINE(world, EgPosition2I32);
+	ECS_COMPONENT_DEFINE(world, EgVelocity2F32);
 
 	ecs_set_name_prefix(world, "Eg");
 

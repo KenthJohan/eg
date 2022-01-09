@@ -262,19 +262,23 @@ static void Draw_Rectangle(ecs_iter_t *it)
 
 static void Render_Mesh(ecs_iter_t *it)
 {
-    Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1); //Parent
+	//EG_ITER_INFO(it);
+	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
     Eg_SDL_Mesh *m = ecs_term(it, Eg_SDL_Mesh, 2);
     for (int i = 0; i < it->count; i ++)
     {
-		SDL_Renderer *renderer = w[0].renderer;
+		SDL_Renderer *renderer = w[i].renderer;
 		SDL_Vertex * v = m[i].v;
 		EG_ASSERT(renderer);
 		EG_ASSERT(v);
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderClear(renderer);
-		SDL_RenderGeometry(renderer, NULL, v, m[i].count, NULL, 0);
-		SDL_RenderPresent(renderer);
-		m[i].count = 0;
+		if (m[i].count > 0)
+		{
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+			SDL_RenderClear(renderer);
+			SDL_RenderGeometry(renderer, NULL, v, m[i].count, NULL, 0);
+			SDL_RenderPresent(renderer);
+			m[i].count = 0;
+		}
     }
 }
 
@@ -291,6 +295,26 @@ static void Change_Window_Size(ecs_iter_t *it)
 		if (w[i].window)
 		{
 			SDL_SetWindowSize(w[i].window, r[i].width, r[i].height);
+		}
+	}
+}
+
+
+static void Update_Window_Size(ecs_iter_t *it)
+{
+	//EG_ITER_INFO(it);
+	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
+	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
+	for (int i = 0; i < it->count; i ++)
+	{
+		//https://wiki.libsdl.org/SDL_SetWindowSize
+		if (w[i].window)
+		{
+			int width;
+			int height;
+			SDL_GetWindowSize(w[i].window, &width, &height);
+			r[i].width = width;
+			r[i].height = height;
 		}
 	}
 }
@@ -381,6 +405,7 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	ECS_SYSTEM(world, Draw_Rectangle, EcsOnUpdate, Eg_SDL_Mesh(parent), EgPosition2F32, EgRectangleF32);
 	ECS_SYSTEM(world, Render_Mesh, EcsOnUpdate, Eg_SDL_Window, Eg_SDL_Mesh);
 	ECS_SYSTEM(world, Update_Userinput, EcsOnUpdate, $EgUserinput);
+	ECS_SYSTEM(world, Update_Window_Size, EcsOnUpdate, Eg_SDL_Window, EgRectangleI32);
 	
 }
 
