@@ -109,8 +109,9 @@ ECS_COPY(Eg_SDL_Mesh, dst, src, {Eg_SDL_Mesh_COPY(dst, src);})
 
 
 
-
-
+#define MAX_WINDOWS 16
+static ecs_entity_t g_sdl_wents[MAX_WINDOWS];
+static SDL_Window * g_sdl_windows[MAX_WINDOWS];
 
 
 
@@ -138,6 +139,9 @@ static void Create_Window(ecs_iter_t *it)
 		r[i].height,
 		SDL_WINDOW_OPENGL
 		);
+		int id = SDL_GetWindowID(window);
+		g_sdl_wents[id] = e;
+		g_sdl_windows[id] = window;
 		EG_ASSERT(window);
 		SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 		EG_ASSERT(renderer);
@@ -159,11 +163,14 @@ static void Destroy_Window(ecs_iter_t *it)
     for (int i = 0; i < it->count; i ++)
     {
 		ecs_entity_t e = it->entities[i];
-		SDL_Window * window = w[i].window;
-		// https://wiki.libsdl.org/SDL_GetWindowTitle
-		char const * title = SDL_GetWindowTitle(window);
-		EG_TRACE("SDL_DestroyWindow 0x%x : %s", e, title);
-		SDL_DestroyWindow(window);
+		if (w[i].window)
+		{
+			// https://wiki.libsdl.org/SDL_GetWindowTitle
+			char const * title = SDL_GetWindowTitle(w[i].window);
+			EG_TRACE("SDL_DestroyWindow 0x%x : %s", e, title);
+			SDL_DestroyWindow(w[i].window);
+			w[i].window = NULL;
+		}
     }
 }
 
@@ -171,12 +178,11 @@ static void Destroy_Window(ecs_iter_t *it)
 static void Update_Window(ecs_iter_t *it)
 {
     Eg_SDL_Window *s = ecs_term(it, Eg_SDL_Window, 1);
-    EgWindow *w = ecs_term(it, EgWindow, 2);
-	EgUserinput *input = ecs_singleton_get_mut(it->world, EgUserinput);
+	EgWindow *w = ecs_term(it, EgWindow, 2);
     for (int i = 0; i < it->count; i ++)
     {
+		ecs_entity_t e = it->entities[i];
 		w[i].counter++;
-
 		// https://wiki.libsdl.org/SDL_GetTicks
 		s[i].elapsed_milliseconds = SDL_GetTicks();
 		if(s[i].elapsed_milliseconds > 1000*10)
@@ -184,48 +190,14 @@ static void Update_Window(ecs_iter_t *it)
 			//ecs_remove(it->world, it->entities[i], Eg_SDL_Window);
 			//ecs_delete(it->world, it->entities[i]);
 		}
-		
-		memset(input->keyboard_up, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
-		memset(input->keyboard_down, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
-		//https://wiki.libsdl.org/SDL_PollEvent
-		SDL_Event event;
-		while(SDL_PollEvent(&event))
+		if (s[i].window == NULL)
 		{
-			switch(event.type)
-			{
-			case SDL_QUIT:
-				EG_TRACE("SDL_QUIT");
-				ecs_delete(it->world, it->entities[i]);
-				break;
-			case SDL_KEYDOWN:
-				if(event.key.keysym.scancode < EG_NUM_KEYS)
-				{
-					EG_U64BITSET_ON(input->keyboard, event.key.keysym.scancode);
-					EG_U64BITSET_ON(input->keyboard_down, event.key.keysym.scancode);
-				}
-				break;
-			case SDL_KEYUP:
-				if(event.key.keysym.scancode < EG_NUM_KEYS)
-				{
-					EG_U64BITSET_OFF(input->keyboard, event.key.keysym.scancode);
-					EG_U64BITSET_ON(input->keyboard_up, event.key.keysym.scancode);
-				}
-				break;
-			case SDL_MOUSEMOTION:
-				input->mouse_x = event.motion.x;
-				input->mouse_y = event.motion.y;
-				input->mouse_dx = event.motion.xrel;
-				input->mouse_dy = event.motion.yrel;
-				//EG_TRACE("%i %i %i %i", input->mouse_x, input->mouse_y, input->mouse_dx, input->mouse_dy);
-				break;
-			}
+			EG_TRACE("window is null");
 		}
-
-
-		
-		if(EG_U64BITSET_GET(input->keyboard, SDL_SCANCODE_ESCAPE))
+		if (w[i].should_destroy)
 		{
-			//ecs_delete(it->world, it->entities[i]);
+			EG_TRACE("should_destroy is true. Deleting entity 0x%016x", e);
+			ecs_delete(it->world, e);
 		}
     }
 }
@@ -316,10 +288,64 @@ static void Change_Window_Size(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i ++)
 	{
 		//https://wiki.libsdl.org/SDL_SetWindowSize
-		SDL_SetWindowSize(w[i].window, r[i].width, r[i].height);
+		if (w[i].window)
+		{
+			SDL_SetWindowSize(w[i].window, r[i].width, r[i].height);
+		}
 	}
 }
 
+
+static void Update_Userinput(ecs_iter_t *it)
+{
+	EgUserinput *input = ecs_term(it, EgUserinput, 1); //Singleton
+	memset(input->keyboard_up, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
+	memset(input->keyboard_down, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
+	SDL_Event event;
+	while(SDL_PollEvent(&event))
+	{
+		switch(event.type)
+		{
+		case SDL_WINDOWEVENT:
+			//EG_TRACE("SDL_WINDOWEVENT");
+			if(event.window.event == SDL_WINDOWEVENT_CLOSE)
+			{
+				ecs_entity_t e = g_sdl_wents[event.window.windowID];
+				EgWindow * w = ecs_get_mut(it->world, e, EgWindow, NULL);
+				w->should_destroy = true;
+				SDL_Window * win = SDL_GetWindowFromID(event.window.windowID);
+				EG_TRACE("SDL_WINDOWEVENT_CLOSE %i %p", event.window.windowID, win);
+				//SDL_DestroyWindow(win);
+			}
+			break;
+		case SDL_QUIT:
+			EG_TRACE("SDL_QUIT");
+			//ecs_delete(it->world, it->entities[i]);
+			break;
+		case SDL_KEYDOWN:
+			if(event.key.keysym.scancode < EG_NUM_KEYS)
+			{
+				EG_U64BITSET_ON(input->keyboard, event.key.keysym.scancode);
+				EG_U64BITSET_ON(input->keyboard_down, event.key.keysym.scancode);
+			}
+			break;
+		case SDL_KEYUP:
+			if(event.key.keysym.scancode < EG_NUM_KEYS)
+			{
+				EG_U64BITSET_OFF(input->keyboard, event.key.keysym.scancode);
+				EG_U64BITSET_ON(input->keyboard_up, event.key.keysym.scancode);
+			}
+			break;
+		case SDL_MOUSEMOTION:
+			input->mouse_x = event.motion.x;
+			input->mouse_y = event.motion.y;
+			input->mouse_dx = event.motion.xrel;
+			input->mouse_dy = event.motion.yrel;
+			//EG_TRACE("%i %i %i %i", input->mouse_x, input->mouse_y, input->mouse_dx, input->mouse_dy);
+			break;
+		}
+	}
+}
 
 
 void FlecsComponentsEgSdlImport(ecs_world_t *world)
@@ -346,12 +372,15 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	
 	ecs_singleton_set(world, EgUserinput, { 0 });
 	
-	ECS_OBSERVER(world, Create_Window, EcsOnAdd, EgWindow, EgRectangleI32);
 	ECS_TRIGGER(world, Destroy_Window, EcsOnRemove, Eg_SDL_Window);
+
+	ECS_OBSERVER(world, Create_Window, EcsOnAdd, EgWindow, EgRectangleI32);
+	ECS_OBSERVER(world, Change_Window_Size, EcsOnSet, Eg_SDL_Window, EgRectangleI32);
+
 	ECS_SYSTEM(world, Update_Window, EcsOnUpdate, Eg_SDL_Window, EgWindow);
 	ECS_SYSTEM(world, Draw_Rectangle, EcsOnUpdate, Eg_SDL_Mesh(parent), EgPosition2F32, EgRectangleF32);
 	ECS_SYSTEM(world, Render_Mesh, EcsOnUpdate, Eg_SDL_Window, Eg_SDL_Mesh);
-	ECS_OBSERVER(world, Change_Window_Size, EcsOnSet, Eg_SDL_Window, EgRectangleI32);
+	ECS_SYSTEM(world, Update_Userinput, EcsOnUpdate, $EgUserinput);
 	
 }
 

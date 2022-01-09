@@ -101,6 +101,15 @@ int main(int argc, char *argv[])
 	ecs_set(world, e3, EgPosition2F32, {0, 0});
 	ecs_set(world, e3, EgRectangleF32, {80, 80});
 
+
+	/*
+	ecs_entity_t e4 = ecs_new(world, 0);
+	ecs_set_name(world, e4, "My app");
+	ecs_set(world, e4, EgRectangleI32, {800, 800});
+	ecs_set(world, e4, EgWindow, {NULL, 0});
+	*/
+
+
 	ecs_set(world, EcsWorld, EcsRest, {0});
 	
 	while (1)

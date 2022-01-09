@@ -5,6 +5,7 @@ typedef struct
 {
 	ecs_string_t title;
 	ecs_u64_t counter;
+	ecs_bool_t should_destroy;
 } EgWindow;
 
 typedef struct

@@ -18,7 +18,8 @@ void FlecsComponentsEgWindowImport(ecs_world_t *world)
 	.entity.entity = ecs_id(EgWindow),
 	.members = {
 	{ .name = "title", .type = ecs_id(ecs_string_t) },
-	{ .name = "counter", .type = ecs_id(ecs_u64_t) }
+	{ .name = "counter", .type = ecs_id(ecs_u64_t) },
+	{ .name = "should_destroy", .type = ecs_id(ecs_bool_t) }
 	}
 	});
 
