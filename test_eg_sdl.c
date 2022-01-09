@@ -52,11 +52,12 @@ static void Move_Player(ecs_iter_t *it)
 		//EG_TRACE("%f %f", dx, dy);
 		p[i].x += 0.1f*dx;
 		p[i].y += -0.1f*dy;
-		float p = 0;
-		p += 2.0f*EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_PLUS);
-		p -= 2.0f*EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_MINUS);
-		r[i].width += p;
-		r[i].height += p;
+		float k = 10.0f;
+		k *= EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_PLUS) - EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_MINUS);
+		r[i].width += k;
+		r[i].height += k;
+		p[i].x -= k*0.5f;
+		p[i].y -= k*0.5f;
 	}
 }
 
@@ -85,8 +86,8 @@ int main(int argc, char *argv[])
 
 	ecs_entity_t e1 = ecs_new(world, 0);
 	ecs_set_name(world, e1, "My app");
+	ecs_set(world, e1, EgRectangleI32, {800, 800});
 	ecs_set(world, e1, EgWindow, {NULL, 0});
-	ecs_set(world, e1, EgRectangleI32, {400, 300});
 	
 	ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, e1);
 	ecs_set(world, e2, EgDraw, {1});
@@ -106,6 +107,21 @@ int main(int argc, char *argv[])
 	{
 		ecs_os_sleep(0,100000);
 		ecs_progress(world, 0);
+
+		EgUserinput const * k = ecs_singleton_get(world, EgUserinput);
+		if (EG_U64BITSET_GET(k->keyboard_down, EG_KEY_1))
+		{
+			ecs_set(world, e1, EgRectangleI32, {200, 200});
+		}
+		if (EG_U64BITSET_GET(k->keyboard_down, EG_KEY_2))
+		{
+			ecs_set(world, e1, EgRectangleI32, {400, 400});
+		}
+		if (EG_U64BITSET_GET(k->keyboard_down, EG_KEY_3))
+		{
+			ecs_set(world, e1, EgRectangleI32, {800, 800});
+		}
+
 	}
 
 	return 0;

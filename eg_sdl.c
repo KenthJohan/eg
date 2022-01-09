@@ -128,6 +128,7 @@ static void Create_Window(ecs_iter_t *it)
     for (int i = 0; i < it->count; i ++)
     {
 		ecs_entity_t e = it->entities[i];
+		EG_TRACE("SDL_CreateWindow 0x%x", e);
 		// https://wiki.libsdl.org/SDL_CreateWindow
 		SDL_Window * window = SDL_CreateWindow(
 		w[i].title ? w[i].title : "Undefined",
@@ -181,7 +182,7 @@ static void Update_Window(ecs_iter_t *it)
 		if(s[i].elapsed_milliseconds > 1000*10)
 		{
 			//ecs_remove(it->world, it->entities[i], Eg_SDL_Window);
-			ecs_delete(it->world, it->entities[i]);
+			//ecs_delete(it->world, it->entities[i]);
 		}
 		
 		memset(input->keyboard_up, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
@@ -307,6 +308,19 @@ static void Render_Mesh(ecs_iter_t *it)
 
 
 
+static void Change_Window_Size(ecs_iter_t *it)
+{
+	EG_ITER_INFO(it);
+	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
+	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
+	for (int i = 0; i < it->count; i ++)
+	{
+		//https://wiki.libsdl.org/SDL_SetWindowSize
+		SDL_SetWindowSize(w[i].window, r[i].width, r[i].height);
+	}
+}
+
+
 
 void FlecsComponentsEgSdlImport(ecs_world_t *world)
 {
@@ -332,11 +346,12 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	
 	ecs_singleton_set(world, EgUserinput, { 0 });
 	
-	ECS_OBSERVER(world, Create_Window, EcsOnSet, EgWindow, EgRectangleI32);
+	ECS_OBSERVER(world, Create_Window, EcsOnAdd, EgWindow, EgRectangleI32);
 	ECS_TRIGGER(world, Destroy_Window, EcsOnRemove, Eg_SDL_Window);
 	ECS_SYSTEM(world, Update_Window, EcsOnUpdate, Eg_SDL_Window, EgWindow);
 	ECS_SYSTEM(world, Draw_Rectangle, EcsOnUpdate, Eg_SDL_Mesh(parent), EgPosition2F32, EgRectangleF32);
 	ECS_SYSTEM(world, Render_Mesh, EcsOnUpdate, Eg_SDL_Window, Eg_SDL_Mesh);
+	ECS_OBSERVER(world, Change_Window_Size, EcsOnSet, Eg_SDL_Window, EgRectangleI32);
 	
 }
 
