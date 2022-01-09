@@ -90,10 +90,10 @@ static void Eg_SDL_Mesh_COPY(Eg_SDL_Mesh * dst, Eg_SDL_Mesh * src)
 	}
 	else
 	{
-        dst->v = NULL;
-        dst->count = 0;
-        dst->capacity = 0;
-    }
+		dst->v = NULL;
+		dst->count = 0;
+		dst->capacity = 0;
+	}
 }
 
 ECS_CTOR(Eg_SDL_Mesh, ptr, {Eg_SDL_Mesh_CTOR(ptr);});
@@ -124,10 +124,10 @@ static void Create_Window(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
 	ecs_world_t * world = it->world;
-    EgWindow *w = ecs_term(it, EgWindow, 1);
-    EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
-    for (int i = 0; i < it->count; i ++)
-    {
+	EgWindow *w = ecs_term(it, EgWindow, 1);
+	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
+	for (int i = 0; i < it->count; i ++)
+	{
 		ecs_entity_t e = it->entities[i];
 		EG_TRACE("SDL_CreateWindow 0x%x", e);
 		// https://wiki.libsdl.org/SDL_CreateWindow
@@ -152,16 +152,16 @@ static void Create_Window(ecs_iter_t *it)
 		m.count = 0;
 		m.v = ecs_os_calloc(m.capacity * sizeof(SDL_Vertex));
 		ecs_set(world, e, Eg_SDL_Mesh, {m.capacity, m.count, m.v});
-    }
+	}
 }
 
 
 static void Destroy_Window(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
-    Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
-    for (int i = 0; i < it->count; i ++)
-    {
+	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
+	for (int i = 0; i < it->count; i ++)
+	{
 		ecs_entity_t e = it->entities[i];
 		if (w[i].window)
 		{
@@ -171,16 +171,16 @@ static void Destroy_Window(ecs_iter_t *it)
 			SDL_DestroyWindow(w[i].window);
 			w[i].window = NULL;
 		}
-    }
+	}
 }
 
 
 static void Update_Window(ecs_iter_t *it)
 {
-    Eg_SDL_Window *s = ecs_term(it, Eg_SDL_Window, 1);
+	Eg_SDL_Window *s = ecs_term(it, Eg_SDL_Window, 1);
 	EgWindow *w = ecs_term(it, EgWindow, 2);
-    for (int i = 0; i < it->count; i ++)
-    {
+	for (int i = 0; i < it->count; i ++)
+	{
 		ecs_entity_t e = it->entities[i];
 		w[i].counter++;
 		// https://wiki.libsdl.org/SDL_GetTicks
@@ -199,7 +199,7 @@ static void Update_Window(ecs_iter_t *it)
 			EG_TRACE("should_destroy is true. Deleting entity 0x%016x", e);
 			ecs_delete(it->world, e);
 		}
-    }
+	}
 }
 
 
@@ -223,11 +223,11 @@ static void Vertex_Rect(SDL_Vertex v[6], EgPosition2F32 * p, EgRectangleF32 * r)
 
 static void Draw_Rectangle(ecs_iter_t *it)
 {
-    Eg_SDL_Mesh *m = ecs_term(it, Eg_SDL_Mesh, 1); // Parent
+	Eg_SDL_Mesh *m = ecs_term(it, Eg_SDL_Mesh, 1); // Parent
 	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 2);
 	EgRectangleF32 *r = ecs_term(it, EgRectangleF32, 3);
-    for (int i = 0; i < it->count; i ++)
-    {
+	for (int i = 0; i < it->count; i ++)
+	{
 		SDL_Vertex vert[6];
 		Vertex_Rect(vert, p + i, r + i);
 		vert[0].color.r = 255;
@@ -255,7 +255,7 @@ static void Draw_Rectangle(ecs_iter_t *it)
 		vert[5].color.b = 100;
 		vert[5].color.a = 255;
 		Eg_SDL_Mesh_push(m+0, vert, 6);
-    }
+	}
 }
 
 
@@ -264,9 +264,9 @@ static void Render_Mesh(ecs_iter_t *it)
 {
 	//EG_ITER_INFO(it);
 	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
-    Eg_SDL_Mesh *m = ecs_term(it, Eg_SDL_Mesh, 2);
-    for (int i = 0; i < it->count; i ++)
-    {
+	Eg_SDL_Mesh *m = ecs_term(it, Eg_SDL_Mesh, 2);
+	for (int i = 0; i < it->count; i ++)
+	{
 		SDL_Renderer *renderer = w[i].renderer;
 		SDL_Vertex * v = m[i].v;
 		EG_ASSERT(renderer);
@@ -279,7 +279,7 @@ static void Render_Mesh(ecs_iter_t *it)
 			SDL_RenderPresent(renderer);
 			m[i].count = 0;
 		}
-    }
+	}
 }
 
 
