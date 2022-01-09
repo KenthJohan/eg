@@ -2,6 +2,7 @@
 #include "eg_geometry.h"
 #include "eg_window.h"
 #include "eg_base.h"
+#include "eg_userinput.h"
 #include <SDL2/SDL.h>
 
 
@@ -11,6 +12,7 @@ typedef struct
 	SDL_Window * window;
 	SDL_Renderer *renderer;
 	ecs_u32_t elapsed_milliseconds;
+	const Uint8 *keys;
 } Eg_SDL_Window;
 
 typedef struct
@@ -21,7 +23,7 @@ typedef struct
 } Eg_SDL_Mesh;
 
 
-void Eg_SDL_Mesh_push(Eg_SDL_Mesh * m, SDL_Vertex * v, ecs_i32_t count)
+static void Eg_SDL_Mesh_push(Eg_SDL_Mesh * m, SDL_Vertex * v, ecs_i32_t count)
 {
 	EG_ASSERT(m);
 	EG_ASSERT(v);
@@ -41,26 +43,26 @@ ECS_COMPONENT_DECLARE(Eg_SDL_Mesh);
 
 
 
-void Eg_SDL_Mesh_CTOR(Eg_SDL_Mesh * ptr)
+static void Eg_SDL_Mesh_CTOR(Eg_SDL_Mesh * ptr)
 {
-	ecs_trace("Eg_SDL_Mesh::ECS_CTOR");
+	EG_TRACE("Eg_SDL_Mesh::ECS_CTOR");
 	ptr->v = NULL;
 	ptr->count = 0;
 	ptr->capacity = 0;
 }
 
-void Eg_SDL_Mesh_DTOR(Eg_SDL_Mesh * ptr)
+static void Eg_SDL_Mesh_DTOR(Eg_SDL_Mesh * ptr)
 {
-	ecs_trace("Eg_SDL_Mesh::ECS_DTOR");
+	EG_TRACE("Eg_SDL_Mesh::ECS_DTOR");
 	if(ptr->v){ecs_os_free(ptr->v);}
 	ptr->v = NULL;
 	ptr->count = 0;
 	ptr->capacity = 0;
 }
 
-void Eg_SDL_Mesh_MOVE(Eg_SDL_Mesh * dst, Eg_SDL_Mesh * src)
+static void Eg_SDL_Mesh_MOVE(Eg_SDL_Mesh * dst, Eg_SDL_Mesh * src)
 {
-	ecs_trace("Eg_SDL_Mesh::ECS_MOVE");
+	EG_TRACE("Eg_SDL_Mesh::ECS_MOVE");
 	EG_ASSERT(dst);
 	EG_ASSERT(src);
 	if(dst->v){ecs_os_free(dst->v);}
@@ -72,9 +74,9 @@ void Eg_SDL_Mesh_MOVE(Eg_SDL_Mesh * dst, Eg_SDL_Mesh * src)
 	src->capacity = 0;
 }
 
-void Eg_SDL_Mesh_COPY(Eg_SDL_Mesh * dst, Eg_SDL_Mesh * src)
+static void Eg_SDL_Mesh_COPY(Eg_SDL_Mesh * dst, Eg_SDL_Mesh * src)
 {
-	ecs_trace("Eg_SDL_Mesh::ECS_COPY");
+	EG_TRACE("Eg_SDL_Mesh::ECS_COPY");
 	EG_ASSERT(dst);
 	EG_ASSERT(src);
 	if(dst->v){ecs_os_free(dst->v);}
@@ -126,7 +128,7 @@ static void Create_Window(ecs_iter_t *it)
 		char title[128];
 		if (w[i].title) {snprintf(title, 128, "%", title);}
 		else {snprintf(title, 128, "Undefined title %s:%i", __FILE__, __LINE__);}
-		ecs_trace("Creating SDL Window 0x%x : %s", it->entities[i], title);
+		EG_TRACE("Creating SDL Window 0x%x : %s", it->entities[i], title);
 		// https://wiki.libsdl.org/SDL_CreateWindow
 		SDL_Window * window = SDL_CreateWindow(
 			title,
@@ -139,9 +141,10 @@ static void Create_Window(ecs_iter_t *it)
 		EG_ASSERT(window);
 		SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 		EG_ASSERT(renderer);
-		ecs_set(it->world, it->entities[i], Eg_SDL_Window, {window, renderer, 0});
+		Uint8 const * keys = SDL_GetKeyboardState(NULL);
+		ecs_set(it->world, it->entities[i], Eg_SDL_Window, {window, renderer, 0, keys});
 		Eg_SDL_Mesh m;
-		m.capacity = 100;
+		m.capacity = 6;
 		m.count = 0;
 		m.v = ecs_os_calloc(m.capacity * sizeof(SDL_Vertex));
 		ecs_set(it->world, it->entities[i], Eg_SDL_Mesh, {m.capacity, m.count, m.v});
@@ -157,7 +160,7 @@ static void Destroy_Window(ecs_iter_t *it)
 		SDL_Window * window = w[i].window;
 		// https://wiki.libsdl.org/SDL_GetWindowTitle
 		char const * title = SDL_GetWindowTitle(window);
-		ecs_trace("Removing SDL Window 0x%x : %s", it->entities[i], title);
+		EG_TRACE("Removing SDL Window 0x%x : %s", it->entities[i], title);
 		SDL_DestroyWindow(window);
     }
 }
@@ -167,9 +170,9 @@ static void Update_Window(ecs_iter_t *it)
 {
     Eg_SDL_Window *s = ecs_term(it, Eg_SDL_Window, 1);
     EgWindow *w = ecs_term(it, EgWindow, 2);
+	EgUserinput *input = ecs_singleton_get_mut(it->world, EgUserinput);
     for (int i = 0; i < it->count; i ++)
     {
-		uint64_t * userinput = w[i].userinput;
 		// https://wiki.libsdl.org/SDL_GetTicks
 		s[i].elapsed_milliseconds = SDL_GetTicks();
 		if(s[i].elapsed_milliseconds > 1000*10)
@@ -183,91 +186,85 @@ static void Update_Window(ecs_iter_t *it)
 		{
 			switch(event.type)
 			{
+			case SDL_QUIT:
+				EG_TRACE("SDL_QUIT");
+				ecs_delete(it->world, it->entities[i]);
+				break;
 			case SDL_KEYDOWN:
-				if(event.key.keysym.sym < (64*4)){EG_USRINPUT_ADD(userinput, event.key.keysym.sym);}
+				if(event.key.keysym.scancode < (64*4)){EG_USRINPUT_ADD(input->keyboard, event.key.keysym.scancode);}
 				break;
 			case SDL_KEYUP:
-				if(event.key.keysym.sym < (64*4)){EG_USRINPUT_DEL(userinput, event.key.keysym.sym);}
+				if(event.key.keysym.scancode < (64*4)){EG_USRINPUT_DEL(input->keyboard, event.key.keysym.scancode);}
 				break;
 			}
 		}
 		
-		if(EG_USRINPUT_GET(userinput, SDLK_ESCAPE))
+		if(EG_USRINPUT_GET(input->keyboard, SDL_SCANCODE_ESCAPE))
 		{
-			ecs_delete(it->world, it->entities[i]);
+			//ecs_delete(it->world, it->entities[i]);
 		}
-		
-
     }
 }
 
 
-static void Draw(ecs_iter_t *it)
+static void Vertex_Rect(SDL_Vertex v[6], EgPosition2F32 * p, EgRectangleF32 * r)
 {
-    Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1); // Parent
-    Eg_SDL_Mesh *m = ecs_term(it, Eg_SDL_Mesh, 2); // Parent
-    EgDraw *d = ecs_term(it, EgDraw, 3);
-    EgRectangleF32 *r = ecs_term(it, EgRectangleF32, 4);
+	v[0].position.x = p->x;
+	v[0].position.y = p->y;
+	v[1].position.x = p->x + r->width;
+	v[1].position.y = p->y;
+	v[2].position.x = p->x + r->width;
+	v[2].position.y = p->y + r->height;
+
+	v[3].position.x = p->x;
+	v[3].position.y = p->y;
+	v[4].position.x = p->x;
+	v[4].position.y = p->y + r->height;
+	v[5].position.x = p->x + r->width;
+	v[5].position.y = p->y + r->height;
+}
+
+
+static void Draw_Rectangle(ecs_iter_t *it)
+{
+    Eg_SDL_Mesh *m = ecs_term(it, Eg_SDL_Mesh, 1); // Parent
+	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 2);
+	EgRectangleF32 *r = ecs_term(it, EgRectangleF32, 3);
     for (int i = 0; i < it->count; i ++)
     {
 		SDL_Vertex vert[6];
-		
-		
-		vert[0].position.x = 0;
-		vert[0].position.y = 0;
+		Vertex_Rect(vert, p + i, r + i);
 		vert[0].color.r = 255;
 		vert[0].color.g = 0;
 		vert[0].color.b = 0;
 		vert[0].color.a = 255;
-		vert[1].position.x = 0;
-		vert[1].position.y = r[i].height;
 		vert[1].color.r = 0;
 		vert[1].color.g = 0;
 		vert[1].color.b = 255;
 		vert[1].color.a = 255;
-		vert[2].position.x = r[i].width;
-		vert[2].position.y = r[i].height;
 		vert[2].color.r = 0;
 		vert[2].color.g = 255;
 		vert[2].color.b = 0;
 		vert[2].color.a = 255;
-		
-		vert[3].position.x = 0;
-		vert[3].position.y = 0;
 		vert[3].color.r = 255;
 		vert[3].color.g = 100;
 		vert[3].color.b = 100;
 		vert[3].color.a = 255;
-		vert[4].position.x = r[i].width;
-		vert[4].position.y = 0;
 		vert[4].color.r = 100;
 		vert[4].color.g = 100;
 		vert[4].color.b = 255;
 		vert[4].color.a = 255;
-		vert[5].position.x = r[i].width;
-		vert[5].position.y = r[i].height;
 		vert[5].color.r = 100;
 		vert[5].color.g = 255;
 		vert[5].color.b = 100;
 		vert[5].color.a = 255;
-		
 		Eg_SDL_Mesh_push(m+0, vert, 6);
-	
-
-/*
-		SDL_Renderer *renderer = w[0].renderer;
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderClear(renderer);
-		SDL_RenderGeometry(renderer, NULL, vert, 6, NULL, 0);
-		SDL_RenderPresent(renderer);
-		*/
-
     }
 }
 
 
 
-static void Mesh(ecs_iter_t *it)
+static void Render_Mesh(ecs_iter_t *it)
 {
     Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1); //Parent
     Eg_SDL_Mesh *m = ecs_term(it, Eg_SDL_Mesh, 2);
@@ -285,11 +282,15 @@ static void Mesh(ecs_iter_t *it)
     }
 }
 
+
+
+
 void FlecsComponentsEgSDLImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, FlecsComponentsEgSDL);
 	ECS_IMPORT(world, FlecsComponentsEgGeometry);
 	ECS_IMPORT(world, FlecsComponentsEgWindow);
+	ECS_IMPORT(world, FlecsComponentsEgUserinput);
 	ecs_set_name_prefix(world, "Eg");
 	
 	SDL_Init(SDL_INIT_VIDEO);
@@ -305,11 +306,14 @@ void FlecsComponentsEgSDLImport(ecs_world_t *world)
 	.move = ecs_move(Eg_SDL_Mesh),
 	});
 
+	
+	ecs_singleton_set(world, EgUserinput, { 0 });
+	
     ECS_OBSERVER(world, Create_Window, EcsOnSet, EgWindow, EgRectangleI32);
 	ECS_TRIGGER(world, Destroy_Window, EcsOnRemove, Eg_SDL_Window);
 	ECS_SYSTEM(world, Update_Window, EcsOnUpdate, Eg_SDL_Window, EgWindow);
-	ECS_SYSTEM(world, Draw, EcsOnUpdate, Eg_SDL_Window(parent), Eg_SDL_Mesh(parent), EgDraw, EgRectangleF32);
-	ECS_SYSTEM(world, Mesh, EcsOnUpdate, Eg_SDL_Window, Eg_SDL_Mesh);
+	ECS_SYSTEM(world, Draw_Rectangle, EcsOnUpdate, Eg_SDL_Mesh(parent), EgPosition2F32, EgRectangleF32);
+	ECS_SYSTEM(world, Render_Mesh, EcsOnUpdate, Eg_SDL_Window, Eg_SDL_Mesh);
 	
 }
 

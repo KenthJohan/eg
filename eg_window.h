@@ -8,7 +8,6 @@
 typedef struct
 {
 	ecs_string_t title;
-	ecs_u64_t userinput[4];
 } EgWindow;
 
 typedef struct

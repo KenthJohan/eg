@@ -17,8 +17,7 @@ void FlecsComponentsEgWindowImport(ecs_world_t *world)
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgWindow),
 	.members = {
-	{ .name = "title", .type = ecs_id(ecs_string_t) },
-	{ .name = "userinput", .type = ecs_id(ecs_u64_t), 4 }
+	{ .name = "title", .type = ecs_id(ecs_string_t) }
 	}
 	});
 

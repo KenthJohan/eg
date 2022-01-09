@@ -16,6 +16,8 @@ SOURCES += test_eg_sdl.c
 SOURCES += eg_sdl.c
 SOURCES += eg_geometry.c
 SOURCES += eg_window.c
+SOURCES += \
+	eg_userinput.c
 SOURCES += flecs.c
 
 
@@ -23,6 +25,8 @@ HEADERS += flecs.h
 HEADERS += eg_sdl.h
 HEADERS += eg_geometry.h
 HEADERS += eg_window.h
+HEADERS += eg_userinput.h
+HEADERS += eg_base.h
 
 
 LIBS += -lmingw32 -lSDL2main -lSDL2 -lws2_32
