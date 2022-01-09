@@ -2,6 +2,7 @@
 
 
 ECS_COMPONENT_DECLARE(EgWindow);
+ECS_COMPONENT_DECLARE(EgDraw);
 
 
 
@@ -9,6 +10,7 @@ void FlecsComponentsEgWindowImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, FlecsComponentsEgWindow);
 	ECS_COMPONENT_DEFINE(world, EgWindow);
+	ECS_COMPONENT_DEFINE(world, EgDraw);
 
 	ecs_set_name_prefix(world, "Eg");
 
@@ -20,5 +22,6 @@ void FlecsComponentsEgWindowImport(ecs_world_t *world)
 	}
 	});
 
+	
 }
 

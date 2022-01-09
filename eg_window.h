@@ -11,8 +11,13 @@ typedef struct
 	ecs_u64_t userinput[4];
 } EgWindow;
 
+typedef struct
+{
+	int dummy;
+} EgDraw;
 
 extern ECS_COMPONENT_DECLARE(EgWindow);
+extern ECS_COMPONENT_DECLARE(EgDraw);
 
 
 void FlecsComponentsEgWindowImport(ecs_world_t *world);

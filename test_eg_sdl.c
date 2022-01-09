@@ -26,9 +26,17 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, FlecsComponentsEgGeometry);
 	ECS_IMPORT(world, FlecsComponentsEgWindow);
 
-	ecs_entity_t e = ecs_new(world, 0);
-	ecs_set(world, e, EgWindow, {NULL});
-	ecs_set(world, e, EgRectangleI32, {400, 300});
+	ecs_entity_t e1 = ecs_new(world, 0);
+	ecs_set(world, e1, EgWindow, {NULL});
+	ecs_set(world, e1, EgRectangleI32, {400, 300});
+	
+	ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, e1);
+	ecs_set(world, e2, EgDraw, {1});
+	ecs_set(world, e2, EgRectangleF32, {200, 200});
+
+	ecs_entity_t e3 = ecs_new_w_pair(world, EcsChildOf, e1);
+	ecs_set(world, e3, EgDraw, {1});
+	ecs_set(world, e3, EgRectangleF32, {100, 100});
 
 	ecs_set(world, EcsWorld, EcsRest, {0});
 	
