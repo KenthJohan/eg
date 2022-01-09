@@ -12,6 +12,10 @@
 typedef struct
 {
 	ecs_u64_t keyboard[4];
+	ecs_i32_t mouse_x;
+	ecs_i32_t mouse_y;
+	ecs_i32_t mouse_dx;
+	ecs_i32_t mouse_dy;
 } EgUserinput;
 
 extern ECS_COMPONENT_DECLARE(EgUserinput);

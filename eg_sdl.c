@@ -216,6 +216,13 @@ static void Update_Window(ecs_iter_t *it)
 					EG_U64BITSET_OFF(input->keyboard, event.key.keysym.scancode);
 				}
 				break;
+			case SDL_MOUSEMOTION:
+				input->mouse_x = event.motion.x;
+				input->mouse_y = event.motion.y;
+				input->mouse_dx = event.motion.xrel;
+				input->mouse_dy = event.motion.yrel;
+				//EG_TRACE("%i %i %i %i", input->mouse_x, input->mouse_y, input->mouse_dx, input->mouse_dy);
+				break;
 			}
 		}
 		
