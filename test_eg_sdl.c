@@ -57,35 +57,35 @@ static void Kinematic1(ecs_iter_t *it)
 
 static void Kinematic2(ecs_iter_t *it)
 {
+	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 1);
+	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2);
+	for (int i = 0; i < it->count; i ++)
+	{
+		v[i].x += a[i].x;
+		v[i].y += a[i].y;
+	}
+}
+
+
+static void Kinematic3(ecs_iter_t *it)
+{
 	EgPlayground *y = ecs_term(it, EgPlayground, 1); // Parent
 	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2); // Parent
 	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 3);
 	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 4);
 	for (int i = 0; i < it->count; i ++)
 	{
-		if (p[i].x > r[0].width)
-		{
-			v[i].x *= -1.0f;
-		}
-		if (p[i].y > r[0].height)
-		{
-			v[i].y *= -1.0f;
-		}
-		if (p[i].x < 0.0f)
-		{
-			v[i].x *= -1.0f;
-		}
-		if (p[i].y < 0.0f)
-		{
-			v[i].y *= -1.0f;
-		}
+		v[i].x *= (p[i].x > r[0].width) ? 1.0f : -1.0f;
+		v[i].y *= (p[i].y > r[0].height) ? 1.0f : -1.0f;
+		v[i].x *= (p[i].x < 0) ? 1.0f : -1.0f;
+		v[i].y *= (p[i].y < 0) ? 1.0f : -1.0f;
 	}
 }
 
 static void Move_Enemy(ecs_iter_t *it)
 {
 	EgEnemy *e = ecs_term(it, EgEnemy, 1);
-	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2);
+	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2);
 	for (int i = 0; i < it->count; i ++)
 	{
 	}
@@ -136,9 +136,10 @@ int main(int argc, char *argv[])
 	ECS_COMPONENT_DEFINE(world, EgPlayground);
 
 	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserinput, EgPosition2F32, EgRectangleF32);
-	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, EgEnemy, EgVelocity2F32);
+	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, EgEnemy, EgAcceleration2F32);
 	ECS_SYSTEM(world, Kinematic1, EcsOnUpdate, EgPosition2F32, EgVelocity2F32);
-	ECS_SYSTEM(world, Kinematic2, EcsOnUpdate, EgPlayground(parent), EgRectangleI32(parent), EgPosition2F32, EgVelocity2F32);
+	ECS_SYSTEM(world, Kinematic2, EcsOnUpdate, EgVelocity2F32, EgAcceleration2F32);
+	ECS_SYSTEM(world, Kinematic3, EcsOnUpdate, EgPlayground(parent), EgRectangleI32(parent), EgPosition2F32, EgVelocity2F32);
 	ECS_SYSTEM(world, Playground_Update, EcsOnUpdate, EgPlayground, EgRectangleI32, EgRectangleI32(parent));
 	
 
@@ -164,6 +165,7 @@ int main(int argc, char *argv[])
 		ecs_set(world, e2, EgPosition2F32, {0, 0});
 		ecs_set(world, e2, EgRectangleF32, {80, 80});
 		ecs_set(world, e2, EgVelocity2F32, {0.1f, 0.2f});
+		ecs_set(world, e2, EgAcceleration2F32, {0.0001f, -0.001f});
 	}
 
 
@@ -184,6 +186,7 @@ int main(int argc, char *argv[])
 		ecs_set(world, e1, EgPosition2F32, {50, 50});
 		ecs_set(world, e1, EgRectangleF32, {50, 50});
 		ecs_set(world, e1, EgVelocity2F32, {0.2f, 0.1f});
+		ecs_set(world, e1, EgAcceleration2F32, {0.001f, 0.001f});
 	}
 
 
