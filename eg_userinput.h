@@ -6,6 +6,8 @@
 #include "eg_key_sdl.h"
 #endif
 
+#define EG_NUM_KEYS 512
+#define EG_NUM_KEYS64 (EG_NUM_KEYS/64)
 
 typedef struct
 {

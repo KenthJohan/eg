@@ -42,6 +42,7 @@ void FlecsComponentsEgGeometryImport(ecs_world_t *world)
 	}
 	});
 	
+	/*
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgRectangleI32),
 	.members = {
@@ -49,6 +50,7 @@ void FlecsComponentsEgGeometryImport(ecs_world_t *world)
 	{ .name = "height", .type = ecs_id(ecs_i32_t) }
 	}
 	});
+	*/
 
 
 }

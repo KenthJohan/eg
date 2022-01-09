@@ -13,7 +13,29 @@ typedef struct
 {
 	int dummy;
 } EgPlayer;
+
+typedef struct
+{
+	int dummy;
+} EgEnemy;
+
+
 ECS_COMPONENT_DECLARE(EgPlayer);
+ECS_COMPONENT_DECLARE(EgEnemy);
+
+
+
+static void Move_Enemy(ecs_iter_t *it)
+{
+	EgEnemy *e = ecs_term(it, EgEnemy, 1);
+	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 2);
+	for (int i = 0; i < it->count; i ++)
+	{
+		e[i].dummy = 0;
+		p[i].x += 0.1f;
+		p[i].y += 0.1f;
+	}
+}
 
 
 static void Move_Player(ecs_iter_t *it)
@@ -50,24 +72,28 @@ int main(int argc, char *argv[])
 
 
 	ECS_COMPONENT_DEFINE(world, EgPlayer);
+	ECS_COMPONENT_DEFINE(world, EgEnemy);
 
 	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserinput, EgPosition2F32);
+	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, EgEnemy, EgPosition2F32);
 	
 
 	ecs_entity_t e1 = ecs_new(world, 0);
-	ecs_set(world, e1, EgWindow, {NULL});
+	ecs_set_name(world, e1, "My app");
+	ecs_set(world, e1, EgWindow, {NULL, 0});
 	ecs_set(world, e1, EgRectangleI32, {400, 300});
 	
 	ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, e1);
 	ecs_set(world, e2, EgDraw, {1});
-	ecs_set(world, e2, EgPosition2F32, {200, 200});
-	ecs_set(world, e2, EgRectangleF32, {200, 200});
+	ecs_set(world, e2, EgPosition2F32, {50, 50});
+	ecs_set(world, e2, EgRectangleF32, {50, 50});
 	ecs_add(world, e2, EgPlayer);
 
 	ecs_entity_t e3 = ecs_new_w_pair(world, EcsChildOf, e1);
 	ecs_set(world, e3, EgDraw, {1});
+	ecs_set(world, e3, EgEnemy, {0});
 	ecs_set(world, e3, EgPosition2F32, {0, 0});
-	ecs_set(world, e3, EgRectangleF32, {100, 100});
+	ecs_set(world, e3, EgRectangleF32, {80, 80});
 
 	ecs_set(world, EcsWorld, EcsRest, {0});
 	

@@ -121,12 +121,23 @@ ECS_COPY(Eg_SDL_Mesh, dst, src, {Eg_SDL_Mesh_COPY(dst, src);})
 
 static void Create_Window(ecs_iter_t *it)
 {
+	ecs_world_t * world = it->world;
+	/*
+	for (int i = 0; i < it->count; i ++)
+	{
+		ecs_entity_t e = it->entities[i];
+		EG_TRACE("Creating Window 0x%x : %s, %s", e, ecs_get_name(world, e), ecs_type_str(world, ecs_get_type(world, e)));
+	}
+	EG_TRACE("Size1: %i of %i", ecs_term_size(it, 1), sizeof(EgWindow));
+	EG_TRACE("Size2: %i of %i", ecs_term_size(it, 2), sizeof(EgRectangleI32));
+	*/
     EgWindow *w = ecs_term(it, EgWindow, 1);
     EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
     for (int i = 0; i < it->count; i ++)
     {
+		ecs_entity_t e = it->entities[i];
 		char title[128];
-		if (w[i].title) {snprintf(title, 128, "%", title);}
+		if (w[i].title) {snprintf(title, 128, "%s", title);}
 		else {snprintf(title, 128, "Undefined title %s:%i", __FILE__, __LINE__);}
 		EG_TRACE("Creating SDL Window 0x%x : %s", it->entities[i], title);
 		// https://wiki.libsdl.org/SDL_CreateWindow
@@ -142,12 +153,12 @@ static void Create_Window(ecs_iter_t *it)
 		SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 		EG_ASSERT(renderer);
 		Uint8 const * keys = SDL_GetKeyboardState(NULL);
-		ecs_set(it->world, it->entities[i], Eg_SDL_Window, {window, renderer, 0, keys});
+		ecs_set(world, e, Eg_SDL_Window, {window, renderer, 0, keys});
 		Eg_SDL_Mesh m;
-		m.capacity = 6;
+		m.capacity = 6*100;
 		m.count = 0;
 		m.v = ecs_os_calloc(m.capacity * sizeof(SDL_Vertex));
-		ecs_set(it->world, it->entities[i], Eg_SDL_Mesh, {m.capacity, m.count, m.v});
+		ecs_set(world, e, Eg_SDL_Mesh, {m.capacity, m.count, m.v});
     }
 }
 
@@ -173,6 +184,8 @@ static void Update_Window(ecs_iter_t *it)
 	EgUserinput *input = ecs_singleton_get_mut(it->world, EgUserinput);
     for (int i = 0; i < it->count; i ++)
     {
+		w[i].counter++;
+
 		// https://wiki.libsdl.org/SDL_GetTicks
 		s[i].elapsed_milliseconds = SDL_GetTicks();
 		if(s[i].elapsed_milliseconds > 1000*10)
@@ -181,6 +194,7 @@ static void Update_Window(ecs_iter_t *it)
 			ecs_delete(it->world, it->entities[i]);
 		}
 		
+		//https://wiki.libsdl.org/SDL_PollEvent
 		SDL_Event event;
 		while(SDL_PollEvent(&event))
 		{
@@ -191,10 +205,16 @@ static void Update_Window(ecs_iter_t *it)
 				ecs_delete(it->world, it->entities[i]);
 				break;
 			case SDL_KEYDOWN:
-				if(event.key.keysym.scancode < (64*4)){EG_U64BITSET_ON(input->keyboard, event.key.keysym.scancode);}
+				if(event.key.keysym.scancode < EG_NUM_KEYS)
+				{
+					EG_U64BITSET_ON(input->keyboard, event.key.keysym.scancode);
+				}
 				break;
 			case SDL_KEYUP:
-				if(event.key.keysym.scancode < (64*4)){EG_U64BITSET_OFF(input->keyboard, event.key.keysym.scancode);}
+				if(event.key.keysym.scancode < EG_NUM_KEYS)
+				{
+					EG_U64BITSET_OFF(input->keyboard, event.key.keysym.scancode);
+				}
 				break;
 			}
 		}
@@ -309,7 +329,7 @@ void FlecsComponentsEgSDLImport(ecs_world_t *world)
 	
 	ecs_singleton_set(world, EgUserinput, { 0 });
 	
-    ECS_OBSERVER(world, Create_Window, EcsOnSet, EgWindow, EgRectangleI32);
+	ECS_OBSERVER(world, Create_Window, EcsOnSet, EgWindow, EgRectangleI32);
 	ECS_TRIGGER(world, Destroy_Window, EcsOnRemove, Eg_SDL_Window);
 	ECS_SYSTEM(world, Update_Window, EcsOnUpdate, Eg_SDL_Window, EgWindow);
 	ECS_SYSTEM(world, Draw_Rectangle, EcsOnUpdate, Eg_SDL_Mesh(parent), EgPosition2F32, EgRectangleF32);
