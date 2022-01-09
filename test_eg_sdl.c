@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <SDL2/SDL.h>
 
 #include "flecs.h"
 #include "eg_sdl.h"
@@ -25,8 +24,9 @@ static void Move_Player(ecs_iter_t *it)
 	ecs_u64_t * keyboard = u->keyboard;
 	for (int i = 0; i < it->count; i ++)
 	{
-		float dx = EG_USRINPUT_GET(keyboard, SDL_SCANCODE_RIGHT) - EG_USRINPUT_GET(keyboard, SDL_SCANCODE_LEFT);
-		float dy = EG_USRINPUT_GET(keyboard, SDL_SCANCODE_UP) - EG_USRINPUT_GET(keyboard, SDL_SCANCODE_DOWN);
+		p[i].dummy = 0;
+		float dx = EG_U64BITSET_GET(keyboard, EG_KEY_RIGHT) - EG_U64BITSET_GET(keyboard, EG_KEY_LEFT);
+		float dy = EG_U64BITSET_GET(keyboard, EG_KEY_UP) - EG_U64BITSET_GET(keyboard, EG_KEY_DOWN);
 		//EG_TRACE("%f %f", dx, dy);
 		r[i].x += 0.1f*dx;
 		r[i].y += -0.1f*dy;

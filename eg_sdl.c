@@ -191,15 +191,15 @@ static void Update_Window(ecs_iter_t *it)
 				ecs_delete(it->world, it->entities[i]);
 				break;
 			case SDL_KEYDOWN:
-				if(event.key.keysym.scancode < (64*4)){EG_USRINPUT_ADD(input->keyboard, event.key.keysym.scancode);}
+				if(event.key.keysym.scancode < (64*4)){EG_U64BITSET_ON(input->keyboard, event.key.keysym.scancode);}
 				break;
 			case SDL_KEYUP:
-				if(event.key.keysym.scancode < (64*4)){EG_USRINPUT_DEL(input->keyboard, event.key.keysym.scancode);}
+				if(event.key.keysym.scancode < (64*4)){EG_U64BITSET_OFF(input->keyboard, event.key.keysym.scancode);}
 				break;
 			}
 		}
 		
-		if(EG_USRINPUT_GET(input->keyboard, SDL_SCANCODE_ESCAPE))
+		if(EG_U64BITSET_GET(input->keyboard, SDL_SCANCODE_ESCAPE))
 		{
 			//ecs_delete(it->world, it->entities[i]);
 		}
