@@ -194,6 +194,8 @@ static void Update_Window(ecs_iter_t *it)
 			ecs_delete(it->world, it->entities[i]);
 		}
 		
+		memset(input->keyboard_up, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
+		memset(input->keyboard_down, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
 		//https://wiki.libsdl.org/SDL_PollEvent
 		SDL_Event event;
 		while(SDL_PollEvent(&event))
@@ -208,12 +210,14 @@ static void Update_Window(ecs_iter_t *it)
 				if(event.key.keysym.scancode < EG_NUM_KEYS)
 				{
 					EG_U64BITSET_ON(input->keyboard, event.key.keysym.scancode);
+					EG_U64BITSET_ON(input->keyboard_down, event.key.keysym.scancode);
 				}
 				break;
 			case SDL_KEYUP:
 				if(event.key.keysym.scancode < EG_NUM_KEYS)
 				{
 					EG_U64BITSET_OFF(input->keyboard, event.key.keysym.scancode);
+					EG_U64BITSET_ON(input->keyboard_up, event.key.keysym.scancode);
 				}
 				break;
 			case SDL_MOUSEMOTION:
@@ -225,6 +229,8 @@ static void Update_Window(ecs_iter_t *it)
 				break;
 			}
 		}
+
+
 		
 		if(EG_U64BITSET_GET(input->keyboard, SDL_SCANCODE_ESCAPE))
 		{

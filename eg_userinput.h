@@ -11,7 +11,9 @@
 
 typedef struct
 {
-	ecs_u64_t keyboard[4];
+	ecs_u64_t keyboard[EG_NUM_KEYS64];
+	ecs_u64_t keyboard_up[EG_NUM_KEYS64];
+	ecs_u64_t keyboard_down[EG_NUM_KEYS64];
 	ecs_i32_t mouse_x;
 	ecs_i32_t mouse_y;
 	ecs_i32_t mouse_dx;

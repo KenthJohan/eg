@@ -40,18 +40,23 @@ static void Move_Enemy(ecs_iter_t *it)
 
 static void Move_Player(ecs_iter_t *it)
 {
-	EgPlayer *p = ecs_term(it, EgPlayer, 1);
+	EgPlayer *player = ecs_term(it, EgPlayer, 1);
 	EgUserinput *u = ecs_term(it, EgUserinput, 2); // Singleton
-	EgPosition2F32 *r = ecs_term(it, EgPosition2F32, 3);
-	ecs_u64_t * keyboard = u->keyboard;
+	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 3);
+	EgRectangleF32 *r = ecs_term(it, EgRectangleF32, 4);
 	for (int i = 0; i < it->count; i ++)
 	{
-		p[i].dummy = 0;
-		float dx = EG_U64BITSET_GET(keyboard, EG_KEY_RIGHT) - EG_U64BITSET_GET(keyboard, EG_KEY_LEFT);
-		float dy = EG_U64BITSET_GET(keyboard, EG_KEY_UP) - EG_U64BITSET_GET(keyboard, EG_KEY_DOWN);
+		player[i].dummy = 0;
+		float dx = EG_U64BITSET_GET(u->keyboard, EG_KEY_RIGHT) - EG_U64BITSET_GET(u->keyboard, EG_KEY_LEFT);
+		float dy = EG_U64BITSET_GET(u->keyboard, EG_KEY_UP) - EG_U64BITSET_GET(u->keyboard, EG_KEY_DOWN);
 		//EG_TRACE("%f %f", dx, dy);
-		r[i].x += 0.1f*dx;
-		r[i].y += -0.1f*dy;
+		p[i].x += 0.1f*dx;
+		p[i].y += -0.1f*dy;
+		float p = 0;
+		p += 2.0f*EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_PLUS);
+		p -= 2.0f*EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_MINUS);
+		r[i].width += p;
+		r[i].height += p;
 	}
 }
 
@@ -74,7 +79,7 @@ int main(int argc, char *argv[])
 	ECS_COMPONENT_DEFINE(world, EgPlayer);
 	ECS_COMPONENT_DEFINE(world, EgEnemy);
 
-	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserinput, EgPosition2F32);
+	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserinput, EgPosition2F32, EgRectangleF32);
 	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, EgEnemy, EgPosition2F32);
 	
 

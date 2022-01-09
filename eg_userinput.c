@@ -15,7 +15,9 @@ void FlecsComponentsEgUserinputImport(ecs_world_t *world)
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgUserinput),
 	.members = {
-	{ .name = "keyboard", .type = ecs_id(ecs_u64_t), 4 },
+	{ .name = "keyboard", .type = ecs_id(ecs_u64_t), EG_NUM_KEYS64 },
+	{ .name = "keyboard_up", .type = ecs_id(ecs_u64_t), EG_NUM_KEYS64 },
+	{ .name = "keyboard_down", .type = ecs_id(ecs_u64_t), EG_NUM_KEYS64 },
 	{ .name = "mouse_x", .type = ecs_id(ecs_i32_t)},
 	{ .name = "mouse_y", .type = ecs_id(ecs_i32_t)},
 	{ .name = "mouse_dx", .type = ecs_id(ecs_i32_t)},
