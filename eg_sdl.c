@@ -121,33 +121,21 @@ ECS_COPY(Eg_SDL_Mesh, dst, src, {Eg_SDL_Mesh_COPY(dst, src);})
 
 static void Create_Window(ecs_iter_t *it)
 {
+	EG_ITER_INFO(it);
 	ecs_world_t * world = it->world;
-	/*
-	for (int i = 0; i < it->count; i ++)
-	{
-		ecs_entity_t e = it->entities[i];
-		EG_TRACE("Creating Window 0x%x : %s, %s", e, ecs_get_name(world, e), ecs_type_str(world, ecs_get_type(world, e)));
-	}
-	EG_TRACE("Size1: %i of %i", ecs_term_size(it, 1), sizeof(EgWindow));
-	EG_TRACE("Size2: %i of %i", ecs_term_size(it, 2), sizeof(EgRectangleI32));
-	*/
     EgWindow *w = ecs_term(it, EgWindow, 1);
     EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
     for (int i = 0; i < it->count; i ++)
     {
 		ecs_entity_t e = it->entities[i];
-		char title[128];
-		if (w[i].title) {snprintf(title, 128, "%s", title);}
-		else {snprintf(title, 128, "Undefined title %s:%i", __FILE__, __LINE__);}
-		EG_TRACE("Creating SDL Window 0x%x : %s", it->entities[i], title);
 		// https://wiki.libsdl.org/SDL_CreateWindow
 		SDL_Window * window = SDL_CreateWindow(
-			title,
-			SDL_WINDOWPOS_UNDEFINED,
-			SDL_WINDOWPOS_UNDEFINED,
-			r[i].width,
-			r[i].height,
-			SDL_WINDOW_OPENGL
+		w[i].title ? w[i].title : "Undefined",
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		r[i].width,
+		r[i].height,
+		SDL_WINDOW_OPENGL
 		);
 		EG_ASSERT(window);
 		SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -165,13 +153,15 @@ static void Create_Window(ecs_iter_t *it)
 
 static void Destroy_Window(ecs_iter_t *it)
 {
+	EG_ITER_INFO(it);
     Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
     for (int i = 0; i < it->count; i ++)
     {
+		ecs_entity_t e = it->entities[i];
 		SDL_Window * window = w[i].window;
 		// https://wiki.libsdl.org/SDL_GetWindowTitle
 		char const * title = SDL_GetWindowTitle(window);
-		EG_TRACE("Removing SDL Window 0x%x : %s", it->entities[i], title);
+		EG_TRACE("SDL_DestroyWindow 0x%x : %s", e, title);
 		SDL_DestroyWindow(window);
     }
 }
@@ -318,9 +308,9 @@ static void Render_Mesh(ecs_iter_t *it)
 
 
 
-void FlecsComponentsEgSDLImport(ecs_world_t *world)
+void FlecsComponentsEgSdlImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, FlecsComponentsEgSDL);
+	ECS_MODULE(world, FlecsComponentsEgSdl);
 	ECS_IMPORT(world, FlecsComponentsEgGeometry);
 	ECS_IMPORT(world, FlecsComponentsEgWindow);
 	ECS_IMPORT(world, FlecsComponentsEgUserinput);

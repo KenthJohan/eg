@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	"rest_test", NULL // Application name, optional
 	});
 
-	ECS_IMPORT(world, FlecsComponentsEgSDL);
+	ECS_IMPORT(world, FlecsComponentsEgSdl);
 	ECS_IMPORT(world, FlecsComponentsEgGeometry);
 	ECS_IMPORT(world, FlecsComponentsEgWindow);
 

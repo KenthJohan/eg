@@ -35,3 +35,21 @@ static void eg_trace(const char *file, int32_t line, const char *fmt, ...)
 #else
 #define EG_TRACE(...)
 #endif
+
+
+
+#define EG_ITER_INFO(it) eg_iter_info((it), __FUNCTION__, __FILE__, __LINE__);
+static void eg_iter_info(ecs_iter_t *it, const char *f, const char *file, int32_t line)
+{
+	ecs_world_t * world = it->world;
+	for (int i = 0; i < it->count; i ++)
+	{
+		ecs_entity_t e = it->entities[i];
+		fprintf(stdout,
+		ECS_YELLOW"EG %s() %s:%i "ECS_NORMAL"0x%08x: name=%s, type=(%s)\n",
+		f, file, line, e, ecs_get_name(world, e), ecs_type_str(world, ecs_get_type(world, e))
+		);
+	}
+}
+
+

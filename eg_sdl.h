@@ -3,4 +3,4 @@
 
 
 
-void FlecsComponentsEgSDLImport(ecs_world_t *world);
+void FlecsComponentsEgSdlImport(ecs_world_t *world);
