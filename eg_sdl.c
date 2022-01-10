@@ -130,10 +130,11 @@ static void Create_Window(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i ++)
 	{
 		ecs_entity_t e = it->entities[i];
+		w[i].counter = 0;
 		EG_TRACE("SDL_CreateWindow 0x%x", e);
 		// https://wiki.libsdl.org/SDL_CreateWindow
 		SDL_Window * window = SDL_CreateWindow(
-		w[i].title ? w[i].title : "Undefined",
+		"Undefined",
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		r[i].width,
@@ -153,6 +154,21 @@ static void Create_Window(ecs_iter_t *it)
 		m.count = 0;
 		m.v = ecs_os_calloc(m.capacity * sizeof(SDL_Vertex));
 		ecs_set(world, e, Eg_SDL_Mesh, {m.capacity, m.count, m.v});
+	}
+}
+
+
+static void Update_Title(ecs_iter_t *it)
+{
+	EG_ITER_INFO(it);
+	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
+	EgTitle *title = ecs_term(it, EgTitle, 2);
+	for (int i = 0; i < it->count; i ++)
+	{
+		if(w[i].window)
+		{
+			SDL_SetWindowTitle(w[i].window, title[i].value);
+		}
 	}
 }
 
@@ -400,8 +416,12 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	
 	ECS_TRIGGER(world, Destroy_Window, EcsOnRemove, Eg_SDL_Window);
 
-	ECS_OBSERVER(world, Create_Window, EcsOnAdd, EgWindow, EgRectangleI32);
-	ECS_OBSERVER(world, Change_Window_Size, EcsOnSet, Eg_SDL_Window, EgRectangleI32);
+	ECS_OBSERVER(world, Create_Window, EcsOnAdd,
+	EgWindow,
+	EgRectangleI32
+	);
+	ECS_OBSERVER(world, Change_Window_Size, EcsOnSet, [out] Eg_SDL_Window, [in] EgRectangleI32);
+	ECS_OBSERVER(world, Update_Title, EcsOnSet, [out] Eg_SDL_Window, [in] EgTitle);
 
 	ECS_SYSTEM(world, Update_Window, EcsOnUpdate, Eg_SDL_Window, EgWindow);
 	ECS_SYSTEM(world, Draw_Rectangle, EcsOnUpdate, Eg_SDL_Mesh(parent), EgPosition2F32, EgRectangleF32);

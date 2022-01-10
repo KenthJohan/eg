@@ -34,9 +34,9 @@ ECS_COMPONENT_DECLARE(EgPlayground);
 
 static void Playground_Update(ecs_iter_t *it)
 {
-	EgPlayground *y = ecs_term(it, EgPlayground, 1);
-	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
-	EgRectangleI32 *wr = ecs_term(it, EgRectangleI32, 3); // Parent
+	EgPlayground *y = ecs_term(it, EgPlayground, 1);      // [out]
+	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);  // [out]
+	EgRectangleI32 *wr = ecs_term(it, EgRectangleI32, 3); // [in]      Parent
 	for (int i = 0; i < it->count; i ++)
 	{
 		y[i].dummy = 0;
@@ -47,12 +47,13 @@ static void Playground_Update(ecs_iter_t *it)
 
 static void Bounce(ecs_iter_t *it)
 {
-	EgPlayground *y = ecs_term(it, EgPlayground, 1); // Parent
-	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2); // Parent
-	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 3);
-	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 4);
+	EgPlayground *y = ecs_term(it, EgPlayground, 1);     // [out]    Parent
+	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2); // [in]     Parent
+	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 3); // [in]
+	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 4); // [inout]
 	for (int i = 0; i < it->count; i ++)
 	{
+		y[0].dummy = 0;
 		v[i].x *= (p[i].x > r[0].width) ? 1.0f : -1.0f;
 		v[i].y *= (p[i].y > r[0].height) ? 1.0f : -1.0f;
 		v[i].x *= (p[i].x < 0) ? 1.0f : -1.0f;
@@ -116,21 +117,31 @@ int main(int argc, char *argv[])
 
 	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserinput, EgPosition2F32, EgRectangleF32);
 	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, EgEnemy, EgAcceleration2F32);
-	ECS_SYSTEM(world, Bounce, EcsOnUpdate, EgPlayground(parent), EgRectangleI32(parent), EgPosition2F32, EgVelocity2F32);
-	ECS_SYSTEM(world, Playground_Update, EcsOnUpdate, EgPlayground, EgRectangleI32, EgRectangleI32(parent));
+	ECS_SYSTEM(world, Bounce, EcsOnUpdate,
+	[out] EgPlayground(parent),
+	[in]  EgRectangleI32(parent),
+	[in]  EgPosition2F32,
+	[out] EgVelocity2F32);
+	ECS_SYSTEM(world, Playground_Update, EcsOnUpdate,
+	[out] EgPlayground,
+	[out] EgRectangleI32,
+	[in]  EgRectangleI32(parent)
+	);
 	
 
-	ecs_entity_t app1 = ecs_new(world, 0);
-	ecs_entity_t app2 = ecs_new(world, 0);
-	ecs_set_name(world, app1, "App1");
-	ecs_set_name(world, app2, "App2");
-	ecs_set(world, app1, EgRectangleI32, {800, 800});
-	ecs_set(world, app2, EgRectangleI32, {800, 800});
-	ecs_set(world, app1, EgWindow, {NULL, 0});
-	ecs_set(world, app2, EgWindow, {NULL, 0});
+	ecs_entity_t window1 = ecs_new(world, 0);
+	ecs_entity_t window2 = ecs_new(world, 0);
+	ecs_set_name(world, window1, "Window1");
+	ecs_set_name(world, window2, "Window2");
+	ecs_set(world, window1, EgRectangleI32, {800, 800});
+	ecs_set(world, window2, EgRectangleI32, {800, 800});
+	ecs_set(world, window1, EgWindow, {0, false});
+	ecs_set(world, window2, EgWindow, {0, false});
+	ecs_set(world, window1, EgTitle, {"Boncy1 Title"});
+	ecs_set(world, window2, EgTitle, {"Boncy2 Title"});
 
-	ecs_entity_t playground1 = ecs_new_w_pair(world, EcsChildOf, app1);
-	ecs_entity_t playground2 = ecs_new_w_pair(world, EcsChildOf, app2);
+	ecs_entity_t playground1 = ecs_new_w_pair(world, EcsChildOf, window1);
+	ecs_entity_t playground2 = ecs_new_w_pair(world, EcsChildOf, window2);
 	ecs_set_name(world, playground1, "playground1");
 	ecs_set_name(world, playground2, "playground2");
 	ecs_add(world, playground1, EgPlayground);
@@ -193,15 +204,15 @@ int main(int argc, char *argv[])
 		EgUserinput const * k = ecs_singleton_get(world, EgUserinput);
 		if (EG_U64BITSET_GET(k->keyboard_down, EG_KEY_1))
 		{
-			ecs_set(world, app1, EgRectangleI32, {200, 200});
+			ecs_set(world, window1, EgRectangleI32, {200, 200});
 		}
 		if (EG_U64BITSET_GET(k->keyboard_down, EG_KEY_2))
 		{
-			ecs_set(world, app1, EgRectangleI32, {400, 400});
+			ecs_set(world, window1, EgRectangleI32, {400, 400});
 		}
 		if (EG_U64BITSET_GET(k->keyboard_down, EG_KEY_3))
 		{
-			ecs_set(world, app1, EgRectangleI32, {800, 800});
+			ecs_set(world, window1, EgRectangleI32, {800, 800});
 		}
 
 	}

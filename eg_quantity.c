@@ -17,8 +17,8 @@ ECS_COMPONENT_DECLARE(EgLengthF32);
 
 static void Kinematic1(ecs_iter_t *it)
 {
-	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 1);
-	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2);
+	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 1); // [inout]
+	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2); // [in]
 	for (int i = 0; i < it->count; i ++)
 	{
 		p[i].x += v[i].x;
@@ -28,8 +28,8 @@ static void Kinematic1(ecs_iter_t *it)
 
 static void Kinematic2(ecs_iter_t *it)
 {
-	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 1);
-	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2);
+	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 1); // [inout]
+	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2); // [in]
 	for (int i = 0; i < it->count; i ++)
 	{
 		v[i].x += a[i].x;
@@ -39,9 +39,9 @@ static void Kinematic2(ecs_iter_t *it)
 
 static void Kinematic3(ecs_iter_t *it)
 {
-	EgMassF32 *m = ecs_term(it, EgMassF32, 1);
-	EgForce2F32 *f = ecs_term(it, EgForce2F32, 2);
-	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2);
+	EgMassF32 *m = ecs_term(it, EgMassF32, 1); // [in]
+	EgForce2F32 *f = ecs_term(it, EgForce2F32, 2); // [in]
+	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2); // [out]
 	for (int i = 0; i < it->count; i ++)
 	{
 		a[i].x = f[i].x / m[i].value;
@@ -51,9 +51,9 @@ static void Kinematic3(ecs_iter_t *it)
 
 static void Kinematic4(ecs_iter_t *it)
 {
-	EgMassF32 *m = ecs_term(it, EgMassF32, 1);
-	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2);
-	EgMomentum2F32 *p = ecs_term(it, EgMomentum2F32, 3);
+	EgMassF32 *m = ecs_term(it, EgMassF32, 1); // [in]
+	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2); // [in]
+	EgMomentum2F32 *p = ecs_term(it, EgMomentum2F32, 3); // [out]
 	for (int i = 0; i < it->count; i ++)
 	{
 		p[i].x = v[i].x * m[i].value;
