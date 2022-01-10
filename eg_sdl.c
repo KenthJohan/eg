@@ -2,7 +2,7 @@
 #include "eg_geometry.h"
 #include "eg_window.h"
 #include "eg_base.h"
-#include "eg_userinput.h"
+#include "eg_userevent.h"
 #include "eg_quantity.h"
 #include <SDL2/SDL.h>
 
@@ -337,9 +337,9 @@ static void Update_Window_Size(ecs_iter_t *it)
 }
 
 
-static void Update_Userinput(ecs_iter_t *it)
+static void Update_UserEvent(ecs_iter_t *it)
 {
-	EgUserinput *input = ecs_term(it, EgUserinput, 1); //Singleton
+	EgUserEvent *input = ecs_term(it, EgUserEvent, 1); //Singleton
 	memset(input->keyboard_up, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
 	memset(input->keyboard_down, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
 	SDL_Event event;
@@ -412,22 +412,34 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	});
 
 	
-	ecs_singleton_set(world, EgUserinput, { 0 });
+	ecs_singleton_set(world, EgUserEvent, { 0 });
 	
 	ECS_TRIGGER(world, Destroy_Window, EcsOnRemove, Eg_SDL_Window);
 
 	ECS_OBSERVER(world, Create_Window, EcsOnAdd,
-	EgWindow,
-	EgRectangleI32
-	);
-	ECS_OBSERVER(world, Change_Window_Size, EcsOnSet, [out] Eg_SDL_Window, [in] EgRectangleI32);
-	ECS_OBSERVER(world, Update_Title, EcsOnSet, [out] Eg_SDL_Window, [in] EgTitle);
-
-	ECS_SYSTEM(world, Update_Window, EcsOnUpdate, Eg_SDL_Window, EgWindow);
-	ECS_SYSTEM(world, Draw_Rectangle, EcsOnUpdate, Eg_SDL_Mesh(parent), EgPosition2F32, EgRectangleF32);
-	ECS_SYSTEM(world, Render_Mesh, EcsOnUpdate, Eg_SDL_Window, Eg_SDL_Mesh);
-	ECS_SYSTEM(world, Update_Userinput, EcsOnUpdate, $EgUserinput);
-	ECS_SYSTEM(world, Update_Window_Size, EcsOnUpdate, Eg_SDL_Window, EgRectangleI32);
+	[out] EgWindow,
+	[in]  EgRectangleI32);
+	ECS_OBSERVER(world, Change_Window_Size, EcsOnSet,
+	[out] Eg_SDL_Window,
+	[in]  EgRectangleI32);
+	ECS_OBSERVER(world, Update_Title, EcsOnSet,
+	[out] Eg_SDL_Window,
+	[in]  EgTitle);
+	ECS_SYSTEM(world, Update_Window, EcsOnUpdate,
+	[inout] Eg_SDL_Window,
+	[inout] EgWindow);
+	ECS_SYSTEM(world, Draw_Rectangle, EcsOnUpdate,
+	[out] Eg_SDL_Mesh(parent),
+	[in]  EgPosition2F32,
+	[in]  EgRectangleF32);
+	ECS_SYSTEM(world, Render_Mesh, EcsOnUpdate,
+	[in]  Eg_SDL_Window,
+	[out] Eg_SDL_Mesh);
+	ECS_SYSTEM(world, Update_UserEvent, EcsOnUpdate,
+	[out] $EgUserEvent);
+	ECS_SYSTEM(world, Update_Window_Size, EcsOnUpdate,
+	[in]  Eg_SDL_Window,
+	[out] EgRectangleI32);
 	
 }
 

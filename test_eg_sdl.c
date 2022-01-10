@@ -5,7 +5,7 @@
 #include "eg_sdl.h"
 #include "eg_geometry.h"
 #include "eg_window.h"
-#include "eg_userinput.h"
+#include "eg_userevent.h"
 #include "eg_base.h"
 #include "eg_quantity.h"
 
@@ -74,7 +74,7 @@ static void Move_Enemy(ecs_iter_t *it)
 static void Move_Player(ecs_iter_t *it)
 {
 	EgPlayer *player = ecs_term(it, EgPlayer, 1);
-	EgUserinput *u = ecs_term(it, EgUserinput, 2); // Singleton
+	EgUserEvent *u = ecs_term(it, EgUserEvent, 2); // Singleton
 	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 3);
 	EgRectangleF32 *r = ecs_term(it, EgRectangleF32, 4);
 	for (int i = 0; i < it->count; i ++)
@@ -89,8 +89,8 @@ static void Move_Player(ecs_iter_t *it)
 		k *= EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_PLUS) - EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_MINUS);
 		r[i].width += k;
 		r[i].height += k;
-		p[i].x -= k*0.5f;
-		p[i].y -= k*0.5f;
+		p[i].x -= k * 0.5f;
+		p[i].y -= k * 0.5f;
 	}
 }
 
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
 	ECS_COMPONENT_DEFINE(world, EgEnemy);
 	ECS_COMPONENT_DEFINE(world, EgPlayground);
 
-	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserinput, EgPosition2F32, EgRectangleF32);
+	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserEvent, EgPosition2F32, EgRectangleF32);
 	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, EgEnemy, EgAcceleration2F32);
 	ECS_SYSTEM(world, Bounce, EcsOnUpdate,
 	[out] EgPlayground(parent),
@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 		ecs_os_sleep(0,100000);
 		ecs_progress(world, 0);
 
-		EgUserinput const * k = ecs_singleton_get(world, EgUserinput);
+		EgUserEvent const * k = ecs_singleton_get(world, EgUserEvent);
 		if (EG_U64BITSET_GET(k->keyboard_down, EG_KEY_1))
 		{
 			ecs_set(world, window1, EgRectangleI32, {200, 200});

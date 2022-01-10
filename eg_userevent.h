@@ -18,9 +18,9 @@ typedef struct
 	ecs_i32_t mouse_y;
 	ecs_i32_t mouse_dx;
 	ecs_i32_t mouse_dy;
-} EgUserinput;
+} EgUserEvent;
 
-extern ECS_COMPONENT_DECLARE(EgUserinput);
+extern ECS_COMPONENT_DECLARE(EgUserEvent);
 
 
 void FlecsComponentsEgUserinputImport(ecs_world_t *world);

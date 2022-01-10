@@ -1,19 +1,19 @@
-#include "eg_userinput.h"
+#include "eg_userevent.h"
 
 
-ECS_COMPONENT_DECLARE(EgUserinput);
+ECS_COMPONENT_DECLARE(EgUserEvent);
 
 
 
 void FlecsComponentsEgUserinputImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, FlecsComponentsEgUserinput);
-	ECS_COMPONENT_DEFINE(world, EgUserinput);
+	ECS_COMPONENT_DEFINE(world, EgUserEvent);
 
 	ecs_set_name_prefix(world, "Eg");
 
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
-	.entity.entity = ecs_id(EgUserinput),
+	.entity.entity = ecs_id(EgUserEvent),
 	.members = {
 	{ .name = "keyboard", .type = ecs_id(ecs_u64_t), EG_NUM_KEYS64 },
 	{ .name = "keyboard_up", .type = ecs_id(ecs_u64_t), EG_NUM_KEYS64 },
