@@ -7,6 +7,7 @@
 #include "eg_window.h"
 #include "eg_userinput.h"
 #include "eg_base.h"
+#include "eg_quantity.h"
 
 
 typedef struct
@@ -44,30 +45,7 @@ static void Playground_Update(ecs_iter_t *it)
 	}
 }
 
-static void Kinematic1(ecs_iter_t *it)
-{
-	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 1);
-	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2);
-	for (int i = 0; i < it->count; i ++)
-	{
-		p[i].x += v[i].x;
-		p[i].y += v[i].y;
-	}
-}
-
-static void Kinematic2(ecs_iter_t *it)
-{
-	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 1);
-	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2);
-	for (int i = 0; i < it->count; i ++)
-	{
-		v[i].x += a[i].x;
-		v[i].y += a[i].y;
-	}
-}
-
-
-static void Kinematic3(ecs_iter_t *it)
+static void Bounce(ecs_iter_t *it)
 {
 	EgPlayground *y = ecs_term(it, EgPlayground, 1); // Parent
 	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2); // Parent
@@ -129,6 +107,7 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, FlecsComponentsEgSdl);
 	ECS_IMPORT(world, FlecsComponentsEgGeometry);
 	ECS_IMPORT(world, FlecsComponentsEgWindow);
+	ECS_IMPORT(world, FlecsComponentsEgQuantity);
 
 
 	ECS_COMPONENT_DEFINE(world, EgPlayer);
@@ -137,9 +116,7 @@ int main(int argc, char *argv[])
 
 	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserinput, EgPosition2F32, EgRectangleF32);
 	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, EgEnemy, EgAcceleration2F32);
-	ECS_SYSTEM(world, Kinematic1, EcsOnUpdate, EgPosition2F32, EgVelocity2F32);
-	ECS_SYSTEM(world, Kinematic2, EcsOnUpdate, EgVelocity2F32, EgAcceleration2F32);
-	ECS_SYSTEM(world, Kinematic3, EcsOnUpdate, EgPlayground(parent), EgRectangleI32(parent), EgPosition2F32, EgVelocity2F32);
+	ECS_SYSTEM(world, Bounce, EcsOnUpdate, EgPlayground(parent), EgRectangleI32(parent), EgPosition2F32, EgVelocity2F32);
 	ECS_SYSTEM(world, Playground_Update, EcsOnUpdate, EgPlayground, EgRectangleI32, EgRectangleI32(parent));
 	
 

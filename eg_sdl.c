@@ -3,6 +3,7 @@
 #include "eg_window.h"
 #include "eg_base.h"
 #include "eg_userinput.h"
+#include "eg_quantity.h"
 #include <SDL2/SDL.h>
 
 
@@ -378,6 +379,7 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	ECS_IMPORT(world, FlecsComponentsEgGeometry);
 	ECS_IMPORT(world, FlecsComponentsEgWindow);
 	ECS_IMPORT(world, FlecsComponentsEgUserinput);
+	ECS_IMPORT(world, FlecsComponentsEgQuantity);
 	ecs_set_name_prefix(world, "Eg");
 	
 	SDL_Init(SDL_INIT_VIDEO);
