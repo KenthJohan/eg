@@ -95,6 +95,7 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 
 	ECS_SYSTEM(world, Kinematic1, EcsOnUpdate, EgPosition2F32, EgVelocity2F32);
 	ECS_SYSTEM(world, Kinematic2, EcsOnUpdate, EgVelocity2F32, EgAcceleration2F32);
+	ECS_SYSTEM(world, Kinematic3, EcsOnUpdate, EgMassF32, EgForce2F32, EgAcceleration2F32);
 
 
 }

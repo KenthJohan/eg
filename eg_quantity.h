@@ -43,7 +43,7 @@ extern ECS_COMPONENT_DECLARE(EgPosition2I32);
 extern ECS_COMPONENT_DECLARE(EgVelocity2F32);
 extern ECS_COMPONENT_DECLARE(EgAcceleration2F32);
 extern ECS_COMPONENT_DECLARE(EgMassF32);
-extern ECS_COMPONENT_DECLARE(EgForceF32);
+extern ECS_COMPONENT_DECLARE(EgForce2F32);
 
 
 void FlecsComponentsEgQuantityImport(ecs_world_t *world);
