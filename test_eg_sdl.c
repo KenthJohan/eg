@@ -144,22 +144,33 @@ int main(int argc, char *argv[])
 	
 
 	ecs_entity_t app1 = ecs_new(world, 0);
+	ecs_entity_t app2 = ecs_new(world, 0);
 	ecs_set_name(world, app1, "App1");
+	ecs_set_name(world, app2, "App2");
 	ecs_set(world, app1, EgRectangleI32, {800, 800});
+	ecs_set(world, app2, EgRectangleI32, {800, 800});
 	ecs_set(world, app1, EgWindow, {NULL, 0});
+	ecs_set(world, app2, EgWindow, {NULL, 0});
 
 	ecs_entity_t playground1 = ecs_new_w_pair(world, EcsChildOf, app1);
+	ecs_entity_t playground2 = ecs_new_w_pair(world, EcsChildOf, app2);
+	ecs_set_name(world, playground1, "playground1");
+	ecs_set_name(world, playground2, "playground2");
 	ecs_add(world, playground1, EgPlayground);
+	ecs_add(world, playground2, EgPlayground);
 	ecs_add(world, playground1, EgRectangleI32);
+	ecs_add(world, playground2, EgRectangleI32);
 	
 	{
 		ecs_entity_t e1 = ecs_new_w_pair(world, EcsChildOf, playground1);
+		ecs_set_name(world, e1, "Player1");
 		ecs_set(world, e1, EgDraw, {1});
 		ecs_set(world, e1, EgPosition2F32, {50, 50});
 		ecs_set(world, e1, EgRectangleF32, {50, 50});
 		ecs_add(world, e1, EgPlayer);
 
 		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground1);
+		ecs_set_name(world, e2, "Enemy1");
 		ecs_set(world, e2, EgDraw, {1});
 		ecs_set(world, e2, EgEnemy, {0});
 		ecs_set(world, e2, EgPosition2F32, {0, 0});
@@ -168,25 +179,22 @@ int main(int argc, char *argv[])
 		ecs_set(world, e2, EgAcceleration2F32, {0.0001f, -0.001f});
 	}
 
-
-
-	ecs_entity_t app2 = ecs_new(world, 0);
-	ecs_set_name(world, app2, "App2");
-	ecs_set(world, app2, EgRectangleI32, {800, 800});
-	ecs_set(world, app2, EgWindow, {NULL, 0});
-
-	ecs_entity_t playground2 = ecs_new_w_pair(world, EcsChildOf, app2);
-	ecs_add(world, playground2, EgPlayground);
-	ecs_add(world, playground2, EgRectangleI32);
-
 	{
 		ecs_entity_t e1 = ecs_new_w_pair(world, EcsChildOf, playground2);
+		ecs_set_name(world, e1, "Enemy2");
 		ecs_set(world, e1, EgDraw, {1});
 		ecs_set(world, e1, EgEnemy, {0});
 		ecs_set(world, e1, EgPosition2F32, {50, 50});
 		ecs_set(world, e1, EgRectangleF32, {50, 50});
 		ecs_set(world, e1, EgVelocity2F32, {0.2f, 0.1f});
 		ecs_set(world, e1, EgAcceleration2F32, {0.001f, 0.001f});
+
+		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground2);
+		ecs_set_name(world, e2, "Player2");
+		ecs_set(world, e2, EgDraw, {1});
+		ecs_set(world, e2, EgPosition2F32, {50, 50});
+		ecs_set(world, e2, EgRectangleF32, {50, 50});
+		ecs_add(world, e2, EgPlayer);
 	}
 
 
