@@ -28,22 +28,47 @@ typedef struct
 
 typedef struct
 {
-	float value;
-} EgMassF32;
+	float x;
+	float y;
+} EgForce2F32;
 
 typedef struct
 {
 	float x;
 	float y;
-} EgForce2F32;
+} EgMomentum2F32;
+
+typedef struct
+{
+	float value;
+} EgMassF32;
+
+typedef struct
+{
+	float value;
+} EgTimeF32;
+
+typedef struct
+{
+	float value;
+} EgTemperatureF32;
+
+typedef struct
+{
+	float value;
+} EgLengthF32;
 
 
 extern ECS_COMPONENT_DECLARE(EgPosition2F32);
 extern ECS_COMPONENT_DECLARE(EgPosition2I32);
 extern ECS_COMPONENT_DECLARE(EgVelocity2F32);
 extern ECS_COMPONENT_DECLARE(EgAcceleration2F32);
-extern ECS_COMPONENT_DECLARE(EgMassF32);
 extern ECS_COMPONENT_DECLARE(EgForce2F32);
+extern ECS_COMPONENT_DECLARE(EgMomentum2F32);
+extern ECS_COMPONENT_DECLARE(EgMassF32);
+extern ECS_COMPONENT_DECLARE(EgTimeF32);
+extern ECS_COMPONENT_DECLARE(EgTemperatureF32);
+extern ECS_COMPONENT_DECLARE(EgLengthF32);
 
 
 void FlecsComponentsEgQuantityImport(ecs_world_t *world);

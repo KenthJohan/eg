@@ -156,6 +156,7 @@ int main(int argc, char *argv[])
 		ecs_set(world, e2, EgAcceleration2F32, {0.0001f, -0.001f});
 		ecs_set(world, e2, EgForce2F32, {0.0001f, -0.001f});
 		ecs_set(world, e2, EgMassF32, {1.0f});
+		ecs_add(world, e2, EgMomentum2F32);
 	}
 
 	{
@@ -169,6 +170,7 @@ int main(int argc, char *argv[])
 		ecs_set(world, e1, EgAcceleration2F32, {0.001f, 0.001f});
 		ecs_set(world, e1, EgForce2F32, {0.0001f, -0.001f});
 		ecs_set(world, e1, EgMassF32, {1.0f});
+		ecs_add(world, e1, EgMomentum2F32);
 
 		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground2);
 		ecs_set_name(world, e2, "Player2");
