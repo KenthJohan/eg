@@ -139,7 +139,7 @@ static void Create_Window(ecs_iter_t *it)
 		SDL_WINDOWPOS_UNDEFINED,
 		r[i].width,
 		r[i].height,
-		SDL_WINDOW_OPENGL
+		SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
 		);
 		int id = SDL_GetWindowID(window);
 		g_sdl_wents[id] = e;

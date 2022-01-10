@@ -1,13 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "flecs.h"
-#include "eg_sdl.h"
 #include "eg_geometry.h"
 #include "eg_window.h"
 #include "eg_userevent.h"
 #include "eg_base.h"
 #include "eg_quantity.h"
+
+// If SDL is used as backend
+#if 1
+#include "eg_sdl.h"
+#endif
 
 
 typedef struct
@@ -17,7 +22,7 @@ typedef struct
 
 typedef struct
 {
-	int dummy;
+	float dummy;
 } EgEnemy;
 
 
@@ -67,6 +72,9 @@ static void Move_Enemy(ecs_iter_t *it)
 	EgForce2F32 *a = ecs_term(it, EgForce2F32, 2);
 	for (int i = 0; i < it->count; i ++)
 	{
+		e[i].dummy += 0.001f;;
+		a[i].x = sin(e[i].dummy);
+		a[i].y = cos(e[i].dummy + i*a[i].x);
 	}
 }
 
@@ -116,7 +124,7 @@ int main(int argc, char *argv[])
 	ECS_COMPONENT_DEFINE(world, EgPlayground);
 
 	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserEvent, EgPosition2F32, EgRectangleF32);
-	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, EgEnemy, EgAcceleration2F32);
+	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, [inout] EgEnemy, [out] EgForce2F32);
 	ECS_SYSTEM(world, Bounce, EcsOnUpdate,
 	[out] EgPlayground(parent),
 	[in]  EgRectangleI32(parent),
@@ -163,10 +171,10 @@ int main(int argc, char *argv[])
 		ecs_set(world, e2, EgEnemy, {0});
 		ecs_set(world, e2, EgPosition2F32, {0, 0});
 		ecs_set(world, e2, EgRectangleF32, {80, 80});
-		ecs_set(world, e2, EgVelocity2F32, {0.1f, 0.2f});
-		ecs_set(world, e2, EgAcceleration2F32, {0.0001f, -0.001f});
-		ecs_set(world, e2, EgForce2F32, {0.0001f, -0.001f});
-		ecs_set(world, e2, EgMassF32, {1.0f});
+		ecs_set(world, e2, EgVelocity2F32, {0, 0});
+		ecs_add(world, e2, EgAcceleration2F32);
+		ecs_set(world, e2, EgForce2F32, {0, 0});
+		ecs_set(world, e2, EgMassF32, {1000.0f});
 		ecs_add(world, e2, EgMomentum2F32);
 	}
 
@@ -177,10 +185,10 @@ int main(int argc, char *argv[])
 		ecs_set(world, e1, EgEnemy, {0});
 		ecs_set(world, e1, EgPosition2F32, {50, 50});
 		ecs_set(world, e1, EgRectangleF32, {50, 50});
-		ecs_set(world, e1, EgVelocity2F32, {0.2f, 0.1f});
-		ecs_set(world, e1, EgAcceleration2F32, {0.001f, 0.001f});
-		ecs_set(world, e1, EgForce2F32, {0.0001f, -0.001f});
-		ecs_set(world, e1, EgMassF32, {1.0f});
+		ecs_set(world, e1, EgVelocity2F32, {0, 0});
+		ecs_add(world, e1, EgAcceleration2F32);
+		ecs_set(world, e1, EgForce2F32, {0, 0});
+		ecs_set(world, e1, EgMassF32, {1000.0f});
 		ecs_add(world, e1, EgMomentum2F32);
 
 		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground2);

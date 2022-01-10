@@ -28,6 +28,7 @@ HEADERS += eg_window.h
 HEADERS += eg_userevent.h
 HEADERS += eg_base.h
 HEADERS += eg_quantity.h
+HEADERS += eg_window_sdl.h
 
 
 LIBS += -lmingw32 -lSDL2main -lSDL2 -lws2_32

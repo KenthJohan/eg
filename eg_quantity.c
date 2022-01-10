@@ -41,7 +41,7 @@ static void Kinematic3(ecs_iter_t *it)
 {
 	EgMassF32 *m = ecs_term(it, EgMassF32, 1); // [in]
 	EgForce2F32 *f = ecs_term(it, EgForce2F32, 2); // [in]
-	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2); // [out]
+	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 3); // [out]
 	for (int i = 0; i < it->count; i ++)
 	{
 		a[i].x = f[i].x / m[i].value;

@@ -46,7 +46,7 @@ static void eg_iter_info(ecs_iter_t *it, const char *f, const char *file, int32_
 	{
 		ecs_entity_t e = it->entities[i];
 		fprintf(stdout,
-		ECS_YELLOW"EG %s() %s:%i "ECS_NORMAL"0x%08x: name=%s, type=(%s)\n",
+		ECS_YELLOW"EG %s() %s:%i "ECS_NORMAL"0x%08llx: name=%s, type=(%s)\n",
 		f, file, line, e, ecs_get_name(world, e), ecs_type_str(world, ecs_get_type(world, e))
 		);
 	}
