@@ -33,11 +33,15 @@ static void Kinematic2(ecs_iter_t *it)
 	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2); // [in]
 	for (int i = 0; i < it->count; i ++)
 	{
-		float k = 0.1f;
 		v[i].x += a[i].x;
 		v[i].y += a[i].y;
-		v[i].x = EG_CLAMP(v[i].x, -k, k);
-		v[i].y = EG_CLAMP(v[i].y, -k, k);
+		//float k = 0.1f;
+		//v[i].x = EG_CLAMP(v[i].x, -k, k);
+		//v[i].y = EG_CLAMP(v[i].y, -k, k);
+		EG_ASSERT(eg_isnan(v[i].x) == 0);
+		EG_ASSERT(eg_isnan(v[i].y) == 0);
+		EG_ASSERT(isinf(v[i].x) == 0);
+		EG_ASSERT(isinf(v[i].y) == 0);
 	}
 }
 
@@ -48,10 +52,18 @@ static void Kinematic3(ecs_iter_t *it)
 	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 3); // [out]
 	for (int i = 0; i < it->count; i ++)
 	{
+		EG_ASSERT(eg_isnan(f[i].x) == 0);
+		EG_ASSERT(eg_isnan(f[i].y) == 0);
+		EG_ASSERT(isinf(f[i].x) == 0);
+		EG_ASSERT(isinf(f[i].y) == 0);
 		a[i].x = f[i].x / m[i].value;
 		a[i].y = f[i].y / m[i].value;
 		f[i].x = 0.0f;
 		f[i].y = 0.0f;
+		EG_ASSERT(eg_isnan(a[i].x) == 0);
+		EG_ASSERT(eg_isnan(a[i].y) == 0);
+		EG_ASSERT(isinf(a[i].x) == 0);
+		EG_ASSERT(isinf(a[i].y) == 0);
 	}
 }
 
@@ -74,9 +86,15 @@ static void Kinematic5(ecs_iter_t *it)
 	EgForce2F32 *f = ecs_term(it, EgForce2F32, 3); // [out]
 	for (int i = 0; i < it->count; i ++)
 	{
-		float mag = sqrtf(v[i].x + v[i].x);
-		f[i].x += 0.5f * d[0].value * v[i].x * mag;
-		f[i].y += 0.5f * d[0].value * v[i].y * mag;
+		float vx = v[i].x;
+		float vy = v[i].y;
+		float mag = sqrtf((vx * vx) + (vy * vy));
+		f[i].x -= 0.5f * d[0].value * vx * mag;
+		f[i].y -= 0.5f * d[0].value * vy * mag;
+		EG_ASSERT(eg_isnan(f[i].x) == 0);
+		EG_ASSERT(eg_isnan(f[i].y) == 0);
+		EG_ASSERT(isinf(f[i].x) == 0);
+		EG_ASSERT(isinf(f[i].y) == 0);
 	}
 }
 
@@ -143,7 +161,7 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgMomentum2F32), "Product of an object's mass and velocity. unit: kg⋅m/s");
+	ecs_doc_set_brief(world, ecs_id(EgMomentum2F32), "Product of an object's mass and velocity. unit: kg*m/s");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgMomentum2F32),
 	.members = {

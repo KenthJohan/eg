@@ -23,7 +23,7 @@ typedef struct
 typedef struct
 {
 	int dummy;
-} EgMonster;
+} EgCat;
 
 typedef struct
 {
@@ -38,7 +38,7 @@ typedef struct
 
 
 ECS_COMPONENT_DECLARE(EgPlayer);
-ECS_COMPONENT_DECLARE(EgMonster);
+ECS_COMPONENT_DECLARE(EgCat);
 ECS_COMPONENT_DECLARE(EgPlayground);
 ECS_COMPONENT_DECLARE(EgProjectile);
 
@@ -73,25 +73,26 @@ static void Bounce(ecs_iter_t *it)
 }
 
 
-float random(float a, float b)
+float random1(float a, float b)
 {
 	float n = (float)rand() / (float)RAND_MAX;
 	n *= (b-a);
 	n += a;
-	return n;
+	return EG_CLAMP(n, a, b);
 }
 
 static void Move_Enemy(ecs_iter_t *it)
 {
-	EgMonster *e = ecs_term(it, EgMonster, 1);
+	EgCat *e = ecs_term(it, EgCat, 1);
 	EgForce2F32 *f = ecs_term(it, EgForce2F32, 2);
 	for (int i = 0; i < it->count; i ++)
 	{
 		e[i].dummy += 0.001f;
-		if(rand() < (RAND_MAX / 4))
+		if(rand() < (RAND_MAX / 1000))
 		{
-			f[i].x += random(-1.0f, 1.0f);
-			f[i].y += random(-1.0f, 1.0f);
+			float a = random1(0, M_PI*2);
+			f[i].x += sin(a) * 100.0f;
+			f[i].y += cos(a) * 100.0f;
 		}
 	}
 }
@@ -136,7 +137,7 @@ int main(int argc, char *argv[])
 
 
 	ECS_COMPONENT_DEFINE(world, EgPlayer);
-	ECS_COMPONENT_DEFINE(world, EgMonster);
+	ECS_COMPONENT_DEFINE(world, EgCat);
 	ECS_COMPONENT_DEFINE(world, EgPlayground);
 	ECS_COMPONENT_DEFINE(world, EgProjectile);
 
@@ -146,7 +147,7 @@ int main(int argc, char *argv[])
 	[inout] EgForce2F32,
 	[inout] EgRectangleF32);
 	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate,
-	[inout] EgMonster,
+	[inout] EgCat,
 	[out]   EgForce2F32);
 	ECS_SYSTEM(world, Bounce, EcsOnUpdate,
 	[out]   EgPlayground(parent),
@@ -179,7 +180,7 @@ int main(int argc, char *argv[])
 	ecs_add(world, playground1, EgRectangleI32);
 	ecs_add(world, playground2, EgRectangleI32);
 	ecs_set(world, playground1, EgDensityF32, {1000.0f});
-	ecs_set(world, playground2, EgDensityF32, {1000.0f});
+	ecs_set(world, playground2, EgDensityF32, {10.0f});
 	
 	{
 		ecs_entity_t e1 = ecs_new_w_pair(world, EcsChildOf, playground1);
@@ -196,13 +197,13 @@ int main(int argc, char *argv[])
 		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground1);
 		ecs_set_name(world, e2, "Enemy1");
 		ecs_set(world, e2, EgDraw, {1});
-		ecs_set(world, e2, EgMonster, {0});
+		ecs_add(world, e2, EgCat);
 		ecs_set(world, e2, EgPosition2F32, {0, 0});
 		ecs_set(world, e2, EgRectangleF32, {80, 80});
 		ecs_set(world, e2, EgVelocity2F32, {0, 0});
 		ecs_add(world, e2, EgAcceleration2F32);
 		ecs_set(world, e2, EgForce2F32, {0, 0});
-		ecs_set(world, e2, EgMassF32, {1000.0f});
+		ecs_set(world, e2, EgMassF32, {100.0f});
 		ecs_add(world, e2, EgMomentum2F32);
 	}
 
@@ -210,13 +211,13 @@ int main(int argc, char *argv[])
 		ecs_entity_t e1 = ecs_new_w_pair(world, EcsChildOf, playground2);
 		ecs_set_name(world, e1, "Enemy2");
 		ecs_set(world, e1, EgDraw, {1});
-		ecs_set(world, e1, EgMonster, {0});
+		ecs_set(world, e1, EgCat, {0});
 		ecs_set(world, e1, EgPosition2F32, {50, 50});
 		ecs_set(world, e1, EgRectangleF32, {50, 50});
 		ecs_set(world, e1, EgVelocity2F32, {0, 0});
 		ecs_add(world, e1, EgAcceleration2F32);
 		ecs_set(world, e1, EgForce2F32, {0, 0});
-		ecs_set(world, e1, EgMassF32, {1000.0f});
+		ecs_set(world, e1, EgMassF32, {100.0f});
 		ecs_add(world, e1, EgMomentum2F32);
 
 		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground2);
@@ -225,10 +226,12 @@ int main(int argc, char *argv[])
 		ecs_set(world, e2, EgPosition2F32, {50, 50});
 		ecs_set(world, e2, EgRectangleF32, {50, 50});
 		ecs_add(world, e2, EgPlayer);
-		ecs_set(world, e2, EgMassF32, {1000.0f});
+		ecs_set(world, e2, EgMassF32, {100.0f});
 		ecs_set(world, e2, EgForce2F32, {0, 0});
 		ecs_add(world, e2, EgAcceleration2F32);
 		ecs_set(world, e2, EgVelocity2F32, {0, 0});
+		ecs_set(world, e2, EgMomentum2F32, {0, 0});
+		ecs_set(world, e2, EgDensityF32, {0});
 	}
 
 
