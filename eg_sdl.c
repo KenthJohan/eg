@@ -216,6 +216,11 @@ static void Update_Window(ecs_iter_t *it)
 			EG_TRACE("should_destroy is true. Deleting entity 0x%016x", e);
 			ecs_delete(it->world, e);
 		}
+		if (s[i].window)
+		{
+			// https://github.com/libsdl-org/SDL/issues/1059
+			w[i].grabbed = SDL_GetWindowGrab(s[i].window);
+		}
 	}
 }
 

@@ -25,6 +25,11 @@ typedef struct
 	float dummy;
 } EgEnemy;
 
+typedef struct
+{
+	float dummy;
+} EgProjectile;
+
 
 typedef struct
 {
@@ -35,34 +40,35 @@ typedef struct
 ECS_COMPONENT_DECLARE(EgPlayer);
 ECS_COMPONENT_DECLARE(EgEnemy);
 ECS_COMPONENT_DECLARE(EgPlayground);
+ECS_COMPONENT_DECLARE(EgProjectile);
 
 
 static void Playground_Update(ecs_iter_t *it)
 {
-	EgPlayground *y = ecs_term(it, EgPlayground, 1);      // [out]
-	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);  // [out]
-	EgRectangleI32 *wr = ecs_term(it, EgRectangleI32, 3); // [in]      Parent
+	EgPlayground   *playground = ecs_term(it, EgPlayground,   1); // [out]  This
+	EgRectangleI32 *rectangle  = ecs_term(it, EgRectangleI32, 2); // [out]  This
+	EgRectangleI32 *wrectangle = ecs_term(it, EgRectangleI32, 3); // [in]   Parent
 	for (int i = 0; i < it->count; i ++)
 	{
-		y[i].dummy = 0;
-		r[i].width = wr[0].width;
-		r[i].height = wr[0].height;
+		playground[i].dummy = 0;
+		rectangle[i].width = wrectangle[0].width;
+		rectangle[i].height = wrectangle[0].height;
 	}
 }
 
 static void Bounce(ecs_iter_t *it)
 {
-	EgPlayground *y = ecs_term(it, EgPlayground, 1);     // [out]    Parent
-	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2); // [in]     Parent
-	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 3); // [in]
-	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 4); // [inout]
+	EgPlayground   *playground = ecs_term(it, EgPlayground,   1); // [out]   Parent
+	EgRectangleI32 *rectangle  = ecs_term(it, EgRectangleI32, 2); // [in]    Parent
+	EgPosition2F32 *position   = ecs_term(it, EgPosition2F32, 3); // [in]    This
+	EgVelocity2F32 *velocity   = ecs_term(it, EgVelocity2F32, 4); // [inout] This
 	for (int i = 0; i < it->count; i ++)
 	{
-		y[0].dummy = 0;
-		v[i].x *= (p[i].x > r[0].width) ? 1.0f : -1.0f;
-		v[i].y *= (p[i].y > r[0].height) ? 1.0f : -1.0f;
-		v[i].x *= (p[i].x < 0) ? 1.0f : -1.0f;
-		v[i].y *= (p[i].y < 0) ? 1.0f : -1.0f;
+		playground[0].dummy = 0;
+		velocity[i].x *= (position[i].x > rectangle[0].width) ? 1.0f : -1.0f;
+		velocity[i].y *= (position[i].y > rectangle[0].height) ? 1.0f : -1.0f;
+		velocity[i].x *= (position[i].x < 0) ? 1.0f : -1.0f;
+		velocity[i].y *= (position[i].y < 0) ? 1.0f : -1.0f;
 	}
 }
 
@@ -122,19 +128,25 @@ int main(int argc, char *argv[])
 	ECS_COMPONENT_DEFINE(world, EgPlayer);
 	ECS_COMPONENT_DEFINE(world, EgEnemy);
 	ECS_COMPONENT_DEFINE(world, EgPlayground);
+	ECS_COMPONENT_DEFINE(world, EgProjectile);
 
-	ECS_SYSTEM(world, Move_Player, EcsOnUpdate, EgPlayer, $EgUserEvent, EgPosition2F32, EgRectangleF32);
-	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate, [inout] EgEnemy, [out] EgForce2F32);
+	ECS_SYSTEM(world, Move_Player, EcsOnUpdate,
+	[inout] EgPlayer,
+	[in]    $EgUserEvent,
+	[inout] EgPosition2F32,
+	[inout] EgRectangleF32);
+	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate,
+	[inout] EgEnemy,
+	[out]   EgForce2F32);
 	ECS_SYSTEM(world, Bounce, EcsOnUpdate,
-	[out] EgPlayground(parent),
-	[in]  EgRectangleI32(parent),
-	[in]  EgPosition2F32,
-	[out] EgVelocity2F32);
+	[out]   EgPlayground(parent),
+	[in]    EgRectangleI32(parent),
+	[in]    EgPosition2F32,
+	[out]   EgVelocity2F32);
 	ECS_SYSTEM(world, Playground_Update, EcsOnUpdate,
-	[out] EgPlayground,
-	[out] EgRectangleI32,
-	[in]  EgRectangleI32(parent)
-	);
+	[out]   EgPlayground,
+	[out]   EgRectangleI32,
+	[in]    EgRectangleI32(parent));
 	
 
 	ecs_entity_t window1 = ecs_new(world, 0);
@@ -143,8 +155,8 @@ int main(int argc, char *argv[])
 	ecs_set_name(world, window2, "Window2");
 	ecs_set(world, window1, EgRectangleI32, {800, 800});
 	ecs_set(world, window2, EgRectangleI32, {800, 800});
-	ecs_set(world, window1, EgWindow, {0, false});
-	ecs_set(world, window2, EgWindow, {0, false});
+	ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false, false});
+	ecs_set(world, window2, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false, false});
 	ecs_set(world, window1, EgTitle, {"Boncy1 Title"});
 	ecs_set(world, window2, EgTitle, {"Boncy2 Title"});
 

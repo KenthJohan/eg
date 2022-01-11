@@ -3,8 +3,10 @@
 
 typedef struct
 {
+	ecs_u64_t flags;
 	ecs_u64_t counter;
 	ecs_bool_t should_destroy;
+	ecs_bool_t grabbed;
 } EgWindow;
 
 typedef struct
