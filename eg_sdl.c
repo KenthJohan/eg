@@ -227,19 +227,21 @@ static void Update_Window(ecs_iter_t *it)
 
 static void Vertex_Rect(SDL_Vertex v[6], EgPosition2F32 * p, EgRectangleF32 * r)
 {
-	v[0].position.x = p->x;
-	v[0].position.y = p->y;
-	v[1].position.x = p->x + r->width;
-	v[1].position.y = p->y;
-	v[2].position.x = p->x + r->width;
-	v[2].position.y = p->y + r->height;
+	float w2 = r->width / 2;
+	float h2 = r->height / 2;
+	v[0].position.x = p->x - w2;
+	v[0].position.y = p->y - h2;
+	v[1].position.x = p->x + w2;
+	v[1].position.y = p->y - h2;
+	v[2].position.x = p->x + w2;
+	v[2].position.y = p->y + h2;
 
-	v[3].position.x = p->x;
-	v[3].position.y = p->y;
-	v[4].position.x = p->x;
-	v[4].position.y = p->y + r->height;
-	v[5].position.x = p->x + r->width;
-	v[5].position.y = p->y + r->height;
+	v[3].position.x = p->x - h2;
+	v[3].position.y = p->y - w2;
+	v[4].position.x = p->x - h2;
+	v[4].position.y = p->y + h2;
+	v[5].position.x = p->x + w2;
+	v[5].position.y = p->y + h2;
 }
 
 

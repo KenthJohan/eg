@@ -1,5 +1,6 @@
 #include "eg_quantity.h"
-
+#include "eg_base.h"
+#include <math.h>
 
 
 ECS_COMPONENT_DECLARE(EgPosition2F32);
@@ -12,7 +13,7 @@ ECS_COMPONENT_DECLARE(EgMassF32);
 ECS_COMPONENT_DECLARE(EgTimeF32);
 ECS_COMPONENT_DECLARE(EgTemperatureF32);
 ECS_COMPONENT_DECLARE(EgLengthF32);
-
+ECS_COMPONENT_DECLARE(EgDensityF32);
 
 
 static void Kinematic1(ecs_iter_t *it)
@@ -32,20 +33,25 @@ static void Kinematic2(ecs_iter_t *it)
 	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2); // [in]
 	for (int i = 0; i < it->count; i ++)
 	{
+		float k = 0.1f;
 		v[i].x += a[i].x;
 		v[i].y += a[i].y;
+		v[i].x = EG_CLAMP(v[i].x, -k, k);
+		v[i].y = EG_CLAMP(v[i].y, -k, k);
 	}
 }
 
 static void Kinematic3(ecs_iter_t *it)
 {
 	EgMassF32 *m = ecs_term(it, EgMassF32, 1); // [in]
-	EgForce2F32 *f = ecs_term(it, EgForce2F32, 2); // [in]
+	EgForce2F32 *f = ecs_term(it, EgForce2F32, 2); // [inout]
 	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 3); // [out]
 	for (int i = 0; i < it->count; i ++)
 	{
 		a[i].x = f[i].x / m[i].value;
 		a[i].y = f[i].y / m[i].value;
+		f[i].x = 0.0f;
+		f[i].y = 0.0f;
 	}
 }
 
@@ -58,6 +64,19 @@ static void Kinematic4(ecs_iter_t *it)
 	{
 		p[i].x = v[i].x * m[i].value;
 		p[i].y = v[i].y * m[i].value;
+	}
+}
+
+static void Kinematic5(ecs_iter_t *it)
+{
+	EgDensityF32 *d = ecs_term(it, EgDensityF32, 1); // [in] Parent
+	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2); // [in]
+	EgForce2F32 *f = ecs_term(it, EgForce2F32, 3); // [out]
+	for (int i = 0; i < it->count; i ++)
+	{
+		float mag = sqrtf(v[i].x + v[i].x);
+		f[i].x += 0.5f * d[0].value * v[i].x * mag;
+		f[i].y += 0.5f * d[0].value * v[i].y * mag;
 	}
 }
 
@@ -77,6 +96,7 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgTimeF32);
 	ECS_COMPONENT_DEFINE(world, EgTemperatureF32);
 	ECS_COMPONENT_DEFINE(world, EgLengthF32);
+	ECS_COMPONENT_DEFINE(world, EgDensityF32);
 
 	ecs_set_name_prefix(world, "Eg");
 
@@ -164,12 +184,19 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-
+	ecs_doc_set_brief(world, ecs_id(EgDensityF32), "Substance is its mass per unit volume");
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(EgDensityF32),
+	.members = {
+	{ .name = "value", .type = ecs_id(ecs_f32_t) }
+	}
+	});
 
 	ECS_SYSTEM(world, Kinematic1, EcsOnUpdate, [inout] EgPosition2F32, [in] EgVelocity2F32);
 	ECS_SYSTEM(world, Kinematic2, EcsOnUpdate, [inout] EgVelocity2F32, [in] EgAcceleration2F32);
-	ECS_SYSTEM(world, Kinematic3, EcsOnUpdate, [in] EgMassF32, [in] EgForce2F32, [out] EgAcceleration2F32);
+	ECS_SYSTEM(world, Kinematic3, EcsOnUpdate, [in] EgMassF32, [inout] EgForce2F32, [out] EgAcceleration2F32);
 	ECS_SYSTEM(world, Kinematic4, EcsOnUpdate, [in] EgMassF32, [in] EgVelocity2F32, [out] EgMomentum2F32);
+	ECS_SYSTEM(world, Kinematic5, EcsOnUpdate, [in] EgDensityF32(parent), [in] EgVelocity2F32, [inout] EgForce2F32);
 
 
 }
