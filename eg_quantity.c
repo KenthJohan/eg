@@ -130,7 +130,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgVelocity2F32), "Moved distance per unit time: the first time derivative of position. unit: m/s");
+	ecs_doc_set_brief(world, ecs_id(EgVelocity2F32),
+	"Moved distance per unit time: the first time derivative of position. unit: m/s");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgVelocity2F32),
 	.members = {
@@ -139,7 +140,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgAcceleration2F32), "Rate of change of velocity per unit time: the second time derivative of position. unit: m/s2");
+	ecs_doc_set_brief(world, ecs_id(EgAcceleration2F32),
+	"Rate of change of velocity per unit time: the second time derivative of position. unit: m/s2");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgAcceleration2F32),
 	.members = {
@@ -148,7 +150,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgForce2F32), "Transfer of momentum per unit time. unit: newton (N = kg*m*s−2)");
+	ecs_doc_set_brief(world, ecs_id(EgForce2F32),
+	"Transfer of momentum per unit time. unit: newton (N = kg*m*s−2)");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgForce2F32),
 	.members = {
@@ -157,7 +160,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgDrag2F32), "Is a force acting opposite to the relative motion of any object moving with respect to a surrounding fluid");
+	ecs_doc_set_brief(world, ecs_id(EgDrag2F32),
+	"Is a force acting opposite to the relative motion of any object moving with respect to a surrounding fluid");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgDrag2F32),
 	.members = {
@@ -166,7 +170,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgMomentum2F32), "Product of an object's mass and velocity. unit: kg*m/s");
+	ecs_doc_set_brief(world, ecs_id(EgMomentum2F32),
+	"Product of an object's mass and velocity. unit: kg*m/s");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgMomentum2F32),
 	.members = {
@@ -175,7 +180,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgMassF32), "A measure of resistance to acceleration. unit: kilogram (kg)");
+	ecs_doc_set_brief(world, ecs_id(EgMassF32),
+	"A measure of resistance to acceleration. unit: kilogram (kg)");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgMassF32),
 	.members = {
@@ -183,7 +189,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgTimeF32), "The duration of an event. unit: second (s)");
+	ecs_doc_set_brief(world, ecs_id(EgTimeF32),
+	"The duration of an event. unit: second (s)");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgTimeF32),
 	.members = {
@@ -191,7 +198,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgTemperatureF32), "Average kinetic energy per degree of freedom of a system. unit: kelvin (K)");
+	ecs_doc_set_brief(world, ecs_id(EgTemperatureF32),
+	"Average kinetic energy per degree of freedom of a system. unit: kelvin (K)");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgTemperatureF32),
 	.members = {
@@ -199,7 +207,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgLengthF32), "The one-dimensional extent of an object. unit: metre (m)");
+	ecs_doc_set_brief(world, ecs_id(EgLengthF32),
+	"The one-dimensional extent of an object. unit: metre (m)");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgLengthF32),
 	.members = {
@@ -207,7 +216,8 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgDensityF32), "Substance is its mass per unit volume");
+	ecs_doc_set_brief(world, ecs_id(EgDensityF32),
+	"Substance is its mass per unit volume");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgDensityF32),
 	.members = {

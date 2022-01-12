@@ -64,14 +64,14 @@ static struct eg_memory_entry * dequeue_blocking(enum eg_log_channel channel)
 	struct eg_memory_entry * entry;
 	ck_backoff_t backoff = CK_BACKOFF_INITIALIZER;
 	bool success;
-enqueue:
+dequeue:
 	success = ck_ring_dequeue_mpmc(g_ring + channel, g_ringbuf[channel], (void*)&entry);
 	if(success == false)
 	{
 		//ck_pr_stall();
 		ecs_os_sleep(0, backoff);
 		ck_backoff_eb(&backoff);
-		goto enqueue;
+		goto dequeue;
 	}
 	return entry;
 }

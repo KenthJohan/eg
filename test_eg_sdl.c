@@ -88,11 +88,16 @@ static void Move_Enemy(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i ++)
 	{
 		e[i].dummy += 0.001f;
-		if(rand() < (RAND_MAX / 1000))
+		if(rand() < (RAND_MAX / 3000))
 		{
 			float a = random1(0, M_PI*2);
-			f[i].x = sin(a) * 0.1f;
-			f[i].y = cos(a) * 0.1f;
+			f[i].x = sin(a) * 400.1f;
+			f[i].y = cos(a) * 400.1f;
+		}
+		else
+		{
+			f[i].x = 0;
+			f[i].y = 0;
 		}
 	}
 }
@@ -126,7 +131,6 @@ ecs_entity_t spawn_player(ecs_world_t *world, ecs_entity_t parent, char const * 
 	ecs_entity_t e1 = ecs_new_w_pair(world, EcsChildOf, parent);
 	ecs_set_name(world, e1, name);
 	ecs_set(world, e1, EgDraw, {1});
-	ecs_set(world, e1, EgCat, {0});
 	ecs_set(world, e1, EgPosition2F32, {50, 50});
 	ecs_set(world, e1, EgRectangleF32, {50, 50});
 	ecs_set(world, e1, EgVelocity2F32, {0, 0});
@@ -210,7 +214,7 @@ int main(int argc, char *argv[])
 
 	{
 		ecs_entity_t e1 = spawn_player(world, playground2, "Player1");
-		ecs_add(world, e1, EgPlayer);
+		//ecs_add(world, e1, EgPlayer);
 		ecs_entity_t e2 = spawn_player(world, playground2, "Cat2");
 		ecs_add(world, e2, EgCat);
 	}

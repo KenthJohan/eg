@@ -56,11 +56,3 @@ static void eg_iter_info(ecs_iter_t *it, const char *f, const char *file, int32_
 		);
 	}
 }
-
-
-
-static inline int eg_isnan(float f)
-{
-	union { float f; uint32_t x; } u = { f };
-	return (u.x << 1) > 0xff000000u;
-}
