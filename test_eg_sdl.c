@@ -121,6 +121,24 @@ static void Move_Player(ecs_iter_t *it)
 }
 
 
+ecs_entity_t spawn_player(ecs_world_t *world, ecs_entity_t parent, char const * name)
+{
+	ecs_entity_t e1 = ecs_new_w_pair(world, EcsChildOf, parent);
+	ecs_set_name(world, e1, name);
+	ecs_set(world, e1, EgDraw, {1});
+	ecs_set(world, e1, EgCat, {0});
+	ecs_set(world, e1, EgPosition2F32, {50, 50});
+	ecs_set(world, e1, EgRectangleF32, {50, 50});
+	ecs_set(world, e1, EgVelocity2F32, {0, 0});
+	ecs_add(world, e1, EgAcceleration2F32);
+	ecs_set(world, e1, EgForce2F32, {0, 0});
+	ecs_set(world, e1, EgMassF32, {100.0f});
+	ecs_add(world, e1, EgMomentum2F32);
+	ecs_set(world, e1, EgDrag2F32, {0, 0});
+	return e1;
+}
+
+
 
 // https://www.flecs.dev/explorer/?remote=true
 int main(int argc, char *argv[])
@@ -184,59 +202,17 @@ int main(int argc, char *argv[])
 	ecs_set(world, playground2, EgDensityF32, {2.0f});
 	
 	{
-		ecs_entity_t e1 = ecs_new_w_pair(world, EcsChildOf, playground1);
-		ecs_set_name(world, e1, "Player1");
-		ecs_set(world, e1, EgDraw, {1});
-		ecs_set(world, e1, EgPosition2F32, {50, 50});
-		ecs_set(world, e1, EgRectangleF32, {50, 50});
+		ecs_entity_t e1 = spawn_player(world, playground1, "Player1");
 		ecs_add(world, e1, EgPlayer);
-		ecs_set(world, e1, EgMassF32, {10000.0f});
-		ecs_set(world, e1, EgForce2F32, {0, 0});
-		ecs_add(world, e1, EgAcceleration2F32);
-		ecs_set(world, e1, EgVelocity2F32, {0, 0});
-		ecs_set(world, e1, EgDrag2F32, {0, 0});
-
-		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground1);
-		ecs_set_name(world, e2, "Enemy1");
-		ecs_set(world, e2, EgDraw, {1});
+		ecs_entity_t e2 = spawn_player(world, playground1, "Cat1");
 		ecs_add(world, e2, EgCat);
-		ecs_set(world, e2, EgPosition2F32, {0, 0});
-		ecs_set(world, e2, EgRectangleF32, {80, 80});
-		ecs_set(world, e2, EgVelocity2F32, {0, 0});
-		ecs_add(world, e2, EgAcceleration2F32);
-		ecs_set(world, e2, EgForce2F32, {0, 0});
-		ecs_set(world, e2, EgMassF32, {100.0f});
-		ecs_add(world, e2, EgMomentum2F32);
-		ecs_set(world, e2, EgDrag2F32, {0, 0});
 	}
 
 	{
-		ecs_entity_t e1 = ecs_new_w_pair(world, EcsChildOf, playground2);
-		ecs_set_name(world, e1, "Enemy2");
-		ecs_set(world, e1, EgDraw, {1});
-		ecs_set(world, e1, EgCat, {0});
-		ecs_set(world, e1, EgPosition2F32, {50, 50});
-		ecs_set(world, e1, EgRectangleF32, {50, 50});
-		ecs_set(world, e1, EgVelocity2F32, {0, 0});
-		ecs_add(world, e1, EgAcceleration2F32);
-		ecs_set(world, e1, EgForce2F32, {0, 0});
-		ecs_set(world, e1, EgMassF32, {100.0f});
-		ecs_add(world, e1, EgMomentum2F32);
-		ecs_set(world, e1, EgDrag2F32, {0, 0});
-
-		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground2);
-		ecs_set_name(world, e2, "Player2");
-		ecs_set(world, e2, EgDraw, {1});
-		ecs_set(world, e2, EgPosition2F32, {50, 50});
-		ecs_set(world, e2, EgRectangleF32, {50, 50});
-		ecs_add(world, e2, EgPlayer);
-		ecs_set(world, e2, EgMassF32, {100.0f});
-		ecs_set(world, e2, EgForce2F32, {0, 0});
-		ecs_add(world, e2, EgAcceleration2F32);
-		ecs_set(world, e2, EgVelocity2F32, {0, 0});
-		ecs_set(world, e2, EgMomentum2F32, {0, 0});
-		ecs_set(world, e2, EgDensityF32, {0});
-		ecs_set(world, e2, EgDrag2F32, {0, 0});
+		ecs_entity_t e1 = spawn_player(world, playground2, "Player1");
+		ecs_add(world, e1, EgPlayer);
+		ecs_entity_t e2 = spawn_player(world, playground2, "Cat2");
+		ecs_add(world, e2, EgCat);
 	}
 
 

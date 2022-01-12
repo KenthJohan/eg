@@ -19,6 +19,10 @@ static void eg_soft_assert(char const * file, int line, char const * e)
 #define EG_ASSERT(x)
 #endif
 
+
+
+
+
 #if 1
 #define EG_TRACE(...) eg_trace(__FILE__, __LINE__, __VA_ARGS__)
 static void eg_trace(const char *file, int32_t line, const char *fmt, ...)

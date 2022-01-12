@@ -17,37 +17,33 @@ ECS_COMPONENT_DECLARE(EgLengthF32);
 ECS_COMPONENT_DECLARE(EgDensityF32);
 
 
-static void Kinematic1(ecs_iter_t *it)
+static void System_Position(ecs_iter_t *it)
 {
 	EgPosition2F32 *p = ecs_term(it, EgPosition2F32, 1); // [inout]
 	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2); // [in]
 	for (int i = 0; i < it->count; i ++)
 	{
-		//printf("%f %f\n", v[i].x, v[i].y);
 		p[i].x += v[i].x;
 		p[i].y += v[i].y;
+		EG_ASSERT(isfinite(p[i].x));
+		EG_ASSERT(isfinite(p[i].y));
 	}
 }
 
-static void Kinematic2(ecs_iter_t *it)
+static void System_Velocity(ecs_iter_t *it)
 {
-	EgVelocity2F32     *v = ecs_term(it, EgVelocity2F32,     1); // [in]
-	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2); // [inout]
+	EgVelocity2F32     *v = ecs_term(it, EgVelocity2F32,     1); // [inout]
+	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 2); // [in]
 	for (int i = 0; i < it->count; i ++)
 	{
 		v[i].x += a[i].x;
 		v[i].y += a[i].y;
-		//float k = 1.0f;
-		//v[i].x = EG_CLAMP(v[i].x, -k, k);
-		//v[i].y = EG_CLAMP(v[i].y, -k, k);
-		EG_ASSERT(eg_isnan(v[i].x) == 0);
-		EG_ASSERT(eg_isnan(v[i].y) == 0);
-		EG_ASSERT(isinf(v[i].x) == 0);
-		EG_ASSERT(isinf(v[i].y) == 0);
+		EG_ASSERT(isfinite(v[i].x));
+		EG_ASSERT(isfinite(v[i].y));
 	}
 }
 
-static void Kinematic3(ecs_iter_t *it)
+static void System_Newton2(ecs_iter_t *it)
 {
 	EgMassF32          *m = ecs_term(it, EgMassF32,          1); // [in]  This
 	EgForce2F32        *f = ecs_term(it, EgForce2F32,        2); // [in]  This
@@ -55,22 +51,16 @@ static void Kinematic3(ecs_iter_t *it)
 	EgAcceleration2F32 *a = ecs_term(it, EgAcceleration2F32, 4); // [out] This
 	for (int i = 0; i < it->count; i ++)
 	{
-		EG_ASSERT(eg_isnan(f[i].x) == 0);
-		EG_ASSERT(eg_isnan(f[i].y) == 0);
-		EG_ASSERT(isinf(f[i].x) == 0);
-		EG_ASSERT(isinf(f[i].y) == 0);
 		float fx = f[i].x - d[i].x;
 		float fy = f[i].y - d[i].y;
 		a[i].x = fx / m[i].value;
 		a[i].y = fy / m[i].value;
-		EG_ASSERT(eg_isnan(a[i].x) == 0);
-		EG_ASSERT(eg_isnan(a[i].y) == 0);
-		EG_ASSERT(isinf(a[i].x) == 0);
-		EG_ASSERT(isinf(a[i].y) == 0);
+		EG_ASSERT(isfinite(a[i].x));
+		EG_ASSERT(isfinite(a[i].y));
 	}
 }
 
-static void Kinematic4(ecs_iter_t *it)
+static void System_Momentum(ecs_iter_t *it)
 {
 	EgMassF32      *m = ecs_term(it, EgMassF32,      1); // [in]  This
 	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2); // [in]  This
@@ -79,10 +69,13 @@ static void Kinematic4(ecs_iter_t *it)
 	{
 		p[i].x = v[i].x * m[i].value;
 		p[i].y = v[i].y * m[i].value;
+		EG_ASSERT(isfinite(p[i].x));
+		EG_ASSERT(isfinite(p[i].y));
 	}
 }
 
-static void Kinematic5(ecs_iter_t *it)
+// https://en.wikipedia.org/wiki/Drag_(physics)
+static void System_Drag(ecs_iter_t *it)
 {
 	EgDensityF32   *p = ecs_term(it, EgDensityF32,   1); // [in]  Parent
 	EgVelocity2F32 *v = ecs_term(it, EgVelocity2F32, 2); // [in]  This
@@ -92,8 +85,11 @@ static void Kinematic5(ecs_iter_t *it)
 		float vx = v[i].x;
 		float vy = v[i].y;
 		float mag = sqrtf(vx*vx + vy*vy);
+		EG_ASSERT(isfinite(mag));
 		d[i].x = 0.5f * p[0].value * vx * mag;
 		d[i].y = 0.5f * p[0].value * vy * mag;
+		EG_ASSERT(isfinite(d[i].x));
+		EG_ASSERT(isfinite(d[i].y));
 	}
 }
 
@@ -152,9 +148,18 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ecs_doc_set_brief(world, ecs_id(EgForce2F32), "Transfer of momentum per unit time. unit: newton (N = kg⋅m⋅s−2)");
+	ecs_doc_set_brief(world, ecs_id(EgForce2F32), "Transfer of momentum per unit time. unit: newton (N = kg*m*s−2)");
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgForce2F32),
+	.members = {
+	{ .name = "x", .type = ecs_id(ecs_f32_t) },
+	{ .name = "y", .type = ecs_id(ecs_f32_t) }
+	}
+	});
+
+	ecs_doc_set_brief(world, ecs_id(EgDrag2F32), "Is a force acting opposite to the relative motion of any object moving with respect to a surrounding fluid");
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(EgDrag2F32),
 	.members = {
 	{ .name = "x", .type = ecs_id(ecs_f32_t) },
 	{ .name = "y", .type = ecs_id(ecs_f32_t) }
@@ -210,11 +215,25 @@ void FlecsComponentsEgQuantityImport(ecs_world_t *world)
 	}
 	});
 
-	ECS_SYSTEM(world, Kinematic1, EcsOnUpdate, [inout] EgPosition2F32, [in] EgVelocity2F32);
-	ECS_SYSTEM(world, Kinematic2, EcsOnUpdate, [inout] EgVelocity2F32, [in] EgAcceleration2F32);
-	ECS_SYSTEM(world, Kinematic3, EcsOnUpdate, [in] EgMassF32, [in] EgForce2F32, [in] EgDrag2F32, [out] EgAcceleration2F32);
-	ECS_SYSTEM(world, Kinematic4, EcsOnUpdate, [in] EgMassF32, [in] EgVelocity2F32, [out] EgMomentum2F32);
-	ECS_SYSTEM(world, Kinematic5, EcsOnUpdate, [in] EgDensityF32(parent), [in] EgVelocity2F32, [out] EgDrag2F32);
+	ECS_SYSTEM(world, System_Position, EcsOnUpdate,
+	[inout] EgPosition2F32,
+	[in]    EgVelocity2F32);
+	ECS_SYSTEM(world, System_Velocity, EcsOnUpdate,
+	[inout] EgVelocity2F32,
+	[in]    EgAcceleration2F32);
+	ECS_SYSTEM(world, System_Newton2, EcsOnUpdate,
+	[in]    EgMassF32,
+	[in]    EgForce2F32,
+	[in]    EgDrag2F32,
+	[out]   EgAcceleration2F32);
+	ECS_SYSTEM(world, System_Momentum, EcsOnUpdate,
+	[in]    EgMassF32,
+	[in]    EgVelocity2F32,
+	[out]   EgMomentum2F32);
+	ECS_SYSTEM(world, System_Drag, EcsOnUpdate,
+	[in]    EgDensityF32(parent),
+	[in]    EgVelocity2F32,
+	[out]   EgDrag2F32);
 
 
 }
