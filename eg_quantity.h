@@ -36,6 +36,12 @@ typedef struct
 {
 	ecs_f32_t x;
 	ecs_f32_t y;
+} EgDrag2F32;
+
+typedef struct
+{
+	ecs_f32_t x;
+	ecs_f32_t y;
 } EgMomentum2F32;
 
 typedef struct
@@ -69,6 +75,7 @@ extern ECS_COMPONENT_DECLARE(EgPosition2I32);
 extern ECS_COMPONENT_DECLARE(EgVelocity2F32);
 extern ECS_COMPONENT_DECLARE(EgAcceleration2F32);
 extern ECS_COMPONENT_DECLARE(EgForce2F32);
+extern ECS_COMPONENT_DECLARE(EgDrag2F32);
 extern ECS_COMPONENT_DECLARE(EgMomentum2F32);
 extern ECS_COMPONENT_DECLARE(EgMassF32);
 extern ECS_COMPONENT_DECLARE(EgTimeF32);

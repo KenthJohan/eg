@@ -91,8 +91,8 @@ static void Move_Enemy(ecs_iter_t *it)
 		if(rand() < (RAND_MAX / 1000))
 		{
 			float a = random1(0, M_PI*2);
-			f[i].x += sin(a) * 100.0f;
-			f[i].y += cos(a) * 100.0f;
+			f[i].x = sin(a) * 0.1f;
+			f[i].y = cos(a) * 0.1f;
 		}
 	}
 }
@@ -110,8 +110,9 @@ static void Move_Player(ecs_iter_t *it)
 		float dx = EG_U64BITSET_GET(u->keyboard, EG_KEY_RIGHT) - EG_U64BITSET_GET(u->keyboard, EG_KEY_LEFT);
 		float dy = EG_U64BITSET_GET(u->keyboard, EG_KEY_UP) - EG_U64BITSET_GET(u->keyboard, EG_KEY_DOWN);
 		//EG_TRACE("%f %f", dx, dy);
-		p[i].x += 10.1f*dx;
-		p[i].y += -10.1f*dy;
+		float g = 1.1f;
+		p[i].x = g*dx;
+		p[i].y = -g*dy;
 		float k = 10.0f;
 		k *= EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_PLUS) - EG_U64BITSET_GET(u->keyboard_down, EG_KEY_KP_MINUS);
 		r[i].width += k;
@@ -179,8 +180,8 @@ int main(int argc, char *argv[])
 	ecs_add(world, playground2, EgPlayground);
 	ecs_add(world, playground1, EgRectangleI32);
 	ecs_add(world, playground2, EgRectangleI32);
-	ecs_set(world, playground1, EgDensityF32, {1000.0f});
-	ecs_set(world, playground2, EgDensityF32, {10.0f});
+	ecs_set(world, playground1, EgDensityF32, {8.0f});
+	ecs_set(world, playground2, EgDensityF32, {2.0f});
 	
 	{
 		ecs_entity_t e1 = ecs_new_w_pair(world, EcsChildOf, playground1);
@@ -189,10 +190,11 @@ int main(int argc, char *argv[])
 		ecs_set(world, e1, EgPosition2F32, {50, 50});
 		ecs_set(world, e1, EgRectangleF32, {50, 50});
 		ecs_add(world, e1, EgPlayer);
-		ecs_set(world, e1, EgMassF32, {1000.0f});
+		ecs_set(world, e1, EgMassF32, {10000.0f});
 		ecs_set(world, e1, EgForce2F32, {0, 0});
 		ecs_add(world, e1, EgAcceleration2F32);
 		ecs_set(world, e1, EgVelocity2F32, {0, 0});
+		ecs_set(world, e1, EgDrag2F32, {0, 0});
 
 		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground1);
 		ecs_set_name(world, e2, "Enemy1");
@@ -205,6 +207,7 @@ int main(int argc, char *argv[])
 		ecs_set(world, e2, EgForce2F32, {0, 0});
 		ecs_set(world, e2, EgMassF32, {100.0f});
 		ecs_add(world, e2, EgMomentum2F32);
+		ecs_set(world, e2, EgDrag2F32, {0, 0});
 	}
 
 	{
@@ -219,6 +222,7 @@ int main(int argc, char *argv[])
 		ecs_set(world, e1, EgForce2F32, {0, 0});
 		ecs_set(world, e1, EgMassF32, {100.0f});
 		ecs_add(world, e1, EgMomentum2F32);
+		ecs_set(world, e1, EgDrag2F32, {0, 0});
 
 		ecs_entity_t e2 = ecs_new_w_pair(world, EcsChildOf, playground2);
 		ecs_set_name(world, e2, "Player2");
@@ -232,6 +236,7 @@ int main(int argc, char *argv[])
 		ecs_set(world, e2, EgVelocity2F32, {0, 0});
 		ecs_set(world, e2, EgMomentum2F32, {0, 0});
 		ecs_set(world, e2, EgDensityF32, {0});
+		ecs_set(world, e2, EgDrag2F32, {0, 0});
 	}
 
 
