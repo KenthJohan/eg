@@ -48,32 +48,32 @@ CK_STACK_CONTAINER(struct job_entry, next, job_entry_get);
 #define TEST_JOBPOOL_NUM_PRIO 4
 struct test_jobpool
 {
-	ck_stack_t stack[TEST_JOBPOOL_NUM_PRIO] CK_CC_CACHELINE;
+	// Note: one extra stack:
+	ck_stack_t stack[TEST_JOBPOOL_NUM_PRIO + 1] CK_CC_CACHELINE;
 };
 
 
 void * test_worker_thread(void * arg)
 {
 	struct test_jobpool * pool = arg;
-	for(int i = 0; i < TEST_JOBPOOL_NUM_PRIO; ++i)
+	int i = 0;
+	while(1)
 	{
-		ck_stack_entry_t *ref;
-		do
+		ck_stack_entry_t *ref = NULL;
+		for(int i = 0; i < TEST_JOBPOOL_NUM_PRIO; ++i)
 		{
 			ref = ck_stack_pop_mpmc(pool->stack + i);
-		} while(ref == NULL);
+			if (ref) {break;}
+		}
+		if (ref == NULL)
+		{
+			// Idling
+			continue;
+		}
+
 		struct job_entry * entry = job_entry_get(ref);
-		int jobprio = dojob(entry->job);
-		if (jobprio > 0)
-		{
-			i = 0;
-			ck_stack_push_mpmc(pool->stack + jobprio, &entry->next);
-		}
-		if (jobprio == -1)
-		{
-			ecs_os_free(entry);
-			i = 0; // Keep finding jobs todo.
-		}
+		dojob(entry->job);
+		ck_stack_push_mpmc(pool->stack + i + 1, &entry->next);
 	}
 }
 
