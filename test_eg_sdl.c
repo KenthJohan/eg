@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 
 	{
 		ecs_entity_t e1 = spawn_player(world, playground2, "Player1");
-		//ecs_add(world, e1, EgPlayer);
+		ecs_add(world, e1, EgPlayer);
 		ecs_entity_t e2 = spawn_player(world, playground2, "Cat2");
 		ecs_add(world, e2, EgCat);
 	}
