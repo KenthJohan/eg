@@ -2,4 +2,7 @@
 #include "flecs.h"
 
 
-void FlecsComponentsEgSokolImport(ecs_world_t *world);
+
+
+
+void FlecsComponentsEgSokolGfxImport(ecs_world_t *world);

@@ -12,6 +12,7 @@
 // If SDL is used as backend
 #if 1
 #include "eg_sdl.h"
+#include "eg_sokol_gfx.h"
 #endif
 
 
@@ -24,10 +25,24 @@ int main(int argc, char *argv[])
 	"rest_test", NULL // Application name, optional
 	});
 
-	ECS_IMPORT(world, FlecsComponentsEgSdl);
-	ECS_IMPORT(world, FlecsComponentsEgGeometry);
 	ECS_IMPORT(world, FlecsComponentsEgWindow);
+	ECS_IMPORT(world, FlecsComponentsEgSdl);
+	ECS_IMPORT(world, FlecsComponentsEgSokolGfx);
+	ECS_IMPORT(world, FlecsComponentsEgGeometry);
 	ECS_IMPORT(world, FlecsComponentsEgQuantity);
+
+	ecs_entity_t window1 = ecs_new(world, 0);
+	ecs_set_name(world, window1, "Window1");
+	ecs_set(world, window1, EgRectangleI32, {800, 800});
+	ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false, false, NULL, NULL});
+	ecs_set(world, window1, EgTitle, {"Boncy1 Title"});
+
+	while (1)
+	{
+		ecs_os_sleep(0,100000);
+		ecs_progress(world, 0);
+
+	}
 
 	return 0;
 }

@@ -23,6 +23,28 @@ static SDL_Window * g_sdl_windows[MAX_WINDOWS];
 
 
 
+void eg_gl_make_current(EgWindow const * w)
+{
+	EG_ASSERT(w);
+	EG_ASSERT(w->window);
+	EG_ASSERT(w->glcontext);
+	SDL_GL_MakeCurrent(w->window, w->glcontext);
+}
+
+void eg_gl_create_context(EgWindow * w)
+{
+	EG_ASSERT(w);
+	EG_ASSERT(w->window);
+	w->glcontext = SDL_GL_CreateContext(w->window);
+	EG_ASSERT(w->glcontext);
+}
+
+void eg_gl_swap_buffer(EgWindow const * w)
+{
+	EG_ASSERT(w);
+	EG_ASSERT(w->window);
+	SDL_GL_SwapWindow(w->window);
+}
 
 
 
@@ -48,6 +70,7 @@ static void Create_Window(ecs_iter_t *it)
 		r[i].height,
 		SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
 		);
+		w[i].window = window;
 		int id = SDL_GetWindowID(window);
 		g_sdl_wents[id] = e;
 		g_sdl_windows[id] = window;
