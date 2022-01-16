@@ -154,6 +154,7 @@ int main(int argc, char *argv[])
 	});
 
 	ECS_IMPORT(world, FlecsComponentsEgSdl);
+	ECS_IMPORT(world, FlecsComponentsEgSdlRenderer);
 	ECS_IMPORT(world, FlecsComponentsEgGeometry);
 	ECS_IMPORT(world, FlecsComponentsEgWindow);
 	ECS_IMPORT(world, FlecsComponentsEgQuantity);

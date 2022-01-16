@@ -285,3 +285,4 @@ typedef enum
 } eg_key_t;
 
 void FlecsComponentsEgSdlImport(ecs_world_t *world);
+void FlecsComponentsEgSdlRendererImport(ecs_world_t *world);

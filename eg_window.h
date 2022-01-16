@@ -1,6 +1,7 @@
 #pragma once
 #include "flecs.h"
 
+
 typedef struct
 {
 	ecs_u64_t flags;
