@@ -190,8 +190,8 @@ int main(int argc, char *argv[])
 	ecs_set_name(world, window2, "Window2");
 	ecs_set(world, window1, EgRectangleI32, {800, 800});
 	ecs_set(world, window2, EgRectangleI32, {800, 800});
-	ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false, false});
-	ecs_set(world, window2, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false, false});
+	ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false});
+	ecs_set(world, window2, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false});
 	ecs_set(world, window1, EgTitle, {"Boncy1 Title"});
 	ecs_set(world, window2, EgTitle, {"Boncy2 Title"});
 

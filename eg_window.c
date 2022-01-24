@@ -50,9 +50,6 @@ void FlecsComponentsEgWindowImport(ecs_world_t *world)
 	{ .name = "flags", .type = ecs_id(ecs_u64_t) },
 	{ .name = "counter", .type = ecs_id(ecs_u64_t) },
 	{ .name = "should_destroy", .type = ecs_id(ecs_bool_t) },
-	{ .name = "grabbed", .type = ecs_id(ecs_bool_t) },
-	{ .name = "glcontext", .type = ecs_id(ecs_uptr_t) },
-	{ .name = "window", .type = ecs_id(ecs_uptr_t) }
 	}
 	});
 

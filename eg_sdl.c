@@ -11,49 +11,51 @@
 typedef struct
 {
 	SDL_Window * window;
+	SDL_GLContext * context;
 	ecs_u32_t elapsed_milliseconds;
 	const Uint8 *keys;
 } Eg_SDL_Window;
 
 ECS_COMPONENT_DECLARE(Eg_SDL_Window);
 
-#define MAX_WINDOWS 16
-static ecs_entity_t g_sdl_wents[MAX_WINDOWS];
-static SDL_Window * g_sdl_windows[MAX_WINDOWS];
 
 
-
-void eg_gl_make_current(EgWindow const * w)
+void eg_gl_make_current(ecs_world_t * world, ecs_entity_t e)
 {
-	EG_ASSERT(w);
-	EG_ASSERT(w->window);
-	EG_ASSERT(w->glcontext);
-	SDL_GL_MakeCurrent(w->window, w->glcontext);
+	Eg_SDL_Window const * win = ecs_get(world, e, Eg_SDL_Window);
+	EG_ASSERT(win);
+	EG_ASSERT(win->window);
+	EG_ASSERT(win->context);
+	SDL_GL_MakeCurrent(win->window, win->context);
 }
 
-void eg_gl_create_context(EgWindow * w)
+void eg_gl_create_context(ecs_world_t * world, ecs_entity_t e)
 {
-	EG_ASSERT(w);
-	EG_ASSERT(w->window);
-	w->glcontext = SDL_GL_CreateContext(w->window);
-	EG_ASSERT(w->glcontext);
+	Eg_SDL_Window * win = ecs_get_mut(world, e, Eg_SDL_Window, NULL);
+	EG_ASSERT(win);
+	EG_ASSERT(win->window);
+	win->context = SDL_GL_CreateContext(win->window);
+	EG_ASSERT(win->context);
 }
 
-void eg_gl_swap_buffer(EgWindow const * w)
+void eg_gl_swap_buffer(ecs_world_t * world, ecs_entity_t e)
 {
-	EG_ASSERT(w);
-	EG_ASSERT(w->window);
-	SDL_GL_SwapWindow(w->window);
+	Eg_SDL_Window const * win = ecs_get(world, e, Eg_SDL_Window);
+	EG_ASSERT(win);
+	EG_ASSERT(win->window);
+	EG_ASSERT(win->context);
+	SDL_GL_SwapWindow(win->window);
 }
 
 
-
+ecs_sparse_t *g_windows; // g_windows<ecs_entity_t>
 
 
 static void Create_Window(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
 	ecs_world_t * world = it->world;
+	EG_TRACE("%i %i", ecs_term_size(it, 1), sizeof(EgWindow));
 	EgWindow *w = ecs_term(it, EgWindow, 1);
 	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
 	for (int i = 0; i < it->count; i ++)
@@ -70,13 +72,14 @@ static void Create_Window(ecs_iter_t *it)
 		r[i].height,
 		SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
 		);
-		w[i].window = window;
+
+		bool added = false;
+		Eg_SDL_Window *sdlwin = ecs_get_mut(world, e, Eg_SDL_Window, &added);
+		EG_ASSERT(sdlwin);
+		sdlwin->window = window;
+		sdlwin->keys = SDL_GetKeyboardState(NULL);
 		int id = SDL_GetWindowID(window);
-		g_sdl_wents[id] = e;
-		g_sdl_windows[id] = window;
-		EG_ASSERT(window);
-		Uint8 const * keys = SDL_GetKeyboardState(NULL);
-		ecs_set(world, e, Eg_SDL_Window, {window, 0, keys});
+		flecs_sparse_set(g_windows, ecs_entity_t, id, &e);
 	}
 }
 
@@ -142,7 +145,7 @@ static void Update_Window(ecs_iter_t *it)
 		if (s[i].window)
 		{
 			// https://github.com/libsdl-org/SDL/issues/1059
-			w[i].grabbed = SDL_GetWindowGrab(s[i].window);
+			w[i].flags = SDL_GetWindowFlags(s[i].window);
 		}
 	}
 }
@@ -200,11 +203,11 @@ static void Update_UserEvent(ecs_iter_t *it)
 			//EG_TRACE("SDL_WINDOWEVENT");
 			if(event.window.event == SDL_WINDOWEVENT_CLOSE)
 			{
-				ecs_entity_t e = g_sdl_wents[event.window.windowID];
-				EgWindow * w = ecs_get_mut(it->world, e, EgWindow, NULL);
+				int id = event.window.windowID;
+				ecs_entity_t winent = *flecs_sparse_get_dense(g_windows, ecs_entity_t, id);
+				EgWindow * w = ecs_get_mut(it->world, winent, EgWindow, NULL);
 				w->should_destroy = true;
-				SDL_Window * win = SDL_GetWindowFromID(event.window.windowID);
-				EG_TRACE("SDL_WINDOWEVENT_CLOSE %i %p", event.window.windowID, win);
+				EG_TRACE("SDL_WINDOWEVENT_CLOSE %i %p", event.window.windowID, SDL_GetWindowFromID(event.window.windowID));
 				//SDL_DestroyWindow(win);
 			}
 			break;
@@ -247,6 +250,8 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	ECS_IMPORT(world, FlecsComponentsEgQuantity);
 	ecs_set_name_prefix(world, "Eg");
 	
+	g_windows = flecs_sparse_new(SDL_Window*);
+
 	SDL_Init(SDL_INIT_VIDEO);
 	
 	ECS_COMPONENT_DEFINE(world, Eg_SDL_Window);
@@ -256,8 +261,8 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	ECS_TRIGGER(world, Destroy_Window, EcsOnRemove, Eg_SDL_Window);
 
 	ECS_OBSERVER(world, Create_Window, EcsOnAdd,
-	[out] EgWindow,
-	[in]  EgRectangleI32);
+	[inout] EgWindow,
+	[in]    EgRectangleI32);
 	ECS_OBSERVER(world, Change_Window_Size, EcsOnSet,
 	[out] Eg_SDL_Window,
 	[in]  EgRectangleI32);
@@ -520,6 +525,8 @@ void FlecsComponentsEgSdlRendererImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Eg_SDL_Renderer);
 	ECS_COMPONENT_DEFINE(world, Eg_SDL_Mesh);
 
+
+
 	ecs_set_component_actions(world, Eg_SDL_Mesh, {
 	//.ctor = ecs_ctor(Eg_SDL_Mesh),
 	ecs_default_ctor,
@@ -528,7 +535,12 @@ void FlecsComponentsEgSdlRendererImport(ecs_world_t *world)
 	.move = ecs_move(Eg_SDL_Mesh),
 	});
 
-	ECS_TRIGGER(world, Create_Renderer, EcsOnSet, Eg_SDL_Window);
+	// https://discord.com/channels/633826290415435777/731400638637932604/927345118632091718
+	// But because that system becomes inactive (no matching entities) as soon as it's ran once, it is removed from the schedule
+	// Reactive systems
+	ECS_SYSTEM(world, Create_Renderer, EcsOnLoad,
+	[in]   Eg_SDL_Window,
+	[out] !Eg_SDL_Renderer);
 	ECS_SYSTEM(world, Draw_Rectangle, EcsOnUpdate,
 	[out] Eg_SDL_Mesh(parent),
 	[in]  EgPosition2F32,
