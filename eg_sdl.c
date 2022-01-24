@@ -80,6 +80,7 @@ static void Create_Window(ecs_iter_t *it)
 		sdlwin->keys = SDL_GetKeyboardState(NULL);
 		int id = SDL_GetWindowID(window);
 		flecs_sparse_set(g_windows, ecs_entity_t, id, &e);
+		EG_TRACE("");
 	}
 }
 
@@ -140,6 +141,8 @@ static void Update_Window(ecs_iter_t *it)
 		if (w[i].should_destroy)
 		{
 			EG_TRACE("should_destroy is true. Deleting entity 0x%016x", e);
+			int id = SDL_GetWindowID(s[i].window);
+			flecs_sparse_remove(g_windows, id);
 			ecs_delete(it->world, e);
 		}
 		if (s[i].window)
@@ -204,7 +207,7 @@ static void Update_UserEvent(ecs_iter_t *it)
 			if(event.window.event == SDL_WINDOWEVENT_CLOSE)
 			{
 				int id = event.window.windowID;
-				ecs_entity_t winent = *flecs_sparse_get_dense(g_windows, ecs_entity_t, id);
+				ecs_entity_t winent = *flecs_sparse_get(g_windows, ecs_entity_t, id);
 				EgWindow * w = ecs_get_mut(it->world, winent, EgWindow, NULL);
 				w->should_destroy = true;
 				EG_TRACE("SDL_WINDOWEVENT_CLOSE %i %p", event.window.windowID, SDL_GetWindowFromID(event.window.windowID));
