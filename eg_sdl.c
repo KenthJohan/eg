@@ -51,7 +51,7 @@ void eg_gl_swap_buffer(ecs_world_t * world, ecs_entity_t e)
 ecs_sparse_t *g_windows; // g_windows<ecs_entity_t>
 
 
-static void Create_Window(ecs_iter_t *it)
+static void System_Create_Window(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
 	ecs_world_t * world = it->world;
@@ -85,7 +85,7 @@ static void Create_Window(ecs_iter_t *it)
 }
 
 
-static void Update_Title(ecs_iter_t *it)
+static void System_Update_Title(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
 	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
@@ -100,7 +100,7 @@ static void Update_Title(ecs_iter_t *it)
 }
 
 
-static void Destroy_Window(ecs_iter_t *it)
+static void System_Destroy_Window(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
 	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
@@ -111,15 +111,22 @@ static void Destroy_Window(ecs_iter_t *it)
 		{
 			// https://wiki.libsdl.org/SDL_GetWindowTitle
 			char const * title = SDL_GetWindowTitle(w[i].window);
-			EG_TRACE("SDL_DestroyWindow 0x%x : %s", e, title);
-			SDL_DestroyWindow(w[i].window);
-			w[i].window = NULL;
+			if (w[i].context)
+			{
+				EG_TRACE("SDL_GL_DeleteContext 0x%x : %s", e, title);
+				SDL_GL_DeleteContext(w[i].context);
+			}
+			if (w[i].window)
+			{
+				EG_TRACE("SDL_DestroyWindow 0x%x : %s", e, title);
+				SDL_DestroyWindow(w[i].window);
+			}
 		}
 	}
 }
 
 
-static void Update_Window(ecs_iter_t *it)
+static void System_Update_Window(ecs_iter_t *it)
 {
 	Eg_SDL_Window *s = ecs_term(it, Eg_SDL_Window, 1);
 	EgWindow *w = ecs_term(it, EgWindow, 2);
@@ -156,7 +163,7 @@ static void Update_Window(ecs_iter_t *it)
 
 
 
-static void Change_Window_Size(ecs_iter_t *it)
+static void System_Change_Window_Size(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
 	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
@@ -172,7 +179,7 @@ static void Change_Window_Size(ecs_iter_t *it)
 }
 
 
-static void Update_Window_Size(ecs_iter_t *it)
+static void System_Update_Window_Size(ecs_iter_t *it)
 {
 	//EG_ITER_INFO(it);
 	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
@@ -192,7 +199,7 @@ static void Update_Window_Size(ecs_iter_t *it)
 }
 
 
-static void Update_UserEvent(ecs_iter_t *it)
+static void System_Update_UserEvent(ecs_iter_t *it)
 {
 	EgUserEvent *input = ecs_term(it, EgUserEvent, 1); //Singleton
 	memset(input->keyboard_up, 0, sizeof(ecs_u64_t)*EG_NUM_KEYS64);
@@ -261,23 +268,23 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	
 	ecs_singleton_set(world, EgUserEvent, { 0 });
 	
-	ECS_TRIGGER(world, Destroy_Window, EcsOnRemove, Eg_SDL_Window);
+	ECS_TRIGGER(world, System_Destroy_Window, EcsOnRemove, Eg_SDL_Window);
 
-	ECS_OBSERVER(world, Create_Window, EcsOnAdd,
+	ECS_OBSERVER(world, System_Create_Window, EcsOnAdd,
 	[inout] EgWindow,
 	[in]    EgRectangleI32);
-	ECS_OBSERVER(world, Change_Window_Size, EcsOnSet,
+	ECS_OBSERVER(world, System_Change_Window_Size, EcsOnSet,
 	[out] Eg_SDL_Window,
 	[in]  EgRectangleI32);
-	ECS_OBSERVER(world, Update_Title, EcsOnSet,
+	ECS_OBSERVER(world, System_Update_Title, EcsOnSet,
 	[out] Eg_SDL_Window,
 	[in]  EgTitle);
-	ECS_SYSTEM(world, Update_Window, EcsOnUpdate,
+	ECS_SYSTEM(world, System_Update_Window, EcsOnUpdate,
 	[inout] Eg_SDL_Window,
 	[inout] EgWindow);
-	ECS_SYSTEM(world, Update_UserEvent, EcsOnUpdate,
+	ECS_SYSTEM(world, System_Update_UserEvent, EcsOnUpdate,
 	[out] $EgUserEvent);
-	ECS_SYSTEM(world, Update_Window_Size, EcsOnUpdate,
+	ECS_SYSTEM(world, System_Update_Window_Size, EcsOnUpdate,
 	[in]  Eg_SDL_Window,
 	[out] EgRectangleI32);
 	
@@ -516,6 +523,7 @@ static void Create_Renderer(ecs_iter_t *it)
 
 
 
+
 void FlecsComponentsEgSdlRendererImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, FlecsComponentsEgSdlRenderer);
@@ -551,6 +559,6 @@ void FlecsComponentsEgSdlRendererImport(ecs_world_t *world)
 	ECS_SYSTEM(world, Render_Mesh, EcsOnUpdate,
 	[in]  Eg_SDL_Renderer,
 	[out] Eg_SDL_Mesh);
-
+	ECS_TRIGGER(world, System_Destroy_Window, EcsUnSet, [inout] Eg_SDL_Window);
 }
 
