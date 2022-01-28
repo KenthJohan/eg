@@ -43,7 +43,16 @@ ECS_COMPONENT_DECLARE(EgPlayground);
 ECS_COMPONENT_DECLARE(EgProjectile);
 
 
-static void Playground_Update(ecs_iter_t *it)
+float random1(float a, float b)
+{
+	float n = (float)rand() / (float)RAND_MAX;
+	n *= (b-a);
+	n += a;
+	return EG_CLAMP(n, a, b);
+}
+
+
+static void System_Playground_Update(ecs_iter_t *it)
 {
 	EgPlayground   *playground = ecs_term(it, EgPlayground,   1); // [out]  This
 	EgRectangleI32 *rectangle  = ecs_term(it, EgRectangleI32, 2); // [out]  This
@@ -56,7 +65,7 @@ static void Playground_Update(ecs_iter_t *it)
 	}
 }
 
-static void Bounce(ecs_iter_t *it)
+static void System_Bounce(ecs_iter_t *it)
 {
 	EgPlayground   *playground = ecs_term(it, EgPlayground,   1); // [out]   Parent
 	EgRectangleI32 *rectangle  = ecs_term(it, EgRectangleI32, 2); // [in]    Parent
@@ -73,15 +82,7 @@ static void Bounce(ecs_iter_t *it)
 }
 
 
-float random1(float a, float b)
-{
-	float n = (float)rand() / (float)RAND_MAX;
-	n *= (b-a);
-	n += a;
-	return EG_CLAMP(n, a, b);
-}
-
-static void Move_Enemy(ecs_iter_t *it)
+static void System_Move_Enemy(ecs_iter_t *it)
 {
 	EgCat *e = ecs_term(it, EgCat, 1);
 	EgForce2F32 *f = ecs_term(it, EgForce2F32, 2);
@@ -103,7 +104,7 @@ static void Move_Enemy(ecs_iter_t *it)
 }
 
 
-static void Move_Player(ecs_iter_t *it)
+static void System_Move_Player(ecs_iter_t *it)
 {
 	EgPlayer *player = ecs_term(it, EgPlayer, 1);
 	EgUserEvent *u = ecs_term(it, EgUserEvent, 2); // Singleton
@@ -165,20 +166,20 @@ int main(int argc, char *argv[])
 	ECS_COMPONENT_DEFINE(world, EgPlayground);
 	ECS_COMPONENT_DEFINE(world, EgProjectile);
 
-	ECS_SYSTEM(world, Move_Player, EcsOnUpdate,
+	ECS_SYSTEM(world, System_Move_Player, EcsOnUpdate,
 	[inout] EgPlayer,
 	[in]    $EgUserEvent,
 	[inout] EgForce2F32,
 	[inout] EgRectangleF32);
-	ECS_SYSTEM(world, Move_Enemy, EcsOnUpdate,
+	ECS_SYSTEM(world, System_Move_Enemy, EcsOnUpdate,
 	[inout] EgCat,
 	[out]   EgForce2F32);
-	ECS_SYSTEM(world, Bounce, EcsOnUpdate,
+	ECS_SYSTEM(world, System_Bounce, EcsOnUpdate,
 	[out]   EgPlayground(parent),
 	[in]    EgRectangleI32(parent),
 	[in]    EgPosition2F32,
 	[out]   EgVelocity2F32);
-	ECS_SYSTEM(world, Playground_Update, EcsOnUpdate,
+	ECS_SYSTEM(world, System_Playground_Update, EcsOnUpdate,
 	[out]   EgPlayground,
 	[out]   EgRectangleI32,
 	[in]    EgRectangleI32(parent));
