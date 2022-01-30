@@ -19,14 +19,14 @@ typedef struct
 	sg_pipeline pip;
 	sg_bindings bind;
 	sg_pass_action pass_action;
-} grahpics_t;
+} EgGfx;
 
-ECS_COMPONENT_DECLARE(grahpics_t);
-
-
+ECS_COMPONENT_DECLARE(EgGfx);
 
 
-static void grahpics_create(grahpics_t * a)
+
+
+static void grahpics_create(EgGfx * a)
 {
 	/* setup sokol_gfx */
 	sg_setup(&(sg_desc){0});
@@ -74,6 +74,7 @@ static void grahpics_create(grahpics_t * a)
 	});
 
 	/* resource bindings */
+	ecs_os_memset(&a->bind, 0, sizeof(sg_bindings));
 	a->bind.vertex_buffers[0] = vbuf;
 
 	/* default pass action (clear to grey) */
@@ -81,9 +82,8 @@ static void grahpics_create(grahpics_t * a)
 }
 
 
-static void frame(grahpics_t * a)
+static void frame(EgGfx * a, int cur_width, int cur_height)
 {
-	int cur_width, cur_height;
 	//glfwGetFramebufferSize(w, &cur_width, &cur_height);
 	sg_begin_default_pass(&a->pass_action, cur_width, cur_height);
 	sg_apply_pipeline(a->pip);
@@ -105,40 +105,33 @@ static void frame(grahpics_t * a)
 
 
 
-static void Create(ecs_iter_t *it)
+static void System_Create(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
 	EgWindow *w = ecs_term(it, EgWindow, 1);
 	for (int i = 0; i < it->count; i ++)
 	{
 		ecs_entity_t e = it->entities[i];
-		eg_gl_create_context(w + i);
-		ecs_add(it->world, e, grahpics_t);
-	}
-}
-
-static void Create1(ecs_iter_t *it)
-{
-	EG_ITER_INFO(it);
-	grahpics_t *w = ecs_term(it, grahpics_t, 1);
-	for (int i = 0; i < it->count; i ++)
-	{
-		grahpics_create(w + i);
+		eg_gl_create_context(it->world, e);
+		EgGfx * g = ecs_get_mut(it->world, e, EgGfx, NULL);
+		grahpics_create(g);
 	}
 }
 
 
 
-static void Update(ecs_iter_t *it)
+static void System_Update(ecs_iter_t *it)
 {
-	EG_ITER_INFO(it);
+	//EG_ITER_INFO(it);
 	EgWindow *w = ecs_term(it, EgWindow, 1);
-	grahpics_t *g = ecs_term(it, grahpics_t, 2);
+	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
+	EgGfx *g = ecs_term(it, EgGfx, 3);
 	for (int i = 0; i < it->count; i ++)
 	{
-		eg_gl_make_current(w + i);
-		frame(g + i);
-		eg_gl_swap_buffer(w + i);
+		ecs_entity_t e = it->entities[i];
+		eg_gl_make_current(it->world, e);
+		frame(g + i, r[i].width, r[i].height);
+		eg_gl_swap_buffer(it->world, e);
 	}
 }
 
@@ -154,15 +147,16 @@ static void Update(ecs_iter_t *it)
 void FlecsComponentsEgSokolGfxImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, FlecsComponentsEgSokolGfx);
+	ECS_COMPONENT_DEFINE(world, EgGfx);
 
+	ECS_SYSTEM(world, System_Create, EcsOnLoad,
+	[in]   EgWindow,
+	[out] !EgGfx);
 
-	ECS_COMPONENT_DEFINE(world, grahpics_t);
-
-	ECS_TRIGGER(world, Create, EcsOnSet, EgWindow);
-	ECS_TRIGGER(world, Create1, EcsOnSet, grahpics_t);
-	ECS_SYSTEM(world, Update, EcsOnUpdate,
+	ECS_SYSTEM(world, System_Update, EcsOnUpdate,
 	[in]  EgWindow,
-	[out] grahpics_t);
+	[in]  EgRectangleI32,
+	[out] EgGfx);
 
 }
 

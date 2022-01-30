@@ -55,7 +55,6 @@ static void System_Create_Window(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
 	ecs_world_t * world = it->world;
-	EG_TRACE("%i %i", ecs_term_size(it, 1), sizeof(EgWindow));
 	EgWindow *w = ecs_term(it, EgWindow, 1);
 	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
 	for (int i = 0; i < it->count; i ++)
