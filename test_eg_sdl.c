@@ -115,7 +115,6 @@ static void System_Move_Player(ecs_iter_t *it)
 		player[i].dummy = 0;
 		float dx = EG_U64BITSET_GET(u->keyboard, EG_KEY_RIGHT) - EG_U64BITSET_GET(u->keyboard, EG_KEY_LEFT);
 		float dy = EG_U64BITSET_GET(u->keyboard, EG_KEY_UP) - EG_U64BITSET_GET(u->keyboard, EG_KEY_DOWN);
-		//EG_TRACE("%f %f", dx, dy);
 		float g = 1.1f;
 		p[i].x = g*dx;
 		p[i].y = -g*dy;
@@ -168,7 +167,7 @@ int main(int argc, char *argv[])
 
 	ECS_SYSTEM(world, System_Move_Player, EcsOnUpdate,
 	[inout] EgPlayer,
-	[in]    $EgUserEvent,
+	[in]    EgUserEvent($),
 	[inout] EgForce2F32,
 	[inout] EgRectangleF32);
 	ECS_SYSTEM(world, System_Move_Enemy, EcsOnUpdate,

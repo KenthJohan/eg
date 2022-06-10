@@ -282,7 +282,7 @@ void FlecsComponentsEgSdlImport(ecs_world_t *world)
 	[inout] Eg_SDL_Window,
 	[inout] EgWindow);
 	ECS_SYSTEM(world, System_Update_UserEvent, EcsOnUpdate,
-	[out] $EgUserEvent);
+	[out] EgUserEvent($));
 	ECS_SYSTEM(world, System_Update_Window_Size, EcsOnUpdate,
 	[in]  Eg_SDL_Window,
 	[out] EgRectangleI32);
@@ -544,6 +544,8 @@ void FlecsComponentsEgSdlRendererImport(ecs_world_t *world)
 	.copy = ecs_copy(Eg_SDL_Mesh),
 	.move = ecs_move(Eg_SDL_Mesh),
 	});
+
+
 
 	// https://discord.com/channels/633826290415435777/731400638637932604/927345118632091718
 	// But because that system becomes inactive (no matching entities) as soon as it's ran once, it is removed from the schedule
