@@ -267,8 +267,70 @@ void EgSDLImport(ecs_world_t *world)
 	
 	ecs_singleton_set(world, EgUserEvent, { 0 });
 	
-	ECS_TRIGGER(world, System_Destroy_Window, EcsOnRemove, Eg_SDL_Window);
 
+	ecs_trigger_init(world, &(ecs_trigger_desc_t) {
+	.term = { .id = ecs_id(Eg_SDL_Window), .inout = EcsInOut },
+	.events = {EcsOnRemove},
+	.callback = System_Destroy_Window
+	});
+
+
+	//ECS_TRIGGER(world, System_Destroy_Window, EcsOnRemove, Eg_SDL_Window);
+
+
+	ecs_observer_init(world, &(ecs_observer_desc_t) {
+	.filter.terms = {
+	{ .id = ecs_id(EgWindow), .inout = EcsInOut },
+	{ .id = ecs_id(EgRectangleI32), .inout = EcsIn}
+	},
+	.events = {EcsOnAdd},
+	.callback = System_Create_Window
+	});
+
+	ecs_observer_init(world, &(ecs_observer_desc_t) {
+	.filter.terms = {
+	{ .id = ecs_id(Eg_SDL_Window), .inout = EcsOut },
+	{ .id = ecs_id(EgRectangleI32), .inout = EcsIn}
+	},
+	.events = {EcsOnSet},
+	.callback = System_Change_Window_Size
+	});
+
+	ecs_observer_init(world, &(ecs_observer_desc_t) {
+	.filter.terms = {
+	{ .id = ecs_id(Eg_SDL_Window), .inout = EcsOut },
+	{ .id = ecs_id(EgTitle), .inout = EcsIn}
+	},
+	.events = {EcsOnSet},
+	.callback = System_Update_Title
+	});
+
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.terms = {
+	{ .id = ecs_id(Eg_SDL_Window), .inout = EcsInOut },
+	{ .id = ecs_id(EgWindow), .inout = EcsInOut}
+	},
+	.entity.add = {EcsOnUpdate},
+	.callback = System_Update_Window
+	});
+
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.terms = {
+	{ .id = ecs_id(Eg_SDL_Window), .inout = EcsIn },
+	{ .id = ecs_id(EgRectangleI32), .inout = EcsOut}
+	},
+	.entity.add = {EcsOnUpdate},
+	.callback = System_Update_Window_Size
+	});
+
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.expr = "[out] EgUserEvent($)",
+	.entity.add = {EcsOnUpdate},
+	.callback = System_Update_UserEvent
+	});
+
+
+	/*
 	ECS_OBSERVER(world, System_Create_Window, EcsOnAdd,
 	[inout] EgWindow,
 	[in]    EgRectangleI32);
@@ -281,11 +343,15 @@ void EgSDLImport(ecs_world_t *world)
 	ECS_SYSTEM(world, System_Update_Window, EcsOnUpdate,
 	[inout] Eg_SDL_Window,
 	[inout] EgWindow);
-	ECS_SYSTEM(world, System_Update_UserEvent, EcsOnUpdate,
-	[out] EgUserEvent($));
 	ECS_SYSTEM(world, System_Update_Window_Size, EcsOnUpdate,
 	[in]  Eg_SDL_Window,
 	[out] EgRectangleI32);
+	ECS_SYSTEM(world, System_Update_UserEvent, EcsOnUpdate,
+	[out] EgUserEvent($));
+	*/
+
+
+
 	
 }
 
