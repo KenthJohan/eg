@@ -12,25 +12,24 @@ QMAKE_CFLAGS += -Wno-missing-field-initializers
 
 INCLUDEPATH += ck/include
 
-SOURCES += test_eg_sokol_gfx.c
-SOURCES += eg_sdl.c
-SOURCES += eg_sokol_gfx.c
-SOURCES += eg_geometry.c
-SOURCES += eg_window.c
-SOURCES += eg_userevent.c
-SOURCES += eg_quantity.c
+SOURCES += test_EgSokolGfx.c
+SOURCES += EgSDL.c
+SOURCES += EgSokolGfx.c
+SOURCES += EgGeometries.c
+SOURCES += EgWindows.c
+SOURCES += EgEvents.c
+SOURCES += EgQuantities.c
 SOURCES += sokol_source.c
 SOURCES += flecs.c
 
 
 HEADERS += flecs.h
-HEADERS += eg_sdl.h
-HEADERS += eg_geometry.h
-HEADERS += eg_window.h
-HEADERS += eg_userevent.h
+HEADERS += EgSDL.h
+HEADERS += EgGeometries.h
+HEADERS += EgWindows.h
+HEADERS += EgEvents.h
 HEADERS += eg_base.h
-HEADERS += eg_quantity.h
-HEADERS += eg_window_sdl.h
+HEADERS += EgQuantities.h
 
 
 LIBS += -lmingw32 -lSDL2main -lSDL2 -lws2_32 -lgdi32

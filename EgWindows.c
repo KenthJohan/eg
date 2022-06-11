@@ -1,0 +1,58 @@
+#include "EgWindows.h"
+
+
+ECS_COMPONENT_DECLARE(EgWindow);
+ECS_COMPONENT_DECLARE(EgDraw);
+ECS_COMPONENT_DECLARE(EgTitle);
+
+
+static ECS_COPY(EgTitle, dst, src, {
+ecs_os_strset((char**)&dst->value, src->value);
+})
+
+static ECS_MOVE(EgTitle, dst, src, {
+ecs_os_free((char*)dst->value);
+dst->value = src->value;
+src->value = NULL;
+})
+
+static ECS_DTOR(EgTitle, ptr, {
+ecs_os_free((char*)ptr->value);
+})
+
+
+void EgWindowsImport(ecs_world_t *world)
+{
+	ECS_MODULE(world, EgWindows);
+	ECS_COMPONENT_DEFINE(world, EgWindow);
+	ECS_COMPONENT_DEFINE(world, EgDraw);
+	ECS_COMPONENT_DEFINE(world, EgTitle);
+
+	ecs_set_name_prefix(world, "Eg");
+
+	ecs_set_component_actions(world, EgTitle, {
+	.ctor = ecs_default_ctor,
+	.move = ecs_move(EgTitle),
+	.copy = ecs_copy(EgTitle),
+	.dtor = ecs_dtor(EgTitle)
+	});
+
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(EgTitle),
+	.members = {
+	{ .name = "value", .type = ecs_id(ecs_string_t) }
+	}
+	});
+
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(EgWindow),
+	.members = {
+	{ .name = "flags", .type = ecs_id(ecs_u64_t) },
+	{ .name = "counter", .type = ecs_id(ecs_u64_t) },
+	{ .name = "should_destroy", .type = ecs_id(ecs_bool_t) },
+	}
+	});
+
+	
+}
+
