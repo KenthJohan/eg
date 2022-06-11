@@ -1,5 +1,5 @@
-#include "EgSDLR.h"
-#include "EgSDLW.h"
+#include "EgSdlr.h"
+#include "EgSdlw.h"
 #include "EgGeometries.h"
 #include "EgWindows.h"
 #include "EgBasics.h"
@@ -214,10 +214,10 @@ static void Create_Renderer(ecs_iter_t *it)
 
 
 
-void EgSDLRImport(ecs_world_t *world)
+void EgSdlrImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgSDLR);
-	ECS_IMPORT(world, EgSDLW);
+	ECS_MODULE(world, EgSdlr);
+	ECS_IMPORT(world, EgSdlw);
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgEvents);

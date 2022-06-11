@@ -284,6 +284,6 @@ typedef enum
 	EG_KEY_AUDIOFASTFORWARD = 286
 } eg_key_t;
 
-void EgSDLImport(ecs_world_t *world);
+void EgSdlImport(ecs_world_t *world);
 
 

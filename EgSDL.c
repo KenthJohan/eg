@@ -1,5 +1,5 @@
-#include "EgSDL.h"
-#include "EgSDLW.h"
+#include "EgSdl.h"
+#include "EgSdlw.h"
 #include "EgGeometries.h"
 #include "EgWindows.h"
 #include "EgBasics.h"
@@ -38,10 +38,10 @@ void eg_gl_swap_buffer(ecs_world_t * world, ecs_entity_t e)
 
 
 
-void EgSDLImport(ecs_world_t *world)
+void EgSdlImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgSDL);
-	ECS_IMPORT(world, EgSDLW);
+	ECS_MODULE(world, EgSdl);
+	ECS_IMPORT(world, EgSdlw);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgEvents);

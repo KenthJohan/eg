@@ -11,8 +11,8 @@
 
 // If SDL is used as backend
 #if 1
-#include "EgSDL.h"
-#include "EgSDLR.h"
+#include "EgSdl.h"
+#include "EgSdlr.h"
 #endif
 
 
@@ -152,8 +152,8 @@ int main(int argc, char *argv[])
 	ecs_world_t *world = ecs_init();
 	ecs_singleton_set(world, EcsRest, {0});
 
-	ECS_IMPORT(world, EgSDL);
-	ECS_IMPORT(world, EgSDLR);
+	ECS_IMPORT(world, EgSdl);
+	ECS_IMPORT(world, EgSdlr);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgQuantities);

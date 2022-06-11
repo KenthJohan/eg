@@ -12,6 +12,6 @@ typedef struct
 
 extern ECS_COMPONENT_DECLARE(Eg_SDL_Window);
 
-void EgSDLWImport(ecs_world_t *world);
+void EgSdlwImport(ecs_world_t *world);
 
 

@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, FlecsUnits);
 
 	ECS_IMPORT(world, EgWindows);
-	ECS_IMPORT(world, EgSDL);
+	ECS_IMPORT(world, EgSdl);
 	ECS_IMPORT(world, EgSokolGfx);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgQuantities);

@@ -1,4 +1,4 @@
-#include "EgSDLW.h"
+#include "EgSdlw.h"
 #include "EgGeometries.h"
 #include "EgWindows.h"
 #include "EgBasics.h"
@@ -211,14 +211,26 @@ static void System_Update_Window_Size(ecs_iter_t *it)
 
 
 
-void EgSDLWImport(ecs_world_t *world)
+void EgSdlwImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgSDLW);
+	ECS_MODULE(world, EgSdlw);
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgEvents);
 	ecs_set_name_prefix(world, "Eg");
 	ECS_COMPONENT_DEFINE(world, Eg_SDL_Window);
+
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(Eg_SDL_Window),
+	.members = {
+	{ .name = "window", .type = ecs_id(ecs_uptr_t) },
+	{ .name = "context", .type = ecs_id(ecs_uptr_t) },
+	{ .name = "elapsed_milliseconds", .type = ecs_id(ecs_u32_t) },
+	{ .name = "keys", .type = ecs_id(ecs_u8_t), 2 }, // TODO: SDL_NUM_SCANCODES
+	}
+	});
+
+
 
 	g_windows = flecs_sparse_new(SDL_Window*);
 
