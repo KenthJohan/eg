@@ -14,23 +14,27 @@ QMAKE_CFLAGS += -Wno-missing-field-initializers
 
 INCLUDEPATH += ck/include
 
-SOURCES += test_eg_sdl.c
-SOURCES += eg_sdl.c
-SOURCES += eg_geometry.c
-SOURCES += eg_window.c
-SOURCES += eg_userevent.c
-SOURCES += eg_quantity.c
+SOURCES += test_EgSDLR.c
+SOURCES += EgSDL.c
+SOURCES += EgSDLR.c
+SOURCES += EgSDLW.c
+SOURCES += EgGeometries.c
+SOURCES += EgWindows.c
+SOURCES += EgEvents.c
+SOURCES += EgQuantities.c
 SOURCES += flecs.c
 
 
 HEADERS += flecs.h
-HEADERS += eg_sdl.h
-HEADERS += eg_geometry.h
-HEADERS += eg_window.h
-HEADERS += eg_userevent.h
-HEADERS += eg_base.h
-HEADERS += eg_quantity.h
-HEADERS += eg_window_sdl.h
+HEADERS += EgSDL.h
+HEADERS += EgSDLR.h
+HEADERS += EgSDLW.h
+HEADERS += EgGeometries.h
+HEADERS += EgWindows.h
+HEADERS += EgEvents.h
+HEADERS += EgBasics.h
+HEADERS += EgQuantities.h
+HEADERS += EgWindows.h
 
 
 LIBS += -lmingw32 -lSDL2main -lSDL2 -lws2_32

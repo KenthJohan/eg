@@ -14,6 +14,7 @@ INCLUDEPATH += ck/include
 
 SOURCES += test_EgSokolGfx.c
 SOURCES += EgSDL.c
+SOURCES += EgSDLW.c
 SOURCES += EgSokolGfx.c
 SOURCES += EgGeometries.c
 SOURCES += EgWindows.c
@@ -25,10 +26,11 @@ SOURCES += flecs.c
 
 HEADERS += flecs.h
 HEADERS += EgSDL.h
+HEADERS += EgSDLW.h
 HEADERS += EgGeometries.h
 HEADERS += EgWindows.h
 HEADERS += EgEvents.h
-HEADERS += eg_base.h
+HEADERS += EgBasics.h
 HEADERS += EgQuantities.h
 
 

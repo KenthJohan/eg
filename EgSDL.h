@@ -285,7 +285,5 @@ typedef enum
 } eg_key_t;
 
 void EgSDLImport(ecs_world_t *world);
-void EgSdlRenderersImport(ecs_world_t *world);
-
 
 
