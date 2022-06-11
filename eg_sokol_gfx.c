@@ -4,10 +4,7 @@
 #include "eg_base.h"
 #include "eg_userevent.h"
 #include "eg_quantity.h"
-
-#define SOKOL_IMPL
-#define SOKOL_GLCORE33
-#include "sokol/sokol_gfx.h"
+#include "sokol_source.h"
 
 
 

@@ -19,6 +19,7 @@ SOURCES += eg_geometry.c
 SOURCES += eg_window.c
 SOURCES += eg_userevent.c
 SOURCES += eg_quantity.c
+SOURCES += sokol_source.c
 SOURCES += flecs.c
 
 
@@ -32,4 +33,4 @@ HEADERS += eg_quantity.h
 HEADERS += eg_window_sdl.h
 
 
-LIBS += -lmingw32 -lSDL2main -lSDL2 -lws2_32
+LIBS += -lmingw32 -lSDL2main -lSDL2 -lws2_32 -lgdi32
