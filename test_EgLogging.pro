@@ -12,15 +12,17 @@ QMAKE_CFLAGS += -Wno-missing-field-initializers
 
 INCLUDEPATH += ck/include
 
-SOURCES += test_eg_log.c
+SOURCES += test_EgLogging.c
 SOURCES += flecs.c
-SOURCES += eg_log.c
+SOURCES += EgLogging.c
 SOURCES += eg_memory_pool.c
+SOURCES += eg_basics.c
 
 
 HEADERS += flecs.h
-HEADERS += eg_log.h
+HEADERS += eg_basics.h
 HEADERS += eg_memory_pool.h
+HEADERS += EgLogging.h
 
 
 LIBS += -lmingw32 -lws2_32

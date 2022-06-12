@@ -1,5 +1,5 @@
 #include "EgQuantities.h"
-#include "EgBasics.h"
+#include "eg_basics.h"
 #include <math.h>
 
 

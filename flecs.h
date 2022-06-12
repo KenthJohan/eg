@@ -585,9 +585,8 @@ typedef int32_t ecs_size_t;
         }\
     }
 
-
-#define ECS_ON_SET_IMPL(type, var, ...)\
-    void type##_##on_set(ecs_iter_t *_it)\
+#define ECS_HOOK_IMPL(type, func, var, ...)\
+    void func(ecs_iter_t *_it)\
     {\
         for (int32_t i = 0; i < _it->count; i ++) {\
             ecs_entity_t entity = _it->entities[i];\
@@ -2160,6 +2159,9 @@ typedef struct ecs_iter_t ecs_iter_t;
 /** Refs cache data that lets them access components faster than ecs_get. */
 typedef struct ecs_ref_t ecs_ref_t;
 
+/** Type hooks (callbacks) */
+typedef struct ecs_type_hooks_t ecs_type_hooks_t;
+
 /** Type information */
 typedef struct ecs_type_info_t ecs_type_info_t;
 
@@ -2510,6 +2512,60 @@ struct ecs_observer_t {
     bool is_monitor;            /* If true, the observer only triggers when the
                                  * filter did not match with the entity before
                                  * the event happened. */
+};
+
+/** Type that contains component lifecycle callbacks. */
+struct ecs_type_hooks_t {
+    ecs_xtor_t ctor;            /* ctor */
+    ecs_xtor_t dtor;            /* dtor */
+    ecs_copy_t copy;            /* copy assignment */
+    ecs_move_t move;            /* move assignment */
+
+    /* Ctor + copy */
+    ecs_copy_t copy_ctor;
+
+    /* Ctor + move */
+    ecs_move_t move_ctor;
+
+    /* Ctor + move + dtor (or move_ctor + dtor).
+     * This combination is typically used when a component is moved from one
+     * location to a new location, like when it is moved to a new table. If
+     * not set explicitly it will be derived from other callbacks. */
+    ecs_move_t ctor_move_dtor;
+
+    /* Move + dtor.
+     * This combination is typically used when a component is moved from one
+     * location to an existing location, like what happens during a remove. If
+     * not set explicitly it will be derived from other callbacks. */
+    ecs_move_t move_dtor;
+
+    /* Callback that is invoked when an instance of a component is added. This
+     * callback is invoked before triggers are invoked. */
+    ecs_iter_action_t on_add;
+
+    /* Callback that is invoked when an instance of the component is set. This
+     * callback is invoked before triggers are invoked, and enable the component
+     * to respond to changes on itself before others can. */
+    ecs_iter_action_t on_set;
+
+    /* Callback that is invoked when an instance of the component is removed. 
+     * This callback is invoked after the triggers are invoked, and before the
+     * destructor is invoked. */
+    ecs_iter_action_t on_remove;
+
+    void *ctx;                       /* User defined context */
+    void *binding_ctx;               /* Language binding context */
+
+    ecs_ctx_free_t ctx_free;         /* Callback to free ctx */
+    ecs_ctx_free_t binding_ctx_free; /* Callback to free binding_ctx */
+};
+
+/** Type that contains component information (passed to ctors/dtors/...) */
+struct ecs_type_info_t {
+    ecs_size_t size;         /* Size of type */
+    ecs_size_t alignment;    /* Alignment of type */
+    ecs_type_hooks_t hooks;  /* Type hooks */
+    ecs_entity_t component;  /* Handle to component (do not set) */
 };
 
 /** @} */
@@ -2866,11 +2922,6 @@ FLECS_API
 char* ecs_module_path_from_c(
     const char *c_name);
 
-FLECS_API
-bool ecs_component_has_actions(
-    const ecs_world_t *world,
-    ecs_entity_t component);
-
 ////////////////////////////////////////////////////////////////////////////////
 //// Signature API
 ////////////////////////////////////////////////////////////////////////////////
@@ -2878,13 +2929,11 @@ bool ecs_component_has_actions(
 bool ecs_identifier_is_0(
     const char *id);
 
-const char* ecs_identifier_is_var(
-    const char *id);
-
 ////////////////////////////////////////////////////////////////////////////////
 //// Ctor that initializes component to 0
 ////////////////////////////////////////////////////////////////////////////////
 
+/* Constructor that zeromem's a component value */
 FLECS_API
 void ecs_default_ctor(
     void *ptr, 
@@ -3480,9 +3529,8 @@ typedef struct ecs_bulk_desc_t {
 typedef struct ecs_component_desc_t {
     int32_t _canary;
 
-    ecs_entity_desc_t entity;           /* Parameters for component entity */
-    size_t size;                        /* Component size */
-    size_t alignment;                   /* Component alignment */
+    ecs_entity_desc_t entity;  /* Parameters for component entity */
+    ecs_type_info_t type;      /* Parameters for type (size, hooks, ...) */
 } ecs_component_desc_t;
 
 
@@ -3717,61 +3765,6 @@ typedef struct EcsType {
     ecs_table_t *normalized;  /* Table with union of type + nested AND types */
 } EcsType;
 
-/** Component that contains lifecycle callbacks for a component. */
-typedef struct EcsComponentLifecycle {
-    ecs_xtor_t ctor;            /* ctor */
-    ecs_xtor_t dtor;            /* dtor */
-    ecs_copy_t copy;            /* copy assignment */
-    ecs_move_t move;            /* move assignment */
-
-    /* Ctor + copy */
-    ecs_copy_t copy_ctor;
-
-    /* Ctor + move */  
-    ecs_move_t move_ctor;
-
-    /* Ctor + move + dtor (or move_ctor + dtor).
-     * This combination is typically used when a component is moved from one
-     * location to a new location, like when it is moved to a new table. If
-     * not set explicitly it will be derived from other callbacks. */
-    ecs_move_t ctor_move_dtor;
-
-    /* Move + dtor.
-     * This combination is typically used when a component is moved from one
-     * location to an existing location, like what happens during a remove. If
-     * not set explicitly it will be derived from other callbacks. */
-    ecs_move_t move_dtor;
-
-    /* Callback that is invoked when an instance of a component is added. This
-     * callback is invoked before triggers are invoked. */
-    ecs_iter_action_t on_add;
-
-    /* Callback that is invoked when an instance of the component is set. This
-     * callback is invoked before triggers are invoked, and enable the component
-     * to respond to changes on itself before others can. */
-    ecs_iter_action_t on_set;
-
-    /* Callback that is invoked when an instance of the component is removed. 
-     * This callback is invoked after the triggers are invoked, and before the
-     * destructor is invoked. */
-    ecs_iter_action_t on_remove;
-
-    void *ctx;                      /* User defined context */
-    void *binding_ctx;              /* Language binding context */
-
-    ecs_ctx_free_t ctx_free;         /* Callback to free ctx */
-    ecs_ctx_free_t binding_ctx_free; /* Callback to free binding_ctx */
-} EcsComponentLifecycle;
-
-/** Type that contains component information (passed to ctors/dtors/...) */
-struct ecs_type_info_t {
-    ecs_size_t size;
-    ecs_size_t alignment;
-    EcsComponentLifecycle lifecycle;
-    ecs_entity_t component;
-    bool lifecycle_set;
-};
-
 /** Component that stores reference to trigger */
 typedef struct EcsTrigger {
     const ecs_trigger_t *trigger;
@@ -3837,6 +3830,16 @@ typedef struct ecs_world_info_t {
     int32_t empty_table_count;        /* Number of tables without entities */
     int32_t table_record_count;       /* Total number of table records (entries in table caches) */
     int32_t table_storage_count;      /* Total number of table storages */
+
+    /* -- Defered operation counts -- */
+    int32_t new_count;
+    int32_t bulk_new_count;
+    int32_t delete_count;
+    int32_t clear_count;
+    int32_t add_count;
+    int32_t remove_count;
+    int32_t set_count;
+    int32_t discard_count;
 } ecs_world_info_t;
 
 /** @} */
@@ -3899,7 +3902,6 @@ FLECS_API extern const ecs_id_t ECS_DISABLED;
 
 /** Builtin component ids */
 FLECS_API extern const ecs_entity_t ecs_id(EcsComponent);
-FLECS_API extern const ecs_entity_t ecs_id(EcsComponentLifecycle);
 FLECS_API extern const ecs_entity_t ecs_id(EcsType);
 FLECS_API extern const ecs_entity_t ecs_id(EcsIdentifier);
 FLECS_API extern const ecs_entity_t ecs_id(EcsTrigger);
@@ -4092,18 +4094,6 @@ FLECS_API extern const ecs_entity_t EcsOnTableEmpty;
 /* Event. Triggers when a table becomes non-empty. */
 FLECS_API extern const ecs_entity_t EcsOnTableFill;
 
-/* Event. Triggers when a trigger is created. */
-// FLECS_API extern const ecs_entity_t EcsOnCreateTrigger;
-
-/* Event. Triggers when a trigger is deleted. */
-// FLECS_API extern const ecs_entity_t EcsOnDeleteTrigger;
-
-/* Event. Triggers when observable is deleted. */
-// FLECS_API extern const ecs_entity_t EcsOnDeleteObservable;
-
-/* Event. Triggers when lifecycle methods for a component are registered */
-// FLECS_API extern const ecs_entity_t EcsOnComponentLifecycle;
-
 /* Relationship used to define what should happen when an entity is deleted that
  * is added to other entities. For details see: 
  * https://github.com/SanderMertens/flecs/blob/master/docs/Relations.md#relation-cleanup-properties
@@ -4261,17 +4251,33 @@ FLECS_API
 bool ecs_should_quit(
     const ecs_world_t *world);
 
-/** Register ctor, dtor, copy & move actions for component.
+/** Register hooks for component.
+ * Hooks allow for the execution of user code when components are constructed,
+ * copied, moved, destructed, added, removed or set. Hooks can be assigned as
+ * as long as a component has not yet been used (added to an entity).
+ * 
+ * The hooks that are currently set can be accessed with ecs_get_type_info.
  *
  * @param world The world.
  * @param id The component id for which to register the actions
- * @param actions Type that contains the component actions.
+ * @param hooks Type that contains the component actions.
  */
 FLECS_API
-void ecs_set_component_actions_w_id(
+void ecs_set_hooks_id(
     ecs_world_t *world,
-    ecs_id_t id,
-    const EcsComponentLifecycle *actions);
+    ecs_entity_t id,
+    const ecs_type_hooks_t *hooks);
+
+/** Get hooks for component.
+ * 
+ * @param world The world.
+ * @param id The component id for which to retrieve the hooks.
+ * @return The hooks for the component, or NULL if not registered.
+ */
+FLECS_API
+const ecs_type_hooks_t* ecs_get_hooks_id(
+    ecs_world_t *world,
+    ecs_entity_t id);
 
 /** Set a world context.
  * This operation allows an application to register custom data with a world
@@ -4477,11 +4483,6 @@ FLECS_API
 void ecs_set_target_fps(
     ecs_world_t *world,
     FLECS_FLOAT fps);     
-
-/** Get current number of threads. */
-FLECS_API
-int32_t ecs_get_threads(
-    ecs_world_t *world);
 
 /** Force aperiodic actions.
  * The world may delay certain operations until they are necessary for the
@@ -7057,47 +7058,55 @@ FLECS_API
 void ecs_frame_end(
     ecs_world_t *world);
 
-/** Begin staging.
- * When an application does not use ecs_progress to control the main loop, it
- * can still use Flecs features such as the defer queue. When an application
- * needs to stage changes, it needs to call this function after ecs_frame_begin.
- * A call to ecs_staging_begin must be followed by a call to ecs_staging_end.
+/** Begin readonly mode.
+ * Readonly mode guarantees that no mutations will occur on the world, which
+ * makes the world safe to access from multiple threads. While the world is in
+ * readonly mode, operations are deferred.
  * 
- * When staging is enabled, modifications to entities are stored to a stage.
- * This ensures that arrays are not modified while iterating. Modifications are
- * merged back to the "main stage" when ecs_staging_end is invoked.
- *
- * While the world is in staging mode, no structural changes (add/remove/...)
- * can be made to the world itself. Operations must be executed on a stage
- * instead (see ecs_get_stage).
- *
- * This function should only be ran from the main thread.
+ * Note that while similar to ecs_defer_begin, deferring only does not guarantee
+ * the world is not mutated. Operations that are not deferred (like creating a
+ * query) update data structures on the world and are allowed when deferring is
+ * enabled, but not when the world is in readonly mode.
+ * 
+ * A call to ecs_readonly_begin must be followed up with ecs_readonly_end.
+ * 
+ * The ecs_progress() function automatically enables readonly mode while systems
+ * are executed.
+ * 
+ * When a world has more than one stage, the specific stage must be provided to
+ * mutating ECS operations. Failing to do so will throw a readonly assert. A
+ * world typically has more than one stage when using threads. An example:
+ * 
+ * ecs_set_stage_count(world, 2);
+ * ecs_stage_t *stage = ecs_get_stage(world, 1);
+ * 
+ * ecs_readonly_begin(world);
+ * ecs_add(world, e, Tag); // readonly assert
+ * ecs_add(stage, e, Tag); // OK
  *
  * @param world The world
- * @return Whether world is currently staged.
+ * @return Whether world is in readonly mode.
  */
 FLECS_API
-bool ecs_staging_begin(
+bool ecs_readonly_begin(
     ecs_world_t *world);
 
-/** End staging.
- * Leaves staging mode. After this operation the world may be directly mutated
- * again. By default this operation also merges data back into the world, unless
- * automerging was disabled explicitly.
- *
- * This function should only be ran from the main thread.
+/** End readonly mode.
+ * This operation ends readonly mode, and must be called after 
+ * ecs_readonly_begin. Operations that were deferred while the world was in
+ * readonly mode will be flushed.
  *
  * @param world The world
  */
 FLECS_API
-void ecs_staging_end(
+void ecs_readonly_end(
     ecs_world_t *world);
 
 /** Merge world or stage.
  * When automatic merging is disabled, an application can call this
  * operation on either an individual stage, or on the world which will merge
  * all stages. This operation may only be called when staging is not enabled
- * (either after progress() or after staging_end()).
+ * (either after progress() or after readonly_end()).
  *
  * This operation may be called on an already merged stage or world.
  *
@@ -7166,7 +7175,7 @@ void ecs_defer_resume(
 /** Enable/disable automerging for world or stage.
  * When automerging is enabled, staged data will automatically be merged with
  * the world when staging ends. This happens at the end of progress(), at a
- * sync point or when staging_end() is called.
+ * sync point or when readonly_end() is called.
  *
  * Applications can exercise more control over when data from a stage is merged
  * by disabling automerging. This requires an application to explicitly call
@@ -7191,19 +7200,19 @@ void ecs_set_automerge(
  * merged when threads are synchronized.
  *
  * Note that the ecs_set_threads function already creates the appropriate
- * number of stages. The set_stages() operation is useful for applications that
+ * number of stages. The set_stage_count() operation is useful for applications that
  * want to manage their own stages and/or threads.
  * 
  * @param world The world.
  * @param stages The number of stages.
  */
 FLECS_API
-void ecs_set_stages(
+void ecs_set_stage_count(
     ecs_world_t *world,
     int32_t stages);
 
 /** Get number of configured stages.
- * Return number of stages set by ecs_set_stages.
+ * Return number of stages set by ecs_set_stage_count.
  *
  * @param world The world.
  * @return The number of stages used for threading.
@@ -7413,37 +7422,6 @@ int32_t ecs_search_offset(
  */
 FLECS_API
 int32_t ecs_search_relation(
-    const ecs_world_t *world,
-    const ecs_table_t *table,
-    int32_t offset,
-    ecs_id_t id,
-    ecs_entity_t rel,
-    int32_t min_depth,
-    int32_t max_depth,
-    ecs_entity_t *subject_out,
-    ecs_id_t *id_out,
-    int32_t *depth_out,
-    struct ecs_table_record_t **tr_out);
-
-/** Similar to ecs_search_relation, but find component at maximum depth.
- * Instead of searching for the first occurrence of a component following a
- * relationship, this operation returns the last (deepest) occurrence of the
- * component. This operation can be used to determine the depth of a tree.
- * 
- * @param world The world.
- * @param table The table.
- * @param offset Offset from where to start searching.
- * @param id The id to search for.
- * @param rel The relation to traverse (optional).
- * @param min_depth The minimum search depth. Use 1 for only shared components.
- * @param max_depth The maximum search depth. Zero means no maximum.
- * @param subject_out If provided, it will be set to the matched entity.
- * @param id_out If provided, it will be set to the found id (optional).
- * @param depth_out If provided, it will be set to the traversal depth.
- * @param tr_out Internal datatype.
- */
-FLECS_API
-int32_t ecs_search_relation_last(
     const ecs_world_t *world,
     const ecs_table_t *table,
     int32_t offset,
@@ -7688,8 +7666,8 @@ void* ecs_record_get_column(
         desc.entity.entity = ecs_id(id); \
         desc.entity.name = #id; \
         desc.entity.symbol = #id; \
-        desc.size = sizeof(id); \
-        desc.alignment = ECS_ALIGNOF(id); \
+        desc.type.size = ECS_SIZEOF(id); \
+        desc.type.alignment = ECS_ALIGNOF(id); \
         ecs_id(id) = ecs_component_init(world, &desc);\
         ecs_assert(ecs_id(id) != 0, ECS_INVALID_PARAMETER, NULL);\
     }
@@ -7864,8 +7842,11 @@ void* ecs_record_get_column(
 
 /* -- World API -- */
 
-#define ecs_set_component_actions(world, T, ...)\
-    ecs_set_component_actions_w_id(world, ecs_id(T), &(EcsComponentLifecycle)__VA_ARGS__)
+#define ecs_set_hooks(world, T, ...)\
+    ecs_set_hooks_id(world, ecs_id(T), &(ecs_type_hooks_t)__VA_ARGS__)
+
+#define ecs_get_hooks(world, T)\
+    ecs_get_hooks_id(world, ecs_id(T));
 
 /* -- New -- */
 
@@ -8146,12 +8127,16 @@ void* ecs_record_get_column(
 #define ECS_MOVE(type, dst_var, src_var, ...)\
     ECS_MOVE_IMPL(type, dst_var, src_var, __VA_ARGS__)
 
-/** Declare an on_set action.
+/** Declare component hooks
  * Example:
  *   ECS_ON_SET(MyType, ptr, { printf("%d\n", ptr->value); });
  */
+#define ECS_ON_ADD(type, ptr, ...)\
+    ECS_HOOK_IMPL(type, ecs_on_add(type), ptr, __VA_ARGS__)
+#define ECS_ON_REMOVE(type, ptr, ...)\
+    ECS_HOOK_IMPL(type, ecs_on_remove(type), ptr, __VA_ARGS__)
 #define ECS_ON_SET(type, ptr, ...)\
-    ECS_ON_SET_IMPL(type, ptr, __VA_ARGS__)
+    ECS_HOOK_IMPL(type, ecs_on_set(type), ptr, __VA_ARGS__)
 
 /* Map from typename to function name of component lifecycle action */
 #define ecs_ctor(type) type##_ctor
@@ -12857,7 +12842,8 @@ using query_t = ecs_query_t;
 using rule_t = ecs_rule_t;
 using ref_t = ecs_ref_t;
 using iter_t = ecs_iter_t;
-using ComponentLifecycle = EcsComponentLifecycle;
+using type_info_t = ecs_type_info_t;
+using type_hooks_t = ecs_type_hooks_t;
 
 enum inout_kind_t {
     InOutDefault = EcsInOutDefault,
@@ -14722,6 +14708,14 @@ inline void err(const char *fmt, ...) {
     va_end(args);
 }
 
+inline void push(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    ecs_logv(0, fmt, args);
+    va_end(args);
+    ecs_log_push();
+}
+
 inline void push() {
     ecs_log_push();
 }
@@ -15470,11 +15464,11 @@ struct world {
      * When an application does not use ecs_progress to control the main loop, it
      * can still use Flecs features such as the defer queue. When an application
      * needs to stage changes, it needs to call this function after ecs_frame_begin.
-     * A call to ecs_staging_begin must be followed by a call to ecs_staging_end.
+     * A call to ecs_readonly_begin must be followed by a call to ecs_readonly_end.
      * 
      * When staging is enabled, modifications to entities are stored to a stage.
      * This ensures that arrays are not modified while iterating. Modifications are
-     * merged back to the "main stage" when ecs_staging_end is invoked.
+     * merged back to the "main stage" when ecs_readonly_end is invoked.
      *
      * While the world is in staging mode, no structural changes (add/remove/...)
      * can be made to the world itself. Operations must be executed on a stage
@@ -15484,8 +15478,8 @@ struct world {
      *
      * @return Whether world is currently staged.
      */
-    bool staging_begin() {
-        return ecs_staging_begin(m_world);
+    bool readonly_begin() {
+        return ecs_readonly_begin(m_world);
     }
 
     /** End staging.
@@ -15495,8 +15489,8 @@ struct world {
      *
      * This function should only be ran from the main thread.
      */
-    void staging_end() {
-        ecs_staging_end(m_world);
+    void readonly_end() {
+        ecs_readonly_end(m_world);
     }
 
     /** Defer operations until end of frame. 
@@ -15531,17 +15525,17 @@ struct world {
      * merged when threads are synchronized.
      *
      * Note that set_threads() already creates the appropriate number of stages. 
-     * The set_stages() operation is useful for applications that want to manage 
+     * The set_stage_count() operation is useful for applications that want to manage 
      * their own stages and/or threads.
      * 
      * @param stages The number of stages.
      */
-    void set_stages(int32_t stages) const {
-        ecs_set_stages(m_world, stages);
+    void set_stage_count(int32_t stages) const {
+        ecs_set_stage_count(m_world, stages);
     }
 
     /** Get number of configured stages.
-     * Return number of stages set by set_stages.
+     * Return number of stages set by set_stage_count.
      *
      * @return The number of stages used for threading.
      */
@@ -15562,7 +15556,7 @@ struct world {
     /** Enable/disable automerging for world or stage.
      * When automerging is enabled, staged data will automatically be merged 
      * with the world when staging ends. This happens at the end of progress(), 
-     * at a sync point or when staging_end() is called.
+     * at a sync point or when readonly_end() is called.
      *
      * Applications can exercise more control over when data from a stage is 
      * merged by disabling automerging. This requires an application to 
@@ -15583,7 +15577,7 @@ struct world {
      * When automatic merging is disabled, an application can call this
      * operation on either an individual stage, or on the world which will merge
      * all stages. This operation may only be called when staging is not enabled
-     * (either after progress() or after staging_end()).
+     * (either after progress() or after readonly_end()).
      *
      * This operation may be called on an already merged stage or world.
      */
@@ -16379,7 +16373,7 @@ void deactivate_systems() const;
 void set_threads(int32_t threads) const;
 
 /** Set number of threads.
- * @see ecs_get_threads
+ * @see ecs_get_stage_count
  */
 int32_t get_threads() const;
 
@@ -19624,21 +19618,19 @@ void register_lifecycle_actions(
     ecs_world_t *world,
     ecs_entity_t component)
 {
-    if (!ecs_component_has_actions(world, component)) {
-        EcsComponentLifecycle cl{};
-        cl.ctor = ctor<T>();
-        cl.dtor = dtor<T>();
+    ecs_type_hooks_t cl{};
+    cl.ctor = ctor<T>();
+    cl.dtor = dtor<T>();
 
-        cl.copy = copy<T>();
-        cl.copy_ctor = copy_ctor<T>();
-        cl.move = move<T>();
-        cl.move_ctor = move_ctor<T>();
+    cl.copy = copy<T>();
+    cl.copy_ctor = copy_ctor<T>();
+    cl.move = move<T>();
+    cl.move_ctor = move_ctor<T>();
 
-        cl.ctor_move_dtor = ctor_move_dtor<T>();
-        cl.move_dtor = move_dtor<T>();
+    cl.ctor_move_dtor = ctor_move_dtor<T>();
+    cl.move_dtor = move_dtor<T>();
 
-        ecs_set_component_actions_w_id( world, component, &cl);
-    }
+    ecs_set_hooks_id( world, component, &cl);
 }
 
 // Class that manages component ids across worlds & binaries.
@@ -20035,15 +20027,15 @@ struct component : untyped_component {
     component<T>& on_add(Func&& func) {
         using Invoker = typename _::each_invoker<
             typename std::decay<Func>::type, T>;
-        flecs::ComponentLifecycle *li = this->get_mut<ComponentLifecycle>();
-        ecs_assert(li->on_add == nullptr, ECS_INVALID_OPERATION, 
+        flecs::type_hooks_t h = get_hooks();
+        ecs_assert(h.on_add == nullptr, ECS_INVALID_OPERATION, 
             "on_add hook is already set");
-        auto binding_ctx = get_binding_ctx(li);
-        li->on_add = Invoker::run_add;
-        binding_ctx->on_add = FLECS_NEW(Invoker)(FLECS_FWD(func));
-        binding_ctx->free_on_add = reinterpret_cast<
-            ecs_ctx_free_t>(_::free_obj<Invoker>);
-        this->modified<ComponentLifecycle>();
+        BindingCtx *ctx = get_binding_ctx(h);
+        h.on_add = Invoker::run_add;
+        ctx->on_add = FLECS_NEW(Invoker)(FLECS_FWD(func));
+        ctx->free_on_add = reinterpret_cast<ecs_ctx_free_t>(
+            _::free_obj<Invoker>);
+        ecs_set_hooks_id(m_world, m_id, &h);
         return *this;
     }
 
@@ -20052,15 +20044,15 @@ struct component : untyped_component {
     component<T>& on_remove(Func&& func) {
         using Invoker = typename _::each_invoker<
             typename std::decay<Func>::type, T>;
-        flecs::ComponentLifecycle *li = this->get_mut<ComponentLifecycle>();
-        ecs_assert(li->on_remove == nullptr, ECS_INVALID_OPERATION, 
+        flecs::type_hooks_t h = get_hooks();
+        ecs_assert(h.on_remove == nullptr, ECS_INVALID_OPERATION, 
             "on_remove hook is already set");
-        auto binding_ctx = get_binding_ctx(li);
-        li->on_remove = Invoker::run_remove;
-        binding_ctx->on_remove = FLECS_NEW(Invoker)(FLECS_FWD(func));
-        binding_ctx->free_on_remove = reinterpret_cast<
-            ecs_ctx_free_t>(_::free_obj<Invoker>);
-        this->modified<ComponentLifecycle>();
+        BindingCtx *ctx = get_binding_ctx(h);
+        h.on_remove = Invoker::run_remove;
+        ctx->on_remove = FLECS_NEW(Invoker)(FLECS_FWD(func));
+        ctx->free_on_remove = reinterpret_cast<ecs_ctx_free_t>(
+            _::free_obj<Invoker>);
+        ecs_set_hooks_id(m_world, m_id, &h);
         return *this;
     }
 
@@ -20069,30 +20061,39 @@ struct component : untyped_component {
     component<T>& on_set(Func&& func) {
         using Invoker = typename _::each_invoker<
             typename std::decay<Func>::type, T>;
-        flecs::ComponentLifecycle *li = this->get_mut<ComponentLifecycle>();
-        ecs_assert(li->on_set == nullptr, ECS_INVALID_OPERATION, 
+        flecs::type_hooks_t h = get_hooks();
+        ecs_assert(h.on_set == nullptr, ECS_INVALID_OPERATION, 
             "on_set hook is already set");
-        auto binding_ctx = get_binding_ctx(li);
-        li->on_set = Invoker::run_set;
-        binding_ctx->on_set = FLECS_NEW(Invoker)(FLECS_FWD(func));
-        binding_ctx->free_on_set = reinterpret_cast<
-            ecs_ctx_free_t>(_::free_obj<Invoker>);
-        this->modified<ComponentLifecycle>();
+        BindingCtx *ctx = get_binding_ctx(h);
+        h.on_set = Invoker::run_set;
+        ctx->on_set = FLECS_NEW(Invoker)(FLECS_FWD(func));
+        ctx->free_on_set = reinterpret_cast<ecs_ctx_free_t>(
+            _::free_obj<Invoker>);
+        ecs_set_hooks_id(m_world, m_id, &h);
         return *this;
     }
 
 private:
     using BindingCtx = _::component_binding_ctx;
 
-    BindingCtx* get_binding_ctx(flecs::ComponentLifecycle *li){        
-        BindingCtx *result = static_cast<BindingCtx*>(li->binding_ctx);
+    BindingCtx* get_binding_ctx(flecs::type_hooks_t& h){        
+        BindingCtx *result = static_cast<BindingCtx*>(h.binding_ctx);
         if (!result) {
             result = new BindingCtx;
-            li->binding_ctx = result;
-            li->binding_ctx_free = reinterpret_cast<ecs_ctx_free_t>(
+            h.binding_ctx = result;
+            h.binding_ctx_free = reinterpret_cast<ecs_ctx_free_t>(
                 _::free_obj<BindingCtx>);
         }
         return result;
+    }
+
+    flecs::type_hooks_t get_hooks() {
+        const flecs::type_hooks_t* h = ecs_get_hooks_id(m_world, m_id);
+        if (h) {
+            return *h;
+        } else {
+            return {};
+        }
     }
 };
 
@@ -22910,7 +22911,7 @@ inline void world::set_threads(int32_t threads) const {
 }
 
 inline int32_t world::get_threads() const {
-    return ecs_get_threads(m_world);
+    return ecs_get_stage_count(m_world);
 }
 
 }

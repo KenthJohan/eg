@@ -6,8 +6,8 @@
 #include "EgGeometries.h"
 #include "EgWindows.h"
 #include "EgEvents.h"
-#include "EgBasics.h"
 #include "EgQuantities.h"
+#include "eg_basics.h"
 
 // If SDL is used as backend
 #if 1

@@ -23,6 +23,7 @@ SOURCES += EgWindows.c
 SOURCES += EgEvents.c
 SOURCES += EgQuantities.c
 SOURCES += flecs.c
+SOURCES += eg_basics.c
 
 
 HEADERS += flecs.h
@@ -32,9 +33,9 @@ HEADERS += EgSdlw.h
 HEADERS += EgGeometries.h
 HEADERS += EgWindows.h
 HEADERS += EgEvents.h
-HEADERS += EgBasics.h
 HEADERS += EgQuantities.h
 HEADERS += EgWindows.h
+HEADERS += eg_basics.h
 
 
 LIBS += -lmingw32 -lSDL2main -lSDL2 -lws2_32

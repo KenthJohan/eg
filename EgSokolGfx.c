@@ -1,10 +1,10 @@
 #include "EgSokolGfx.h"
 #include "EgGeometries.h"
 #include "EgWindows.h"
-#include "EgBasics.h"
 #include "EgEvents.h"
 #include "EgQuantities.h"
 #include "sokol_source.h"
+#include "eg_basics.h"
 
 
 

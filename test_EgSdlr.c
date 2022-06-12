@@ -3,10 +3,10 @@
 #include <math.h>
 
 #include "flecs.h"
+#include "eg_Basics.h"
 #include "EgGeometries.h"
 #include "EgWindows.h"
 #include "EgEvents.h"
-#include "EgBasics.h"
 #include "EgQuantities.h"
 
 // If SDL is used as backend
@@ -148,6 +148,7 @@ ecs_entity_t spawn_player(ecs_world_t *world, ecs_entity_t parent, char const * 
 // https://www.flecs.dev/explorer/?remote=true
 int main(int argc, char *argv[])
 {
+	eg_basics_enable_ternminal_color();
 	ecs_log_set_level(0);
 	ecs_world_t *world = ecs_init();
 	ecs_singleton_set(world, EcsRest, {0});

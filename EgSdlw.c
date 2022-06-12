@@ -1,10 +1,9 @@
 #include "EgSdlw.h"
 #include "EgGeometries.h"
 #include "EgWindows.h"
-#include "EgBasics.h"
 #include "EgEvents.h"
 #include "EgQuantities.h"
-
+#include "eg_basics.h"
 
 ECS_COMPONENT_DECLARE(Eg_SDL_Window);
 

@@ -6,6 +6,10 @@ ECS_COMPONENT_DECLARE(EgDraw);
 ECS_COMPONENT_DECLARE(EgTitle);
 
 
+ECS_CTOR(EgTitle, ptr, {
+ptr->value = NULL;
+})
+
 static ECS_COPY(EgTitle, dst, src, {
 ecs_os_strset((char**)&dst->value, src->value);
 })
@@ -30,11 +34,12 @@ void EgWindowsImport(ecs_world_t *world)
 
 	ecs_set_name_prefix(world, "Eg");
 
-	ecs_set_component_actions(world, EgTitle, {
-	.ctor = ecs_default_ctor,
+
+	ecs_set_hooks(world, EgTitle, {
+	.ctor = ecs_ctor(EgTitle),
 	.move = ecs_move(EgTitle),
 	.copy = ecs_copy(EgTitle),
-	.dtor = ecs_dtor(EgTitle)
+	.dtor = ecs_dtor(EgTitle),
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t) {

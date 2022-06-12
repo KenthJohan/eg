@@ -31,8 +31,8 @@ HEADERS += EgSokolGfx.h
 HEADERS += EgGeometries.h
 HEADERS += EgWindows.h
 HEADERS += EgEvents.h
-HEADERS += EgBasics.h
 HEADERS += EgQuantities.h
+HEADERS += eg_basics.h
 
 
 LIBS += -lmingw32 -lSDL2main -lSDL2 -lws2_32 -lgdi32
