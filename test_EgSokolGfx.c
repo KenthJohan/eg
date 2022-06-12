@@ -11,7 +11,7 @@
 
 // If SDL is used as backend
 #if 1
-#include "EgSDL.h"
+#include "EgSdl.h"
 #include "EgSokolGfx.h"
 #endif
 

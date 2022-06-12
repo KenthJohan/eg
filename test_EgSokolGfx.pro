@@ -27,6 +27,7 @@ SOURCES += flecs.c
 HEADERS += flecs.h
 HEADERS += EgSdl.h
 HEADERS += EgSdlw.h
+HEADERS += EgSokolGfx.h
 HEADERS += EgGeometries.h
 HEADERS += EgWindows.h
 HEADERS += EgEvents.h
