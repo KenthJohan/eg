@@ -19,6 +19,6 @@ extern bool __dbgui_event_with_retval(const sapp_event* e);
 static inline void __dbgui_setup(int sample_count) { (void)(sample_count); }
 static inline void __dbgui_shutdown(void) { }
 static inline void __dbgui_draw(void) { }
-static inline void __dbgui_event(const sapp_event* e) { (void)(e); }
-static inline bool __dbgui_event_with_retval(const sapp_event* e) { (void)(e); return false; }
+//static inline void __dbgui_event(const sapp_event* e) { (void)(e); }
+//static inline bool __dbgui_event_with_retval(const sapp_event* e) { (void)(e); return false; }
 #endif

@@ -22,7 +22,8 @@ SOURCES += EgEvents.c
 SOURCES += EgQuantities.c
 SOURCES += sokol_source.c
 SOURCES += flecs.c
-
+SOURCES += libs/stb/stb_image.c
+SOURCES += libs/util/fileutil.c
 
 HEADERS += flecs.h
 HEADERS += EgSdl.h

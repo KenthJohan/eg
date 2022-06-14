@@ -31,11 +31,13 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgQuantities);
 
-	ecs_entity_t window1 = ecs_new(world, 0);
-	ecs_set_name(world, window1, "Window1");
-	ecs_set(world, window1, EgRectangleI32, {800, 800});
-	ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false});
-	ecs_set(world, window1, EgTitle, {"Window1"});
+	{
+		ecs_entity_t window1 = ecs_new(world, 0);
+		ecs_set_name(world, window1, "Window1");
+		ecs_set(world, window1, EgRectangleI32, {800, 800});
+		ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false});
+		ecs_set(world, window1, EgTitle, {"Window1"});
+	}
 
 	/*
 	ecs_entity_t window2 = ecs_new(world, 0);
