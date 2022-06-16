@@ -1,12 +1,33 @@
 #pragma once
 #include "flecs.h"
 
+typedef struct
+{
+	ecs_f32_t x;
+	ecs_f32_t y;
+	ecs_f32_t z;
+	ecs_f32_t w;
+} EgQuaternionF32;
+
+typedef struct
+{
+	ecs_f32_t x;
+	ecs_f32_t y;
+	ecs_f32_t z;
+} EgScale3F32;
 
 typedef struct
 {
 	ecs_f32_t x;
 	ecs_f32_t y;
 } EgPosition2F32;
+
+typedef struct
+{
+	ecs_f32_t x;
+	ecs_f32_t y;
+	ecs_f32_t z;
+} EgPosition3F32;
 
 typedef struct
 {
@@ -19,6 +40,13 @@ typedef struct
 	ecs_f32_t x;
 	ecs_f32_t y;
 } EgVelocity2F32;
+
+typedef struct
+{
+	ecs_f32_t x;
+	ecs_f32_t y;
+	ecs_f32_t z;
+} EgVelocity3F32;
 
 typedef struct
 {
@@ -70,9 +98,13 @@ typedef struct
 } EgDensityF32;
 
 
+extern ECS_COMPONENT_DECLARE(EgScale3F32);
+extern ECS_COMPONENT_DECLARE(EgQuaternionF32);
 extern ECS_COMPONENT_DECLARE(EgPosition2F32);
+extern ECS_COMPONENT_DECLARE(EgPosition3F32);
 extern ECS_COMPONENT_DECLARE(EgPosition2I32);
 extern ECS_COMPONENT_DECLARE(EgVelocity2F32);
+extern ECS_COMPONENT_DECLARE(EgVelocity3F32);
 extern ECS_COMPONENT_DECLARE(EgAcceleration2F32);
 extern ECS_COMPONENT_DECLARE(EgForce2F32);
 extern ECS_COMPONENT_DECLARE(EgDrag2F32);

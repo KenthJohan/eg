@@ -208,7 +208,8 @@ static void fetch_callback(const sfetch_response_t* response)
    Also note the sfetch_dowork() function, this is usually called once a
    frame to pump the sokol-fetch message queues.
 */
-static void frame(float w, float h, float duration) {
+static void frame(float w, float h, float duration)
+{
 	/* pump the sokol-fetch message queues, and invoke response callbacks */
 	sfetch_dowork();
 
@@ -234,123 +235,12 @@ static void frame(float w, float h, float duration) {
 	sg_commit();
 }
 
-static void cleanup(void) {
+static void cleanup(void)
+{
 	__dbgui_shutdown();
 	sfetch_shutdown();
 	sg_shutdown();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-static void grahpics_create(EgGfx * a)
-{
-	sg_setup(&(sg_desc){0});
-
-	const float vertices[] = {
-	// positions            // colors
-	0.0f,  0.5f, 0.5f,     1.0f, 0.0f, 0.0f, 1.0f,
-	0.5f, -0.5f, 0.5f,     0.0f, 1.0f, 0.0f, 1.0f,
-	-0.5f, -0.5f, 0.5f,     0.0f, 0.0f, 1.0f, 1.0f
-	};
-	sg_buffer vbuf = sg_make_buffer(&(sg_buffer_desc){
-	.data = SG_RANGE(vertices)
-	});
-
-	sg_shader shd = sg_make_shader(&(sg_shader_desc){
-	.vs.source =
-	"#version 330\n"
-	"layout(location=0) in vec4 position;\n"
-	"layout(location=1) in vec4 color0;\n"
-	"out vec4 color;\n"
-	"void main() {\n"
-	"  gl_Position = position;\n"
-	"  color = color0;\n"
-	"}\n",
-	.fs.source =
-	"#version 330\n"
-	"in vec4 color;\n"
-	"out vec4 frag_color;\n"
-	"void main() {\n"
-	"  frag_color = color;\n"
-	"}\n"
-	});
-
-	a->pip = sg_make_pipeline(&(sg_pipeline_desc){
-	.shader = shd,
-	.layout = {
-	.attrs = {
-	[0].format=SG_VERTEXFORMAT_FLOAT3,
-	[1].format=SG_VERTEXFORMAT_FLOAT4
-	}
-	}
-	});
-
-	ecs_os_memset(&a->bind, 0, sizeof(sg_bindings));
-	a->bind.vertex_buffers[0] = vbuf;
-	ecs_os_memset(&a->pass_action, 0, sizeof(sg_pass_action));
-}
-
-static void frame(EgGfx * a, int cur_width, int cur_height)
-{
-	//glfwGetFramebufferSize(w, &cur_width, &cur_height);
-	sg_begin_default_pass(&a->pass_action, cur_width, cur_height);
-	sg_apply_pipeline(a->pip);
-	sg_apply_bindings(&a->bind);
-	sg_draw(0, 3, 1);
-	sg_end_pass();
-	sg_commit();
-	//glfwSwapBuffers(w);
-	//glfwPollEvents();
-}
-*/
-
-
-
 
 
 

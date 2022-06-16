@@ -7,6 +7,7 @@
 #include "EgWindows.h"
 #include "EgEvents.h"
 #include "EgQuantities.h"
+#include "EgCamera.h"
 #include "eg_basics.h"
 
 // If SDL is used as backend
@@ -30,6 +31,22 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgSokolGfx);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgQuantities);
+	ECS_IMPORT(world, EgCamera);
+
+	{
+		ecs_entity_t cam = ecs_new(world, 0);
+		ecs_set_name(world, cam, "Cam1");
+		ecs_set(world, cam, EgCamera3D, {
+		{EG_KEY_W, EG_KEY_S},
+		{EG_KEY_A, EG_KEY_D},
+		{EG_KEY_SPACE, EG_KEY_LCTRL},
+		{EG_KEY_LEFT, EG_KEY_RIGHT},
+		{EG_KEY_UP, EG_KEY_DOWN},
+		{EG_KEY_Q, EG_KEY_E}
+		});
+		ecs_set(world, cam, EgVelocity3F32, {0.0f, 0.0f, 0.0f});
+		ecs_set(world, cam, EgQuaternionF32, {1.0f, 0.0f, 0.0f, 0.0f});
+	}
 
 	{
 		ecs_entity_t window1 = ecs_new(world, 0);

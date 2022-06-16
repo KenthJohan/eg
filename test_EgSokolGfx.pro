@@ -12,7 +12,8 @@ QMAKE_CFLAGS += -Wno-missing-field-initializers
 
 INCLUDEPATH += ck/include
 
-SOURCES += test_EgSokolGfx.c
+SOURCES += test_EgSokolGfx.c \
+	EgCamera.c
 SOURCES += EgSdl.c
 SOURCES += EgSdlw.c
 SOURCES += EgSokolGfx.c
@@ -25,7 +26,10 @@ SOURCES += flecs.c
 SOURCES += libs/stb/stb_image.c
 SOURCES += libs/util/fileutil.c
 
-HEADERS += flecs.h
+HEADERS += flecs.h \
+	EgCamera.h \
+	eg_lin.h
+HEADERS += EgResources.h
 HEADERS += EgSdl.h
 HEADERS += EgSdlw.h
 HEADERS += EgSokolGfx.h

@@ -2,10 +2,13 @@
 #include "eg_basics.h"
 #include <math.h>
 
-
+ECS_COMPONENT_DECLARE(EgScale3F32);
+ECS_COMPONENT_DECLARE(EgQuaternionF32);
 ECS_COMPONENT_DECLARE(EgPosition2F32);
+ECS_COMPONENT_DECLARE(EgPosition3F32);
 ECS_COMPONENT_DECLARE(EgPosition2I32);
 ECS_COMPONENT_DECLARE(EgVelocity2F32);
+ECS_COMPONENT_DECLARE(EgVelocity3F32);
 ECS_COMPONENT_DECLARE(EgAcceleration2F32);
 ECS_COMPONENT_DECLARE(EgForce2F32);
 ECS_COMPONENT_DECLARE(EgDrag2F32);
@@ -27,6 +30,21 @@ static void System_Position(ecs_iter_t *it)
 		p[i].y += v[i].y;
 		EG_ASSERT(isfinite(p[i].x));
 		EG_ASSERT(isfinite(p[i].y));
+	}
+}
+
+static void System_Position3F32(ecs_iter_t *it)
+{
+	EgPosition3F32 *p = ecs_term(it, EgPosition3F32, 1); // [inout]
+	EgVelocity3F32 *v = ecs_term(it, EgVelocity3F32, 2); // [in]
+	for (int i = 0; i < it->count; i ++)
+	{
+		p[i].x += v[i].x;
+		p[i].y += v[i].y;
+		p[i].z += v[i].z;
+		EG_ASSERT(isfinite(p[i].x));
+		EG_ASSERT(isfinite(p[i].y));
+		EG_ASSERT(isfinite(p[i].z));
 	}
 }
 
@@ -98,10 +116,13 @@ void EgQuantitiesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgQuantities);
 
-
+	ECS_COMPONENT_DEFINE(world, EgScale3F32);
+	ECS_COMPONENT_DEFINE(world, EgQuaternionF32);
 	ECS_COMPONENT_DEFINE(world, EgPosition2F32);
+	ECS_COMPONENT_DEFINE(world, EgPosition3F32);
 	ECS_COMPONENT_DEFINE(world, EgPosition2I32);
 	ECS_COMPONENT_DEFINE(world, EgVelocity2F32);
+	ECS_COMPONENT_DEFINE(world, EgVelocity3F32);
 	ECS_COMPONENT_DEFINE(world, EgAcceleration2F32);
 	ECS_COMPONENT_DEFINE(world, EgForce2F32);
 	ECS_COMPONENT_DEFINE(world, EgDrag2F32);
@@ -115,10 +136,39 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "Eg");
 
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(EgScale3F32),
+	.members = {
+	{ .name = "x", .type = ecs_id(ecs_f32_t) },
+	{ .name = "y", .type = ecs_id(ecs_f32_t) },
+	{ .name = "z", .type = ecs_id(ecs_f32_t) }
+	}
+	});
+
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(EgQuaternionF32),
+	.members = {
+	{ .name = "x", .type = ecs_id(ecs_f32_t) },
+	{ .name = "y", .type = ecs_id(ecs_f32_t) },
+	{ .name = "z", .type = ecs_id(ecs_f32_t) },
+	{ .name = "w", .type = ecs_id(ecs_f32_t) }
+	}
+	});
+
+
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgPosition2F32),
 	.members = {
 	{ .name = "x", .type = ecs_id(ecs_f32_t) },
 	{ .name = "y", .type = ecs_id(ecs_f32_t) }
+	}
+	});
+
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(EgPosition3F32),
+	.members = {
+	{ .name = "x", .type = ecs_id(ecs_f32_t) },
+	{ .name = "y", .type = ecs_id(ecs_f32_t) },
+	{ .name = "z", .type = ecs_id(ecs_f32_t) }
 	}
 	});
 
@@ -137,6 +187,17 @@ void EgQuantitiesImport(ecs_world_t *world)
 	.members = {
 	{ .name = "x", .type = ecs_id(ecs_f32_t) },
 	{ .name = "y", .type = ecs_id(ecs_f32_t) }
+	}
+	});
+
+	ecs_doc_set_brief(world, ecs_id(EgVelocity2F32),
+	"Moved distance per unit time: the first time derivative of position. unit: m/s");
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(EgVelocity3F32),
+	.members = {
+	{ .name = "x", .type = ecs_id(ecs_f32_t) },
+	{ .name = "y", .type = ecs_id(ecs_f32_t) },
+	{ .name = "z", .type = ecs_id(ecs_f32_t) }
 	}
 	});
 
@@ -228,6 +289,9 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ECS_SYSTEM(world, System_Position, EcsOnUpdate,
 	[inout] EgPosition2F32,
 	[in]    EgVelocity2F32);
+	ECS_SYSTEM(world, System_Position3F32, EcsOnUpdate,
+	[inout] EgPosition3F32,
+	[in]    EgVelocity3F32);
 	ECS_SYSTEM(world, System_Velocity, EcsOnUpdate,
 	[inout] EgVelocity2F32,
 	[in]    EgAcceleration2F32);
