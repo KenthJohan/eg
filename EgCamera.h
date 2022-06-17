@@ -11,6 +11,12 @@ typedef struct
 	ecs_i32_t pitch[2];
 	ecs_i32_t yaw[2];
 	ecs_i32_t roll[2];
+} EgCamera3DKeyBindings;
+
+typedef struct
+{
+	ecs_f32_t move[3];
+	ecs_f32_t look[3];
 } EgCamera3D;
 
 typedef struct
@@ -31,6 +37,7 @@ typedef struct
 
 
 
+extern ECS_COMPONENT_DECLARE(EgCamera3DKeyBindings);
 extern ECS_COMPONENT_DECLARE(EgCamera3D);
 extern ECS_COMPONENT_DECLARE(EgCamera2D);
 extern ECS_COMPONENT_DECLARE(EgScene);

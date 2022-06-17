@@ -34,9 +34,21 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgCamera);
 
 	{
-		ecs_entity_t cam = ecs_new(world, 0);
+
+	}
+
+	{
+		ecs_entity_t window1 = ecs_new(world, 0);
+		ecs_set_name(world, window1, "Window1");
+		ecs_set(world, window1, EgRectangleI32, {800, 800});
+		ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false});
+		ecs_set(world, window1, EgTitle, {"Window1"});
+
+
+		ecs_entity_t cam = ecs_new_w_pair(world, EcsChildOf, window1);
 		ecs_set_name(world, cam, "Cam1");
-		ecs_set(world, cam, EgCamera3D, {
+		ecs_add(world, cam, EgCamera3D);
+		ecs_set(world, cam, EgCamera3DKeyBindings, {
 		{EG_KEY_W, EG_KEY_S},
 		{EG_KEY_A, EG_KEY_D},
 		{EG_KEY_SPACE, EG_KEY_LCTRL},
@@ -46,14 +58,6 @@ int main(int argc, char *argv[])
 		});
 		ecs_set(world, cam, EgVelocity3F32, {0.0f, 0.0f, 0.0f});
 		ecs_set(world, cam, EgQuaternionF32, {1.0f, 0.0f, 0.0f, 0.0f});
-	}
-
-	{
-		ecs_entity_t window1 = ecs_new(world, 0);
-		ecs_set_name(world, window1, "Window1");
-		ecs_set(world, window1, EgRectangleI32, {800, 800});
-		ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false});
-		ecs_set(world, window1, EgTitle, {"Window1"});
 	}
 
 	/*
