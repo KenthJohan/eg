@@ -2,6 +2,7 @@
 #include "EgEvents.h"
 #include "EgQuantities.h"
 #include "eg_basics.h"
+#include "eg_types.h"
 #include "eg_lin.h"
 
 
@@ -38,27 +39,23 @@ static void System_Camera3D_Controller1(ecs_iter_t *it)
 	EgQuaternionF32  *comp_q = ecs_term(it, EgQuaternionF32, 3);
 	for (int i = 0; i < it->count; i ++)
 	{
-		v3f32 * v = (v3f32*)(comp_v + i);
-		qf32 * q = (qf32*)(comp_q + i);
-		v3f32 * move = (v3f32 *)comp_c[i].move;
-		v3f32 * look = (v3f32 *)comp_c[i].look;
-
+		v3f32 * v    = (v3f32*) (comp_v + i);
+		qf32  * q    = (qf32*)  (comp_q + i);
+		v3f32 * move = (v3f32*) (comp_c[i].move);
+		v3f32 * look = (v3f32*) (comp_c[i].look);
 		qf32 q_pitch; // Quaternion pitch rotation
 		qf32 q_yaw;   // Quaternion yaw rotation
 		qf32 q_roll;  // Quaternion roll rotation
 		qf32_xyza (&q_pitch, 1.0f, 0.0f, 0.0f, look->x);
 		qf32_xyza (&q_yaw,   0.0f, 1.0f, 0.0f, look->y);
 		qf32_xyza (&q_roll,  0.0f, 0.0f, 1.0f, look->z);
-
 		qf32_mul (q, &q_roll, q);  // Apply roll rotation
 		qf32_mul (q, &q_yaw, q);   // Apply yaw rotation
 		qf32_mul (q, &q_pitch, q); // Apply pitch rotation
-
-		qf32_normalize (q, q); //Normalize quaternion against floating point error
-
+		qf32_normalize (q, q); // Normalize quaternion against floating point error
 		m4f32 mr;
-		qf32_unit_m4 (&mr, q);
-		v3f32_m4_mul (v, &mr, move);
+		qf32_unit_m4 (&mr, q); // Convert unit quaternion to rotation matrix (mr)
+		v3f32_m4_mul (v, &mr, move); // Multiply rotation matrix (mr) with move vector (move) to velocity vector (v)
 	}
 }
 

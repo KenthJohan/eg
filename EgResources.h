@@ -8,6 +8,7 @@ typedef struct
 	ecs_f32_t y;
 } EgImage;
 
+
 extern ECS_COMPONENT_DECLARE(EgImage);
 
 

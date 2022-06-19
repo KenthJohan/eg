@@ -21,7 +21,7 @@
 int main(int argc, char *argv[])
 {
 	ecs_log_set_level(0);
-	ecs_world_t *world = ecs_init();
+	ecs_world_t *world = ecs_init_w_args(argc, argv);
 	ecs_singleton_set(world, EcsRest, {0});
 	ECS_IMPORT(world, FlecsMonitor);
 	ECS_IMPORT(world, FlecsUnits);
@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
 		{EG_KEY_Q, EG_KEY_E}
 		});
 		ecs_set(world, cam, EgVelocity3F32, {0.0f, 0.0f, 0.0f});
+		ecs_set(world, cam, EgPosition3F32, {0.0f, 0.0f, 0.0f});
 		ecs_set(world, cam, EgQuaternionF32, {1.0f, 0.0f, 0.0f, 0.0f});
 	}
 

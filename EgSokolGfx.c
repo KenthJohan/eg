@@ -219,7 +219,8 @@ static void frame(float w, float h, float duration)
 	hmm_mat4 view = HMM_LookAt(HMM_Vec3(0.0f, 1.5f, 6.0f), HMM_Vec3(0.0f, 0.0f, 0.0f), HMM_Vec3(0.0f, 1.0f, 0.0f));
 	hmm_mat4 view_proj = HMM_MultiplyMat4(proj, view);
 	vs_params_t vs_params;
-	g_state.rx += 1.0f * t; g_state.ry += 2.0f * t;
+	g_state.rx += 1.0f * t;
+	g_state.ry += 2.0f * t;
 	hmm_mat4 rxm = HMM_Rotate(g_state.rx, HMM_Vec3(1.0f, 0.0f, 0.0f));
 	hmm_mat4 rym = HMM_Rotate(g_state.ry, HMM_Vec3(0.0f, 1.0f, 0.0f));
 	hmm_mat4 model = HMM_MultiplyMat4(rxm, rym);
@@ -258,9 +259,6 @@ static void System_Create(ecs_iter_t *it)
 		eg_gl_create_context(it->world, e);
 		EgGfx * g = ecs_get_mut(it->world, e, EgGfx, NULL);
 		memset(g, 0, sizeof(EgGfx));
-		printf("%i\n", sizeof(EgGfx));
-		printf("%i\n", g->bind._start_canary);
-		printf("%i\n", g->bind._end_canary);
 		init();
 	}
 }
