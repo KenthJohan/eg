@@ -248,24 +248,6 @@ void EgSdlwImport(ecs_world_t *world)
 	.callback = System_Create_Window
 	});
 
-	ecs_system_init(world, &(ecs_system_desc_t) {
-	.query.filter.terms = {
-	{ .id = ecs_id(Eg_SDL_Window), .inout = EcsInOut },
-	{ .id = ecs_id(EgWindow), .inout = EcsInOut}
-	},
-	.entity.add = {EcsOnUpdate},
-	.callback = System_Update_Window
-	});
-
-
-	ecs_system_init(world, &(ecs_system_desc_t) {
-	.query.filter.expr = "[out] EgUserEvent($)",
-	.entity.add = {EcsOnUpdate},
-	.callback = System_Update_UserEvent
-	});
-
-
-
 	ecs_observer_init(world, &(ecs_observer_desc_t) {
 	.filter.terms = {
 	{ .id = ecs_id(Eg_SDL_Window), .inout = EcsOut },
@@ -286,12 +268,30 @@ void EgSdlwImport(ecs_world_t *world)
 
 
 
+
+
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.terms = {
+	{ .id = ecs_id(Eg_SDL_Window), .inout = EcsInOut },
+	{ .id = ecs_id(EgWindow), .inout = EcsInOut}
+	},
+	.entity.add = {ecs_dependson(EcsOnUpdate)},
+	.callback = System_Update_Window
+	});
+
+
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.expr = "[out] EgUserEvent($)",
+	.entity.add = {ecs_dependson(EcsOnUpdate)},
+	.callback = System_Update_UserEvent
+	});
+
 	ecs_system_init(world, &(ecs_system_desc_t) {
 	.query.filter.terms = {
 	{ .id = ecs_id(Eg_SDL_Window), .inout = EcsIn },
 	{ .id = ecs_id(EgRectangleI32), .inout = EcsOut}
 	},
-	.entity.add = {EcsOnUpdate},
+	.entity.add = {ecs_dependson(EcsOnUpdate)},
 	.callback = System_Update_Window_Size
 	});
 

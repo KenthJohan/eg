@@ -292,6 +292,8 @@ static void System_Update(ecs_iter_t *it)
 void EgSokolGfxImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSokolGfx);
+	ECS_IMPORT(world, EgWindows);
+	ecs_set_name_prefix(world, "Eg");
 	ECS_COMPONENT_DEFINE(world, EgGfx);
 
 	ecs_system_init(world, &(ecs_system_desc_t) {
@@ -299,7 +301,7 @@ void EgSokolGfxImport(ecs_world_t *world)
 	{ .id = ecs_id(EgWindow), .inout = EcsIn},
 	{ .id = ecs_id(EgGfx), .inout = EcsOut, .oper = EcsNot}
 	},
-	.entity.add = {EcsOnLoad},
+	.entity.add = {ecs_dependson(EcsOnLoad)},
 	.callback = System_Create
 	});
 
@@ -309,9 +311,11 @@ void EgSokolGfxImport(ecs_world_t *world)
 	{ .id = ecs_id(EgRectangleI32), .inout = EcsIn},
 	{ .id = ecs_id(EgGfx), .inout = EcsOut}
 	},
-	.entity.add = {EcsOnUpdate},
+	.entity.add = {ecs_dependson(EcsOnUpdate)},
 	.callback = System_Update
 	});
+
+
 
 
 }

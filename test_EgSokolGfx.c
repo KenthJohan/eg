@@ -18,14 +18,15 @@
 #endif
 
 
+
 // https://www.flecs.dev/explorer/?remote=true
 int main(int argc, char *argv[])
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = ecs_init_w_args(argc, argv);
 	ecs_singleton_set(world, EcsRest, {0});
-	ECS_IMPORT(world, FlecsMonitor);
-	ECS_IMPORT(world, FlecsUnits);
+	//ECS_IMPORT(world, FlecsMonitor);
+	//ECS_IMPORT(world, FlecsUnits);
 
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgSdl);
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgCamera);
 	ECS_IMPORT(world, EgResources);
 	ECS_IMPORT(world, EgCamera);
+
 
 	{
 		ecs_entity_t p = ecs_new(world, 0);
