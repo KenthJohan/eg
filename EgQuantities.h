@@ -97,6 +97,10 @@ typedef struct
 	ecs_f32_t value;
 } EgDensityF32;
 
+typedef struct EgText {
+	ecs_string_t value;
+} EgText;
+
 
 extern ECS_COMPONENT_DECLARE(EgScale3F32);
 extern ECS_COMPONENT_DECLARE(EgQuaternionF32);
@@ -114,6 +118,7 @@ extern ECS_COMPONENT_DECLARE(EgTimeF32);
 extern ECS_COMPONENT_DECLARE(EgTemperatureF32);
 extern ECS_COMPONENT_DECLARE(EgLengthF32);
 extern ECS_COMPONENT_DECLARE(EgDensityF32);
+extern ECS_COMPONENT_DECLARE(EgText);
 
 
 

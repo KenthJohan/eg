@@ -18,6 +18,24 @@ ECS_COMPONENT_DECLARE(EgTimeF32);
 ECS_COMPONENT_DECLARE(EgTemperatureF32);
 ECS_COMPONENT_DECLARE(EgLengthF32);
 ECS_COMPONENT_DECLARE(EgDensityF32);
+ECS_COMPONENT_DECLARE(EgText);
+
+
+static ECS_COPY(EgText, dst, src, {
+ecs_os_strset((char**)&dst->value, src->value);
+
+})
+
+static ECS_MOVE(EgText, dst, src, {
+ecs_os_free((char*)dst->value);
+dst->value = src->value;
+src->value = NULL;
+})
+
+static ECS_DTOR(EgText, ptr, {
+ecs_os_free((char*)ptr->value);
+})
+
 
 
 static void System_Position(ecs_iter_t *it)
@@ -112,6 +130,10 @@ static void System_Drag(ecs_iter_t *it)
 }
 
 
+
+
+
+
 void EgQuantitiesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgQuantities);
@@ -132,6 +154,7 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgTemperatureF32);
 	ECS_COMPONENT_DEFINE(world, EgLengthF32);
 	ECS_COMPONENT_DEFINE(world, EgDensityF32);
+	ECS_COMPONENT_DEFINE(world, EgText);
 
 	ecs_set_name_prefix(world, "Eg");
 
@@ -286,6 +309,13 @@ void EgQuantitiesImport(ecs_world_t *world)
 	}
 	});
 
+	ecs_struct_init(world, &(ecs_struct_desc_t) {
+	.entity.entity = ecs_id(EgText),
+	.members = {
+	{ .name = "value", .type = ecs_id(ecs_string_t) }
+	}
+	});
+
 	ECS_SYSTEM(world, System_Position, EcsOnUpdate,
 	[inout] EgPosition2F32,
 	[in]    EgVelocity2F32);
@@ -308,6 +338,13 @@ void EgQuantitiesImport(ecs_world_t *world)
 	[in]    EgDensityF32(parent),
 	[in]    EgVelocity2F32,
 	[out]   EgDrag2F32);
+
+	ecs_set_hooks(world, EgText, {
+	.ctor = ecs_default_ctor,
+	.move = ecs_move(EgText),
+	.copy = ecs_copy(EgText),
+	.dtor = ecs_dtor(EgText)
+	});
 
 
 }

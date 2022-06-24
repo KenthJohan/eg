@@ -8,6 +8,7 @@
 #include "EgEvents.h"
 #include "EgQuantities.h"
 #include "EgCamera.h"
+#include "EgResources.h"
 #include "eg_basics.h"
 
 // If SDL is used as backend
@@ -32,9 +33,13 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgQuantities);
 	ECS_IMPORT(world, EgCamera);
+	ECS_IMPORT(world, EgResources);
+	ECS_IMPORT(world, EgCamera);
 
 	{
-
+		ecs_entity_t p = ecs_new(world, 0);
+		ecs_set_name(world, p, "Picture");
+		ecs_set(world, p, EgPath, {"../eg/baboon.png"});
 	}
 
 	{

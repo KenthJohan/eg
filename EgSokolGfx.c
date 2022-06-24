@@ -294,14 +294,25 @@ void EgSokolGfxImport(ecs_world_t *world)
 	ECS_MODULE(world, EgSokolGfx);
 	ECS_COMPONENT_DEFINE(world, EgGfx);
 
-	ECS_SYSTEM(world, System_Create, EcsOnLoad,
-	[in]   EgWindow,
-	[out] !EgGfx);
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.terms = {
+	{ .id = ecs_id(EgWindow), .inout = EcsIn},
+	{ .id = ecs_id(EgGfx), .inout = EcsOut, .oper = EcsNot}
+	},
+	.entity.add = {EcsOnLoad},
+	.callback = System_Create
+	});
 
-	ECS_SYSTEM(world, System_Update, EcsOnUpdate,
-	[in]  EgWindow,
-	[in]  EgRectangleI32,
-	[out] EgGfx);
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.terms = {
+	{ .id = ecs_id(EgWindow), .inout = EcsIn},
+	{ .id = ecs_id(EgRectangleI32), .inout = EcsIn},
+	{ .id = ecs_id(EgGfx), .inout = EcsOut}
+	},
+	.entity.add = {EcsOnUpdate},
+	.callback = System_Update
+	});
+
 
 }
 
