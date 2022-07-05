@@ -18,10 +18,15 @@
 
 
 
-#include "loadpng-sapp.glsl.h"
+#define ATTR_vs_pos (0)
+#define ATTR_vs_texcoord0 (1)
+#define SLOT_tex (0)
+#define SLOT_vs_params (0)
 
-
-
+#define SOKOL_SHDC_ALIGN(a) __attribute__((aligned(a)))
+SOKOL_SHDC_ALIGN(16) typedef struct vs_params_t {
+	hmm_mat4 mvp;
+} vs_params_t;
 
 typedef struct
 {
@@ -60,6 +65,15 @@ static void init()
 	});
 	__dbgui_setup(sapp_sample_count());
 	*/
+
+
+	sdtx_setup(&(sdtx_desc_t){
+	.context_pool_size = 1,
+	.fonts[0] = sdtx_font_oric()
+	});
+
+	//__dbgui_setup(sapp_sample_count());
+	__dbgui_setup(1);
 
 	/* setup sokol-fetch with the minimal "resource limits" */
 	sfetch_setup(&(sfetch_desc_t){
@@ -125,9 +139,43 @@ static void init()
 	.label = "cube-indices"
 	});
 
+	sg_shader shd = sg_make_shader(&(sg_shader_desc){
+	.attrs[0].name = "pos",
+	.attrs[1].name = "texcoord0",
+	.vs.entry = "main",
+	.vs.uniform_blocks[0].size = 64,
+	.vs.uniform_blocks[0].layout = SG_UNIFORMLAYOUT_STD140,
+	.vs.uniform_blocks[0].uniforms[0].name = "vs_params",
+	.vs.uniform_blocks[0].uniforms[0].type = SG_UNIFORMTYPE_FLOAT4,
+	.vs.uniform_blocks[0].uniforms[0].array_count = 4,
+	.fs.entry = "main",
+	.fs.images[0].name = "tex",
+	.fs.images[0].image_type = SG_IMAGETYPE_2D,
+	.fs.images[0].sampler_type = SG_SAMPLERTYPE_FLOAT,
+	.label = "loadpng_shader",
+	.vs.source =
+	"#version 330\n"
+	"uniform vec4 vs_params[4];"
+	"layout(location=0) in vec4 pos;\n"
+	"layout(location=1) in vec2 texcoord0;\n"
+	"out vec2 uv;\n"
+	"void main() {\n"
+	"  gl_Position = mat4(vs_params[0], vs_params[1], vs_params[2], vs_params[3]) * pos;\n"
+	"  uv = texcoord0;\n"
+	"}\n",
+	.fs.source =
+	"#version 330\n"
+	"uniform sampler2D tex;"
+	"in vec2 uv;"
+	"layout(location = 0) out vec4 frag_color;\n"
+	"void main() {\n"
+	"  frag_color = texture(tex, uv);\n"
+	"}\n",
+	});
+
 	/* a pipeline state object */
 	g_state.pip = sg_make_pipeline(&(sg_pipeline_desc){
-	.shader = sg_make_shader(loadpng_shader_desc(sg_query_backend())),
+	.shader = shd,
 	.layout = {
 	.attrs = {
 	[ATTR_vs_pos].format = SG_VERTEXFORMAT_FLOAT3,
@@ -208,10 +256,30 @@ static void fetch_callback(const sfetch_response_t* response)
    Also note the sfetch_dowork() function, this is usually called once a
    frame to pump the sokol-fetch message queues.
 */
+#define NUM_COLORS (10)
+static const sg_color pal[NUM_COLORS] = {
+SG_RED, SG_GREEN, SG_BLUE, SG_YELLOW, SG_TURQUOISE,
+SG_VIOLET, SG_SILVER, SG_SALMON, SG_PERU, SG_MAGENTA,
+};
+
+static const char* names[NUM_COLORS] = {
+"RED", "GREEN", "BLUE", "YELLOW", "TURQOISE",
+"VIOLET", "SILVER", "SALMON", "PERU", "MAGENTA"
+};
 static void frame(float w, float h, float duration)
 {
 	/* pump the sokol-fetch message queues, and invoke response callbacks */
 	sfetch_dowork();
+
+	sdtx_canvas(w * 0.5f, h * 0.5f);
+	sdtx_origin(3, 3);
+	sdtx_color3f(1.0f, 1.0f, 1.0f);
+	sdtx_puts("Color names must match\nquad color on same line:\n\n\n");
+	for (int i = 0; i < NUM_COLORS; i++) {
+		sdtx_color3f(pal[i].r, pal[i].g, pal[i].b);
+		sdtx_puts(names[i]);
+		sdtx_crlf(); sdtx_crlf();
+	}
 
 	/* compute model-view-projection matrix for vertex shader */
 	const float t = (float)(duration * 0.0001f);
@@ -231,6 +299,8 @@ static void frame(float w, float h, float duration)
 	sg_apply_bindings(&(g_state.bind));
 	sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
 	sg_draw(0, 36, 1);
+
+	sdtx_draw();
 	__dbgui_draw();
 	sg_end_pass();
 	sg_commit();

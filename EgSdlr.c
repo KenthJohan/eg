@@ -228,16 +228,13 @@ void EgSdlrImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Eg_SDL_Mesh);
 
 
-
-	ecs_set_component_actions(world, Eg_SDL_Mesh, {
+	ecs_set_hooks(world, Eg_SDL_Mesh, {
 	//.ctor = ecs_ctor(Eg_SDL_Mesh),
 	ecs_default_ctor,
 	.dtor = ecs_dtor(Eg_SDL_Mesh),
 	.copy = ecs_copy(Eg_SDL_Mesh),
 	.move = ecs_move(Eg_SDL_Mesh),
 	});
-
-
 
 	// https://discord.com/channels/633826290415435777/731400638637932604/927345118632091718
 	// But because that system becomes inactive (no matching entities) as soon as it's ran once, it is removed from the schedule

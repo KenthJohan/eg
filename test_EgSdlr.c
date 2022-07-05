@@ -3,7 +3,7 @@
 #include <math.h>
 
 #include "flecs.h"
-#include "eg_Basics.h"
+#include "eg_basics.h"
 #include "EgGeometries.h"
 #include "EgWindows.h"
 #include "EgEvents.h"
