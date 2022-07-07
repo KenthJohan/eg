@@ -22,6 +22,31 @@ typedef struct
 	int num_channels;
 } EgImage;
 
+/*
+
+sg_init_image(g_state.bind.fs_images[SLOT_tex], &(sg_image_desc){
+.width = png_width,
+.height = png_height,
+.pixel_format = SG_PIXELFORMAT_RGBA8,
+.min_filter = SG_FILTER_LINEAR,
+.mag_filter = SG_FILTER_LINEAR,
+.data.subimage[0][0] =
+{
+.ptr = pixels,
+.size = (size_t)(png_width * png_height * 4),
+}
+});
+stbi_image_free(pixels);
+
+*/
+typedef struct
+{
+	int slot;
+	int pixel_format;
+	int min_filter;
+	int mag_filter;
+} EgTexture;
+
 typedef struct
 {
 	ecs_string_t value;
@@ -35,10 +60,13 @@ typedef struct
 
 extern ECS_DECLARE(EgUpdating);
 extern ECS_DECLARE(EgUpdate);
+extern ECS_DECLARE(EgValid);
+extern ECS_DECLARE(EgMoving);
 
 extern ECS_COMPONENT_DECLARE(EgImage);
 extern ECS_COMPONENT_DECLARE(EgPath);
 extern ECS_COMPONENT_DECLARE(EgChunk);
-//extern ECS_DECLARE(EgPath);
+extern ECS_COMPONENT_DECLARE(EgTexture);
+
 
 void EgResourcesImport(ecs_world_t *world);

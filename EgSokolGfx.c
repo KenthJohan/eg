@@ -3,15 +3,10 @@
 #include "EgWindows.h"
 #include "EgEvents.h"
 #include "EgQuantities.h"
+#include "EgResources.h"
+#include "EgSokolFetch.h"
 #include "eg_basics.h"
-
-
-
 #include "sokol_source.h"
-
-#define HANDMADE_MATH_IMPLEMENTATION
-#define HANDMADE_MATH_NO_SSE
-#include "HandmadeMath.h"
 #include "libs/stb/stb_image.h"
 
 
@@ -52,7 +47,7 @@ static void fetch_callback(const sfetch_response_t*);
 
 
 
-static void init()
+static void init(ecs_world_t * world)
 {
 	sg_setup(&(sg_desc) {
 	});
@@ -194,14 +189,27 @@ static void init()
 				  state is in a global variable anyway
 			*/
 
+	{
+		ecs_entity_t p = ecs_new(world, 0);
+		ecs_set_name(world, p, "Image");
+		ecs_set(world, p, EgPath, {"../eg/baboon1.png"});
+		ecs_add(world, p, EgImage);
+		ecs_add(world, p, EgUpdate);
 
+		ecs_entity_t e = ecs_new_w_pair(world, EcsChildOf, p);
+		ecs_set_name(world, e, "Texture");
+		ecs_set(world, e, EgTexture, {g_state.bind.fs_images[SLOT_tex].id, SG_PIXELFORMAT_RGBA8, SG_FILTER_LINEAR, SG_FILTER_LINEAR});
+		ecs_add(world, e, EgUpdate);
+	}
 
+	/*
 	sfetch_send(&(sfetch_request_t){
 	.path = "../eg/baboon.png",
 	.callback = fetch_callback,
 	.buffer_ptr = g_state.file_buffer,
 	.buffer_size = sizeof(g_state.file_buffer),
 	});
+	*/
 
 
 }
@@ -327,7 +335,7 @@ static void System_Create(ecs_iter_t *it)
 		eg_gl_create_context(it->world, e);
 		EgGfx * g = ecs_get_mut(it->world, e, EgGfx, NULL);
 		memset(g, 0, sizeof(EgGfx));
-		init();
+		init(it->world);
 	}
 }
 
@@ -361,6 +369,9 @@ void EgSokolGfxImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSokolGfx);
 	ECS_IMPORT(world, EgWindows);
+	ECS_IMPORT(world, EgResources);
+	ECS_IMPORT(world, EgGeometries);
+	ECS_IMPORT(world, EgSokolFetch);
 	ecs_set_name_prefix(world, "Eg");
 	ECS_COMPONENT_DEFINE(world, EgGfx);
 

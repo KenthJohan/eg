@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgCamera);
 
 
-
+	/*
 	{
 		ecs_entity_t p = ecs_new(world, 0);
 		ecs_set_name(world, p, "Picture1");
@@ -68,6 +68,7 @@ int main(int argc, char *argv[])
 		ecs_add(world, p, EgImage);
 		ecs_add(world, p, EgUpdate);
 	}
+	*/
 
 	{
 		ecs_entity_t window1 = ecs_new(world, 0);
