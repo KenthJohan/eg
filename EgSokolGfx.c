@@ -13,7 +13,6 @@
 #define HANDMADE_MATH_NO_SSE
 #include "HandmadeMath.h"
 #include "libs/stb/stb_image.h"
-#include "libs/dbgui/dbgui.h"
 #include "libs/util/fileutil.h"
 
 
@@ -72,8 +71,6 @@ static void init()
 	.fonts[0] = sdtx_font_oric()
 	});
 
-	//__dbgui_setup(sapp_sample_count());
-	__dbgui_setup(1);
 
 	/* setup sokol-fetch with the minimal "resource limits" */
 	sfetch_setup(&(sfetch_desc_t){
@@ -197,13 +194,17 @@ static void init()
 				- NOTE that we're not using the user_data member, since all required
 				  state is in a global variable anyway
 			*/
+/*
 	char path_buf[512];
+	char * p = fileutil_get_path("../eg/baboon.png", path_buf, sizeof(path_buf));
 	sfetch_send(&(sfetch_request_t){
-	.path = fileutil_get_path("../eg/baboon.png", path_buf, sizeof(path_buf)),
+	.path = p,
 	.callback = fetch_callback,
 	.buffer_ptr = g_state.file_buffer,
 	.buffer_size = sizeof(g_state.file_buffer),
 	});
+	*/
+
 }
 
 /* The fetch-callback is called by sokol_fetch.h when the data is loaded,
@@ -301,14 +302,12 @@ static void frame(float w, float h, float duration)
 	sg_draw(0, 36, 1);
 
 	sdtx_draw();
-	__dbgui_draw();
 	sg_end_pass();
 	sg_commit();
 }
 
 static void cleanup(void)
 {
-	__dbgui_shutdown();
 	sfetch_shutdown();
 	sg_shutdown();
 }

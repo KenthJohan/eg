@@ -11,11 +11,16 @@
 #include "EgResources.h"
 #include "eg_basics.h"
 
-// If SDL is used as backend
+
 #if 1
 #include "EgSdl.h"
 #include "EgSokolGfx.h"
+#include "EgSokolFetch.h"
 #endif
+
+
+
+
 
 
 
@@ -31,6 +36,7 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgSdl);
 	ECS_IMPORT(world, EgSokolGfx);
+	ECS_IMPORT(world, EgSokolFetch);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgQuantities);
 	ECS_IMPORT(world, EgCamera);
@@ -38,11 +44,16 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgCamera);
 
 
+/*
 	{
 		ecs_entity_t p = ecs_new(world, 0);
 		ecs_set_name(world, p, "Picture");
-		ecs_set(world, p, EgPath, {"../eg/baboon.png"});
+		ecs_set(world, p, EgPath, {"../eg/baboon1.png"});
+		ecs_add(world, p, EgImage);
+		ecs_add(world, p, EgUpdate);
 	}
+	*/
+
 
 	{
 		ecs_entity_t window1 = ecs_new(world, 0);

@@ -20,7 +20,6 @@ ECS_COMPONENT_DECLARE(EgLengthF32);
 ECS_COMPONENT_DECLARE(EgDensityF32);
 ECS_COMPONENT_DECLARE(EgText);
 
-
 static ECS_COPY(EgText, dst, src, {
 ecs_os_strset((char**)&dst->value, src->value);
 
@@ -155,7 +154,6 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgLengthF32);
 	ECS_COMPONENT_DEFINE(world, EgDensityF32);
 	ECS_COMPONENT_DEFINE(world, EgText);
-
 	ecs_set_name_prefix(world, "Eg");
 
 	ecs_struct_init(world, &(ecs_struct_desc_t) {

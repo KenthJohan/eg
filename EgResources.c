@@ -1,9 +1,11 @@
 #include "EgResources.h"
 #include "EgQuantities.h"
 
-
+ECS_DECLARE(EgUpdating);
+ECS_DECLARE(EgUpdate);
 ECS_COMPONENT_DECLARE(EgImage);
 ECS_COMPONENT_DECLARE(EgPath);
+ECS_COMPONENT_DECLARE(EgChunk);
 //extern ECS_DECLARE(EgPath);
 
 
@@ -29,7 +31,11 @@ void EgResourcesImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgQuantities);
 	ecs_set_name_prefix(world, "Eg");
 
+	ECS_TAG_DEFINE(world, EgUpdating);
+	ECS_TAG_DEFINE(world, EgUpdate);
+	ECS_COMPONENT_DEFINE(world, EgImage);
 	ECS_COMPONENT_DEFINE(world, EgPath);
+	ECS_COMPONENT_DEFINE(world, EgChunk);
 	//ECS_TAG_DEFINE(world, EgPath);
 
 
