@@ -1,20 +1,16 @@
 #include "EgSokolFetch.h"
-
-
 #include "EgResources.h"
 #include "EgQuantities.h"
-
-#include "sokol/sokol_fetch.h"
-
+#include "EgGeometries.h"
 #include "eg_basics.h"
+#include "sokol/sokol_fetch.h"
+#include "libs/stb/stb_image.h"
 
 static void fetch_callback(const sfetch_response_t* response)
 {
-	EgWorldEntity * usr = response->user_data;
-	ecs_world_t *async = ecs_async_stage_new(usr->world);
-	ecs_remove(async, usr->entity, EgUpdating);
-	ecs_async_stage_free(async);
-/*
+	EgWorldEntity * userdata = response->user_data;
+	ecs_world_t * world = userdata->world;
+	ecs_entity_t entity = userdata->entity;
 	if (response->fetched)
 	{
 		int png_width = 0;
@@ -26,36 +22,19 @@ static void fetch_callback(const sfetch_response_t* response)
 		(int)response->fetched_size,
 		&png_width, &png_height,
 		&num_channels, desired_channels);
-		if (pixels)
-		{
-			sg_init_image(g_state.bind.fs_images[SLOT_tex], &(sg_image_desc){
-			.width = png_width,
-			.height = png_height,
-			.pixel_format = SG_PIXELFORMAT_RGBA8,
-			.min_filter = SG_FILTER_LINEAR,
-			.mag_filter = SG_FILTER_LINEAR,
-			.data.subimage[0][0] =
-			{
-			.ptr = pixels,
-			.size = (size_t)(png_width * png_height * 4),
-			}
-			});
-			stbi_image_free(pixels);
-		}
+		ecs_set(world, entity, EgRectangleI32, {png_width, png_height});
+		ecs_set(world, entity, EgImage, {pixels, num_channels});
+		ecs_remove(world, entity, EgUpdating);
 	}
-	else if (response->failed)
-	{
-		g_state.pass_action = ((sg_pass_action) {.colors[0] = { .action = SG_ACTION_CLEAR, .value = { 1.0f, 0.0f, 0.0f, 1.0f } }});
-	}
-	*/
 }
 
 static uint8_t file_buffer[256 * 1024];
 static void System_Update(ecs_iter_t *it)
 {
-	EG_ITER_INFO(it);
+	//EG_ITER_INFO(it);
 	EgPath *path = ecs_term(it, EgPath, 1);
-	EgImage *image = ecs_term(it, EgImage, 2);
+	//EgImage *image = ecs_term(it, EgImage, 2);
+	//ecs_term(it, EgUpdate, 3); Tag
 	EgWorldEntity usr;
 	usr.world = it->world;
 	for (int i = 0; i < it->count; i ++)
@@ -69,8 +48,8 @@ static void System_Update(ecs_iter_t *it)
 		.callback = fetch_callback,
 		.buffer_ptr = file_buffer,
 		.buffer_size = sizeof(file_buffer),
-		//.user_data_ptr = &usr,
-		//.user_data_size = sizeof(EgWorldEntity)
+		.user_data_ptr = &usr,
+		.user_data_size = sizeof(EgWorldEntity)
 		});
 	}
 }

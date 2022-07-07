@@ -22,11 +22,19 @@
 
 
 
-
+void myabort()
+{
+	abort();
+}
 
 // https://www.flecs.dev/explorer/?remote=true
 int main(int argc, char *argv[])
 {
+	ecs_os_set_api_defaults();
+	ecs_os_api_t os_api = ecs_os_api;
+	os_api.abort_ = myabort;
+	ecs_os_set_api(&os_api);
+
 	ecs_log_set_level(0);
 	ecs_world_t *world = ecs_init_w_args(argc, argv);
 	ecs_singleton_set(world, EcsRest, {0});
@@ -44,16 +52,22 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgCamera);
 
 
-/*
+
 	{
 		ecs_entity_t p = ecs_new(world, 0);
-		ecs_set_name(world, p, "Picture");
+		ecs_set_name(world, p, "Picture1");
 		ecs_set(world, p, EgPath, {"../eg/baboon1.png"});
 		ecs_add(world, p, EgImage);
 		ecs_add(world, p, EgUpdate);
 	}
-	*/
 
+	{
+		ecs_entity_t p = ecs_new(world, 0);
+		ecs_set_name(world, p, "Picture2");
+		ecs_set(world, p, EgPath, {"../eg/tree.png"});
+		ecs_add(world, p, EgImage);
+		ecs_add(world, p, EgUpdate);
+	}
 
 	{
 		ecs_entity_t window1 = ecs_new(world, 0);

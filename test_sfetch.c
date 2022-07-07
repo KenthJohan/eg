@@ -64,8 +64,6 @@ static void System_TextureLoader(ecs_iter_t *it)
 }
 
 
-
-
 void myabort()
 {
 	__debugbreak();

@@ -13,7 +13,6 @@
 #define HANDMADE_MATH_NO_SSE
 #include "HandmadeMath.h"
 #include "libs/stb/stb_image.h"
-#include "libs/util/fileutil.h"
 
 
 
@@ -74,7 +73,7 @@ static void init()
 
 	/* setup sokol-fetch with the minimal "resource limits" */
 	sfetch_setup(&(sfetch_desc_t){
-	.max_requests = 1,
+	.max_requests = 3,
 	.num_channels = 1,
 	.num_lanes = 1
 	});
@@ -194,16 +193,16 @@ static void init()
 				- NOTE that we're not using the user_data member, since all required
 				  state is in a global variable anyway
 			*/
-/*
-	char path_buf[512];
-	char * p = fileutil_get_path("../eg/baboon.png", path_buf, sizeof(path_buf));
+
+
+
 	sfetch_send(&(sfetch_request_t){
-	.path = p,
+	.path = "../eg/baboon.png",
 	.callback = fetch_callback,
 	.buffer_ptr = g_state.file_buffer,
 	.buffer_size = sizeof(g_state.file_buffer),
 	});
-	*/
+
 
 }
 

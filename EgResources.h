@@ -18,9 +18,8 @@ typedef struct
 
 typedef struct
 {
-	ecs_f32_t x;
-	ecs_f32_t y;
 	void * buffer;
+	int num_channels;
 } EgImage;
 
 typedef struct
