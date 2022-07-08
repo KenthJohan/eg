@@ -33,8 +33,8 @@ static void System_Create_Window(ecs_iter_t *it)
 		SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
 		);
 
-		bool added = false;
-		Eg_SDL_Window *sdlwin = ecs_get_mut(world, e, Eg_SDL_Window, &added);
+
+		Eg_SDL_Window *sdlwin = ecs_get_mut(world, e, Eg_SDL_Window);
 		EG_ASSERT(sdlwin);
 		sdlwin->window = window;
 		sdlwin->keys = SDL_GetKeyboardState(NULL);
@@ -122,7 +122,7 @@ static void System_Update_UserEvent(ecs_iter_t *it)
 			{
 				int id = event.window.windowID;
 				ecs_entity_t winent = *flecs_sparse_get(g_windows, ecs_entity_t, id);
-				EgWindow * w = ecs_get_mut(it->world, winent, EgWindow, NULL);
+				EgWindow * w = ecs_get_mut(it->world, winent, EgWindow);
 				w->should_destroy = true;
 				EG_TRACE("SDL_WINDOWEVENT_CLOSE %i %p", event.window.windowID, SDL_GetWindowFromID(event.window.windowID));
 				//SDL_DestroyWindow(win);
@@ -233,8 +233,10 @@ void EgSdlwImport(ecs_world_t *world)
 
 	g_windows = flecs_sparse_new(SDL_Window*);
 
-	ecs_trigger_init(world, &(ecs_trigger_desc_t) {
-	.term = { .id = ecs_id(Eg_SDL_Window), .inout = EcsInOut },
+	ecs_observer_init(world, &(ecs_observer_desc_t) {
+	.filter.terms = {
+	{ .id = ecs_id(Eg_SDL_Window), .inout = EcsInOut }
+	},
 	.events = {EcsOnRemove},
 	.callback = System_Destroy_Window
 	});

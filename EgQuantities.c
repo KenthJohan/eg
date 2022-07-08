@@ -136,6 +136,7 @@ static void System_Drag(ecs_iter_t *it)
 void EgQuantitiesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgQuantities);
+	ecs_set_name_prefix(world, "Eg");
 
 	ECS_COMPONENT_DEFINE(world, EgScale3F32);
 	ECS_COMPONENT_DEFINE(world, EgQuaternionF32);
@@ -154,7 +155,6 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgLengthF32);
 	ECS_COMPONENT_DEFINE(world, EgDensityF32);
 	ECS_COMPONENT_DEFINE(world, EgText);
-	ecs_set_name_prefix(world, "Eg");
 
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgScale3F32),

@@ -58,6 +58,10 @@ typedef struct
 	ecs_entity_t entity;
 } EgWorldEntity;
 
+
+
+
+extern ECS_DECLARE(EgState);
 extern ECS_DECLARE(EgUpdating);
 extern ECS_DECLARE(EgUpdate);
 extern ECS_DECLARE(EgValid);

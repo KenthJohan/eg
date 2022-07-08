@@ -16,6 +16,7 @@ ECS_DECLARE(EgPrimitiveRectangle);
 void EgGeometriesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgGeometries);
+	ecs_set_name_prefix(world, "Eg");
 
 	ECS_COMPONENT_DEFINE(world, EgRectangleF32);
 	ECS_COMPONENT_DEFINE(world, EgRectangleI32);
@@ -24,7 +25,6 @@ void EgGeometriesImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgPrimitiveLine);
 	ECS_TAG_DEFINE(world, EgPrimitiveRectangle);
 
-	ecs_set_name_prefix(world, "Eg");
 
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
 	.entity.entity = ecs_id(EgRectangleF32),

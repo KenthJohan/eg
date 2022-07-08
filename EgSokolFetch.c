@@ -26,8 +26,7 @@ static void fetch_callback(const sfetch_response_t* response)
 		&num_channels, desired_channels);
 		ecs_set(world, entity, EgRectangleI32, {png_width, png_height});
 		ecs_set(world, entity, EgImage, {pixels, num_channels});
-		ecs_remove(world, entity, EgUpdating);
-		ecs_add(world, entity, EgValid);
+		ecs_add_pair(world, entity, EgState, EgValid);
 	}
 }
 
@@ -43,8 +42,9 @@ static void System_Update(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i ++)
 	{
 		char const * p = path[i].value;
-		ecs_remove(it->world, it->entities[i], EgUpdate);
-		ecs_add(it->world, it->entities[i], EgUpdating);
+		ecs_add_pair(it->world, it->entities[i], EgState, EgUpdating);
+		//ecs_remove(it->world, it->entities[i], EgUpdate);
+		//ecs_add(it->world, it->entities[i], EgUpdating);
 		userdata.entity = it->entities[i];
 		sfetch_send(&(sfetch_request_t){
 		.path = p,
@@ -57,6 +57,8 @@ static void System_Update(ecs_iter_t *it)
 	}
 }
 
+// bool sg_uninit_image(sg_image img_id)
+// void sg_update_image(sg_image img_id, const sg_image_data* data)
 
 static void System_Texture(ecs_iter_t *it)
 {
@@ -86,7 +88,7 @@ static void System_Texture(ecs_iter_t *it)
 		});
 		//stbi_image_free(pixels);
 		ecs_set_ptr(it->world, it->entities[i], EgRectangleI32, r);
-		ecs_remove(it->world, it->entities[i], EgUpdate);
+		ecs_add_pair(it->world, it->entities[i], EgState, EgValid);
 	}
 }
 
@@ -98,6 +100,20 @@ void EgSokolFetchImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "Eg");
 
 	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.expr = "EgPath, EgImage, (eg.resources.State, eg.resources.Update)",
+	.entity.add = {ecs_dependson(EcsOnUpdate)},
+	.callback = System_Update
+	});
+
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.expr = "EgImage(parent), EgRectangleI32(parent), EgTexture, (eg.resources.State, eg.resources.Update)",
+	.entity.add = {ecs_dependson(EcsOnUpdate)},
+	.callback = System_Texture
+	});
+
+
+	/*
+	ecs_system_init(world, &(ecs_system_desc_t) {
 	.query.filter.terms = {
 	{ .id = ecs_id(EgPath), .inout = EcsIn},
 	{ .id = ecs_id(EgImage), .inout = EcsOut},
@@ -107,16 +123,6 @@ void EgSokolFetchImport(ecs_world_t *world)
 	.callback = System_Update
 	});
 
-	ecs_system_init(world, &(ecs_system_desc_t) {
-	.query.filter.expr = "EgImage(parent), EgRectangleI32(parent), EgTexture, eg.resources.Update",
-	.entity.add = {ecs_dependson(EcsOnUpdate)},
-	.callback = System_Texture
-	});
-
-	//ECS_TAG_DEFINE(world, Moving);
-	//ECS_SYSTEM(world, System_Texture, EcsOnUpdate, EgImage(parent), EgRectangleI32(parent), EgTexture, Moving);
-
-/*
 	ecs_system_init(world, &(ecs_system_desc_t) {
 	.query.filter.terms = {
 	{ .id = ecs_id(EgTexture), .inout = EcsOut},

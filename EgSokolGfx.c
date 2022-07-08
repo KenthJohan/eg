@@ -43,30 +43,16 @@ typedef struct {
 
 
 
-static void fetch_callback(const sfetch_response_t*);
-
-
 
 static void init(ecs_world_t * world)
 {
-	sg_setup(&(sg_desc) {
-	});
-	/* setup sokol-gfx and the optional debug-ui*/
-	/*
-	sg_setup(&(sg_desc){
-	.context = sapp_sgcontext()
-	});
-	__dbgui_setup(sapp_sample_count());
-	*/
-
+	sg_setup(&(sg_desc) {});
 
 	sdtx_setup(&(sdtx_desc_t){
 	.context_pool_size = 1,
 	.fonts[0] = sdtx_font_oric()
 	});
 
-
-	/* setup sokol-fetch with the minimal "resource limits" */
 	sfetch_setup(&(sfetch_desc_t){
 	.max_requests = 3,
 	.num_channels = 1,
@@ -182,82 +168,24 @@ static void init(ecs_world_t * world)
 	.label = "cube-pipeline"
 	});
 
-	/* start loading the PNG file, we don't need the returned handle since
-			   we can also get that inside the fetch-callback from the response
-			   structure.
-				- NOTE that we're not using the user_data member, since all required
-				  state is in a global variable anyway
-			*/
+
 
 	{
 		ecs_entity_t p = ecs_new(world, 0);
 		ecs_set_name(world, p, "Image");
 		ecs_set(world, p, EgPath, {"../eg/baboon1.png"});
 		ecs_add(world, p, EgImage);
-		ecs_add(world, p, EgUpdate);
+		ecs_add_pair(world, p, EgState, EgUpdate);
 
 		ecs_entity_t e = ecs_new_w_pair(world, EcsChildOf, p);
 		ecs_set_name(world, e, "Texture");
 		ecs_set(world, e, EgTexture, {g_state.bind.fs_images[SLOT_tex].id, SG_PIXELFORMAT_RGBA8, SG_FILTER_LINEAR, SG_FILTER_LINEAR});
-		ecs_add(world, e, EgUpdate);
+		ecs_add_pair(world, e, EgState, EgUpdate);
 	}
-
-	/*
-	sfetch_send(&(sfetch_request_t){
-	.path = "../eg/baboon.png",
-	.callback = fetch_callback,
-	.buffer_ptr = g_state.file_buffer,
-	.buffer_size = sizeof(g_state.file_buffer),
-	});
-	*/
-
 
 }
 
-/* The fetch-callback is called by sokol_fetch.h when the data is loaded,
-   or when an error has occurred.
-*/
 
-static void fetch_callback(const sfetch_response_t* response)
-{
-	if (response->fetched)
-	{
-		/* the file data has been fetched, since we provided a big-enough
-		   buffer we can be sure that all data has been loaded here
-		*/
-		int png_width = 0;
-		int png_height = 0;
-		int num_channels = 0;
-		const int desired_channels = 4;
-		stbi_uc* pixels = stbi_load_from_memory(
-		response->buffer_ptr,
-		(int)response->fetched_size,
-		&png_width, &png_height,
-		&num_channels, desired_channels);
-		if (pixels)
-		{
-			/* ok, time to actually initialize the sokol-gfx texture */
-			sg_init_image(g_state.bind.fs_images[SLOT_tex], &(sg_image_desc){
-			.width = png_width,
-			.height = png_height,
-			.pixel_format = SG_PIXELFORMAT_RGBA8,
-			.min_filter = SG_FILTER_LINEAR,
-			.mag_filter = SG_FILTER_LINEAR,
-			.data.subimage[0][0] =
-			{
-			.ptr = pixels,
-			.size = (size_t)(png_width * png_height * 4),
-			}
-			});
-			stbi_image_free(pixels);
-		}
-	}
-	else if (response->failed)
-	{
-		// if loading the file failed, set clear color to red
-		g_state.pass_action = ((sg_pass_action) {.colors[0] = { .action = SG_ACTION_CLEAR, .value = { 1.0f, 0.0f, 0.0f, 1.0f } }});
-	}
-}
 
 /* The frame-function is fairly boring, note that no special handling is
    needed for the case where the texture isn't loaded yet.
@@ -283,7 +211,8 @@ static void frame(float w, float h, float duration)
 	sdtx_origin(3, 3);
 	sdtx_color3f(1.0f, 1.0f, 1.0f);
 	sdtx_puts("Color names must match\nquad color on same line:\n\n\n");
-	for (int i = 0; i < NUM_COLORS; i++) {
+	for (int i = 0; i < NUM_COLORS; i++)
+	{
 		sdtx_color3f(pal[i].r, pal[i].g, pal[i].b);
 		sdtx_puts(names[i]);
 		sdtx_crlf(); sdtx_crlf();
@@ -333,7 +262,7 @@ static void System_Create(ecs_iter_t *it)
 	{
 		ecs_entity_t e = it->entities[i];
 		eg_gl_create_context(it->world, e);
-		EgGfx * g = ecs_get_mut(it->world, e, EgGfx, NULL);
+		EgGfx * g = ecs_get_mut(it->world, e, EgGfx);
 		memset(g, 0, sizeof(EgGfx));
 		init(it->world);
 	}

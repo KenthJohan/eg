@@ -19,7 +19,7 @@ void eg_gl_make_current(ecs_world_t * world, ecs_entity_t e)
 
 void eg_gl_create_context(ecs_world_t * world, ecs_entity_t e)
 {
-	Eg_SDL_Window * win = ecs_get_mut(world, e, Eg_SDL_Window, NULL);
+	Eg_SDL_Window * win = ecs_get_mut(world, e, Eg_SDL_Window);
 	EG_ASSERT(win);
 	EG_ASSERT(win->window);
 	win->context = SDL_GL_CreateContext(win->window);
