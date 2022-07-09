@@ -1,6 +1,7 @@
 #include "EgWindows.h"
 
 
+ECS_DECLARE(EgOpenGLContext);
 ECS_COMPONENT_DECLARE(EgWindow);
 ECS_COMPONENT_DECLARE(EgDraw);
 ECS_COMPONENT_DECLARE(EgTitle);
@@ -28,11 +29,12 @@ ecs_os_free((char*)ptr->value);
 void EgWindowsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgWindows);
+	ecs_set_name_prefix(world, "Eg");
+	ECS_TAG_DEFINE(world, EgOpenGLContext);
 	ECS_COMPONENT_DEFINE(world, EgWindow);
 	ECS_COMPONENT_DEFINE(world, EgDraw);
 	ECS_COMPONENT_DEFINE(world, EgTitle);
 
-	ecs_set_name_prefix(world, "Eg");
 
 
 	ecs_set_hooks(world, EgTitle, {

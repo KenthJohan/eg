@@ -242,8 +242,8 @@ static void System_Create(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i ++)
 	{
 		ecs_entity_t e = it->entities[i];
-		eg_gl_create_context(it->world, e);
 		EgGfx * g = ecs_get_mut(it->world, e, EgGfx);
+		EG_TRACE("sg_setup");
 		sg_setup(&(sg_desc) {});
 		memset(g, 0, sizeof(EgGfx));
 		init(it->world);
@@ -310,7 +310,7 @@ void EgSokolGfxImport(ecs_world_t *world)
 	*/
 
 	ecs_observer_init(world, &(ecs_observer_desc_t) {
-	.filter.expr = "EgWindow, EgSokolGfxConfig",
+	.filter.expr = "EgWindow, EgSokolGfxConfig, eg.windows.OpenGLContext",
 	.events = {EcsOnSet},
 	.callback = System_Create
 	});

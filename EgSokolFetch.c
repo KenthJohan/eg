@@ -36,7 +36,7 @@ static void fetch_callback(const sfetch_response_t* response)
 static uint8_t file_buffer[256 * 1024];
 static void System_Update(ecs_iter_t *it)
 {
-	EG_ITER_INFO(it);
+	//EG_ITER_INFO(it);
 	EgPath *path = ecs_term(it, EgPath, 1);
 	//EgImage *image = ecs_term(it, EgImage, 2);
 	//ecs_term(it, EgUpdate, 3); Tag
@@ -106,7 +106,7 @@ static void System_Work(ecs_iter_t *it)
 
 static void System_Init(ecs_iter_t *it)
 {
-	EG_ITER_INFO(it);
+	//EG_ITER_INFO(it);
 	EG_ASSERT(it->count == 1);
 	EgSokolFetchConfig *config = ecs_term(it, EgSokolFetchConfig, 1); // Singleton
 	sfetch_setup(&(sfetch_desc_t){

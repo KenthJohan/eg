@@ -14,7 +14,7 @@ static ecs_sparse_t *g_windows; // g_windows<ecs_entity_t>
 
 static void System_Create_Window(ecs_iter_t *it)
 {
-	EG_ITER_INFO(it);
+	//EG_ITER_INFO(it);
 	ecs_world_t * world = it->world;
 	EgWindow *w = ecs_term(it, EgWindow, 1);
 	EgRectangleI32 *r = ecs_term(it, EgRectangleI32, 2);
@@ -22,7 +22,7 @@ static void System_Create_Window(ecs_iter_t *it)
 	{
 		ecs_entity_t e = it->entities[i];
 		w[i].counter = 0;
-		EG_TRACE("SDL_CreateWindow 0x%x", e);
+		//EG_TRACE("SDL_CreateWindow 0x%x", e);
 		// https://wiki.libsdl.org/SDL_CreateWindow
 		SDL_Window * window = SDL_CreateWindow(
 		"Undefined",
@@ -40,14 +40,14 @@ static void System_Create_Window(ecs_iter_t *it)
 		sdlwin->keys = SDL_GetKeyboardState(NULL);
 		int id = SDL_GetWindowID(window);
 		flecs_sparse_set(g_windows, ecs_entity_t, id, &e);
-		EG_TRACE("");
+		//EG_TRACE("");
 	}
 }
 
 
 static void System_Destroy_Window(ecs_iter_t *it)
 {
-	EG_ITER_INFO(it);
+	//EG_ITER_INFO(it);
 	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
 	for (int i = 0; i < it->count; i ++)
 	{
@@ -160,7 +160,7 @@ static void System_Update_UserEvent(ecs_iter_t *it)
 
 static void System_Update_Title(ecs_iter_t *it)
 {
-	EG_ITER_INFO(it);
+	//EG_ITER_INFO(it);
 	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
 	EgTitle *title = ecs_term(it, EgTitle, 2);
 	for (int i = 0; i < it->count; i ++)

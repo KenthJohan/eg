@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
 		ecs_set(world, window1, EgTitle, {"Window1"});
 		ecs_set(world, window1, EgSokolGfxConfig, {});
 		ecs_set(world, window1, EgSokolDtxConfig, {.context_pool_size = 1});
+		ecs_add(world, window1, EgOpenGLContext);
 
 		ecs_entity_t cam = ecs_new_w_pair(world, EcsChildOf, window1);
 		ecs_set_name(world, cam, "Cam1");
