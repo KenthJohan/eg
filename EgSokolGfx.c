@@ -33,7 +33,7 @@ static EgGfx g_state = {};
 
 
 ECS_COMPONENT_DECLARE(EgGfx);
-
+ECS_COMPONENT_DECLARE(EgSokolGfxConfig);
 
 
 typedef struct {
@@ -46,19 +46,6 @@ typedef struct {
 
 static void init(ecs_world_t * world)
 {
-	sg_setup(&(sg_desc) {});
-
-	sdtx_setup(&(sdtx_desc_t){
-	.context_pool_size = 1,
-	.fonts[0] = sdtx_font_oric()
-	});
-
-	sfetch_setup(&(sfetch_desc_t){
-	.max_requests = 3,
-	.num_channels = 1,
-	.num_lanes = 1
-	});
-
 	/* pass action for clearing the framebuffer to some color */
 	g_state.pass_action = ((sg_pass_action){.colors[0] = { .action = SG_ACTION_CLEAR, .value = { 0.125f, 0.25f, 0.35f, 1.0f } }});
 	g_state.bind.fs_images[SLOT_tex] = sg_alloc_image();
@@ -187,11 +174,7 @@ static void init(ecs_world_t * world)
 
 
 
-/* The frame-function is fairly boring, note that no special handling is
-   needed for the case where the texture isn't loaded yet.
-   Also note the sfetch_dowork() function, this is usually called once a
-   frame to pump the sokol-fetch message queues.
-*/
+
 #define NUM_COLORS (10)
 static const sg_color pal[NUM_COLORS] = {
 SG_RED, SG_GREEN, SG_BLUE, SG_YELLOW, SG_TURQUOISE,
@@ -204,9 +187,6 @@ static const char* names[NUM_COLORS] = {
 };
 static void frame(float w, float h, float duration)
 {
-	/* pump the sokol-fetch message queues, and invoke response callbacks */
-	sfetch_dowork();
-
 	sdtx_canvas(w * 0.5f, h * 0.5f);
 	sdtx_origin(3, 3);
 	sdtx_color3f(1.0f, 1.0f, 1.0f);
@@ -257,12 +237,14 @@ static void cleanup(void)
 static void System_Create(ecs_iter_t *it)
 {
 	EG_ITER_INFO(it);
-	EgWindow *w = ecs_term(it, EgWindow, 1);
+	EgWindow *window = ecs_term(it, EgWindow, 1);
+	EgSokolGfxConfig *config = ecs_term(it, EgSokolGfxConfig, 2);
 	for (int i = 0; i < it->count; i ++)
 	{
 		ecs_entity_t e = it->entities[i];
 		eg_gl_create_context(it->world, e);
 		EgGfx * g = ecs_get_mut(it->world, e, EgGfx);
+		sg_setup(&(sg_desc) {});
 		memset(g, 0, sizeof(EgGfx));
 		init(it->world);
 	}
@@ -294,6 +276,7 @@ static void System_Update(ecs_iter_t *it)
 
 
 
+
 void EgSokolGfxImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSokolGfx);
@@ -303,7 +286,37 @@ void EgSokolGfxImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgSokolFetch);
 	ecs_set_name_prefix(world, "Eg");
 	ECS_COMPONENT_DEFINE(world, EgGfx);
+	ECS_COMPONENT_DEFINE(world, EgSokolGfxConfig);
 
+/*
+	ecs_query_t *q = ecs_query_init(ecs, &(ecs_query_desc_t){
+	.filter.terms = {
+	// Read from entity's Local position
+	{ .id = ecs_pair(ecs_id(Position), Local), .inout = EcsIn },
+	// Write to entity's World position
+	{ .id = ecs_pair(ecs_id(Position), World), .inout = EcsOut },
+
+	// Read from parent's World position
+	{
+	.id = ecs_pair(ecs_id(Position), World),
+	.inout = EcsIn,
+	// Get from the parent, in breadth-first order (cascade)
+	.subj.set.mask = EcsParent | EcsCascade,
+	// Make parent term optional so we also match the root (sun)
+	.oper = EcsOptional
+	}
+	}
+	});
+	*/
+
+	ecs_observer_init(world, &(ecs_observer_desc_t) {
+	.filter.expr = "EgWindow, EgSokolGfxConfig",
+	.events = {EcsOnSet},
+	.callback = System_Create
+	});
+
+
+	/*
 	ecs_system_init(world, &(ecs_system_desc_t) {
 	.query.filter.terms = {
 	{ .id = ecs_id(EgWindow), .inout = EcsIn},
@@ -312,6 +325,7 @@ void EgSokolGfxImport(ecs_world_t *world)
 	.entity.add = {ecs_dependson(EcsOnLoad)},
 	.callback = System_Create
 	});
+	*/
 
 	ecs_system_init(world, &(ecs_system_desc_t) {
 	.query.filter.terms = {
@@ -322,8 +336,6 @@ void EgSokolGfxImport(ecs_world_t *world)
 	.entity.add = {ecs_dependson(EcsOnUpdate)},
 	.callback = System_Update
 	});
-
-
 
 
 }

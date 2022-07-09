@@ -8,6 +8,9 @@
 #include "sokol_source.h"
 
 
+
+ECS_COMPONENT_DECLARE(EgSokolFetchConfig);
+
 static void fetch_callback(const sfetch_response_t* response)
 {
 	EgWorldEntity * userdata = response->user_data;
@@ -92,12 +95,36 @@ static void System_Texture(ecs_iter_t *it)
 	}
 }
 
+
+static void System_Work(ecs_iter_t *it)
+{
+	//EG_ASSERT(it->count == 1);
+	//EgSokolFetchConfig *config = ecs_term(it, EgSokolFetchConfig, 1); // Singleton
+	sfetch_dowork();
+	for (int i = 0; i < it->count; i ++){}
+}
+
+static void System_Init(ecs_iter_t *it)
+{
+	EG_ITER_INFO(it);
+	EG_ASSERT(it->count == 1);
+	EgSokolFetchConfig *config = ecs_term(it, EgSokolFetchConfig, 1); // Singleton
+	sfetch_setup(&(sfetch_desc_t){
+	.max_requests = config->max_requests,
+	.num_channels = config->num_channels,
+	.num_lanes = config->num_lanes
+	});
+	for (int i = 0; i < it->count; i ++){}
+}
+
 void EgSokolFetchImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSokolFetch);
 	ECS_IMPORT(world, EgResources);
 	ECS_IMPORT(world, EgQuantities);
 	ecs_set_name_prefix(world, "Eg");
+
+	ECS_COMPONENT_DEFINE(world, EgSokolFetchConfig);
 
 	ecs_system_init(world, &(ecs_system_desc_t) {
 	.query.filter.expr = "EgPath, EgImage, (eg.resources.State, eg.resources.Update)",
@@ -111,6 +138,17 @@ void EgSokolFetchImport(ecs_world_t *world)
 	.callback = System_Texture
 	});
 
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.expr = "EgSokolFetchConfig($)",
+	.entity.add = {ecs_dependson(EcsOnUpdate)},
+	.callback = System_Work
+	});
+
+	ecs_observer_init(world, &(ecs_observer_desc_t) {
+	.filter.expr = "EgSokolFetchConfig($)",
+	.events = {EcsOnSet},
+	.callback = System_Init
+	});
 
 	/*
 	ecs_system_init(world, &(ecs_system_desc_t) {

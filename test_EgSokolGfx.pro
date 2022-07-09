@@ -20,6 +20,7 @@ SOURCES += EgSdl.c
 SOURCES += EgSdlw.c
 SOURCES += EgSokolGfx.c
 SOURCES += EgSokolFetch.c
+SOURCES += EgSokolDtx.c
 SOURCES += EgGeometries.c
 SOURCES += EgWindows.c
 SOURCES += EgEvents.c

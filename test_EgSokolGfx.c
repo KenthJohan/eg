@@ -16,6 +16,7 @@
 #include "EgSdl.h"
 #include "EgSokolGfx.h"
 #include "EgSokolFetch.h"
+#include "EgSokolDtx.h"
 #endif
 
 
@@ -38,18 +39,22 @@ int main(int argc, char *argv[])
 	ecs_log_set_level(0);
 	ecs_world_t *world = ecs_init_w_args(argc, argv);
 	ecs_singleton_set(world, EcsRest, {0});
-	//ECS_IMPORT(world, FlecsMonitor);
-	//ECS_IMPORT(world, FlecsUnits);
+	ECS_IMPORT(world, FlecsMonitor);
+	ECS_IMPORT(world, FlecsUnits);
 
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgSdl);
 	ECS_IMPORT(world, EgSokolGfx);
 	ECS_IMPORT(world, EgSokolFetch);
+	ECS_IMPORT(world, EgSokolDtx);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgQuantities);
 	ECS_IMPORT(world, EgCamera);
 	ECS_IMPORT(world, EgResources);
 	ECS_IMPORT(world, EgCamera);
+
+	ecs_singleton_set(world, EgSokolFetchConfig, {.max_requests = 3, .num_channels = 1, .num_lanes = 1});
+
 
 
 	/*
@@ -76,7 +81,8 @@ int main(int argc, char *argv[])
 		ecs_set(world, window1, EgRectangleI32, {800, 800});
 		ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false});
 		ecs_set(world, window1, EgTitle, {"Window1"});
-
+		ecs_set(world, window1, EgSokolGfxConfig, {});
+		ecs_set(world, window1, EgSokolDtxConfig, {.context_pool_size = 1});
 
 		ecs_entity_t cam = ecs_new_w_pair(world, EcsChildOf, window1);
 		ecs_set_name(world, cam, "Cam1");
