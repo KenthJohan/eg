@@ -66,6 +66,7 @@ extern ECS_DECLARE(EgUpdating);
 extern ECS_DECLARE(EgUpdate);
 extern ECS_DECLARE(EgValid);
 extern ECS_DECLARE(EgMoving);
+extern ECS_DECLARE(EgError);
 
 extern ECS_COMPONENT_DECLARE(EgImage);
 extern ECS_COMPONENT_DECLARE(EgPath);

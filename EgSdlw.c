@@ -22,7 +22,7 @@ static void System_Create_Window(ecs_iter_t *it)
 	{
 		ecs_entity_t e = it->entities[i];
 		w[i].counter = 0;
-		//EG_TRACE("SDL_CreateWindow 0x%x", e);
+		EG_TRACE("SDL_CreateWindow 0x%x", e);
 		// https://wiki.libsdl.org/SDL_CreateWindow
 		SDL_Window * window = SDL_CreateWindow(
 		"Undefined",

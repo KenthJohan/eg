@@ -102,6 +102,8 @@ typedef struct EgText {
 } EgText;
 
 
+extern ECS_DECLARE(EgGlobal);
+extern ECS_DECLARE(EgLocal);
 extern ECS_COMPONENT_DECLARE(EgScale3F32);
 extern ECS_COMPONENT_DECLARE(EgQuaternionF32);
 extern ECS_COMPONENT_DECLARE(EgPosition2F32);

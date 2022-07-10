@@ -236,16 +236,20 @@ static void cleanup(void)
 
 static void System_Create(ecs_iter_t *it)
 {
-	EG_ITER_INFO(it);
+	//EG_ITER_INFO(it);
 	EgWindow *window = ecs_term(it, EgWindow, 1);
 	EgSokolGfxConfig *config = ecs_term(it, EgSokolGfxConfig, 2);
 	for (int i = 0; i < it->count; i ++)
 	{
 		ecs_entity_t e = it->entities[i];
 		EgGfx * g = ecs_get_mut(it->world, e, EgGfx);
-		EG_TRACE("sg_setup");
-		sg_setup(&(sg_desc) {});
 		memset(g, 0, sizeof(EgGfx));
+
+		// An OpenGLContext need to be created for this window before calling sg_setup.
+		EG_TRACE("sg_setup %i", ecs_has(it->world, e, EgOpenGLContext));
+		EG_ASSERT(ecs_has_pair(it->world, e, EgOpenGLContext, EgOpenGLContext));
+		sg_setup(&(sg_desc) {});
+
 		init(it->world);
 	}
 }
@@ -284,55 +288,34 @@ void EgSokolGfxImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgResources);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgSokolFetch);
+
 	ecs_set_name_prefix(world, "Eg");
+	ECS_ENTITY_DEFINE(world, EgSokolGfxState, 0);
+	ecs_add_id(world, EgSokolGfxState, EcsUnion);
 	ECS_COMPONENT_DEFINE(world, EgGfx);
 	ECS_COMPONENT_DEFINE(world, EgSokolGfxConfig);
 
-/*
-	ecs_query_t *q = ecs_query_init(ecs, &(ecs_query_desc_t){
-	.filter.terms = {
-	// Read from entity's Local position
-	{ .id = ecs_pair(ecs_id(Position), Local), .inout = EcsIn },
-	// Write to entity's World position
-	{ .id = ecs_pair(ecs_id(Position), World), .inout = EcsOut },
 
-	// Read from parent's World position
-	{
-	.id = ecs_pair(ecs_id(Position), World),
-	.inout = EcsIn,
-	// Get from the parent, in breadth-first order (cascade)
-	.subj.set.mask = EcsParent | EcsCascade,
-	// Make parent term optional so we also match the root (sun)
-	.oper = EcsOptional
-	}
-	}
-	});
-	*/
 
-	ecs_observer_init(world, &(ecs_observer_desc_t) {
-	.filter.expr = "EgWindow, EgSokolGfxConfig, eg.windows.OpenGLContext",
-	.events = {EcsOnSet},
+
+
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.expr = "EgWindow, EgSokolGfxConfig, (eg.windows.OpenGLContext, eg.resources.Valid), !EgGfx",
+	.entity.add = {ecs_dependson(EcsOnUpdate)},
 	.callback = System_Create
 	});
 
 
+
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.expr = "EgWindow, EgRectangleI32, EgGfx, (eg.windows.OpenGLContext, eg.resources.Valid)",
 	/*
-	ecs_system_init(world, &(ecs_system_desc_t) {
-	.query.filter.terms = {
-	{ .id = ecs_id(EgWindow), .inout = EcsIn},
-	{ .id = ecs_id(EgGfx), .inout = EcsOut, .oper = EcsNot}
-	},
-	.entity.add = {ecs_dependson(EcsOnLoad)},
-	.callback = System_Create
-	});
-	*/
-
-	ecs_system_init(world, &(ecs_system_desc_t) {
 	.query.filter.terms = {
 	{ .id = ecs_id(EgWindow), .inout = EcsIn},
 	{ .id = ecs_id(EgRectangleI32), .inout = EcsIn},
 	{ .id = ecs_id(EgGfx), .inout = EcsOut}
 	},
+	*/
 	.entity.add = {ecs_dependson(EcsOnUpdate)},
 	.callback = System_Update
 	});

@@ -109,6 +109,7 @@ static void System_Init(ecs_iter_t *it)
 	//EG_ITER_INFO(it);
 	EG_ASSERT(it->count == 1);
 	EgSokolFetchConfig *config = ecs_term(it, EgSokolFetchConfig, 1); // Singleton
+	EG_TRACE("sfetch_setup");
 	sfetch_setup(&(sfetch_desc_t){
 	.max_requests = config->max_requests,
 	.num_channels = config->num_channels,

@@ -37,6 +37,24 @@ static void System_Init(ecs_iter_t *it)
 	}
 }
 
+static void System_Draw(ecs_iter_t *it)
+{
+	EgPosition2F32 const * p        = ecs_term(it, EgPosition2F32, 1);
+	EgPosition2F32       * p_out    = ecs_term(it, EgPosition2F32, 2);
+	EgPosition2F32 const * p_parent = ecs_term(it, EgPosition2F32, 3);
+	for (int i = 0; i < it->count; i ++)
+	{
+		p_out[i].x = p[i].x;
+		p_out[i].y = p[i].y;
+		if (p_parent)
+		{
+			p_out[i].x += p_parent->x;
+			p_out[i].y += p_parent->y;
+		}
+	}
+}
+
+
 void EgSokolDtxImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSokolDtx);
@@ -48,15 +66,37 @@ void EgSokolDtxImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgSokolDtxDraw);
 
 
+	/*
+	ecs_query_t *q = ecs_query_init(world, &(ecs_query_desc_t){
+	.filter.terms = {
+	// Read from entity's Local position
+	{ .id = ecs_pair(ecs_id(EgPosition2F32), EgLocal), .inout = EcsIn },
+	// Write to entity's World position
+	{ .id = ecs_pair(ecs_id(EgPosition2F32), EgGlobal), .inout = EcsOut },
+
+	// Read from parent's World position
+	{
+	.id = ecs_pair(ecs_id(EgPosition2F32), EgGlobal),
+	.inout = EcsIn,
+	// Get from the parent, in breadth-first order (cascade)
+	.subj.set.mask = EcsParent | EcsCascade,
+	// Make parent term optional so we also match the root (sun)
+	.oper = EcsOptional
+	},
+	{EgSokolDtxDraw}
+	}
+	});
+	*/
+
 
 	ecs_system_init(world, &(ecs_system_desc_t) {
-	.query.filter.expr = "EgWindow, EgSokolDtxConfig, EgSokolGfxConfig, eg.windows.OpenGLContext",
+	.query.filter.expr = "EgWindow, EgSokolDtxConfig, EgSokolGfxConfig, EgGfx, (eg.windows.OpenGLContext, eg.resources.Valid)",
 	.entity.add = {ecs_dependson(EcsOnUpdate)},
 	.callback = System_Work
 	});
 
 	ecs_observer_init(world, &(ecs_observer_desc_t) {
-	.filter.expr = "EgWindow, EgSokolDtxConfig, EgSokolGfxConfig, eg.windows.OpenGLContext",
+	.filter.expr = "EgWindow, EgSokolDtxConfig, EgSokolGfxConfig, EgGfx, (eg.windows.OpenGLContext, eg.resources.Valid)",
 	.events = {EcsOnSet},
 	.callback = System_Init
 	});

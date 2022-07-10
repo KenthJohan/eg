@@ -4,6 +4,7 @@
 #include "EgWindows.h"
 #include "EgEvents.h"
 #include "EgQuantities.h"
+#include "EgResources.h"
 #include "eg_basics.h"
 #include <SDL2/SDL.h>
 
@@ -44,9 +45,19 @@ static void System_Create_OpenGL_Context(ecs_iter_t *it)
 	Eg_SDL_Window *w = ecs_term(it, Eg_SDL_Window, 1);
 	for (int i = 0; i < it->count; i ++)
 	{
+		EG_TRACE("SDL_GL_CreateContext");
 		w[i].context = SDL_GL_CreateContext(w[i].window);
+		if(w[i].context)
+		{
+			ecs_add_pair(it->world, it->entities[i], EgOpenGLContext, EgValid);
+		}
+		else
+		{
+			ecs_add_pair(it->world, it->entities[i], EgOpenGLContext, EgError);
+		}
 	}
 }
+
 
 void EgSdlImport(ecs_world_t *world)
 {
@@ -56,13 +67,15 @@ void EgSdlImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgEvents);
 	ECS_IMPORT(world, EgQuantities);
+	ECS_IMPORT(world, EgResources);
 	ecs_set_name_prefix(world, "Eg");
 	SDL_Init(SDL_INIT_VIDEO);
 
-	ecs_observer_init(world, &(ecs_observer_desc_t) {
-	.filter.expr = "Eg_SDL_Window, eg.windows.OpenGLContext",
-	.events = {EcsOnAdd},
+	ecs_system_init(world, &(ecs_system_desc_t) {
+	.query.filter.expr = "Eg_SDL_Window, (eg.windows.OpenGLContext, eg.resources.Update)",
+	.entity.add = {ecs_dependson(EcsOnUpdate)},
 	.callback = System_Create_OpenGL_Context
 	});
+
 }
 

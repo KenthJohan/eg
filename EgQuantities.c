@@ -2,6 +2,9 @@
 #include "eg_basics.h"
 #include <math.h>
 
+
+ECS_DECLARE(EgGlobal);
+ECS_DECLARE(EgLocal);
 ECS_COMPONENT_DECLARE(EgScale3F32);
 ECS_COMPONENT_DECLARE(EgQuaternionF32);
 ECS_COMPONENT_DECLARE(EgPosition2F32);
@@ -138,6 +141,8 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ECS_MODULE(world, EgQuantities);
 	ecs_set_name_prefix(world, "Eg");
 
+	ECS_TAG_DEFINE(world, EgGlobal);
+	ECS_TAG_DEFINE(world, EgLocal);
 	ECS_COMPONENT_DEFINE(world, EgScale3F32);
 	ECS_COMPONENT_DEFINE(world, EgQuaternionF32);
 	ECS_COMPONENT_DEFINE(world, EgPosition2F32);

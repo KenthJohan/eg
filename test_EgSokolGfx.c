@@ -65,15 +65,15 @@ int main(int argc, char *argv[])
 		ecs_add(world, p, EgImage);
 		ecs_add(world, p, EgUpdate);
 	}
+	*/
 
 	{
-		ecs_entity_t p = ecs_new(world, 0);
-		ecs_set_name(world, p, "Picture2");
-		ecs_set(world, p, EgPath, {"../eg/tree.png"});
-		ecs_add(world, p, EgImage);
-		ecs_add(world, p, EgUpdate);
+		//ecs_entity_t p = ecs_new(world, 0);
+		//ecs_set_name(world, p, "Picture2");
+		//ecs_set(world, p, EgText, {"Hello"});
+		//ecs_add(world, p, EgImage);
+		//ecs_add(world, p, EgUpdate);
 	}
-	*/
 
 	{
 		ecs_entity_t window1 = ecs_new(world, 0);
@@ -81,9 +81,9 @@ int main(int argc, char *argv[])
 		ecs_set(world, window1, EgRectangleI32, {800, 800});
 		ecs_set(world, window1, EgWindow, {EG_WINDOW_OPENGL|EG_WINDOW_RESIZABLE, 0, false});
 		ecs_set(world, window1, EgTitle, {"Window1"});
-		ecs_set(world, window1, EgSokolGfxConfig, {});
-		ecs_set(world, window1, EgSokolDtxConfig, {.context_pool_size = 1});
-		ecs_add(world, window1, EgOpenGLContext);
+		ecs_set_pair(world, window1, EgSokolGfxConfig, EgUpdate, {});
+		ecs_set_pair(world, window1, EgSokolDtxConfig, EgUpdate, {.context_pool_size = 1});
+		ecs_add_pair(world, window1, EgOpenGLContext, EgUpdate);
 
 		ecs_entity_t cam = ecs_new_w_pair(world, EcsChildOf, window1);
 		ecs_set_name(world, cam, "Cam1");
