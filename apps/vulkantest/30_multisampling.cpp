@@ -31,6 +31,7 @@
 #include "types.h"
 #include "load_model.h"
 
+#include "vk_flecs.h"
 
 
 
@@ -141,11 +142,6 @@ static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions
 
 
 
-struct UniformBufferObject {
-	alignas(16) glm::mat4 model;
-	alignas(16) glm::mat4 view;
-	alignas(16) glm::mat4 proj;
-};
 
 
 

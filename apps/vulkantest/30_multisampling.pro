@@ -18,7 +18,9 @@ SOURCES += tiny_obj_loader.cc
 SOURCES += stb_image.c
 SOURCES += readfile.c
 SOURCES += load_model.cpp
+SOURCES += flecs.c
+SOURCES += vk_flecs.c
 
 
 LIBS += -LC:/VulkanSDK/1.3.216.0/Lib
-LIBS += -lglfw3 -lgdi32 -lvulkan-1
+LIBS += -lglfw3 -lgdi32 -lvulkan-1 -lws2_32
