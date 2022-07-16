@@ -14,6 +14,8 @@ QMAKE_CFLAGS += -Wno-missing-field-initializers
 
 SOURCES += 30_multisampling.cpp
 SOURCES += vk_assert.cpp
+SOURCES += tiny_obj_loader.cc
+SOURCES += stb_image.c
 
 
 LIBS += -LC:/VulkanSDK/1.3.216.0/Lib

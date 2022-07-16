@@ -8,10 +8,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
 #include <iostream>
@@ -44,7 +42,7 @@ const uint32_t HEIGHT = 600;
 const std::string MODEL_PATH = "viking_room.obj";
 const std::string TEXTURE_PATH = "viking_room.png";
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
+#define MAX_FRAMES_IN_FLIGHT 2
 
 const std::vector<const char*> validationLayers = {
 "VK_LAYER_KHRONOS_validation"
@@ -207,7 +205,7 @@ private:
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 
 	VkDescriptorPool descriptorPool;
-	std::vector<VkDescriptorSet> descriptorSets;
+	VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
 
 	std::vector<VkCommandBuffer> commandBuffers;
 
@@ -1255,9 +1253,7 @@ private:
 		allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 		allocInfo.pSetLayouts = layouts.data();
 
-		descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-
-		VkResult result = vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data());
+		VkResult result = vkAllocateDescriptorSets(device, &allocInfo, descriptorSets);
 		VK_ASSERT_RESULT(result, "vkAllocateDescriptorSets");
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
