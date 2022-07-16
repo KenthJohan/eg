@@ -29,6 +29,7 @@
 
 
 #include "vk_assert.h"
+#include "readfile.h"
 
 
 
@@ -650,12 +651,20 @@ private:
 		VK_ASSERT_RESULT(result, "vkCreateDescriptorSetLayout");
 	}
 
-	void createGraphicsPipeline() {
-		auto vertShaderCode = readFile("vert.spv");
-		auto fragShaderCode = readFile("frag.spv");
-
-		VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-		VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
+	void createGraphicsPipeline()
+	{
+		VkShaderModule vertShaderModule;
+		VkShaderModule fragShaderModule;
+		{
+			long length = 0;
+			char * code = readfile1("vert.spv", &length);
+			vertShaderModule = createShaderModule(code, length);
+		}
+		{
+			long length = 0;
+			char * code = readfile1("frag.spv", &length);
+			fragShaderModule = createShaderModule(code, length);
+		}
 
 		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -1542,11 +1551,12 @@ private:
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
-	VkShaderModule createShaderModule(const std::vector<char>& code) {
+	VkShaderModule createShaderModule(char const * code, size_t size)
+	{
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		createInfo.codeSize = code.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+		createInfo.codeSize = size;
+		createInfo.pCode = reinterpret_cast<const uint32_t*>(code);
 
 		VkShaderModule shaderModule;
 
@@ -1721,25 +1731,6 @@ private:
 		}
 
 		return true;
-	}
-
-	static std::vector<char> readFile(const std::string& filename) {
-		printf("Reading file %s\n", filename.data());
-		std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-		if (!file.is_open()) {
-			throw std::runtime_error("failed to open file!");
-		}
-
-		size_t fileSize = (size_t) file.tellg();
-		std::vector<char> buffer(fileSize);
-
-		file.seekg(0);
-		file.read(buffer.data(), fileSize);
-
-		file.close();
-
-		return buffer;
 	}
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {

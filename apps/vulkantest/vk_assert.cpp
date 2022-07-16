@@ -1,4 +1,3 @@
-#pragma once
 #include "vk_assert.h"
 #include <stdio.h>
 #include <stdint.h>

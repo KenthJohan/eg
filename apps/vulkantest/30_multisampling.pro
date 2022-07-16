@@ -16,6 +16,7 @@ SOURCES += 30_multisampling.cpp
 SOURCES += vk_assert.cpp
 SOURCES += tiny_obj_loader.cc
 SOURCES += stb_image.c
+SOURCES += readfile.c
 
 
 LIBS += -LC:/VulkanSDK/1.3.216.0/Lib
