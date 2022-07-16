@@ -144,7 +144,7 @@ static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions
 
 
 
-
+static ecs_world_t * world = ecs_init();
 
 
 
@@ -268,8 +268,10 @@ private:
 
 	void mainLoop() {
 		while (!glfwWindowShouldClose(window)) {
+			ecs_progress(world, 0);
 			glfwPollEvents();
 			drawFrame();
+			ecs_os_sleep(0,100000);
 		}
 
 		vkDeviceWaitIdle(device);
@@ -435,6 +437,9 @@ private:
 	}
 
 	void pickPhysicalDevice() {
+
+		ecsvk_phyiscial(world, instance, surface);
+
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -1707,6 +1712,8 @@ int main()
 {
 	HelloTriangleApplication app;
 
+	ecsvk_init(world);
+
 	try
 	{
 		app.run();
@@ -1716,6 +1723,9 @@ int main()
 		printf("%s\n", e.what() );
 		return EXIT_FAILURE;
 	}
+
+
+	ecs_fini(world);
 
 	return EXIT_SUCCESS;
 }
