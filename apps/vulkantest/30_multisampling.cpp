@@ -202,8 +202,8 @@ private:
 	VkBuffer indexBuffer;
 	VkDeviceMemory indexBufferMemory;
 
-	std::vector<VkBuffer> uniformBuffers;
-	std::vector<VkDeviceMemory> uniformBuffersMemory;
+	VkBuffer uniformBuffers[MAX_FRAMES_IN_FLIGHT];
+	VkDeviceMemory uniformBuffersMemory[MAX_FRAMES_IN_FLIGHT];
 
 	VkDescriptorPool descriptorPool;
 	VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
@@ -1227,9 +1227,6 @@ private:
 	void createUniformBuffers() {
 		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-		uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
 		}
@@ -1376,8 +1373,6 @@ private:
 	}
 
 	void createCommandBuffers() {
-		//commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.commandPool = commandPool;
@@ -1446,10 +1441,6 @@ private:
 	}
 
 	void createSyncObjects() {
-		//imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		//renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		//inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
