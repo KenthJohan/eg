@@ -37,13 +37,14 @@
 
 
 
-const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 600;
+#define WIDTH 800
+#define HEIGHT 600
 
-const std::string MODEL_PATH = "viking_room.obj";
-const std::string TEXTURE_PATH = "viking_room.png";
+#define MODEL_PATH "viking_room.obj"
+#define TEXTURE_PATH "viking_room.png"
 
 #define MAX_FRAMES_IN_FLIGHT 2
+#define FRAMEBUFFER_ATTACHMENT_COUNT 3
 
 const std::vector<const char*> validationLayers = {
 "VK_LAYER_KHRONOS_validation"
@@ -787,16 +788,19 @@ private:
 		swapChainFramebuffers.resize(swapChainImageViews.size());
 
 		for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+			VkImageView attachments[FRAMEBUFFER_ATTACHMENT_COUNT] = {colorImageView, depthImageView, swapChainImageViews[i]};
+			/*
 			std::array<VkImageView, 3> attachments = {
 			colorImageView,
 			depthImageView,
 			swapChainImageViews[i]
 			};
+			*/
 			VkFramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			framebufferInfo.renderPass = renderPass;
-			framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-			framebufferInfo.pAttachments = attachments.data();
+			framebufferInfo.attachmentCount = FRAMEBUFFER_ATTACHMENT_COUNT;
+			framebufferInfo.pAttachments = attachments;
 			framebufferInfo.width = swapChainExtent.width;
 			framebufferInfo.height = swapChainExtent.height;
 			framebufferInfo.layers = 1;
@@ -859,7 +863,7 @@ private:
 
 	void createTextureImage() {
 		int texWidth, texHeight, texChannels;
-		stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		stbi_uc* pixels = stbi_load(TEXTURE_PATH, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		VkDeviceSize imageSize = texWidth * texHeight * 4;
 		mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
@@ -1151,7 +1155,7 @@ private:
 		std::vector<tinyobj::material_t> materials;
 		std::string warn, err;
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str())) {
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH)) {
 			throw std::runtime_error(warn + err);
 		}
 
