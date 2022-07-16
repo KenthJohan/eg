@@ -46,12 +46,14 @@
 #define MAX_FRAMES_IN_FLIGHT 2
 #define FRAMEBUFFER_ATTACHMENT_COUNT 3
 #define RENDERPASS_CLEARVALUE_COUNT 2
+#define VALIDATION_LAYER_COUNT 1
+#define DEVICE_EXTENSION_COUNT 1
 
-const std::vector<const char*> validationLayers = {
+char const * const validationLayers[VALIDATION_LAYER_COUNT] = {
 "VK_LAYER_KHRONOS_validation"
 };
 
-const std::vector<const char*> deviceExtensions = {
+char const * const deviceExtensions[DEVICE_EXTENSION_COUNT] = {
 VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
@@ -381,8 +383,8 @@ private:
 
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 		if (enableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
+			createInfo.enabledLayerCount = VALIDATION_LAYER_COUNT;
+			createInfo.ppEnabledLayerNames = validationLayers;
 
 			populateDebugMessengerCreateInfo(debugCreateInfo);
 			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
@@ -479,12 +481,12 @@ private:
 
 		createInfo.pEnabledFeatures = &deviceFeatures;
 
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		createInfo.enabledExtensionCount = DEVICE_EXTENSION_COUNT;
+		createInfo.ppEnabledExtensionNames = deviceExtensions;
 
 		if (enableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
+			createInfo.enabledLayerCount = VALIDATION_LAYER_COUNT;
+			createInfo.ppEnabledLayerNames = validationLayers;
 		} else {
 			createInfo.enabledLayerCount = 0;
 		}
@@ -1649,7 +1651,7 @@ private:
 		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
 
-		std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+		std::set<std::string> requiredExtensions(deviceExtensions, deviceExtensions + DEVICE_EXTENSION_COUNT);
 
 		for (const auto& extension : availableExtensions) {
 			requiredExtensions.erase(extension.extensionName);
@@ -1711,11 +1713,13 @@ private:
 		std::vector<VkLayerProperties> availableLayers(layerCount);
 		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-		for (const char* layerName : validationLayers) {
+		for (int i = 0; i < VALIDATION_LAYER_COUNT; ++i)
+		{
 			bool layerFound = false;
 
-			for (const auto& layerProperties : availableLayers) {
-				if (strcmp(layerName, layerProperties.layerName) == 0) {
+			for (const auto& layerProperties : availableLayers)
+			{
+				if (strcmp(validationLayers[i], layerProperties.layerName) == 0) {
 					layerFound = true;
 					break;
 				}
