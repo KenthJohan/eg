@@ -4,36 +4,7 @@
 
 
 
-typedef struct
-{
-VkPhysicalDevice device;
-} EgVkPhysicalDevice;
 
-typedef struct
-{
-VkPresentModeKHR mode;
-} EgVkPresentModeKHR;
-
-typedef struct
-{
-ecs_u32_t apiVersion;
-ecs_u32_t driverVersion;
-ecs_u32_t vendorID;
-ecs_u32_t deviceID;
-} EgVkPhysicalDeviceProperties;
-
-typedef struct
-{
-ecs_u32_t queueFlags;
-ecs_u32_t queueCount;
-ecs_u32_t timestampValidBits;
-} EgVkQueueFamilyProperties;
-
-typedef struct
-{
-int32_t format;
-int32_t colorSpace;
-} EgVkSurfaceFormatKHR;
 
 
 
@@ -318,6 +289,7 @@ void populate_VkPhysicalDevice(ecs_world_t * world, VkInstance instance, VkSurfa
 		char name[100];
 		snprintf(name, 100, "gpu%i", props.deviceID);
 		ecs_entity_t r = ecs_new_entity(world, name);
+		ecs_set(world, r, EgVkPhysicalDevice, {devices[i]});
 		ecs_set_ptr(world, r, EgVkPhysicalDeviceProperties, &props);
 		ecs_doc_set_name(world, r, props.deviceName);
 		populate_VkQueueFamilyProperties(world, r, devices[i], surface);
@@ -384,4 +356,5 @@ void populate_VkPhysicalDevice(ecs_world_t * world, VkInstance instance, VkSurfa
 		if(supportedFeatures.inheritedQueries)                               {ecs_add(world, r, Eg_inheritedQueries                          );}
 
 	}
+	ecs_os_free(devices);
 }

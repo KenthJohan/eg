@@ -440,6 +440,19 @@ private:
 
 		populate_VkPhysicalDevice(world, instance, surface);
 
+
+		ecs_query_desc_t desc = {};
+		//desc.filter.expr = "EgVkPhysicalDevice(parent), eg.vk.VK_QUEUE_GRAPHICS_BIT";
+		desc.filter.expr = "EgVkPhysicalDevice(parent), eg.vk.PhysicalDeviceSurfaceSupportKHR";
+		ecs_query_t * q = ecs_query_init(world, &desc);
+		ecs_iter_t it = ecs_query_iter(world, q);
+		while (ecs_query_next(&it))
+		{
+			printf("iter count: %i\n", it.count);
+			EgVkPhysicalDevice *p = ecs_term(&it, EgVkPhysicalDevice, 1);
+		}
+
+
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
