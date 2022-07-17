@@ -7,8 +7,8 @@
 extern "C" {
 #endif
 
-void ecsvk_init(ecs_world_t * world);
-void ecsvk_phyiscial(ecs_world_t * world, VkInstance instance, VkSurfaceKHR surface);
+void EgVkImport(ecs_world_t *world);
+void populate_VkPhysicalDevice(ecs_world_t * world, VkInstance instance, VkSurfaceKHR surface);
 
 
 #ifdef __cplusplus

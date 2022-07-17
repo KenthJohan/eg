@@ -438,7 +438,7 @@ private:
 
 	void pickPhysicalDevice() {
 
-		ecsvk_phyiscial(world, instance, surface);
+		populate_VkPhysicalDevice(world, instance, surface);
 
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -1712,7 +1712,7 @@ int main()
 {
 	HelloTriangleApplication app;
 
-	ecsvk_init(world);
+	ECS_IMPORT(world, EgVk);
 
 	try
 	{
