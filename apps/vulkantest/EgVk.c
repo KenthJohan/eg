@@ -1,4 +1,4 @@
-#include "vk_flecs.h"
+#include "EgVk.h"
 #include <stdio.h>
 
 
@@ -21,7 +21,7 @@ ECS_COMPONENT_DECLARE(EgVkSurfaceFormatKHR);
 ECS_DECLARE(Eg_VK_QUEUE_GRAPHICS_BIT);
 ECS_DECLARE(Eg_PhysicalDeviceSurfaceSupportKHR);
 
-//typedef struct VkPhysicalDeviceFeatures
+// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPhysicalDeviceFeatures.html
 ECS_DECLARE(Eg_robustBufferAccess);
 ECS_DECLARE(Eg_fullDrawIndexUint32);
 ECS_DECLARE(Eg_imageCubeArray);
@@ -154,6 +154,13 @@ void EgVkImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgVkSurfaceFormatKHR);
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
+	.entity.entity = ecs_id(EgVkPresentModeKHR),
+	.members = {
+	{ .name = "mode", .type = ecs_id(ecs_u32_t) }
+	}
+	});
+
+	ecs_struct_init(world, &(ecs_struct_desc_t){
 	.entity.entity = ecs_id(EgVkPhysicalDeviceProperties),
 	.members = {
 	{ .name = "apiVersion", .type = ecs_id(ecs_u32_t) },
@@ -197,7 +204,7 @@ void populate_VkSurfaceFormatKHR(ecs_world_t * world, ecs_entity_t parent, VkPhy
 		ecs_entity_t r = ecs_new(world, 0);
 		ecs_add_pair(world, r, EcsChildOf, parent);
 		ecs_doc_set_name(world, r, "SurfaceFormatKHR");
-		ecs_set_ptr(world, r, EgVkPresentModeKHR, items + i);
+		ecs_set_ptr(world, r, EgVkSurfaceFormatKHR, items + i);
 	}
 	ecs_os_free(items);
 }

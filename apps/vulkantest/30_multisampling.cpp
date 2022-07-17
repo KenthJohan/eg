@@ -31,7 +31,7 @@
 #include "types.h"
 #include "load_model.h"
 
-#include "vk_flecs.h"
+#include "EgVk.h"
 
 
 
@@ -443,7 +443,12 @@ private:
 
 		ecs_query_desc_t desc = {};
 		//desc.filter.expr = "EgVkPhysicalDevice(parent), eg.vk.VK_QUEUE_GRAPHICS_BIT";
-		desc.filter.expr = "EgVkPhysicalDevice(parent), eg.vk.PhysicalDeviceSurfaceSupportKHR";
+		desc.filter.expr =
+		"EgVkPhysicalDevice(parent), "
+		"VK_KHR_swapchain(parent), "
+		"eg.vk.PhysicalDeviceSurfaceSupportKHR, "
+		"eg.vk.VK_QUEUE_GRAPHICS_BIT";
+
 		ecs_query_t * q = ecs_query_init(world, &desc);
 		ecs_iter_t it = ecs_query_iter(world, q);
 		while (ecs_query_next(&it))
