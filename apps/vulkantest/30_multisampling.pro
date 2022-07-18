@@ -20,6 +20,7 @@ SOURCES += readfile.c
 SOURCES += load_model.cpp
 SOURCES += flecs.c
 SOURCES += EgVk.c
+SOURCES += renderer.cpp
 
 
 LIBS += -LC:/VulkanSDK/1.3.216.0/Lib
