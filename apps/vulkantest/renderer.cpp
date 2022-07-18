@@ -485,12 +485,7 @@ VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice)
 
 class HelloTriangleApplication {
 public:
-	void run() {
-		initWindow();
-		initVulkan();
-		mainLoop();
-		cleanup();
-	}
+
 
 	ecs_world_t* world;
 	GLFWwindow* window;
@@ -597,16 +592,7 @@ public:
 		createSyncObjects();
 	}
 
-	void mainLoop() {
-		while (!glfwWindowShouldClose(window)) {
-			ecs_progress(world, 0);
-			glfwPollEvents();
-			drawFrame();
-			ecs_os_sleep(0,100000);
-		}
 
-		vkDeviceWaitIdle(device);
-	}
 
 	void cleanupSwapChain() {
 		vkDestroyImageView(device, depthImageView, nullptr);
@@ -1728,14 +1714,15 @@ public:
 
 HelloTriangleApplication app;
 
-void renderer_init(ecs_world_t * world)
+void renderer_init()
 {
-	app.world = world;
-	ECS_IMPORT(world, EgVk);
+	app.world = ecs_init();
+	ECS_IMPORT(app.world, EgVk);
 
 	try
 	{
-		app.run();
+		app.initWindow();
+		app.initVulkan();
 	}
 	catch (const std::exception& e)
 	{
@@ -1743,7 +1730,23 @@ void renderer_init(ecs_world_t * world)
 		while(1)
 		{
 			ecs_os_abort();
-			ecs_progress(world, 0);
+			ecs_progress(app.world, 0);
 		}
 	}
+}
+
+void renderer_fini()
+{
+	app.cleanup();
+	ecs_fini(app.world);
+}
+
+int renderer_update()
+{
+	ecs_progress(app.world, 0);
+	glfwPollEvents();
+	app.drawFrame();
+	vkDeviceWaitIdle(app.device);
+	int r = glfwWindowShouldClose(app.window);
+	return r;
 }

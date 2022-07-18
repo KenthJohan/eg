@@ -1,5 +1,7 @@
 #pragma once
-#include "flecs.h"
 
 
-void renderer_init(ecs_world_t * world);
+
+void renderer_init();
+int renderer_update();
+void renderer_fini();
