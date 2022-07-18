@@ -266,12 +266,14 @@ void populate_VkQueueFamilyProperties(ecs_world_t * world, ecs_entity_t parent, 
 		ecs_set_ptr(world, r, EgVkQueueFamilyProperties, items + i);
 		if (items[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
 		{
+			ecs_add(world, parent, Eg_VK_QUEUE_GRAPHICS_BIT);
 			ecs_add(world, r, Eg_VK_QUEUE_GRAPHICS_BIT);
 		}
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
 		if (presentSupport)
 		{
+			ecs_add(world, parent, Eg_PhysicalDeviceSurfaceSupportKHR);
 			ecs_add(world, r, Eg_PhysicalDeviceSurfaceSupportKHR);
 		}
 	}
