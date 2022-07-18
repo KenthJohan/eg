@@ -9,6 +9,7 @@
 
 
 
+ECS_COMPONENT_DECLARE(VkApplicationInfo);
 
 ECS_COMPONENT_DECLARE(EgVkPhysicalDevice);
 ECS_COMPONENT_DECLARE(EgVkPresentModeKHR);
@@ -147,11 +148,40 @@ void EgVkImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, Eg_variableMultisampleRate);
 	ECS_TAG_DEFINE(world, Eg_inheritedQueries);
 
+
+	ECS_COMPONENT_DEFINE(world, VkApplicationInfo);
 	ECS_COMPONENT_DEFINE(world, EgVkPhysicalDevice);
 	ECS_COMPONENT_DEFINE(world, EgVkPresentModeKHR);
 	ECS_COMPONENT_DEFINE(world, EgVkPhysicalDeviceProperties);
 	ECS_COMPONENT_DEFINE(world, EgVkQueueFamilyProperties);
 	ECS_COMPONENT_DEFINE(world, EgVkSurfaceFormatKHR);
+
+
+/*
+typedef struct VkApplicationInfo {
+	VkStructureType    sType;
+	const void*        pNext;
+	const char*        pApplicationName;
+	uint32_t           applicationVersion;
+	const char*        pEngineName;
+	uint32_t           engineVersion;
+	uint32_t           apiVersion;
+} VkApplicationInfo;
+
+*/
+
+	ecs_struct_init(world, &(ecs_struct_desc_t){
+	.entity.entity = ecs_id(VkApplicationInfo),
+	.members = {
+	{ .name = "sType",                    .type = ecs_id(ecs_i32_t) },
+	{ .name = "pNext",                    .type = ecs_id(ecs_uptr_t) },
+	{ .name = "pApplicationName",         .type = ecs_id(ecs_string_t) },
+	{ .name = "applicationVersion",       .type = ecs_id(ecs_u32_t) },
+	{ .name = "pEngineName",              .type = ecs_id(ecs_string_t) },
+	{ .name = "engineVersion",            .type = ecs_id(ecs_u32_t) },
+	{ .name = "apiVersion",               .type = ecs_id(ecs_u32_t) }
+	}
+	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
 	.entity.entity = ecs_id(EgVkPresentModeKHR),

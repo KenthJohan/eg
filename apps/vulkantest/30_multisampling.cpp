@@ -698,6 +698,7 @@ private:
 			throw std::runtime_error("validation layers requested, but not available!");
 		}
 
+
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = "Hello Triangle";
@@ -705,6 +706,9 @@ private:
 		appInfo.pEngineName = "No Engine";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.apiVersion = VK_API_VERSION_1_0;
+
+		ecs_entity_t e = ecs_new(world, 0);
+		ecs_set_ptr(world, e, VkApplicationInfo, &appInfo);
 
 		VkInstanceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -783,11 +787,13 @@ private:
 			EgVkPhysicalDevice * p = ecs_term(&it, EgVkPhysicalDevice, 1);
 			if(it.count > 0){physicalDevice = p->device;}
 		}
+		ecs_query_fini(q);
 
 		if (physicalDevice == NULL)
 		{
 			fprintf(stderr, "failed to find a suitable GPU!");
-			ecs_os_abort();
+			//ecs_os_abort();
+			while(1){ecs_progress(world, 0);};
 		}
 
 		msaaSamples = getMaxUsableSampleCount(physicalDevice);

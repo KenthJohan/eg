@@ -38,7 +38,7 @@ int32_t format;
 int32_t colorSpace;
 } EgVkSurfaceFormatKHR;
 
-
+extern ECS_COMPONENT_DECLARE(VkApplicationInfo);
 extern ECS_COMPONENT_DECLARE(EgVkPhysicalDevice);
 extern ECS_COMPONENT_DECLARE(EgVkPresentModeKHR);
 extern ECS_COMPONENT_DECLARE(EgVkPhysicalDeviceProperties);
