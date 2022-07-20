@@ -66,6 +66,8 @@ const bool enableValidationLayers = true;
 #endif
 
 
+
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
 (VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* data, void* user)
 {
@@ -477,6 +479,32 @@ VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physicalDevice)
 
 
 
+void createDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& descriptorSetLayout)
+{
+	VkDescriptorSetLayoutBinding uboLayoutBinding{};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorCount = 1;
+	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	VkDescriptorSetLayoutBinding bindings[2] = {uboLayoutBinding, samplerLayoutBinding};
+	VkDescriptorSetLayoutCreateInfo layoutInfo{};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = 2;
+	layoutInfo.pBindings = bindings;
+
+	VkResult result = vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
+	VK_ASSERT_RESULT(result, "vkCreateDescriptorSetLayout");
+}
+
 
 
 
@@ -573,7 +601,7 @@ public:
 		createSwapChain();
 		createImageViews();
 		createRenderPass();
-		createDescriptorSetLayout();
+		createDescriptorSetLayout(device, descriptorSetLayout);
 		createGraphicsPipeline();
 		createCommandPool();
 		createColorResources();
@@ -698,6 +726,7 @@ public:
 		appInfo.apiVersion = VK_API_VERSION_1_0;
 
 		ecs_entity_t e = ecs_new(world, 0);
+		ecs_set_name(world, e, "VkApplicationInfo");
 		ecs_set_ptr(world, e, VkApplicationInfo, &appInfo);
 
 		VkInstanceCreateInfo createInfo{};
@@ -961,31 +990,6 @@ public:
 
 		VkResult result = vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
 		VK_ASSERT_RESULT(result, "vkCreateRenderPass");
-	}
-
-	void createDescriptorSetLayout() {
-		VkDescriptorSetLayoutBinding uboLayoutBinding{};
-		uboLayoutBinding.binding = 0;
-		uboLayoutBinding.descriptorCount = 1;
-		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		uboLayoutBinding.pImmutableSamplers = nullptr;
-		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-		samplerLayoutBinding.binding = 1;
-		samplerLayoutBinding.descriptorCount = 1;
-		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		samplerLayoutBinding.pImmutableSamplers = nullptr;
-		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
-		VkDescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-		layoutInfo.pBindings = bindings.data();
-
-		VkResult result = vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
-		VK_ASSERT_RESULT(result, "vkCreateDescriptorSetLayout");
 	}
 
 	void createGraphicsPipeline()
@@ -1681,30 +1685,14 @@ public:
 		return extensions;
 	}
 
-	bool checkValidationLayerSupport() {
-		uint32_t layerCount;
-		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-		std::vector<VkLayerProperties> availableLayers(layerCount);
-		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
+	bool checkValidationLayerSupport()
+	{
 		for (int i = 0; i < VALIDATION_LAYER_COUNT; ++i)
 		{
-			bool layerFound = false;
-
-			for (const auto& layerProperties : availableLayers)
-			{
-				if (strcmp(validationLayers[i], layerProperties.layerName) == 0) {
-					layerFound = true;
-					break;
-				}
-			}
-
-			if (!layerFound) {
-				return false;
-			}
+			char const * name = validationLayers[i];
+			ecs_entity_t e = ecs_lookup_fullpath(world, "eg.vk.VK_LAYER_KHRONOS_validation");
+			if (e == 0) {return false;}
 		}
-
 		return true;
 	}
 

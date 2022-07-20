@@ -10,6 +10,9 @@
 
 
 ECS_COMPONENT_DECLARE(VkApplicationInfo);
+ECS_COMPONENT_DECLARE(EgVkLayer);
+
+
 
 ECS_COMPONENT_DECLARE(EgVkPhysicalDevice);
 ECS_COMPONENT_DECLARE(EgVkPresentModeKHR);
@@ -150,6 +153,8 @@ void EgVkImport(ecs_world_t *world)
 
 
 	ECS_COMPONENT_DEFINE(world, VkApplicationInfo);
+	ECS_COMPONENT_DEFINE(world, EgVkLayer);
+
 	ECS_COMPONENT_DEFINE(world, EgVkPhysicalDevice);
 	ECS_COMPONENT_DEFINE(world, EgVkPresentModeKHR);
 	ECS_COMPONENT_DEFINE(world, EgVkPhysicalDeviceProperties);
@@ -216,6 +221,39 @@ typedef struct VkApplicationInfo {
 	{ .name = "colorSpace", .type = ecs_id(ecs_i32_t) },
 	}
 	});
+
+	ecs_struct_init(world, &(ecs_struct_desc_t){
+	.entity.entity = ecs_id(EgVkLayer),
+	.members = {
+	{ .name = "specVersion", .type = ecs_id(ecs_u32_t) },
+	{ .name = "implementationVersion", .type = ecs_id(ecs_u32_t) },
+	}
+	});
+
+	{
+		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t){
+		.name = "hej"
+		});
+
+		const char *name = ecs_get_name(world, r);
+		char *path = ecs_get_fullpath(world, r);
+
+		uint32_t count;
+		vkEnumerateInstanceLayerProperties(&count, NULL);
+		VkLayerProperties * items = ecs_os_malloc_n(VkLayerProperties, count);
+		vkEnumerateInstanceLayerProperties(&count, items);
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			char const * name = items[i].layerName;
+			ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t){
+			.name = name
+			});
+			EgVkLayer l;
+			l.implementationVersion = items[i].implementationVersion;
+			l.specVersion = items[i].specVersion;
+			ecs_set_ptr(world, r, EgVkLayer, &l);
+		}
+	}
 
 }
 

@@ -38,6 +38,12 @@ int32_t format;
 int32_t colorSpace;
 } EgVkSurfaceFormatKHR;
 
+typedef struct
+{
+	uint32_t specVersion;
+	uint32_t implementationVersion;
+} EgVkLayer;
+
 extern ECS_COMPONENT_DECLARE(VkApplicationInfo);
 extern ECS_COMPONENT_DECLARE(EgVkPhysicalDevice);
 extern ECS_COMPONENT_DECLARE(EgVkPresentModeKHR);
