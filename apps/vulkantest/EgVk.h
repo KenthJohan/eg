@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+typedef uint32_t EgVkIndex;
+
 typedef struct
 {
 VkPhysicalDevice device;
@@ -44,6 +46,13 @@ typedef struct
 	uint32_t implementationVersion;
 } EgVkLayer;
 
+typedef struct
+{
+	uint32_t specVersion;
+} EgVkExtensionProperties;
+
+
+extern ECS_COMPONENT_DECLARE(EgVkExtensionProperties);
 extern ECS_COMPONENT_DECLARE(VkApplicationInfo);
 extern ECS_COMPONENT_DECLARE(EgVkPhysicalDevice);
 extern ECS_COMPONENT_DECLARE(EgVkPresentModeKHR);

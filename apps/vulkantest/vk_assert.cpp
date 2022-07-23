@@ -11,3 +11,7 @@ void vk_assert_result(char const * file, int line, int result, char const * titl
 	fprintf(stderr, "%s:%i: %s: %s(%i)\n", file, line, title, rmsg, result);
 }
 
+void vk_assert(char const * file, int line, char const * e)
+{
+	fprintf(stderr, "%s:%i: %s\n", file, line, e);
+}

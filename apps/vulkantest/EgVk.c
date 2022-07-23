@@ -14,6 +14,8 @@ ECS_COMPONENT_DECLARE(EgVkLayer);
 
 
 
+ECS_COMPONENT_DECLARE(EgVkExtensionProperties);
+ECS_COMPONENT_DECLARE(EgVkIndex);
 ECS_COMPONENT_DECLARE(EgVkPhysicalDevice);
 ECS_COMPONENT_DECLARE(EgVkPresentModeKHR);
 ECS_COMPONENT_DECLARE(EgVkPhysicalDeviceProperties);
@@ -152,6 +154,8 @@ void EgVkImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, Eg_inheritedQueries);
 
 
+	ECS_COMPONENT_DEFINE(world, EgVkExtensionProperties);
+	ECS_COMPONENT_DEFINE(world, EgVkIndex);
 	ECS_COMPONENT_DEFINE(world, VkApplicationInfo);
 	ECS_COMPONENT_DEFINE(world, EgVkLayer);
 
@@ -174,6 +178,19 @@ typedef struct VkApplicationInfo {
 } VkApplicationInfo;
 
 */
+	ecs_struct_init(world, &(ecs_struct_desc_t){
+	.entity.entity = ecs_id(EgVkIndex),
+	.members = {
+	{ .name = "index", .type = ecs_id(ecs_u32_t) }
+	}
+	});
+
+	ecs_struct_init(world, &(ecs_struct_desc_t){
+	.entity.entity = ecs_id(EgVkExtensionProperties),
+	.members = {
+	{ .name = "specVersion", .type = ecs_id(ecs_u32_t) }
+	}
+	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
 	.entity.entity = ecs_id(VkApplicationInfo),
@@ -231,13 +248,6 @@ typedef struct VkApplicationInfo {
 	});
 
 	{
-		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t){
-		.name = "hej"
-		});
-
-		const char *name = ecs_get_name(world, r);
-		char *path = ecs_get_fullpath(world, r);
-
 		uint32_t count;
 		vkEnumerateInstanceLayerProperties(&count, NULL);
 		VkLayerProperties * items = ecs_os_malloc_n(VkLayerProperties, count);
@@ -309,6 +319,7 @@ void populate_VkExtensionProperties(ecs_world_t * world, ecs_entity_t parent, Vk
 		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t){
 		.name = items[i].extensionName
 		});
+		ecs_set(world, r, EgVkExtensionProperties, {items[i].specVersion});
 		ecs_add_id(world, parent, r);
 	}
 	ecs_os_free(items);
@@ -328,10 +339,16 @@ void populate_VkQueueFamilyProperties(ecs_world_t * world, ecs_entity_t parent, 
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &count, items);
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		ecs_entity_t r = ecs_new(world, 0);
+		char name[100];
+		snprintf(name, 100, "qf%i", i);
+		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t)
+		{
+		.name = name
+		});
 		ecs_add_pair(world, r, EcsChildOf, parent);
-		ecs_doc_set_name(world, r, "QueueFamily");
+		//ecs_doc_set_name(world, r, "QueueFamily");
 		ecs_set_ptr(world, r, EgVkQueueFamilyProperties, items + i);
+		ecs_set(world, r, EgVkIndex, {i});
 		if (items[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
 		{
 			ecs_add(world, parent, Eg_VK_QUEUE_GRAPHICS_BIT);
@@ -435,3 +452,21 @@ void populate_VkPhysicalDevice(ecs_world_t * world, VkInstance instance, VkSurfa
 	}
 	ecs_os_free(devices);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
