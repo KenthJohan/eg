@@ -19,8 +19,11 @@ SOURCES += stb_image.c
 SOURCES += readfile.c
 SOURCES += load_model.cpp
 SOURCES += flecs.c
+SOURCES += EgTypes.c
 SOURCES += EgVk.c
+SOURCES += EgVk1.c
 SOURCES += renderer.cpp
+SOURCES += platform_glfw.c
 
 
 LIBS += -LC:/VulkanSDK/1.3.216.0/Lib

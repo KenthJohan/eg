@@ -7,7 +7,10 @@
 extern "C" {
 #endif
 
-typedef uint32_t EgVkIndex;
+typedef struct
+{
+VkInstance instance;
+} EgVkInstance;
 
 typedef struct
 {
@@ -52,6 +55,7 @@ typedef struct
 } EgVkExtensionProperties;
 
 
+extern ECS_COMPONENT_DECLARE(EgVkInstance);
 extern ECS_COMPONENT_DECLARE(EgVkExtensionProperties);
 extern ECS_COMPONENT_DECLARE(VkApplicationInfo);
 extern ECS_COMPONENT_DECLARE(EgVkPhysicalDevice);
@@ -61,6 +65,8 @@ extern ECS_COMPONENT_DECLARE(EgVkQueueFamilyProperties);
 extern ECS_COMPONENT_DECLARE(EgVkSurfaceFormatKHR);
 
 
+extern ECS_DECLARE(EgVkExtension);
+extern ECS_DECLARE(EgVkRequiredExtension);
 extern ECS_DECLARE(Eg_VK_QUEUE_GRAPHICS_BIT);
 extern ECS_DECLARE(Eg_PhysicalDeviceSurfaceSupportKHR);
 
@@ -122,7 +128,6 @@ extern ECS_DECLARE(Eg_variableMultisampleRate);
 extern ECS_DECLARE(Eg_inheritedQueries);
 
 void EgVkImport(ecs_world_t *world);
-void populate_VkPhysicalDevice(ecs_world_t * world, VkInstance instance, VkSurfaceKHR surface);
 
 
 #ifdef __cplusplus
