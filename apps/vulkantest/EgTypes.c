@@ -39,21 +39,22 @@ void EgTypesImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgIndex);
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(EgIndex),
+	.entity = ecs_entity(world, {.id = ecs_id(EgIndex)}),
 	.members = {
 	{ .name = "index", .type = ecs_id(ecs_u32_t) }
 	}
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(EgName),
+						.entity = ecs_entity(world, {.id = ecs_id(EgName)}),
 	.members = {
 	{ .name = "value", .type = ecs_id(ecs_string_t) }
 	}
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(EgVersion),
+						.entity = ecs_entity(world, {.id = ecs_id(EgVersion)}),
+
 	.members = {
 	{ .name = "version", .type = ecs_id(ecs_u32_t) }
 	}

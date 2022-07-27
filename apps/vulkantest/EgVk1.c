@@ -223,14 +223,19 @@ void createInstance1(ecs_world_t * world, ecs_entity_t e)
 	});
 	ecs_add_id(world, e, r);
 
-	ecs_filter_t *f = ecs_filter_init(world, &(ecs_filter_desc_t){
+
+
+
+	ecs_filter_t f = ECS_FILTER_INIT;
+	ecs_filter_init(world, &(ecs_filter_desc_t){
+						.storage = &f,
 	  .terms = {
 	{ ecs_id(EgVkExtension) },
-	{ ecs_id(VkApplicationInfo), .subj.entity = e }
+	{ ecs_id(VkApplicationInfo), .src.id = e }
 	  }
 	});
-	char const ** names = get_entity_names_from_filter(world, f);
-	ecs_filter_fini(f);
+	char const ** names = get_entity_names_from_filter(world, &f);
+	ecs_filter_fini(&f);
 
 	VkInstanceCreateInfo create = {};
 	create.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;

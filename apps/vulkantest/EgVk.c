@@ -179,7 +179,7 @@ void EgVkImport(ecs_world_t *world)
 
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(EgVkExtensionProperties),
+						.entity = ecs_entity(world, {.id = ecs_id(EgVkExtensionProperties)}),
 	.members = {
 	{ .name = "specVersion", .type = ecs_id(ecs_u32_t) }
 	}
@@ -199,7 +199,7 @@ void EgVkImport(ecs_world_t *world)
 
 	*/
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(VkApplicationInfo),
+						.entity = ecs_entity(world, {.id = ecs_id(VkApplicationInfo)}),
 	.members = {
 	{ .name = "sType",                    .type = ecs_id(ecs_i32_t) },
 	{ .name = "pNext",                    .type = ecs_id(ecs_uptr_t) },
@@ -212,14 +212,14 @@ void EgVkImport(ecs_world_t *world)
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(EgVkPresentModeKHR),
+						.entity = ecs_entity(world, {.id = ecs_id(EgVkPresentModeKHR)}),
 	.members = {
 	{ .name = "mode", .type = ecs_id(ecs_u32_t) }
 	}
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(EgVkPhysicalDeviceProperties),
+						.entity = ecs_entity(world, {.id = ecs_id(EgVkPhysicalDeviceProperties)}),
 	.members = {
 	{ .name = "apiVersion", .type = ecs_id(ecs_u32_t) },
 	{ .name = "driverVersion", .type = ecs_id(ecs_u32_t) },
@@ -229,7 +229,7 @@ void EgVkImport(ecs_world_t *world)
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(EgVkQueueFamilyProperties),
+						.entity = ecs_entity(world, {.id = ecs_id(EgVkQueueFamilyProperties)}),
 	.members = {
 	{ .name = "queueFlags", .type = ecs_id(ecs_u32_t) },
 	{ .name = "queueCount", .type = ecs_id(ecs_u32_t) },
@@ -238,7 +238,7 @@ void EgVkImport(ecs_world_t *world)
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(EgVkSurfaceFormatKHR),
+						.entity = ecs_entity(world, {.id = ecs_id(EgVkSurfaceFormatKHR)}),
 	.members = {
 	{ .name = "format", .type = ecs_id(ecs_i32_t) },
 	{ .name = "colorSpace", .type = ecs_id(ecs_i32_t) },
@@ -246,7 +246,7 @@ void EgVkImport(ecs_world_t *world)
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-	.entity.entity = ecs_id(EgVkLayer),
+						.entity = ecs_entity(world, {.id = ecs_id(EgVkLayer)}),
 	.members = {
 	{ .name = "specVersion", .type = ecs_id(ecs_u32_t) },
 	{ .name = "implementationVersion", .type = ecs_id(ecs_u32_t) },
