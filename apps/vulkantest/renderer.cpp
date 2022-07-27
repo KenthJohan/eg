@@ -39,6 +39,7 @@
 #include "EgVk1.h"
 #include "EgTypes.h"
 #include "platform.h"
+#include "eg_util.h"
 
 
 
@@ -811,14 +812,6 @@ public:
 	}
 
 	void createSurface() {
-
-		uint32_t count = 0;
-		char const ** e = glfwGetRequiredInstanceExtensions(&count);
-		for(uint32_t i = 0; i < count; ++i)
-		{
-			printf("%i: %s\n", i, e[i]);
-		}
-
 		VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
 		VK_ASSERT_RESULT(result, "glfwCreateWindowSurface");
 	}
@@ -827,7 +820,22 @@ public:
 	{
 		populate_VkPhysicalDevice(world, instance, surface);
 
-		//ecs_query_new(world, "EgVkPhysicalDevice(parent), ");
+		ecs_filter_desc_t d =
+		{
+		  .terms = {
+		{ ecs_id(EgVkPhysicalDevice) },
+		{ ecs_id(Eg_PhysicalDeviceSurfaceSupportKHR) },
+		//{ VkExtensionSwapchain },
+		{ ecs_id(Eg_VK_QUEUE_GRAPHICS_BIT) },
+		{ ecs_id(Eg_samplerAnisotropy) }
+		  }
+		};
+		ecs_filter_t *f = ecs_filter_init(world, &d);
+		EgVkPhysicalDevice const * p = (EgVkPhysicalDevice const *) eg_get_first_from_filter(world, f);
+		if(p==NULL) while(1){ecs_progress(world, 0);};
+		physicalDevice = p->device;
+		ecs_filter_fini(f);
+		/*
 		ecs_query_desc_t desc = {};
 		desc.filter.expr =
 		"EgVkPhysicalDevice, "
@@ -844,6 +852,7 @@ public:
 			if(it.count > 0){physicalDevice = p->device;}
 		}
 		ecs_query_fini(q);
+		*/
 
 		if (physicalDevice == NULL)
 		{

@@ -26,6 +26,7 @@ ECS_COMPONENT_DECLARE(EgVkSurfaceFormatKHR);
 
 ECS_DECLARE(EgVkExtension);
 ECS_DECLARE(EgVkRequiredExtension);
+ecs_entity_t VkExtensionSwapchain;
 
 ECS_DECLARE(Eg_VK_QUEUE_GRAPHICS_BIT);
 ECS_DECLARE(Eg_PhysicalDeviceSurfaceSupportKHR);
@@ -270,6 +271,14 @@ void EgVkImport(ecs_world_t *world)
 		}
 	}
 
+
+	{
+		VkExtensionSwapchain = ecs_entity_init(world, &(ecs_entity_desc_t)
+		{
+		.name = VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		.add = {EgVkExtension}
+		});
+	}
 }
 
 

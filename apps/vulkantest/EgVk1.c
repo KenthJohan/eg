@@ -207,37 +207,14 @@ std::vector<const char*> getRequiredExtensions()
 }
 */
 
-char const ** get_entity_names_from_filter(ecs_world_t * world, ecs_filter_t *f)
-{
-	ecs_iter_t it;
-	it = ecs_filter_iter(world, f);
-	int32_t n = ecs_iter_count(&it);
-	it = ecs_filter_iter(world, f);
-	char const ** r = ecs_os_alloca_n(char const*, n+1);
-	int32_t j = 0;
-	while (ecs_filter_next(&it))
-	{
-		for (int32_t i = 0; i < it.count; i ++)
-		{
-			char const * name = ecs_get_name(world, it.entities[i]);
-			printf("qext %s\n", name);
-			r[j] = name;
-			j++;
-		}
-	}
-	r[j] = NULL;
-	return r;
-}
+
+
 
 
 void createInstance1(ecs_world_t * world, ecs_entity_t e)
 {
 	VkApplicationInfo const * app = ecs_get(world, e, VkApplicationInfo);
 	ecs_doc_set_name(world, e, app->pApplicationName);
-	VkInstanceCreateInfo create = {};
-	create.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	create.pApplicationInfo = app;
-
 	platform_get_required_extension_names(world, e);
 	ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t)
 	{
@@ -245,15 +222,6 @@ void createInstance1(ecs_world_t * world, ecs_entity_t e)
 	.add = {EgVkExtension}
 	});
 	ecs_add_id(world, e, r);
-	const ecs_type_t *type = ecs_get_type(world, e);
-	for (int i = 0; i < type->count; ++i)
-	{
-		ecs_id_t ext = type->array[i];
-		if (ecs_is_valid(world, ext) == false) {continue;}
-		if (ecs_has_id(world, ext, EgVkExtension) == false) {continue;}
-		printf("ext %s\n", ecs_get_name(world, ext));
-	}
-
 
 	ecs_filter_t *f = ecs_filter_init(world, &(ecs_filter_desc_t){
 	  .terms = {
@@ -263,7 +231,12 @@ void createInstance1(ecs_world_t * world, ecs_entity_t e)
 	});
 	char const ** names = get_entity_names_from_filter(world, f);
 	ecs_filter_fini(f);
-	ecs_os_free(names);
+
+	VkInstanceCreateInfo create = {};
+	create.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	create.pApplicationInfo = app;
+	//createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+	//createInfo.ppEnabledExtensionNames = extensions.data();
 
 	//VK_EXT_DEBUG_UTILS_EXTENSION_NAME
 	//VK_EXT_DEBUG_UTILS_EXTENSION_NAME
@@ -297,6 +270,9 @@ void createInstance1(ecs_world_t * world, ecs_entity_t e)
 	//VkInstance instance;
 	//vkCreateInstance(&create, NULL, &instance);
 	//ecs_set(world, e, EgVkInstance, {instance});
+
+
+	//ecs_os_free(names);
 }
 
 

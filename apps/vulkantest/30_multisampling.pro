@@ -24,6 +24,7 @@ SOURCES += EgVk.c
 SOURCES += EgVk1.c
 SOURCES += renderer.cpp
 SOURCES += platform_glfw.c
+SOURCES += eg_util.c
 
 
 LIBS += -LC:/VulkanSDK/1.3.216.0/Lib
