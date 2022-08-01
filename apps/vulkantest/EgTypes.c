@@ -27,6 +27,8 @@ ecs_os_free((char*)ptr->value);
 
 void EgTypesImport(ecs_world_t *world)
 {
+	ecs_singleton_set(world, EcsRest, {0});
+
 	ECS_MODULE(world, EgTypes);
 	ecs_set_name_prefix(world, "Eg");
 

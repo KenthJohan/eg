@@ -1,7 +1,9 @@
 #include "EgVk_types.h"
 #include "EgVk_systems.h"
+#include "EgVkPhysicaldevicefeatures.h"
 #include "EgTypes.h"
 #include "platform.h"
+#include "eg_util.h"
 #include <stdio.h>
 
 
@@ -285,6 +287,17 @@ void createInstance1(ecs_world_t * world, ecs_entity_t e)
 
 
 
+
+
+
+void EgVkSystemsImport(ecs_world_t *world)
+{
+	ECS_MODULE(world, EgVkSystems);
+	ECS_IMPORT(world, EgVk);
+	ECS_IMPORT(world, EgVkPhysicaldevicefeatures);
+	ECS_IMPORT(world, EgTypes);
+	ecs_set_name_prefix(world, "EgVk");
+}
 
 
 

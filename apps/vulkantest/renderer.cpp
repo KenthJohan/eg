@@ -35,8 +35,10 @@
 #include "types.h"
 #include "load_model.h"
 
-#include "EgVk.h"
-#include "EgVk1.h"
+#include "EgVk_types.h"
+#include "EgVk_systems.h"
+#include "EgVkLayers.h"
+#include "EgVkPhysicaldevicefeatures.h"
 #include "EgTypes.h"
 #include "platform.h"
 #include "eg_util.h"
@@ -529,7 +531,7 @@ bool checkValidationLayerSupport(ecs_world_t * world)
 	for (int i = 0; i < VALIDATION_LAYER_COUNT; ++i)
 	{
 		char const * name = validationLayers[i];
-		ecs_entity_t e = ecs_lookup_fullpath(world, "eg.vk.VK_LAYER_KHRONOS_validation");
+		ecs_entity_t e = ecs_lookup_fullpath(world, "eg.vk.layers.VK_LAYER_KHRONOS_validation");
 		if (e == 0) {return false;}
 	}
 	return true;
@@ -1730,7 +1732,10 @@ HelloTriangleApplication app;
 void renderer_init()
 {
 	app.world = ecs_init();
+	ECS_IMPORT(app.world, EgTypes);
 	ECS_IMPORT(app.world, EgVk);
+	ECS_IMPORT(app.world, EgVkLayers);
+	ECS_IMPORT(app.world, EgVkSystems);
 
 	try
 	{
@@ -1739,10 +1744,10 @@ void renderer_init()
 	}
 	catch (const std::exception& e)
 	{
-		printf("%s\n", e.what() );
+		printf("what: %s\n", e.what() );
 		while(1)
 		{
-			ecs_os_abort();
+			//ecs_os_abort();
 			ecs_progress(app.world, 0);
 		}
 	}

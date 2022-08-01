@@ -28,6 +28,8 @@ SOURCES += EgVk_systems.c
 SOURCES += renderer.cpp
 SOURCES += platform_glfw.c
 SOURCES += eg_util.c
+SOURCES += EgVkPhysicaldevicefeatures.c
+SOURCES += EgVkLayers.c
 
 INCLUDEPATH += C:/VulkanSDK/1.3.216.0/Include
 LIBS += -LC:/VulkanSDK/1.3.216.0/Lib
