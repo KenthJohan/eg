@@ -1,4 +1,4 @@
-#include "EgVk.h"
+#include "EgVk_types.h"
 #include "EgTypes.h"
 #include <stdio.h>
 
@@ -95,7 +95,7 @@ void EgVkImport(ecs_world_t *world)
 {
 	ecs_singleton_set(world, EcsRest, {0});
 
-	ecs_set_name_prefix(world, "Eg");
+	ecs_set_name_prefix(world, "EgVk");
 	ECS_MODULE(world, EgVk);
 	ECS_IMPORT(world, EgTypes);
 
@@ -278,6 +278,8 @@ void EgVkImport(ecs_world_t *world)
 		.name = VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 		.add = {EgVkExtension}
 		});
+
+		printf("VK_KHR_SWAPCHAIN_EXTENSION_NAME %s (%lx)\n", VK_KHR_SWAPCHAIN_EXTENSION_NAME, VkExtensionSwapchain);
 	}
 }
 

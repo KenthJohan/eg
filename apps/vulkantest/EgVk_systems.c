@@ -1,5 +1,5 @@
-#include "EgVk1.h"
-#include "EgVk.h"
+#include "EgVk_types.h"
+#include "EgVk_systems.h"
 #include "EgTypes.h"
 #include "platform.h"
 #include <stdio.h>
@@ -51,9 +51,11 @@ void populate_VkExtensionProperties(ecs_world_t * world, ecs_entity_t parent, Vk
 	vkEnumerateDeviceExtensionProperties(device, NULL, &count, items);
 	for (uint32_t i = 0; i < count; ++i)
 	{
+		char const * name = items[i].extensionName;
 		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t){
-		.name = items[i].extensionName
+		.name = name
 		});
+		printf("extensionName %s (%lx)\n", name, r);
 		ecs_set(world, r, EgVkExtensionProperties, {items[i].specVersion});
 		ecs_add_id(world, parent, r);
 	}
@@ -228,11 +230,11 @@ void createInstance1(ecs_world_t * world, ecs_entity_t e)
 
 	ecs_filter_t f = ECS_FILTER_INIT;
 	ecs_filter_init(world, &(ecs_filter_desc_t){
-						.storage = &f,
-	  .terms = {
+	.storage = &f,
+	.terms = {
 	{ ecs_id(EgVkExtension) },
 	{ ecs_id(VkApplicationInfo), .src.id = e }
-	  }
+	}
 	});
 	char const ** names = get_entity_names_from_filter(world, &f);
 	ecs_filter_fini(&f);
