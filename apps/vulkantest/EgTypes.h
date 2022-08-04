@@ -31,6 +31,13 @@ extern ECS_DECLARE(EgApplication);
 extern ECS_DECLARE(EgEngine);
 extern ECS_DECLARE(EgApi);
 
+extern ECS_DECLARE(EgState);
+extern ECS_DECLARE(EgUpdating);
+extern ECS_DECLARE(EgUpdate);
+extern ECS_DECLARE(EgValid);
+extern ECS_DECLARE(EgMoving);
+extern ECS_DECLARE(EgError);
+
 void EgTypesImport(ecs_world_t *world);
 
 

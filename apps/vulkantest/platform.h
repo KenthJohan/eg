@@ -6,7 +6,11 @@
 extern "C" {
 #endif
 
-void platform_get_required_extension_names(ecs_world_t * world, ecs_entity_t e);
+void platform_populate_required_extension_names(ecs_world_t * world);
+
+
+void EgPlatformImport(ecs_world_t *world);
+
 
 #ifdef __cplusplus
 }

@@ -41,14 +41,6 @@ void EgResourcesImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgQuantities);
 	ecs_set_name_prefix(world, "Eg");
 
-	ECS_ENTITY_DEFINE(world, EgState, 0);
-	ecs_add_id(world, EgState, EcsUnion);
-	ECS_TAG_DEFINE(world, EgUpdating);
-	ECS_TAG_DEFINE(world, EgUpdate);
-	ECS_TAG_DEFINE(world, EgValid);
-	ECS_TAG_DEFINE(world, EgMoving);
-	ECS_TAG_DEFINE(world, EgError);
-
 	ECS_COMPONENT_DEFINE(world, EgImage);
 	ECS_COMPONENT_DEFINE(world, EgPath);
 	ECS_COMPONENT_DEFINE(world, EgChunk);

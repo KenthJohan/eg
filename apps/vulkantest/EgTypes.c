@@ -8,6 +8,13 @@ ECS_DECLARE(EgApplication);
 ECS_DECLARE(EgEngine);
 ECS_DECLARE(EgApi);
 
+ECS_DECLARE(EgState);
+ECS_DECLARE(EgUpdating);
+ECS_DECLARE(EgUpdate);
+ECS_DECLARE(EgValid);
+ECS_DECLARE(EgMoving);
+ECS_DECLARE(EgError);
+
 
 static ECS_COPY(EgName, dst, src, {
 ecs_os_strset((char**)&dst->value, src->value);
@@ -36,6 +43,14 @@ void EgTypesImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgEngine);
 	ECS_TAG_DEFINE(world, EgApi);
 
+	ECS_ENTITY_DEFINE(world, EgState, 0);
+	ecs_add_id(world, EgState, EcsUnion);
+	ECS_TAG_DEFINE(world, EgUpdating);
+	ECS_TAG_DEFINE(world, EgUpdate);
+	ECS_TAG_DEFINE(world, EgValid);
+	ECS_TAG_DEFINE(world, EgMoving);
+	ECS_TAG_DEFINE(world, EgError);
+
 	ECS_COMPONENT_DEFINE(world, EgName);
 	ECS_COMPONENT_DEFINE(world, EgVersion);
 	ECS_COMPONENT_DEFINE(world, EgIndex);
@@ -48,15 +63,14 @@ void EgTypesImport(ecs_world_t *world)
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-						.entity = ecs_entity(world, {.id = ecs_id(EgName)}),
+	.entity = ecs_entity(world, {.id = ecs_id(EgName)}),
 	.members = {
 	{ .name = "value", .type = ecs_id(ecs_string_t) }
 	}
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
-						.entity = ecs_entity(world, {.id = ecs_id(EgVersion)}),
-
+	.entity = ecs_entity(world, {.id = ecs_id(EgVersion)}),
 	.members = {
 	{ .name = "version", .type = ecs_id(ecs_u32_t) }
 	}

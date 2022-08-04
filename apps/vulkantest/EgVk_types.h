@@ -19,6 +19,11 @@ VkPhysicalDevice device;
 
 typedef struct
 {
+VkSurfaceKHR surface;
+} EgVkSurfaceKHR;
+
+typedef struct
+{
 VkPresentModeKHR mode;
 } EgVkPresentModeKHR;
 
@@ -57,6 +62,8 @@ typedef struct
 
 extern ECS_COMPONENT_DECLARE(EgVkInstance);
 extern ECS_COMPONENT_DECLARE(EgVkLayer);
+extern ECS_COMPONENT_DECLARE(EgVkSurfaceKHR);
+
 extern ECS_COMPONENT_DECLARE(EgVkExtensionProperties);
 extern ECS_COMPONENT_DECLARE(VkApplicationInfo);
 extern ECS_COMPONENT_DECLARE(EgVkPhysicalDevice);

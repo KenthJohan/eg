@@ -14,10 +14,12 @@ ECS_COMPONENT_DECLARE(VkApplicationInfo);
 ECS_COMPONENT_DECLARE(EgVkLayer);
 
 
-
+//Handles:
 ECS_COMPONENT_DECLARE(EgVkInstance);
-ECS_COMPONENT_DECLARE(EgVkExtensionProperties);
 ECS_COMPONENT_DECLARE(EgVkPhysicalDevice);
+ECS_COMPONENT_DECLARE(EgVkSurfaceKHR);
+
+ECS_COMPONENT_DECLARE(EgVkExtensionProperties);
 ECS_COMPONENT_DECLARE(EgVkPresentModeKHR);
 ECS_COMPONENT_DECLARE(EgVkPhysicalDeviceProperties);
 ECS_COMPONENT_DECLARE(EgVkQueueFamilyProperties);
@@ -48,6 +50,7 @@ void EgVkImport(ecs_world_t *world)
 	//Handles
 	ECS_COMPONENT_DEFINE(world, EgVkInstance);
 	ECS_COMPONENT_DEFINE(world, EgVkPhysicalDevice);
+	ECS_COMPONENT_DEFINE(world, EgVkSurfaceKHR);
 
 	ECS_COMPONENT_DEFINE(world, EgVkExtensionProperties);
 	ECS_COMPONENT_DEFINE(world, VkApplicationInfo);

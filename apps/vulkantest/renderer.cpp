@@ -39,9 +39,13 @@
 #include "EgVk_systems.h"
 #include "EgVkLayers.h"
 #include "EgVkPhysicaldevicefeatures.h"
+#include "EgVkExtensions.h"
 #include "EgTypes.h"
+#include "EgWindows.h"
+#include "EgGeometries.h"
 #include "platform.h"
 #include "eg_util.h"
+#include "../../eg_basics.h"
 
 
 
@@ -550,7 +554,7 @@ void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create
 
 
 
-void createInstance(ecs_world_t * world, VkInstance &instance)
+void createInstance(ecs_world_t * world, ecs_entity_t windowe, VkInstance &instance)
 {
 	if (enableValidationLayers && !checkValidationLayerSupport(world)) {
 		throw std::runtime_error("validation layers requested, but not available!");
@@ -565,11 +569,34 @@ void createInstance(ecs_world_t * world, VkInstance &instance)
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.apiVersion = VK_API_VERSION_1_0;
 
+	{
+		ecs_entity_t r = ecs_lookup_fullpath(world, "eg.vk.layers.VK_LAYER_KHRONOS_validation");
+		ecs_add_id(world, windowe, r);
+	}
 
-	ecs_entity_t e = ecs_new(world, 0);
-	ecs_set_ptr(world, e, VkApplicationInfo, &appInfo);
-	createInstance1(world, e);
+	{
+		ecs_filter_t filter = ECS_FILTER_INIT;
+		ecs_filter_desc_t const desc = {
+		.storage = &filter,
+		.terms = {
+		{ ecs_id(EgVkExtension) },
+		{ ecs_id(EgVkRequiredExtension) }
+		}
+		};
+		ecs_filter_init(world, &desc);
+		eg_add_all_from_filter(world, windowe, &filter);
+		ecs_filter_fini(&filter);
+	}
 
+	ecs_set_ptr(world, windowe, VkApplicationInfo, &appInfo);
+
+
+	//createInstance1(world, windowe);
+
+	EgVkInstance const * ins = ecs_get(world, windowe, EgVkInstance);
+	instance = ins->instance;
+
+/*
 	VkInstanceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
@@ -594,6 +621,7 @@ void createInstance(ecs_world_t * world, VkInstance &instance)
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create instance!");
 	}
+	*/
 }
 
 
@@ -605,7 +633,8 @@ public:
 
 
 	ecs_world_t* world;
-	GLFWwindow* window;
+	//GLFWwindow* window;
+	ecs_entity_t windowe;
 
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -666,14 +695,14 @@ public:
 
 	bool framebufferResized = false;
 
-	void initWindow() {
-		glfwInit();
+	void initWindow()
+	{
+		windowe = ecs_new(world, 0);
+		ecs_add(world, windowe, EgWindow);
 
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-		window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-		glfwSetWindowUserPointer(window, this);
-		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
+		//window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+		//glfwSetWindowUserPointer(window, this);
+		//glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 	}
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
@@ -682,7 +711,7 @@ public:
 	}
 
 	void initVulkan() {
-		createInstance(world, instance);
+		createInstance(world, windowe, instance);
 		setupDebugMessenger();
 		createSurface();
 		pickPhysicalDevice();
@@ -776,18 +805,22 @@ public:
 		vkDestroySurfaceKHR(instance, surface, nullptr);
 		vkDestroyInstance(instance, nullptr);
 
-		glfwDestroyWindow(window);
+		//glfwDestroyWindow(window);
 
 		glfwTerminate();
 	}
 
-	void recreateSwapChain() {
+	void recreateSwapChain()
+	{
+		/*
+		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, windowe, EgRectangleI32);
 		int width = 0, height = 0;
 		glfwGetFramebufferSize(window, &width, &height);
 		while (width == 0 || height == 0) {
 			glfwGetFramebufferSize(window, &width, &height);
 			glfwWaitEvents();
 		}
+		*/
 
 		vkDeviceWaitIdle(device);
 
@@ -813,9 +846,10 @@ public:
 		VK_ASSERT_RESULT(result, "CreateDebugUtilsMessengerEXT");
 	}
 
-	void createSurface() {
-		VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
-		VK_ASSERT_RESULT(result, "glfwCreateWindowSurface");
+	void createSurface()
+	{
+		//VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+		//VK_ASSERT_RESULT(result, "glfwCreateWindowSurface");
 	}
 
 	void pickPhysicalDevice()
@@ -824,13 +858,13 @@ public:
 
 		ecs_filter_desc_t d =
 		{
-		  .terms = {
+		.terms = {
 		{ ecs_id(EgVkPhysicalDevice) },
 		{ ecs_id(Eg_PhysicalDeviceSurfaceSupportKHR) },
 		//{ VkExtensionSwapchain },
 		{ ecs_id(Eg_VK_QUEUE_GRAPHICS_BIT) },
 		{ ecs_id(Eg_samplerAnisotropy) }
-		  }
+		}
 		};
 		ecs_filter_t *f = ecs_filter_init(world, &d);
 		EgVkPhysicalDevice const * p = (EgVkPhysicalDevice const *) eg_get_first_from_filter(world, f);
@@ -1654,9 +1688,10 @@ public:
 		}
 		else
 		{
-			int width, height;
-			glfwGetFramebufferSize(window, &width, &height);
-			VkExtent2D actualExtent = {(uint32_t)width, (uint32_t)height};
+			//int width, height;
+			//glfwGetFramebufferSize(window, &width, &height);
+			EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, windowe, EgRectangleI32);
+			VkExtent2D actualExtent = {(uint32_t)r->width, (uint32_t)r->height};
 			actualExtent.width = VKE_CLAMP(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
 			actualExtent.height = VKE_CLAMP(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 			return actualExtent;
@@ -1732,9 +1767,13 @@ HelloTriangleApplication app;
 void renderer_init()
 {
 	app.world = ecs_init();
+	ECS_IMPORT(app.world, EgWindows);
+	ECS_IMPORT(app.world, EgGeometries);
+	ECS_IMPORT(app.world, EgPlatform);
 	ECS_IMPORT(app.world, EgTypes);
 	ECS_IMPORT(app.world, EgVk);
 	ECS_IMPORT(app.world, EgVkLayers);
+	ECS_IMPORT(app.world, EgVkExtensions);
 	ECS_IMPORT(app.world, EgVkSystems);
 
 	try
@@ -1765,6 +1804,6 @@ int renderer_update()
 	glfwPollEvents();
 	app.drawFrame();
 	vkDeviceWaitIdle(app.device);
-	int r = glfwWindowShouldClose(app.window);
-	return r;
+	//int r = glfwWindowShouldClose(app.window);
+	//return r;
 }

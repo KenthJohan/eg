@@ -49,21 +49,23 @@ void EgWindowsImport(ecs_world_t *world)
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
-	.entity.entity = ecs_id(EgTitle),
+	.entity = ecs_entity(world, {.id = ecs_id(EgTitle)}),
 	.members = {
 	{ .name = "value", .type = ecs_id(ecs_string_t) }
 	}
 	});
 
 	ecs_struct_init(world, &(ecs_struct_desc_t) {
-	.entity.entity = ecs_id(EgWindow),
+	.entity = ecs_entity(world, {.id = ecs_id(EgWindow)}),
 	.members = {
 	{ .name = "flags", .type = ecs_id(ecs_u64_t) },
 	{ .name = "counter", .type = ecs_id(ecs_u64_t) },
 	{ .name = "should_destroy", .type = ecs_id(ecs_bool_t) },
+	{ .name = "should_recreate_swapchain", .type = ecs_id(ecs_bool_t) },
 	}
 	});
 
 	
 }
+
 

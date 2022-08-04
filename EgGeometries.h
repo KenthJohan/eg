@@ -1,6 +1,11 @@
 #pragma once
 #include "flecs.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 
 
 typedef struct
@@ -34,3 +39,8 @@ extern ECS_DECLARE(EgPrimitiveRectangle);
 
 
 void EgGeometriesImport(ecs_world_t *world);
+
+
+#ifdef __cplusplus
+}
+#endif

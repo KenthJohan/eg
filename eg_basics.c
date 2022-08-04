@@ -1,5 +1,7 @@
 #include "eg_basics.h"
 #include <stdint.h>
+#include <stdio.h>
+#include <stdint.h>
 
 #ifdef _WIN32
 //#include <windows.h>
@@ -25,4 +27,49 @@ void eg_basics_enable_ternminal_color()
 	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	SetConsoleMode(hOut, dwMode);
 #endif
+}
+
+void eg_soft_assert(char const * file, int line, char const * e)
+{
+	fprintf(stderr, "%s:%i: %s\n", file, line, e);
+}
+
+void eg_iter_info(ecs_iter_t *it, const char *fname, const char *file, int32_t line)
+{
+	ecs_world_t * world = it->world;
+	for (int i = 0; i < it->count; i ++)
+	{
+		ecs_entity_t e = it->entities[i];
+		if (ecs_is_valid(world, e))
+		{
+			char const * name = ecs_get_name(world, e);
+			ecs_type_t const * type = ecs_get_type(world, e);
+			char const * typestr = ecs_type_str(world, type);
+			fprintf(stdout,
+			ECS_YELLOW "EG %s:%i:" ECS_CYAN "%s()"ECS_NORMAL": 0x%08llx: name=%s, type=(%s)\n",
+			file, line, fname, e, name, typestr
+			);
+		}
+		else
+		{
+			fprintf(stdout,
+			ECS_YELLOW "EG %s:%i:" ECS_CYAN "%s()"ECS_NORMAL": 0x%08llx: invalid\n",
+			file, line, fname, e);
+		}
+
+	}
+}
+
+
+void eg_trace(const char *file, int32_t line, const char *fmt, ...)
+{
+	char buf[1024];
+	char * p = buf;
+	va_list args;
+	va_start(args, fmt);
+	p += snprintf(p, 512, ECS_YELLOW "EG %s:%i " ECS_NORMAL, file, line);
+	vsnprintf(p, 512, fmt, args);
+	fputs(buf, stdout);
+	fputc('\n', stdout);
+	va_end(args);
 }

@@ -132,62 +132,61 @@ void populate_VkPhysicalDevice(ecs_world_t * world, VkInstance instance, VkSurfa
 		VkPhysicalDeviceFeatures supportedFeatures;
 		vkGetPhysicalDeviceFeatures(devices[i], &supportedFeatures);
 
-		if(supportedFeatures.robustBufferAccess)                             {ecs_add(world, r, Eg_robustBufferAccess                        );}
-		if(supportedFeatures.fullDrawIndexUint32)                            {ecs_add(world, r, Eg_fullDrawIndexUint32                       );}
-		if(supportedFeatures.imageCubeArray)                                 {ecs_add(world, r, Eg_imageCubeArray                            );}
-		if(supportedFeatures.independentBlend)                               {ecs_add(world, r, Eg_independentBlend                          );}
-		if(supportedFeatures.geometryShader)                                 {ecs_add(world, r, Eg_geometryShader                            );}
-		if(supportedFeatures.tessellationShader)                             {ecs_add(world, r, Eg_tessellationShader                        );}
-		if(supportedFeatures.sampleRateShading)                              {ecs_add(world, r, Eg_sampleRateShading                         );}
-		if(supportedFeatures.dualSrcBlend)                                   {ecs_add(world, r, Eg_dualSrcBlend                              );}
-		if(supportedFeatures.logicOp)                                        {ecs_add(world, r, Eg_logicOp                                   );}
-		if(supportedFeatures.multiDrawIndirect)                              {ecs_add(world, r, Eg_multiDrawIndirect                         );}
-		if(supportedFeatures.drawIndirectFirstInstance)                      {ecs_add(world, r, Eg_drawIndirectFirstInstance                 );}
-		if(supportedFeatures.depthClamp)                                     {ecs_add(world, r, Eg_depthClamp                                );}
-		if(supportedFeatures.depthBiasClamp)                                 {ecs_add(world, r, Eg_depthBiasClamp                            );}
-		if(supportedFeatures.fillModeNonSolid)                               {ecs_add(world, r, Eg_fillModeNonSolid                          );}
-		if(supportedFeatures.depthBounds)                                    {ecs_add(world, r, Eg_depthBounds                               );}
-		if(supportedFeatures.wideLines)                                      {ecs_add(world, r, Eg_wideLines                                 );}
-		if(supportedFeatures.largePoints)                                    {ecs_add(world, r, Eg_largePoints                               );}
-		if(supportedFeatures.alphaToOne)                                     {ecs_add(world, r, Eg_alphaToOne                                );}
-		if(supportedFeatures.multiViewport)                                  {ecs_add(world, r, Eg_multiViewport                             );}
-		if(supportedFeatures.samplerAnisotropy)                              {ecs_add(world, r, Eg_samplerAnisotropy                         );}
-		if(supportedFeatures.textureCompressionETC2)                         {ecs_add(world, r, Eg_textureCompressionETC2                    );}
-		if(supportedFeatures.textureCompressionASTC_LDR)                     {ecs_add(world, r, Eg_textureCompressionASTC_LDR                );}
-		if(supportedFeatures.textureCompressionBC)                           {ecs_add(world, r, Eg_textureCompressionBC                      );}
-		if(supportedFeatures.occlusionQueryPrecise)                          {ecs_add(world, r, Eg_occlusionQueryPrecise                     );}
-		if(supportedFeatures.pipelineStatisticsQuery)                        {ecs_add(world, r, Eg_pipelineStatisticsQuery                   );}
-		if(supportedFeatures.vertexPipelineStoresAndAtomics)                 {ecs_add(world, r, Eg_vertexPipelineStoresAndAtomics            );}
-		if(supportedFeatures.fragmentStoresAndAtomics)                       {ecs_add(world, r, Eg_fragmentStoresAndAtomics                  );}
-		if(supportedFeatures.shaderTessellationAndGeometryPointSize)         {ecs_add(world, r, Eg_shaderTessellationAndGeometryPointSize    );}
-		if(supportedFeatures.shaderImageGatherExtended)                      {ecs_add(world, r, Eg_shaderImageGatherExtended                 );}
-		if(supportedFeatures.shaderStorageImageExtendedFormats)              {ecs_add(world, r, Eg_shaderStorageImageExtendedFormats         );}
-		if(supportedFeatures.shaderStorageImageMultisample)                  {ecs_add(world, r, Eg_shaderStorageImageMultisample             );}
-		if(supportedFeatures.shaderStorageImageReadWithoutFormat)            {ecs_add(world, r, Eg_shaderStorageImageReadWithoutFormat       );}
-		if(supportedFeatures.shaderStorageImageWriteWithoutFormat)           {ecs_add(world, r, Eg_shaderStorageImageWriteWithoutFormat      );}
-		if(supportedFeatures.shaderUniformBufferArrayDynamicIndexing)        {ecs_add(world, r, Eg_shaderUniformBufferArrayDynamicIndexing   );}
-		if(supportedFeatures.shaderSampledImageArrayDynamicIndexing)         {ecs_add(world, r, Eg_shaderSampledImageArrayDynamicIndexing    );}
-		if(supportedFeatures.shaderStorageBufferArrayDynamicIndexing)        {ecs_add(world, r, Eg_shaderStorageBufferArrayDynamicIndexing   );}
-		if(supportedFeatures.shaderStorageImageArrayDynamicIndexing)         {ecs_add(world, r, Eg_shaderStorageImageArrayDynamicIndexing    );}
-		if(supportedFeatures.shaderClipDistance)                             {ecs_add(world, r, Eg_shaderClipDistance                        );}
-		if(supportedFeatures.shaderCullDistance)                             {ecs_add(world, r, Eg_shaderCullDistance                        );}
-		if(supportedFeatures.shaderFloat64)                                  {ecs_add(world, r, Eg_shaderFloat64                             );}
-		if(supportedFeatures.shaderInt64)                                    {ecs_add(world, r, Eg_shaderInt64                               );}
-		if(supportedFeatures.shaderInt16)                                    {ecs_add(world, r, Eg_shaderInt16                               );}
-		if(supportedFeatures.shaderResourceResidency)                        {ecs_add(world, r, Eg_shaderResourceResidency                   );}
-		if(supportedFeatures.shaderResourceMinLod)                           {ecs_add(world, r, Eg_shaderResourceMinLod                      );}
-		if(supportedFeatures.sparseBinding)                                  {ecs_add(world, r, Eg_sparseBinding                             );}
-		if(supportedFeatures.sparseResidencyBuffer)                          {ecs_add(world, r, Eg_sparseResidencyBuffer                     );}
-		if(supportedFeatures.sparseResidencyImage2D)                         {ecs_add(world, r, Eg_sparseResidencyImage2D                    );}
-		if(supportedFeatures.sparseResidencyImage3D)                         {ecs_add(world, r, Eg_sparseResidencyImage3D                    );}
-		if(supportedFeatures.sparseResidency2Samples)                        {ecs_add(world, r, Eg_sparseResidency2Samples                   );}
-		if(supportedFeatures.sparseResidency4Samples)                        {ecs_add(world, r, Eg_sparseResidency4Samples                   );}
-		if(supportedFeatures.sparseResidency8Samples)                        {ecs_add(world, r, Eg_sparseResidency8Samples                   );}
-		if(supportedFeatures.sparseResidency16Samples)                       {ecs_add(world, r, Eg_sparseResidency16Samples                  );}
-		if(supportedFeatures.sparseResidencyAliased)                         {ecs_add(world, r, Eg_sparseResidencyAliased                    );}
-		if(supportedFeatures.variableMultisampleRate)                        {ecs_add(world, r, Eg_variableMultisampleRate                   );}
-		if(supportedFeatures.inheritedQueries)                               {ecs_add(world, r, Eg_inheritedQueries                          );}
-
+		if(supportedFeatures.robustBufferAccess)                      {ecs_add(world, r, Eg_robustBufferAccess                        );}
+		if(supportedFeatures.fullDrawIndexUint32)                     {ecs_add(world, r, Eg_fullDrawIndexUint32                       );}
+		if(supportedFeatures.imageCubeArray)                          {ecs_add(world, r, Eg_imageCubeArray                            );}
+		if(supportedFeatures.independentBlend)                        {ecs_add(world, r, Eg_independentBlend                          );}
+		if(supportedFeatures.geometryShader)                          {ecs_add(world, r, Eg_geometryShader                            );}
+		if(supportedFeatures.tessellationShader)                      {ecs_add(world, r, Eg_tessellationShader                        );}
+		if(supportedFeatures.sampleRateShading)                       {ecs_add(world, r, Eg_sampleRateShading                         );}
+		if(supportedFeatures.dualSrcBlend)                            {ecs_add(world, r, Eg_dualSrcBlend                              );}
+		if(supportedFeatures.logicOp)                                 {ecs_add(world, r, Eg_logicOp                                   );}
+		if(supportedFeatures.multiDrawIndirect)                       {ecs_add(world, r, Eg_multiDrawIndirect                         );}
+		if(supportedFeatures.drawIndirectFirstInstance)               {ecs_add(world, r, Eg_drawIndirectFirstInstance                 );}
+		if(supportedFeatures.depthClamp)                              {ecs_add(world, r, Eg_depthClamp                                );}
+		if(supportedFeatures.depthBiasClamp)                          {ecs_add(world, r, Eg_depthBiasClamp                            );}
+		if(supportedFeatures.fillModeNonSolid)                        {ecs_add(world, r, Eg_fillModeNonSolid                          );}
+		if(supportedFeatures.depthBounds)                             {ecs_add(world, r, Eg_depthBounds                               );}
+		if(supportedFeatures.wideLines)                               {ecs_add(world, r, Eg_wideLines                                 );}
+		if(supportedFeatures.largePoints)                             {ecs_add(world, r, Eg_largePoints                               );}
+		if(supportedFeatures.alphaToOne)                              {ecs_add(world, r, Eg_alphaToOne                                );}
+		if(supportedFeatures.multiViewport)                           {ecs_add(world, r, Eg_multiViewport                             );}
+		if(supportedFeatures.samplerAnisotropy)                       {ecs_add(world, r, Eg_samplerAnisotropy                         );}
+		if(supportedFeatures.textureCompressionETC2)                  {ecs_add(world, r, Eg_textureCompressionETC2                    );}
+		if(supportedFeatures.textureCompressionASTC_LDR)              {ecs_add(world, r, Eg_textureCompressionASTC_LDR                );}
+		if(supportedFeatures.textureCompressionBC)                    {ecs_add(world, r, Eg_textureCompressionBC                      );}
+		if(supportedFeatures.occlusionQueryPrecise)                   {ecs_add(world, r, Eg_occlusionQueryPrecise                     );}
+		if(supportedFeatures.pipelineStatisticsQuery)                 {ecs_add(world, r, Eg_pipelineStatisticsQuery                   );}
+		if(supportedFeatures.vertexPipelineStoresAndAtomics)          {ecs_add(world, r, Eg_vertexPipelineStoresAndAtomics            );}
+		if(supportedFeatures.fragmentStoresAndAtomics)                {ecs_add(world, r, Eg_fragmentStoresAndAtomics                  );}
+		if(supportedFeatures.shaderTessellationAndGeometryPointSize)  {ecs_add(world, r, Eg_shaderTessellationAndGeometryPointSize    );}
+		if(supportedFeatures.shaderImageGatherExtended)               {ecs_add(world, r, Eg_shaderImageGatherExtended                 );}
+		if(supportedFeatures.shaderStorageImageExtendedFormats)       {ecs_add(world, r, Eg_shaderStorageImageExtendedFormats         );}
+		if(supportedFeatures.shaderStorageImageMultisample)           {ecs_add(world, r, Eg_shaderStorageImageMultisample             );}
+		if(supportedFeatures.shaderStorageImageReadWithoutFormat)     {ecs_add(world, r, Eg_shaderStorageImageReadWithoutFormat       );}
+		if(supportedFeatures.shaderStorageImageWriteWithoutFormat)    {ecs_add(world, r, Eg_shaderStorageImageWriteWithoutFormat      );}
+		if(supportedFeatures.shaderUniformBufferArrayDynamicIndexing) {ecs_add(world, r, Eg_shaderUniformBufferArrayDynamicIndexing   );}
+		if(supportedFeatures.shaderSampledImageArrayDynamicIndexing)  {ecs_add(world, r, Eg_shaderSampledImageArrayDynamicIndexing    );}
+		if(supportedFeatures.shaderStorageBufferArrayDynamicIndexing) {ecs_add(world, r, Eg_shaderStorageBufferArrayDynamicIndexing   );}
+		if(supportedFeatures.shaderStorageImageArrayDynamicIndexing)  {ecs_add(world, r, Eg_shaderStorageImageArrayDynamicIndexing    );}
+		if(supportedFeatures.shaderClipDistance)                      {ecs_add(world, r, Eg_shaderClipDistance                        );}
+		if(supportedFeatures.shaderCullDistance)                      {ecs_add(world, r, Eg_shaderCullDistance                        );}
+		if(supportedFeatures.shaderFloat64)                           {ecs_add(world, r, Eg_shaderFloat64                             );}
+		if(supportedFeatures.shaderInt64)                             {ecs_add(world, r, Eg_shaderInt64                               );}
+		if(supportedFeatures.shaderInt16)                             {ecs_add(world, r, Eg_shaderInt16                               );}
+		if(supportedFeatures.shaderResourceResidency)                 {ecs_add(world, r, Eg_shaderResourceResidency                   );}
+		if(supportedFeatures.shaderResourceMinLod)                    {ecs_add(world, r, Eg_shaderResourceMinLod                      );}
+		if(supportedFeatures.sparseBinding)                           {ecs_add(world, r, Eg_sparseBinding                             );}
+		if(supportedFeatures.sparseResidencyBuffer)                   {ecs_add(world, r, Eg_sparseResidencyBuffer                     );}
+		if(supportedFeatures.sparseResidencyImage2D)                  {ecs_add(world, r, Eg_sparseResidencyImage2D                    );}
+		if(supportedFeatures.sparseResidencyImage3D)                  {ecs_add(world, r, Eg_sparseResidencyImage3D                    );}
+		if(supportedFeatures.sparseResidency2Samples)                 {ecs_add(world, r, Eg_sparseResidency2Samples                   );}
+		if(supportedFeatures.sparseResidency4Samples)                 {ecs_add(world, r, Eg_sparseResidency4Samples                   );}
+		if(supportedFeatures.sparseResidency8Samples)                 {ecs_add(world, r, Eg_sparseResidency8Samples                   );}
+		if(supportedFeatures.sparseResidency16Samples)                {ecs_add(world, r, Eg_sparseResidency16Samples                  );}
+		if(supportedFeatures.sparseResidencyAliased)                  {ecs_add(world, r, Eg_sparseResidencyAliased                    );}
+		if(supportedFeatures.variableMultisampleRate)                 {ecs_add(world, r, Eg_variableMultisampleRate                   );}
+		if(supportedFeatures.inheritedQueries)                        {ecs_add(world, r, Eg_inheritedQueries                          );}
 	}
 	ecs_os_free(devices);
 }
@@ -212,24 +211,50 @@ std::vector<const char*> getRequiredExtensions()
 */
 
 
+static void System_createInstance1(ecs_iter_t *it)
+{
+	ecs_world_t * world = it->world;
 
+	VkApplicationInfo *field_app = ecs_field(it, VkApplicationInfo, 1);
+	for (int i = 0; i < it->count; i ++)
+	{
+		ecs_entity_t e = it->entities[i];
+		ecs_doc_set_name(world, e, field_app[i].pApplicationName);
+
+
+
+		{
+			ecs_filter_t f = ECS_FILTER_INIT;
+			ecs_filter_init(world, &(ecs_filter_desc_t){
+			.storage = &f,
+			.terms = {
+			{ ecs_id(EgVkExtension) },
+			{ ecs_id(VkApplicationInfo), .src.id = e }
+			}
+			});
+			char const ** names = get_entity_names_from_filter(world, &f);
+			ecs_filter_fini(&f);
+		}
+
+	}
+}
 
 
 void createInstance1(ecs_world_t * world, ecs_entity_t e)
 {
 	VkApplicationInfo const * app = ecs_get(world, e, VkApplicationInfo);
-	ecs_doc_set_name(world, e, app->pApplicationName);
-	platform_get_required_extension_names(world, e);
-	ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t)
-	{
-	.name = VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-	.add = {EgVkExtension}
-	});
-	ecs_add_id(world, e, r);
 
 
 
 
+
+
+
+
+	while(1){ecs_progress(world, 0);};
+
+
+	/*
 	ecs_filter_t f = ECS_FILTER_INIT;
 	ecs_filter_init(world, &(ecs_filter_desc_t){
 	.storage = &f,
@@ -240,6 +265,7 @@ void createInstance1(ecs_world_t * world, ecs_entity_t e)
 	});
 	char const ** names = get_entity_names_from_filter(world, &f);
 	ecs_filter_fini(&f);
+	*/
 
 	VkInstanceCreateInfo create = {};
 	create.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -282,11 +308,22 @@ void createInstance1(ecs_world_t * world, ecs_entity_t e)
 
 
 	//ecs_os_free(names);
+
+	VkInstance instance;
+	vkCreateInstance(&create, NULL, &instance);
+	ecs_set(world, e, EgVkInstance, {instance});
+
 }
 
 
 
+static void System_Init(ecs_iter_t *it)
+{
+	for (int i = 0; i < it->count; i ++)
+	{
 
+	}
+}
 
 
 
@@ -297,6 +334,10 @@ void EgVkSystemsImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgVkPhysicaldevicefeatures);
 	ECS_IMPORT(world, EgTypes);
 	ecs_set_name_prefix(world, "EgVk");
+
+
+
+	ECS_OBSERVER(world, System_createInstance1, EcsOnSet, VkApplicationInfo);
 }
 
 

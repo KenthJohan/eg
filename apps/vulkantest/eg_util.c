@@ -35,3 +35,20 @@ void const * eg_get_first_from_filter(ecs_world_t * world, ecs_filter_t *f)
 	}
 	return NULL;
 }
+
+
+void eg_add_all_from_filter(ecs_world_t * world, ecs_entity_t e, ecs_filter_t *f)
+{
+	ecs_iter_t it = ecs_filter_iter(world, f);
+	while (ecs_filter_next(&it))
+	{
+		if (it.count <= 0) {return;}
+		if (it.ptrs == NULL) {return;}
+		for (int32_t i = 0; i < it.count; i ++)
+		{
+			ecs_entity_t a = it.entities[i];
+			ecs_add_id(world, e, a);
+		}
+	}
+	return;
+}

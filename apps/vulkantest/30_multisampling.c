@@ -1,6 +1,7 @@
 #include "flecs.h"
 #include "renderer.h"
 
+#include "EgWindows.h"
 
 int main()
 {
