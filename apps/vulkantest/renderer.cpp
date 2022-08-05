@@ -40,6 +40,7 @@
 #include "EgVkLayers.h"
 #include "EgVkPhysicaldevicefeatures.h"
 #include "EgVkInstanceExtensions.h"
+#include "EgVkDeviceExtensions.h"
 #include "EgTypes.h"
 #include "EgWindows.h"
 #include "EgGeometries.h"
@@ -809,7 +810,7 @@ public:
 		{ ecs_id(Eg_PhysicalDeviceSurfaceSupportKHR) },
 		//{ VkExtensionSwapchain },
 		{ ecs_id(Eg_VK_QUEUE_GRAPHICS_BIT) },
-		{ ecs_id(Eg_samplerAnisotropy) }
+		{ ecs_id(EgVkPhysicalDeviceFeature_samplerAnisotropy) }
 		}
 		};
 		ecs_filter_t *f = ecs_filter_init(world, &d);
@@ -1725,6 +1726,7 @@ void renderer_init()
 	ECS_IMPORT(app.world, EgTypes);
 	ECS_IMPORT(app.world, EgVkLayers);
 	ECS_IMPORT(app.world, EgVkInstanceExtensions);
+	ECS_IMPORT(app.world, EgVkDeviceExtensions);
 	ECS_IMPORT(app.world, EgVkSystems);
 
 	try

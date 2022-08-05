@@ -16,6 +16,9 @@ static void Observer_Populate_Required_Extensions(ecs_iter_t *it)
 	ecs_set_scope(it->world, prev_scope);
 }
 
+
+
+
 void EgVkInstanceExtensionsImport(ecs_world_t *world)
 {
 	ECS_MODULE_DEFINE(world, EgVkInstanceExtensions);
@@ -43,7 +46,7 @@ void EgVkInstanceExtensionsImport(ecs_world_t *world)
 			char const * name = items[i].extensionName;
 			ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t){
 			.name = name,
-			.add = {EgVkExtension}
+			.add = {EgVkExtension, EgVkInstanceExtension}
 			});
 			//printf("extensionName %s (%lx)\n", name, r);
 			ecs_set(world, r, EgVkExtensionProperties, {items[i].specVersion});
@@ -55,7 +58,7 @@ void EgVkInstanceExtensionsImport(ecs_world_t *world)
 		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t)
 		{
 		.name = VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-		.add = {EgVkExtension}
+		.add = {EgVkExtension, EgVkInstanceExtension}
 		});
 	}
 

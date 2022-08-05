@@ -30,7 +30,7 @@ void platform_populate_required_extension_names(ecs_world_t * world)
 		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t)
 		{
 		.name = name,
-		.add = {EgVkExtension, EgVkRequiredExtension}
+		.add = {EgVkExtension, EgVkInstanceExtension, EgVkRequiredExtension}
 		});
 	}
 }
