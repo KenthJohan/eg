@@ -1,10 +1,11 @@
 #include "platform.h"
 #include "flecs.h"
 #include "EgTypes.h"
-#include "EgVk_types.h"
+#include "EgVk.h"
 #include "vk_assert.h"
 #include "EgGeometries.h"
 #include "EgWindows.h"
+#include "EgVkInstances.h"
 #include "eg_basics.h"
 #include <GLFW/glfw3.h>
 #include <stdio.h>
@@ -131,6 +132,7 @@ void EgPlatformImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgPlatform);
 	ECS_IMPORT(world, EgVk);
+	ECS_IMPORT(world, EgVkInstances);
 	ECS_IMPORT(world, EgGeometries);
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgTypes);

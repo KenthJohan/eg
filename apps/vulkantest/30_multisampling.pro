@@ -26,13 +26,14 @@ SOURCES += readfile.c
 SOURCES += load_model.cpp
 SOURCES += ../../flecs.c
 SOURCES += EgTypes.c
-SOURCES += EgVk_types.c
+SOURCES += EgVk.c
 SOURCES += EgVk_systems.c
 SOURCES += platform_glfw.c
 SOURCES += eg_util.c
 SOURCES += EgVkPhysicaldevicefeatures.c
 SOURCES += EgVkLayers.c
-SOURCES += EgVkExtensions.c
+SOURCES += EgVkInstanceExtensions.c
+SOURCES += EgVkInstances.c
 SOURCES += renderer.cpp
 
 INCLUDEPATH += C:/VulkanSDK/1.3.216.0/Include

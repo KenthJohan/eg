@@ -2,9 +2,24 @@
 #include "renderer.h"
 
 #include "EgWindows.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+void myabort()
+{
+	printf("myabort\n");
+	abort();
+}
+
 
 int main()
 {
+	ecs_os_set_api_defaults();
+	ecs_os_api_t os_api = ecs_os_api;
+	os_api.abort_ = myabort;
+	ecs_os_set_api(&os_api);
+
+
 	ecs_world_t * world = ecs_init();
 
 	renderer_init();

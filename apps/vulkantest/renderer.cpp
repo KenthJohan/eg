@@ -35,14 +35,15 @@
 #include "types.h"
 #include "load_model.h"
 
-#include "EgVk_types.h"
+#include "EgVk.h"
 #include "EgVk_systems.h"
 #include "EgVkLayers.h"
 #include "EgVkPhysicaldevicefeatures.h"
-#include "EgVkExtensions.h"
+#include "EgVkInstanceExtensions.h"
 #include "EgTypes.h"
 #include "EgWindows.h"
 #include "EgGeometries.h"
+#include "EgVkInstances.h"
 #include "platform.h"
 #include "eg_util.h"
 #include "../../eg_basics.h"
@@ -576,7 +577,7 @@ public:
 
 	ecs_world_t* world;
 	//GLFWwindow* window;
-	ecs_entity_t windowe;
+	ecs_entity_t entity_instance;
 
 	VkInstance instance;
 	VkDebugUtilsMessengerEXT debugMessenger;
@@ -639,8 +640,9 @@ public:
 
 	void initWindow()
 	{
-		windowe = ecs_new(world, 0);
-		ecs_add(world, windowe, EgWindow);
+		entity_instance = ecs_new(world, 0);
+		ecs_add_pair(world, entity_instance, EcsChildOf, ecs_id(EgVkInstances));
+		ecs_add(world, entity_instance, EgWindow);
 
 		//window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 		//glfwSetWindowUserPointer(window, this);
@@ -653,7 +655,7 @@ public:
 	}
 
 	void initVulkan() {
-		createInstance(world, windowe, instance);
+		createInstance(world, entity_instance, instance);
 		setupDebugMessenger();
 		createSurface();
 		pickPhysicalDevice();
@@ -791,14 +793,14 @@ public:
 
 	void createSurface()
 	{
-		surface = ecs_get(world, windowe, EgVkSurfaceKHR)->surface;
+		surface = ecs_get(world, entity_instance, EgVkSurfaceKHR)->surface;
 		//VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
 		//VK_ASSERT_RESULT(result, "glfwCreateWindowSurface");
 	}
 
 	void pickPhysicalDevice()
 	{
-		populate_VkPhysicalDevice(world, instance, surface);
+		populate_VkPhysicalDevice(world, entity_instance, surface);
 
 		ecs_filter_desc_t d =
 		{
@@ -1634,7 +1636,7 @@ public:
 		{
 			//int width, height;
 			//glfwGetFramebufferSize(window, &width, &height);
-			EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, windowe, EgRectangleI32);
+			EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
 			VkExtent2D actualExtent = {(uint32_t)r->width, (uint32_t)r->height};
 			actualExtent.width = VKE_CLAMP(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
 			actualExtent.height = VKE_CLAMP(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
@@ -1708,16 +1710,21 @@ public:
 
 HelloTriangleApplication app;
 
+
+
 void renderer_init()
 {
+
+
 	app.world = ecs_init();
 	ECS_IMPORT(app.world, EgWindows);
 	ECS_IMPORT(app.world, EgGeometries);
+	ECS_IMPORT(app.world, EgVk);
+	ECS_IMPORT(app.world, EgVkInstances);
 	ECS_IMPORT(app.world, EgPlatform);
 	ECS_IMPORT(app.world, EgTypes);
-	ECS_IMPORT(app.world, EgVk);
 	ECS_IMPORT(app.world, EgVkLayers);
-	ECS_IMPORT(app.world, EgVkExtensions);
+	ECS_IMPORT(app.world, EgVkInstanceExtensions);
 	ECS_IMPORT(app.world, EgVkSystems);
 
 	try

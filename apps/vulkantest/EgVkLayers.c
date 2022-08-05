@@ -1,5 +1,5 @@
 #include "EgVkLayers.h"
-#include "EgVk_types.h"
+#include "EgVk.h"
 #include "EgTypes.h"
 #include <stdio.h>
 

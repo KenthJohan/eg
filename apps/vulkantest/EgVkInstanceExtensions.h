@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-void EgVkExtensionsImport(ecs_world_t *world);
+void EgVkInstanceExtensionsImport(ecs_world_t *world);
 
 
 #ifdef __cplusplus

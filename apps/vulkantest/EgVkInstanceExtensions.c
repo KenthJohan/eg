@@ -1,24 +1,24 @@
-#include "EgVkExtensions.h"
-#include "EgVk_types.h"
+#include "EgVkInstanceExtensions.h"
+#include "EgVk.h"
 #include "EgTypes.h"
 #include "platform.h"
 #include "EgWindows.h"
 #include <stdio.h>
 
 
-ECS_COMPONENT_DECLARE(EgVkExtensions);
+ECS_COMPONENT_DECLARE(EgVkInstanceExtensions);
 
 static void Observer_Populate_Required_Extensions(ecs_iter_t *it)
 {
-	ecs_entity_t prev_scope = ecs_set_scope(it->world, ecs_id(EgVkExtensions));
+	ecs_entity_t prev_scope = ecs_set_scope(it->world, ecs_id(EgVkInstanceExtensions));
 	//TODO: Should this be called here?
 	platform_populate_required_extension_names(it->world);
 	ecs_set_scope(it->world, prev_scope);
 }
 
-void EgVkExtensionsImport(ecs_world_t *world)
+void EgVkInstanceExtensionsImport(ecs_world_t *world)
 {
-	ECS_MODULE_DEFINE(world, EgVkExtensions);
+	ECS_MODULE_DEFINE(world, EgVkInstanceExtensions);
 	ECS_IMPORT(world, EgPlatform);
 	ECS_IMPORT(world, EgVk);
 	ECS_IMPORT(world, EgTypes);
