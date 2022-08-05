@@ -34,6 +34,7 @@ SOURCES += EgVkPhysicaldevicefeatures.c
 SOURCES += EgVkLayers.c
 SOURCES += EgVkInstanceExtensions.c
 SOURCES += EgVkDeviceExtensions.c
+SOURCES += EgVkQueueFamilies.c
 SOURCES += EgVkInstances.c
 SOURCES += renderer.cpp
 

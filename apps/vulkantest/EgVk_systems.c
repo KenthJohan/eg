@@ -52,39 +52,6 @@ void populate_VkPresentModeKHR(ecs_world_t * world, ecs_entity_t parent, VkPhysi
 
 
 
-void populate_VkQueueFamilyProperties(ecs_world_t * world, ecs_entity_t parent, VkPhysicalDevice device, VkSurfaceKHR surface)
-{
-	uint32_t count = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &count, NULL);
-	VkQueueFamilyProperties * items = ecs_os_malloc_n(VkQueueFamilyProperties, count);
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &count, items);
-	for (uint32_t i = 0; i < count; ++i)
-	{
-		char name[100];
-		snprintf(name, 100, "qf%i", i);
-		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t)
-		{
-		.name = name
-		});
-		ecs_add_pair(world, r, EcsChildOf, parent);
-		//ecs_doc_set_name(world, r, "QueueFamily");
-		ecs_set_ptr(world, r, EgVkQueueFamilyProperties, items + i);
-		ecs_set(world, r, EgIndex, {i});
-		if (items[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
-		{
-			ecs_add(world, parent, Eg_VK_QUEUE_GRAPHICS_BIT);
-			ecs_add(world, r, Eg_VK_QUEUE_GRAPHICS_BIT);
-		}
-		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-		if (presentSupport)
-		{
-			ecs_add(world, parent, Eg_PhysicalDeviceSurfaceSupportKHR);
-			ecs_add(world, r, Eg_PhysicalDeviceSurfaceSupportKHR);
-		}
-	}
-	ecs_os_free(items);
-}
 
 
 
@@ -111,8 +78,10 @@ void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkSurfa
 		ecs_set(world, r, EgVkPhysicalDevice, {devices[i]});
 		ecs_set_ptr(world, r, EgVkPhysicalDeviceProperties, &props);
 		ecs_doc_set_name(world, r, props.deviceName);
+
+
+
 		populate_VkQueueFamilyProperties(world, r, devices[i], surface);
-		//populate_VkExtensionProperties(world, r, devices[i]);
 		populate_VkSurfaceFormatKHR(world, r, devices[i], surface);
 		populate_VkPresentModeKHR(world, r, devices[i], surface);
 

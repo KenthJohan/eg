@@ -41,6 +41,7 @@
 #include "EgVkPhysicaldevicefeatures.h"
 #include "EgVkInstanceExtensions.h"
 #include "EgVkDeviceExtensions.h"
+#include "EgVkQueueFamilies.h"
 #include "EgTypes.h"
 #include "EgWindows.h"
 #include "EgGeometries.h"
@@ -1725,6 +1726,7 @@ void renderer_init()
 	ECS_IMPORT(app.world, EgPlatform);
 	ECS_IMPORT(app.world, EgTypes);
 	ECS_IMPORT(app.world, EgVkLayers);
+	ECS_IMPORT(app.world, EgVkQueueFamilies);
 	ECS_IMPORT(app.world, EgVkInstanceExtensions);
 	ECS_IMPORT(app.world, EgVkDeviceExtensions);
 	ECS_IMPORT(app.world, EgVkSystems);
