@@ -1,13 +1,13 @@
 #include "eg_util.h"
 
 
-char const ** get_entity_names_from_filter(ecs_world_t * world, ecs_filter_t *f)
+char const ** get_entity_names_from_filter(ecs_world_t * world, ecs_filter_t *f, int32_t *count)
 {
 	ecs_iter_t it;
 	it = ecs_filter_iter(world, f);
-	int32_t n = ecs_iter_count(&it);
+	(*count) = ecs_iter_count(&it);
 	it = ecs_filter_iter(world, f);
-	char const ** r = ecs_os_malloc_n(char const*, n+1);
+	char const ** r = ecs_os_malloc_n(char const*, (*count)+1);
 	int32_t j = 0;
 	while (ecs_filter_next(&it))
 	{

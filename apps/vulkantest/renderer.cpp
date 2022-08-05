@@ -560,68 +560,13 @@ void createInstance(ecs_world_t * world, ecs_entity_t windowe, VkInstance &insta
 		throw std::runtime_error("validation layers requested, but not available!");
 	}
 
-
-	VkApplicationInfo appInfo{};
-	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "Hello Triangle";
-	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.pEngineName = "No Engine";
-	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	appInfo.apiVersion = VK_API_VERSION_1_0;
-
-	{
-		ecs_entity_t r = ecs_lookup_fullpath(world, "eg.vk.layers.VK_LAYER_KHRONOS_validation");
-		ecs_add_id(world, windowe, r);
-	}
-
-	{
-		ecs_filter_t filter = ECS_FILTER_INIT;
-		ecs_filter_desc_t const desc = {
-		.storage = &filter,
-		.terms = {
-		{ ecs_id(EgVkExtension) },
-		{ ecs_id(EgVkRequiredExtension) }
-		}
-		};
-		ecs_filter_init(world, &desc);
-		eg_add_all_from_filter(world, windowe, &filter);
-		ecs_filter_fini(&filter);
-	}
-
-	ecs_set_ptr(world, windowe, VkApplicationInfo, &appInfo);
-
-
-	//createInstance1(world, windowe);
+	createInstance1(world, windowe);
 
 	EgVkInstance const * ins = ecs_get(world, windowe, EgVkInstance);
+	while(1) ecs_progress(world, 0);
 	instance = ins->instance;
 
-/*
-	VkInstanceCreateInfo createInfo{};
-	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	createInfo.pApplicationInfo = &appInfo;
 
-	auto extensions = getRequiredExtensions();
-	createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-	createInfo.ppEnabledExtensionNames = extensions.data();
-
-	VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-	if (enableValidationLayers) {
-		createInfo.enabledLayerCount = VALIDATION_LAYER_COUNT;
-		createInfo.ppEnabledLayerNames = validationLayers;
-
-		populateDebugMessengerCreateInfo(debugCreateInfo);
-		createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
-	} else {
-		createInfo.enabledLayerCount = 0;
-
-		createInfo.pNext = nullptr;
-	}
-
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create instance!");
-	}
-	*/
 }
 
 

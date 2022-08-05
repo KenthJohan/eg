@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-char const ** get_entity_names_from_filter(ecs_world_t * world, ecs_filter_t *f);
+char const ** get_entity_names_from_filter(ecs_world_t * world, ecs_filter_t *f, int32_t *count);
 void const * eg_get_first_from_filter(ecs_world_t * world, ecs_filter_t *f);
 void eg_add_all_from_filter(ecs_world_t * world, ecs_entity_t e, ecs_filter_t *f);
 

@@ -75,7 +75,6 @@ extern ECS_COMPONENT_DECLARE(EgVkSurfaceFormatKHR);
 
 extern ECS_DECLARE(EgVkExtension);
 extern ECS_DECLARE(EgVkRequiredExtension);
-extern ecs_entity_t VkExtensionSwapchain;
 
 extern ECS_DECLARE(Eg_VK_QUEUE_GRAPHICS_BIT);
 extern ECS_DECLARE(Eg_PhysicalDeviceSurfaceSupportKHR);
