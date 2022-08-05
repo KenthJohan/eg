@@ -277,7 +277,7 @@ static void System_createInstance1(ecs_iter_t *it)
 
 		if (vkCreateInstance(&create, NULL, &instance) == VK_SUCCESS)
 		{
-			printf("vkCreateInstance OK\n");
+			printf("vkCreateInstance -> %p OK\n", instance);
 			ecs_set(world, e, EgVkInstance, {instance});
 			ecs_add_pair(world, e, EgState, EgValid);
 		}
@@ -356,6 +356,13 @@ void createInstance1(ecs_world_t * world, ecs_entity_t windowe)
 		ecs_entity_t r = ecs_lookup_fullpath(world, "eg.vk.layers.VK_LAYER_KHRONOS_validation");
 		ecs_add_id(world, windowe, r);
 	}
+
+	{
+		ecs_entity_t r = ecs_lookup_fullpath(world, "eg.vk.extensions."VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+		ecs_add_id(world, windowe, r);
+	}
+
+
 
 	{
 		//ecs_entity_t r = ecs_lookup_fullpath(world, "eg.vk.extensions."VK_KHR_SWAPCHAIN_EXTENSION_NAME);

@@ -59,6 +59,7 @@ void EgVkExtensionsImport(ecs_world_t *world)
 		});
 	}
 
+	/*
 	{
 		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t)
 		{
@@ -66,6 +67,7 @@ void EgVkExtensionsImport(ecs_world_t *world)
 		.add = {EgVkExtension}
 		});
 	}
+	*/
 
 }
 

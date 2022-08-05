@@ -561,12 +561,9 @@ void createInstance(ecs_world_t * world, ecs_entity_t windowe, VkInstance &insta
 	}
 
 	createInstance1(world, windowe);
-
 	EgVkInstance const * ins = ecs_get(world, windowe, EgVkInstance);
-	while(1) ecs_progress(world, 0);
+	//while(1) ecs_progress(world, 0);
 	instance = ins->instance;
-
-
 }
 
 
@@ -757,6 +754,7 @@ public:
 
 	void recreateSwapChain()
 	{
+		printf("recreateSwapChain\n");
 		/*
 		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, windowe, EgRectangleI32);
 		int width = 0, height = 0;
@@ -793,6 +791,7 @@ public:
 
 	void createSurface()
 	{
+		surface = ecs_get(world, windowe, EgVkSurfaceKHR)->surface;
 		//VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
 		//VK_ASSERT_RESULT(result, "glfwCreateWindowSurface");
 	}
