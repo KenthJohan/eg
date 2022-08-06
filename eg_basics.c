@@ -60,16 +60,3 @@ void eg_iter_info(ecs_iter_t *it, const char *fname, const char *file, int32_t l
 	}
 }
 
-
-void eg_trace(const char *file, int32_t line, const char *fmt, ...)
-{
-	char buf[1024];
-	char * p = buf;
-	va_list args;
-	va_start(args, fmt);
-	p += snprintf(p, 512, ECS_YELLOW "EG %s:%i " ECS_NORMAL, file, line);
-	vsnprintf(p, 512, fmt, args);
-	fputs(buf, stdout);
-	fputc('\n', stdout);
-	va_end(args);
-}
