@@ -11,7 +11,9 @@ void EgVkLayersImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgVk");
 
 
-
+	ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t){
+	.name = "VK_LAYER_KHRONOS_validation"
+	});
 
 	{
 		uint32_t count;

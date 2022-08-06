@@ -68,7 +68,8 @@ void EgVkImport(ecs_world_t *world)
 	ecs_struct_init(world, &(ecs_struct_desc_t){
 	.entity = ecs_entity(world, {.id = ecs_id(EgVkInstance)}),
 	.members = {
-	{ .name = "instance", .type = ecs_id(ecs_uptr_t) }
+	{ .name = "instance", .type = ecs_id(ecs_uptr_t) },
+	{ .name = "debug_messenger", .type = ecs_id(ecs_uptr_t) }
 	}
 	});
 

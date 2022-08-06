@@ -10,6 +10,7 @@ extern "C" {
 typedef struct
 {
 VkInstance instance;
+VkDebugUtilsMessengerEXT debug_messenger;
 } EgVkInstance;
 
 typedef struct

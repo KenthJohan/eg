@@ -50,6 +50,8 @@
 #include "eg_util.h"
 #include "eg_basics.h"
 #include "../../eg_basics.h"
+#include "render1.h"
+
 
 
 
@@ -108,14 +110,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
 }
 
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
-	auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-	if (func != nullptr) {
-		return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-	} else {
-		return VK_ERROR_EXTENSION_NOT_PRESENT;
-	}
-}
+
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
 	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -557,14 +552,7 @@ bool checkValidationLayerSupport(ecs_world_t * world)
 	return true;
 }
 
-void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo)
-{
-	createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-	createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-	createInfo.pfnUserCallback = debugCallback;
-}
+
 
 
 
@@ -595,7 +583,6 @@ public:
 	ecs_entity_t entity_instance;
 
 	VkInstance instance;
-	VkDebugUtilsMessengerEXT debugMessenger;
 	VkSurfaceKHR surface;
 
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -653,16 +640,7 @@ public:
 
 	bool framebufferResized = false;
 
-	void initWindow()
-	{
-		entity_instance = ecs_new(world, 0);
-		ecs_add_pair(world, entity_instance, EcsChildOf, ecs_id(EgVkInstances));
-		ecs_add(world, entity_instance, EgWindow);
 
-		//window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-		//glfwSetWindowUserPointer(window, this);
-		//glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-	}
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
 		auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
@@ -671,7 +649,7 @@ public:
 
 	void initVulkan() {
 		createInstance(world, entity_instance, instance);
-		setupDebugMessenger();
+		//setupDebugMessenger();
 		createSurface();
 		pickPhysicalDevice();
 		createLogicalDevice();
@@ -757,10 +735,6 @@ public:
 
 		vkDestroyDevice(device, nullptr);
 
-		if (enableValidationLayers) {
-			DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-		}
-
 		vkDestroySurfaceKHR(instance, surface, nullptr);
 		vkDestroyInstance(instance, nullptr);
 
@@ -797,15 +771,7 @@ public:
 
 
 
-	void setupDebugMessenger() {
-		if (!enableValidationLayers) return;
 
-		VkDebugUtilsMessengerCreateInfoEXT createInfo;
-		populateDebugMessengerCreateInfo(createInfo);
-
-		VkResult result = CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger);
-		VK_ASSERT_RESULT(result, "CreateDebugUtilsMessengerEXT");
-	}
 
 	void createSurface()
 	{
@@ -1749,7 +1715,7 @@ void renderer_init()
 
 	try
 	{
-		app.initWindow();
+		app.entity_instance = render1_init(app.world);
 		app.initVulkan();
 	}
 	catch (const std::exception& e)
