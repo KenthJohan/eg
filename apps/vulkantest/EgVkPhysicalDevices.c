@@ -2,7 +2,8 @@
 #include "EgVk.h"
 #include "EgVkPhysicaldevicefeatures.h"
 #include "EgTypes.h"
-#include "platform.h"
+#include "EgPlatform.h"
+#include "EgLogs.h"
 #include "eg_util.h"
 #include <stdio.h>
 
@@ -64,7 +65,7 @@ void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkInsta
 	vkEnumeratePhysicalDevices(instance, &count, NULL);
 	VkPhysicalDevice * devices = ecs_os_malloc_n(VkPhysicalDevice, count);
 	vkEnumeratePhysicalDevices(instance, &count, devices);
-	printf("vkEnumeratePhysicalDevices : %i\n", count);
+	EG_TRACE(world, parent, "vkEnumeratePhysicalDevices : %i\n", count);
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		VkPhysicalDeviceProperties props;

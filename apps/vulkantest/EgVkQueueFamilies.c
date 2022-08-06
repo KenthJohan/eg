@@ -1,7 +1,7 @@
 #include "EgVkQueueFamilies.h"
 #include "EgVk.h"
 #include "EgTypes.h"
-#include "platform.h"
+#include "EgPlatform.h"
 #include "EgWindows.h"
 #include <stdio.h>
 

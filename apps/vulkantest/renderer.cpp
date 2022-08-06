@@ -46,8 +46,9 @@
 #include "EgWindows.h"
 #include "EgGeometries.h"
 #include "EgVkInstances.h"
-#include "platform.h"
+#include "EgPlatform.h"
 #include "eg_util.h"
+#include "eg_basics.h"
 #include "../../eg_basics.h"
 
 
@@ -85,10 +86,22 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
 (VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* data, void* user)
 {
 	char const * s = "NONE";
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {s = "\033[36;1;4m" "VERBOSE" "\033[0m";}
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)    {s = "\033[32;1;4m" "INFO"    "\033[0m";}
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {s = "\033[33;1;4m" "WARNING" "\033[0m";}
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)   {s = "\033[31;1;4m" "ERROR"   "\033[0m";}
+	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
+	{
+		s = "\033[36;1;4m" "VERBOSE" "\033[0m";
+	}
+	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+	{
+		s = "\033[32;1;4m" "INFO"    "\033[0m";
+	}
+	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+	{
+		s = "\033[33;1;4m" "WARNING" "\033[0m";
+	}
+	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+	{
+		s = "\033[31;1;4m" "ERROR"   "\033[0m";
+	}
 	printf("[%s] %s\n", s, data->pMessage);
 	//std::cerr << "validation layer: " << data->pMessage << std::endl;
 	return VK_FALSE;
@@ -768,6 +781,7 @@ public:
 			glfwWaitEvents();
 		}
 		*/
+		eg_platform_wait_positive_framebuffer_size(world, entity_instance);
 
 		vkDeviceWaitIdle(device);
 
@@ -1639,9 +1653,11 @@ public:
 			//int width, height;
 			//glfwGetFramebufferSize(window, &width, &height);
 			EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
+			EG_ASSERT(r->width > 0);
+			EG_ASSERT(r->height > 0);
 			VkExtent2D actualExtent = {(uint32_t)r->width, (uint32_t)r->height};
-			actualExtent.width = VKE_CLAMP(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-			actualExtent.height = VKE_CLAMP(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+			actualExtent.width = EG_CLAMP(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+			actualExtent.height = EG_CLAMP(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 			return actualExtent;
 		}
 	}

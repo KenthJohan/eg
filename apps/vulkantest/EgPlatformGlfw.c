@@ -1,4 +1,4 @@
-#include "platform.h"
+#include "EgPlatform.h"
 #include "flecs.h"
 #include "EgTypes.h"
 #include "EgVk.h"
@@ -7,8 +7,8 @@
 #include "EgWindows.h"
 #include "EgVkInstances.h"
 #include "eg_basics.h"
+#include "EgLogs.h"
 #include <GLFW/glfw3.h>
-#include <stdio.h>
 
 
 typedef struct
@@ -75,7 +75,7 @@ static void Observer_Window1(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i ++)
 	{
 		GLFWwindow * w = glfwCreateWindow(200, 100, "Vulkan", NULL, NULL);
-		printf("glfwCreateWindow : %p\n", w);
+		EG_TRACE(it->world, it->system, "glfwCreateWindow : %p\n", w);
 		window[i].window = w;
 		ecs_add_pair(it->world, it->entities[i], EgState, EgValid);
 		//eg_world_entity_t * we = ecs_os_malloc_t(eg_world_entity_t);
@@ -96,7 +96,7 @@ static void Observer_Surface(ecs_iter_t *it)
 		VkInstance instance = field_instance[i].instance;
 		VkSurfaceKHR surface;
 		VkResult result = glfwCreateWindowSurface(instance, window, NULL, &surface);
-		printf("glfwCreateWindowSurface %p %p : %i\n", window, instance, result);
+		EG_TRACE(it->world, it->system, "glfwCreateWindowSurface %p %p : %i\n", window, instance, result);
 		VK_ASSERT_RESULT(result, "glfwCreateWindowSurface");
 		ecs_set(it->world, it->entities[i], EgVkSurfaceKHR, {surface});
 	}
@@ -128,6 +128,19 @@ static void System_Window_Size(ecs_iter_t *it)
 }
 
 
+
+void eg_platform_wait_positive_framebuffer_size(ecs_world_t *world, ecs_entity_t e)
+{
+	GLFWwindow * window = ecs_get(world, e, EgPlatformWindow)->window;
+	int width = 0, height = 0;
+	glfwGetFramebufferSize(window, &width, &height);
+	while (width == 0 || height == 0) {
+		glfwGetFramebufferSize(window, &width, &height);
+		glfwWaitEvents();
+	}
+}
+
+
 void EgPlatformImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgPlatform);
@@ -139,10 +152,11 @@ void EgPlatformImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgPlatform");
 	ECS_COMPONENT_DEFINE(world, EgPlatformWindow);
 
-	printf("glfwInit\n");
 	glfwInit();
-	printf("glfwWindowHint\n");
+	EG_TRACE(world, ecs_id(EgPlatform), "glfwInit\n");
+
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	EG_TRACE(world, ecs_id(EgPlatform), "glfwWindowHint\n");
 
 	ECS_OBSERVER(world, Observer_Window, EcsOnAdd, EgWindow);
 	ECS_OBSERVER(world, Observer_Window1, EcsOnAdd, EgPlatformWindow);

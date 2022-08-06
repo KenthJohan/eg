@@ -1,8 +1,9 @@
 #include "EgVkInstances.h"
 #include "EgVk.h"
 #include "EgTypes.h"
-#include "platform.h"
+#include "EgPlatform.h"
 #include "EgWindows.h"
+#include "EgLogs.h"
 #include "eg_util.h"
 #include <stdio.h>
 
@@ -18,7 +19,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
 	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)    {s = "\033[32;1;4m" "INFO"    "\033[0m";}
 	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {s = "\033[33;1;4m" "WARNING" "\033[0m";}
 	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)   {s = "\033[31;1;4m" "ERROR"   "\033[0m";}
-	printf("[%s] %s\n", s, data->pMessage);
+	EG_TRACE(user, ecs_id(EgVkInstances), "[%s] %s\n", s, data->pMessage);
 	//std::cerr << "validation layer: " << data->pMessage << std::endl;
 	return VK_FALSE;
 }
@@ -41,6 +42,7 @@ static void System_createInstance1(ecs_iter_t *it)
 		debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		debugCreateInfo.pfnUserCallback = debugCallback;
+		debugCreateInfo.pUserData = it->world;
 
 		VkInstanceCreateInfo create = {};
 		create.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -73,13 +75,13 @@ static void System_createInstance1(ecs_iter_t *it)
 
 		if (vkCreateInstance(&create, NULL, &instance) == VK_SUCCESS)
 		{
-			printf("vkCreateInstance -> %p OK\n", instance);
+			EG_TRACE(world, it->system, "vkCreateInstance -> %p OK\n", instance);
 			ecs_set(world, e, EgVkInstance, {instance});
 			ecs_add_pair(world, e, EgState, EgValid);
 		}
 		else
 		{
-			printf("vkCreateInstance Error\n");
+			EG_TRACE(world, it->system, "vkCreateInstance Error\n");
 			ecs_add_pair(world, e, EgState, EgError);
 		}
 

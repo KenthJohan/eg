@@ -7,10 +7,7 @@ extern "C" {
 #endif
 
 
-
-
-void platform_populate_required_extension_names(ecs_world_t * world);
-
+void eg_platform_wait_positive_framebuffer_size(ecs_world_t *world, ecs_entity_t e);
 
 void EgPlatformImport(ecs_world_t *world);
 

@@ -13,10 +13,6 @@ void vk_assert_result(char const * file, int line, int result, char const * titl
 void vk_assert(char const * file, int line, char const * e);
 
 
-#define VKE_CLAMP(x, x0, x1) (((x) > (x1)) ? (x1) : (((x) < (x0)) ? (x0) : (x)))
-
-
-
 
 
 
