@@ -36,7 +36,7 @@
 #include "load_model.h"
 
 #include "EgVk.h"
-#include "EgVk_systems.h"
+#include "EgVkPhysicalDevices.h"
 #include "EgVkLayers.h"
 #include "EgVkPhysicaldevicefeatures.h"
 #include "EgVkInstanceExtensions.h"
@@ -802,7 +802,7 @@ public:
 
 	void pickPhysicalDevice()
 	{
-		populate_VkPhysicalDevice(world, entity_instance, surface);
+		//populate_VkPhysicalDevice(world, entity_instance, surface);
 
 		ecs_filter_desc_t d =
 		{
@@ -1729,7 +1729,7 @@ void renderer_init()
 	ECS_IMPORT(app.world, EgVkQueueFamilies);
 	ECS_IMPORT(app.world, EgVkInstanceExtensions);
 	ECS_IMPORT(app.world, EgVkDeviceExtensions);
-	ECS_IMPORT(app.world, EgVkSystems);
+	ECS_IMPORT(app.world, EgVkPhysicalDevices);
 
 	try
 	{

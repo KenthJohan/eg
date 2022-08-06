@@ -1,4 +1,4 @@
-#include "EgVk_systems.h"
+#include "EgVkPhysicalDevices.h"
 #include "EgVk.h"
 #include "EgVkPhysicaldevicefeatures.h"
 #include "EgTypes.h"
@@ -58,13 +58,13 @@ void populate_VkPresentModeKHR(ecs_world_t * world, ecs_entity_t parent, VkPhysi
 
 
 
-void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkSurfaceKHR surface)
+void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkInstance instance, VkSurfaceKHR surface)
 {
-	VkInstance instance = ecs_get(world, parent, EgVkInstance)->instance;
 	uint32_t count = 0;
 	vkEnumeratePhysicalDevices(instance, &count, NULL);
 	VkPhysicalDevice * devices = ecs_os_malloc_n(VkPhysicalDevice, count);
 	vkEnumeratePhysicalDevices(instance, &count, devices);
+	printf("vkEnumeratePhysicalDevices : %i\n", count);
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		VkPhysicalDeviceProperties props;
@@ -79,12 +79,8 @@ void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkSurfa
 		ecs_set_ptr(world, r, EgVkPhysicalDeviceProperties, &props);
 		ecs_doc_set_name(world, r, props.deviceName);
 
-
-
-		populate_VkQueueFamilyProperties(world, r, devices[i], surface);
 		populate_VkSurfaceFormatKHR(world, r, devices[i], surface);
 		populate_VkPresentModeKHR(world, r, devices[i], surface);
-
 
 
 		ecs_set_scope(world, scope);
@@ -98,19 +94,21 @@ void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkSurfa
 
 
 
-static void System_Init(ecs_iter_t *it)
+static void Observer_populate_VkPhysicalDevice(ecs_iter_t *it)
 {
+	EgVkInstance * instance = ecs_field(it, EgVkInstance, 1);
+	EgVkSurfaceKHR * surface = ecs_field(it, EgVkSurfaceKHR, 2);
 	for (int i = 0; i < it->count; i ++)
 	{
-
+		populate_VkPhysicalDevice(it->world, it->entities[i], instance[i].instance, surface[i].surface);
 	}
 }
 
 
 
-void EgVkSystemsImport(ecs_world_t *world)
+void EgVkPhysicalDevicesImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgVkSystems);
+	ECS_MODULE(world, EgVkPhysicalDevices);
 	ECS_IMPORT(world, EgVk);
 	ECS_IMPORT(world, EgVkPhysicaldevicefeatures);
 	ECS_IMPORT(world, EgTypes);
@@ -118,6 +116,7 @@ void EgVkSystemsImport(ecs_world_t *world)
 
 
 
+	ECS_OBSERVER(world, Observer_populate_VkPhysicalDevice, EcsOnSet, EgVkInstance, EgVkSurfaceKHR);
 }
 
 

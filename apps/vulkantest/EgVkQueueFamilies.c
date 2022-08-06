@@ -48,11 +48,11 @@ void populate_VkQueueFamilyProperties(ecs_world_t * world, ecs_entity_t parent, 
 
 static void System_populate_queue_family(ecs_iter_t *it)
 {
-	EgVkPhysicalDevice * dev = ecs_field(it, EgVkPhysicalDevice, 1);
-	EgVkSurfaceKHR * surface = ecs_field(it, EgVkSurfaceKHR, 2);
+	EgVkSurfaceKHR * surface = ecs_field(it, EgVkSurfaceKHR, 1); // Parent
+	EgVkPhysicalDevice * dev = ecs_field(it, EgVkPhysicalDevice, 2);
 	for (int i = 0; i < it->count; i ++)
 	{
-		populate_VkQueueFamilyProperties(it->world, it->entities[i], dev[i].device, surface[i].surface);
+		populate_VkQueueFamilyProperties(it->world, it->entities[i], dev[i].device, surface[0].surface);
 	}
 }
 
@@ -66,7 +66,18 @@ void EgVkQueueFamiliesImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgTypes);
 	ecs_set_name_prefix(world, "EgVk");
 
-	ECS_OBSERVER(world, System_populate_queue_family, EcsOnSet, EgVkPhysicalDevice, EgVkSurfaceKHR);
+	ECS_OBSERVER(world, System_populate_queue_family, EcsOnSet, EgVkSurfaceKHR(parent), EgVkPhysicalDevice);
+
+	/*
+	ecs_observer_init(world, &(ecs_observer_desc_t){
+	.filter.terms = {
+	{ .id = ecs_id(EgVkSurfaceKHR), .src.flags = EcsUp },
+	{ .id = ecs_id(EgVkPhysicalDevice) }
+	},
+	.events = {EcsOnSet},
+	.callback = System_populate_queue_family
+	});
+	*/
 }
 
 
