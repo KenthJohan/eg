@@ -11,14 +11,11 @@
 
 
 
-#include <stdexcept>
-#include <algorithm>
 #include <vector>
 #include <array>
 #include <cstring>
 #include <cstdlib>
 #include <cstdint>
-#include <limits>
 #include <optional>
 #include <set>
 #include <unordered_map>
@@ -45,7 +42,6 @@
 #include "EgLogs.h"
 #include "eg_util.h"
 #include "eg_basics.h"
-#include "../../eg_basics.h"
 #include "render1.h"
 #include "create_image.h"
 #include "updateUniformBuffer.hpp"
@@ -1093,7 +1089,8 @@ public:
 
 
 
-	void drawFrame() {
+	void drawFrame()
+	{
 		vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
 		uint32_t imageIndex;
@@ -1109,7 +1106,7 @@ public:
 			EG_EVENT_STRF(world, EgLogsError, "failed to acquire swap chain image!");
 		}
 
-		updateUniformBuffer(device, swapChainExtent, uniformBuffersMemory, currentFrame);
+		updateUniformBuffer(device, swapChainExtent, uniformBuffersMemory[currentFrame]);
 
 		vkResetFences(device, 1, &inFlightFences[currentFrame]);
 

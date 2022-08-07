@@ -7,10 +7,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
 
+#include "types.hpp"
 #include <chrono>
 
 
-void updateUniformBuffer(VkDevice device, VkExtent2D swapChainExtent, VkDeviceMemory uniformBuffersMemory[], uint32_t currentImage)
+void updateUniformBuffer(VkDevice device, VkExtent2D swapChainExtent, VkDeviceMemory uniformBuffersMemory)
 {
 	static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -24,7 +25,7 @@ void updateUniformBuffer(VkDevice device, VkExtent2D swapChainExtent, VkDeviceMe
 	ubo.proj[1][1] *= -1;
 
 	void* data;
-	vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
+	vkMapMemory(device, uniformBuffersMemory, 0, sizeof(ubo), 0, &data);
 	memcpy(data, &ubo, sizeof(ubo));
-	vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
+	vkUnmapMemory(device, uniformBuffersMemory);
 }
