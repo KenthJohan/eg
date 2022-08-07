@@ -39,6 +39,7 @@ SOURCES += EgVkInstances.c
 SOURCES += EgLogs.c
 SOURCES += renderer.cpp
 SOURCES += render1.c
+SOURCES += create_image.c
 
 INCLUDEPATH += C:/VulkanSDK/1.3.216.0/Include
 INCLUDEPATH += ../../

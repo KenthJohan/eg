@@ -12,7 +12,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
 
-#include "stb_image.h"
+
 
 
 
@@ -52,6 +52,7 @@
 #include "eg_basics.h"
 #include "../../eg_basics.h"
 #include "render1.h"
+#include "create_image.h"
 
 
 
@@ -60,7 +61,6 @@
 #define HEIGHT 600
 
 #define MODEL_PATH "viking_room.obj"
-#define TEXTURE_PATH "viking_room.png"
 
 #define MAX_FRAMES_IN_FLIGHT 2
 #define FRAMEBUFFER_ATTACHMENT_COUNT 3
@@ -85,40 +85,6 @@ const bool enableValidationLayers = true;
 
 
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
-(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* data, void* user)
-{
-	char const * s = "NONE";
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
-	{
-		s = "\033[36;1;4m" "VERBOSE" "\033[0m";
-	}
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-	{
-		s = "\033[32;1;4m" "INFO"    "\033[0m";
-	}
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-	{
-		s = "\033[33;1;4m" "WARNING" "\033[0m";
-	}
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-	{
-		s = "\033[31;1;4m" "ERROR"   "\033[0m";
-	}
-	printf("[%s] %s\n", s, data->pMessage);
-	//std::cerr << "validation layer: " << data->pMessage << std::endl;
-	return VK_FALSE;
-}
-
-
-
-
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
-	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-	if (func != nullptr) {
-		func(instance, debugMessenger, pAllocator);
-	}
-}
 
 struct QueueFamilyIndices {
 	std::optional<uint32_t> graphicsFamily;
@@ -192,54 +158,7 @@ static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions
 
 
 
-void createTextureImage
-(
-ecs_world_t * world,
-VkPhysicalDevice physicalDevice, VkDevice device,
-VkCommandPool commandPool, VkQueue graphicsQueue,
-VkImage * textureImage, uint32_t * mipLevels, VkDeviceMemory * textureImageMemory
-)
-{
-	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load(TEXTURE_PATH, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-	VkDeviceSize imageSize = texWidth * texHeight * 4;
-	(*mipLevels) = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
-	if (!pixels)
-	{
-		EG_EVENT_STRF(world, EgLogsError, "failed to load texture image!");
-	}
-
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
-	createBuffer(world, physicalDevice, device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
-
-	void* data;
-	vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-	memcpy(data, pixels, static_cast<size_t>(imageSize));
-	vkUnmapMemory(device, stagingBufferMemory);
-
-	stbi_image_free(pixels);
-
-	createImage
-	(
-	world,
-	physicalDevice, device,
-	texWidth, texHeight, *mipLevels,
-	VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
-	VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-	textureImage, textureImageMemory
-	);
-
-	transitionImageLayout(world, device, commandPool, graphicsQueue, *textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, *mipLevels);
-	copyBufferToImage(device, commandPool, graphicsQueue, stagingBuffer, *textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-	//transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
-
-	vkDestroyBuffer(device, stagingBuffer, nullptr);
-	vkFreeMemory(device, stagingBufferMemory, nullptr);
-
-	generateMipmaps(world, physicalDevice, device, commandPool, graphicsQueue, *textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, *mipLevels);
-}
 
 
 
