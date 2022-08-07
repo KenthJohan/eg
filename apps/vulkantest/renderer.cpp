@@ -557,7 +557,7 @@ bool checkValidationLayerSupport(ecs_world_t * world)
 
 
 
-
+/*
 void createInstance(ecs_world_t * world, ecs_entity_t windowe, VkInstance &instance)
 {
 	if (enableValidationLayers && !checkValidationLayerSupport(world)) {
@@ -569,6 +569,7 @@ void createInstance(ecs_world_t * world, ecs_entity_t windowe, VkInstance &insta
 	//while(1) ecs_progress(world, 0);
 	instance = ins->instance;
 }
+*/
 
 
 
@@ -582,7 +583,7 @@ public:
 	//GLFWwindow* window;
 	ecs_entity_t entity_instance;
 
-	VkInstance instance;
+	//VkInstance instance;
 	VkSurfaceKHR surface;
 
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -648,7 +649,7 @@ public:
 	}
 
 	void initVulkan() {
-		createInstance(world, entity_instance, instance);
+		//createInstance(world, entity_instance, instance);
 		//setupDebugMessenger();
 		createSurface();
 		pickPhysicalDevice();
@@ -735,8 +736,8 @@ public:
 
 		vkDestroyDevice(device, nullptr);
 
-		vkDestroySurfaceKHR(instance, surface, nullptr);
-		vkDestroyInstance(instance, nullptr);
+		//vkDestroySurfaceKHR(instance, surface, nullptr);
+		//vkDestroyInstance(instance, nullptr);
 
 		//glfwDestroyWindow(window);
 
