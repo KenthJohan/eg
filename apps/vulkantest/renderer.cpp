@@ -20,11 +20,13 @@
 #include <unordered_map>
 
 
-#include "vk_assert.h"
 #include "readfile.h"
+#include "load_model.h"
+#include "render1.h"
+#include "create_image.h"
 
 #include "types.hpp"
-#include "load_model.h"
+#include "updateUniformBuffer.hpp"
 
 #include "EgVk.h"
 #include "EgVkPhysicalDevices.h"
@@ -33,17 +35,18 @@
 #include "EgVkInstanceExtensions.h"
 #include "EgVkDeviceExtensions.h"
 #include "EgVkQueueFamilies.h"
+#include "EgVkInstances.h"
+
 #include "EgTypes.h"
 #include "EgWindows.h"
 #include "EgGeometries.h"
-#include "EgVkInstances.h"
 #include "EgPlatform.h"
 #include "EgLogs.h"
+
 #include "eg_util.h"
 #include "eg_basics.h"
-#include "render1.h"
-#include "create_image.h"
-#include "updateUniformBuffer.hpp"
+
+
 
 
 
@@ -122,47 +125,6 @@ static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions
 
 	return attributeDescriptions;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class HelloTriangleApplication {
@@ -329,22 +291,10 @@ public:
 
 	void recreateSwapChain()
 	{
-		EG_EVENT_STRF(world, EgLogsVerbose, "recreateSwapChain");
-		/*
-		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, windowe, EgRectangleI32);
-		int width = 0, height = 0;
-		glfwGetFramebufferSize(window, &width, &height);
-		while (width == 0 || height == 0) {
-			glfwGetFramebufferSize(window, &width, &height);
-			glfwWaitEvents();
-		}
-		*/
+		EG_EVENT_STRF(world, EgLogsVerbose, "recreateSwapChain\n");
 		eg_platform_wait_positive_framebuffer_size(world, entity_instance);
-
 		vkDeviceWaitIdle(device);
-
 		cleanupSwapChain();
-
 		createSwapChain();
 		createImageViews();
 		createColorResources();
