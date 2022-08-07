@@ -75,7 +75,7 @@ static void Observer_Window1(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i ++)
 	{
 		GLFWwindow * w = glfwCreateWindow(200, 100, "Vulkan", NULL, NULL);
-		EG_TRACE(it->world, it->system, "glfwCreateWindow : %p\n", w);
+		EG_EVENT_STRF(it->world, EgLogsVerbose, "glfwCreateWindow : %p\n", w);
 		window[i].window = w;
 		ecs_add_pair(it->world, it->entities[i], EgState, EgValid);
 		//eg_world_entity_t * we = ecs_os_malloc_t(eg_world_entity_t);
@@ -96,7 +96,7 @@ static void Observer_Surface(ecs_iter_t *it)
 		VkInstance instance = field_instance[i].instance;
 		VkSurfaceKHR surface;
 		VkResult result = glfwCreateWindowSurface(instance, window, NULL, &surface);
-		EG_TRACE(it->world, it->system, "glfwCreateWindowSurface %p %p : %i\n", window, instance, result);
+		EG_EVENT_STRF(it->world, EgLogsVerbose, "glfwCreateWindowSurface %p %p : %i\n", window, instance, result);
 		VK_ASSERT_RESULT(result, "glfwCreateWindowSurface");
 		ecs_set(it->world, it->entities[i], EgVkSurfaceKHR, {surface});
 	}
@@ -153,10 +153,10 @@ void EgPlatformImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgPlatformWindow);
 
 	glfwInit();
-	EG_TRACE(world, ecs_id(EgPlatform), "glfwInit\n");
+	EG_EVENT_STRF(world, EgLogsVerbose, "glfwInit\n");
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	EG_TRACE(world, ecs_id(EgPlatform), "glfwWindowHint\n");
+	EG_EVENT_STRF(world, EgLogsVerbose, "glfwWindowHint\n");
 
 	ECS_OBSERVER(world, Observer_Window, EcsOnAdd, EgWindow);
 	ECS_OBSERVER(world, Observer_Window1, EcsOnAdd, EgPlatformWindow);

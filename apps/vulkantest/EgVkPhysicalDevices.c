@@ -49,7 +49,7 @@ void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkInsta
 	vkEnumeratePhysicalDevices(instance, &count, NULL);
 	VkPhysicalDevice * devices = ecs_os_malloc_n(VkPhysicalDevice, count);
 	vkEnumeratePhysicalDevices(instance, &count, devices);
-	EG_TRACE(world, parent, "vkEnumeratePhysicalDevices : %i\n", count);
+	EG_EVENT_STRF(world, EgLogsVerbose, "vkEnumeratePhysicalDevices : %i\n", count);
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		VkPhysicalDeviceProperties props;

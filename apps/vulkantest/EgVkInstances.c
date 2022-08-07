@@ -21,7 +21,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
 	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)    {s = "\033[32;1;4m" "INFO"    "\033[0m";}
 	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {s = "\033[33;1;4m" "WARNING" "\033[0m";}
 	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)   {s = "\033[31;1;4m" "ERROR"   "\033[0m";}
-	EG_TRACE(user, ecs_id(EgVkInstances), "[%s] %s\n", s, data->pMessage);
+	EG_EVENT_STRF(user, EgLogsVerbose, "[%s] %s\n", s, data->pMessage);
 	//std::cerr << "validation layer: " << data->pMessage << std::endl;
 	return VK_FALSE;
 }
@@ -49,7 +49,7 @@ static void Observer_debug(ecs_iter_t *it)
 		debugCreateInfo.pfnUserCallback = debugCallback;
 		debugCreateInfo.pUserData = it->world;
 		VkResult result = CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, NULL, &(d[i].debug_messenger));
-		EG_TRACE(it->world, it->system, "vkCreateDebugUtilsMessengerEXT : %i\n", result);
+		EG_EVENT_STRF(it->world, EgLogsVerbose, "vkCreateDebugUtilsMessengerEXT : %i\n", result);
 		VK_ASSERT_RESULT(result, "CreateDebugUtilsMessengerEXT");
 	}
 
@@ -104,16 +104,15 @@ static void Observer_createInstance1(ecs_iter_t *it)
 		}
 
 		VkInstance instance;
-
-		if (vkCreateInstance(&create, NULL, &instance) == VK_SUCCESS)
+		VkResult result = vkCreateInstance(&create, NULL, &instance);
+		EG_EVENT_STRF(world, EgLogsVerbose, "vkCreateInstance : %i %p\n", result, instance);
+		if (result == VK_SUCCESS)
 		{
-			EG_TRACE(world, it->system, "vkCreateInstance -> %p OK\n", instance);
 			ecs_set(world, e, EgVkInstance, {instance, NULL});
 			ecs_add_pair(world, e, EgState, EgValid);
 		}
 		else
 		{
-			EG_TRACE(world, it->system, "vkCreateInstance Error\n");
 			ecs_add_pair(world, e, EgState, EgError);
 		}
 

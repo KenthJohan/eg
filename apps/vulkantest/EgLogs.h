@@ -14,8 +14,8 @@ extern ECS_DECLARE(EgLogsInfo);
 
 
 
-#define EG_TRACE(world, channel, ...) eg_trace((world), (channel), __FILE__, __LINE__, __VA_ARGS__)
-void eg_trace(ecs_world_t * world, ecs_entity_t channel, const char *file, int32_t line, const char *fmt, ...);
+#define EG_EVENT_STRF(world, channel, ...) eg_event_strf((world), (channel), __FILE__, __LINE__, __VA_ARGS__)
+void eg_event_strf(ecs_world_t * world, ecs_entity_t channel, const char *file, int32_t line, const char *fmt, ...);
 
 
 

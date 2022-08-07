@@ -47,6 +47,7 @@
 #include "EgGeometries.h"
 #include "EgVkInstances.h"
 #include "EgPlatform.h"
+#include "EgLogs.h"
 #include "eg_util.h"
 #include "eg_basics.h"
 #include "../../eg_basics.h"
@@ -231,13 +232,15 @@ void copyBufferToImage(VkDevice device, VkCommandPool commandPool, VkQueue graph
 }
 
 
-void generateMipmaps(VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
+void generateMipmaps(ecs_world_t * world, VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
 	// Check if image format supports linear blitting
 	VkFormatProperties formatProperties;
 	vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
 
-	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
-		throw std::runtime_error("texture image format does not support linear blitting!");
+	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
+	{
+		EG_EVENT_STRF(world, EgLogsError, "texture image format does not support linear blitting!");
+
 	}
 
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
@@ -320,7 +323,7 @@ void generateMipmaps(VkPhysicalDevice physicalDevice, VkDevice device, VkCommand
 
 
 
-void transitionImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
+void transitionImageLayout(ecs_world_t * world, VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
 	VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
 
 	VkImageMemoryBarrier barrier{};
@@ -352,7 +355,7 @@ void transitionImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue g
 		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	} else {
-		throw std::invalid_argument("unsupported layout transition!");
+		EG_EVENT_STRF(world, EgLogsError, "unsupported layout transition!");
 	}
 
 	vkCmdPipelineBarrier(
@@ -369,7 +372,7 @@ void transitionImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue g
 
 
 
-uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t findMemoryType(ecs_world_t * world, VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
 	VkPhysicalDeviceMemoryProperties memProperties;
 	vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
@@ -380,11 +383,11 @@ uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, Vk
 			return i;
 		}
 	}
-	throw std::runtime_error("failed to find suitable memory type!");
+	EG_EVENT_STRF(world, EgLogsError, "failed to find suitable memory type!");
 }
 
 
-void createBuffer(VkPhysicalDevice physicalDevice, VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+void createBuffer(ecs_world_t * world, VkPhysicalDevice physicalDevice, VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
 	{
 		VkBufferCreateInfo bufferInfo{};
@@ -393,7 +396,10 @@ void createBuffer(VkPhysicalDevice physicalDevice, VkDevice device, VkDeviceSize
 		bufferInfo.usage = usage;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		VkResult result = vkCreateBuffer(device, &bufferInfo, nullptr, &buffer);
-		VK_ASSERT_RESULT(result, "vkCreateBuffer");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateBuffer failed");
+		}
 	}
 	{
 		VkMemoryRequirements memRequirements;
@@ -401,15 +407,18 @@ void createBuffer(VkPhysicalDevice physicalDevice, VkDevice device, VkDeviceSize
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+		allocInfo.memoryTypeIndex = findMemoryType(world, physicalDevice, memRequirements.memoryTypeBits, properties);
 		VkResult result = vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory);
-		VK_ASSERT_RESULT(result, "vkAllocateMemory");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkAllocateMemory failed");
+		}
 		vkBindBufferMemory(device, buffer, bufferMemory, 0);
 	}
 }
 
 
-void createImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+void createImage(ecs_world_t * world, VkPhysicalDevice physicalDevice, VkDevice device, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
 {
 	{
 		VkImageCreateInfo imageInfo{};
@@ -427,7 +436,10 @@ void createImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t widt
 		imageInfo.samples = numSamples;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		VkResult result = vkCreateImage(device, &imageInfo, nullptr, &image);
-		VK_ASSERT_RESULT(result, "vkCreateImage");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateImage failed");
+		}
 	}
 
 	{
@@ -436,28 +448,32 @@ void createImage(VkPhysicalDevice physicalDevice, VkDevice device, uint32_t widt
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+		allocInfo.memoryTypeIndex = findMemoryType(world, physicalDevice, memRequirements.memoryTypeBits, properties);
 		VkResult result = vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory);
-		VK_ASSERT_RESULT(result, "vkAllocateMemory");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkAllocateMemory failed");
+		}
 		vkBindImageMemory(device, image, imageMemory, 0);
 	}
 }
 
 
-void createTextureImage(VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage& textureImage, uint32_t& mipLevels, VkDeviceMemory& textureImageMemory)
+void createTextureImage(ecs_world_t * world, VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage& textureImage, uint32_t& mipLevels, VkDeviceMemory& textureImageMemory)
 {
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(TEXTURE_PATH, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 	mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
-	if (!pixels) {
-		throw std::runtime_error("failed to load texture image!");
+	if (!pixels)
+	{
+		EG_EVENT_STRF(world, EgLogsError, "failed to load texture image!");
 	}
 
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
-	createBuffer(physicalDevice, device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+	createBuffer(world, physicalDevice, device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 	void* data;
 	vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
@@ -466,16 +482,16 @@ void createTextureImage(VkPhysicalDevice physicalDevice, VkDevice device, VkComm
 
 	stbi_image_free(pixels);
 
-	createImage(physicalDevice, device, texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+	createImage(world, physicalDevice, device, texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 
-	transitionImageLayout(device, commandPool, graphicsQueue, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
+	transitionImageLayout(world, device, commandPool, graphicsQueue, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
 	copyBufferToImage(device, commandPool, graphicsQueue, stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 	//transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
 
 	vkDestroyBuffer(device, stagingBuffer, nullptr);
 	vkFreeMemory(device, stagingBufferMemory, nullptr);
 
-	generateMipmaps(physicalDevice, device, commandPool, graphicsQueue, textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
+	generateMipmaps(world, physicalDevice, device, commandPool, graphicsQueue, textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
 }
 
 
@@ -486,7 +502,7 @@ void createTextureImage(VkPhysicalDevice physicalDevice, VkDevice device, VkComm
 
 
 
-void createDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& descriptorSetLayout)
+void createDescriptorSetLayout(ecs_world_t * world, VkDevice device, VkDescriptorSetLayout& descriptorSetLayout)
 {
 	VkDescriptorSetLayoutBinding uboLayoutBinding{};
 	uboLayoutBinding.binding = 0;
@@ -509,7 +525,10 @@ void createDescriptorSetLayout(VkDevice device, VkDescriptorSetLayout& descripto
 	layoutInfo.pBindings = bindings;
 
 	VkResult result = vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
-	VK_ASSERT_RESULT(result, "vkCreateDescriptorSetLayout");
+	if (result != VK_SUCCESS)
+	{
+		EG_EVENT_STRF(world, EgLogsError, "vkCreateDescriptorSetLayout failed");
+	}
 }
 
 std::vector<const char*> getRequiredExtensions()
@@ -643,13 +662,13 @@ public:
 		createSwapChain();
 		createImageViews();
 		createRenderPass();
-		createDescriptorSetLayout(device, descriptorSetLayout);
+		createDescriptorSetLayout(world, device, descriptorSetLayout);
 		createGraphicsPipeline();
 		createCommandPool();
 		createColorResources();
 		createDepthResources();
 		createFramebuffers();
-		createTextureImage(physicalDevice, device, commandPool, graphicsQueue, textureImage, mipLevels, textureImageMemory);
+		createTextureImage(world, physicalDevice, device, commandPool, graphicsQueue, textureImage, mipLevels, textureImageMemory);
 		createTextureImageView();
 		createTextureSampler();
 		loadModel(vertices, indices, MODEL_PATH);
@@ -732,7 +751,7 @@ public:
 
 	void recreateSwapChain()
 	{
-		printf("recreateSwapChain\n");
+		EG_EVENT_STRF(world, EgLogsVerbose, "recreateSwapChain");
 		/*
 		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, windowe, EgRectangleI32);
 		int width = 0, height = 0;
@@ -799,7 +818,10 @@ public:
 		}
 
 		VkResult result = vkCreateDevice(physicalDevice, &createInfo, nullptr, &device);
-		VK_ASSERT_RESULT(result, "vkCreateDevice");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateDevice failed");
+		}
 
 		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
@@ -846,7 +868,10 @@ public:
 		createInfo.clipped = VK_TRUE;
 
 		VkResult result = vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain);
-		VK_ASSERT_RESULT(result, "vkCreateSwapchainKHR");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateSwapchainKHR failed");
+		}
 
 		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
 		swapChainImages.resize(imageCount);
@@ -933,7 +958,10 @@ public:
 		renderPassInfo.pDependencies = &dependency;
 
 		VkResult result = vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
-		VK_ASSERT_RESULT(result, "vkCreateRenderPass");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateRenderPass failed");
+		}
 	}
 
 	void createGraphicsPipeline()
@@ -1041,7 +1069,10 @@ public:
 			pipelineLayoutInfo.setLayoutCount = 1;
 			pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 			VkResult result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
-			VK_ASSERT_RESULT(result, "vkCreatePipelineLayout");
+			if (result != VK_SUCCESS)
+			{
+				EG_EVENT_STRF(world, EgLogsError, "vkCreatePipelineLayout failed");
+			}
 		}
 
 
@@ -1063,7 +1094,10 @@ public:
 			pipelineInfo.subpass = 0;
 			pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 			VkResult result = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
-			VK_ASSERT_RESULT(result, "vkCreateGraphicsPipelines");
+			if (result != VK_SUCCESS)
+			{
+				EG_EVENT_STRF(world, EgLogsError, "vkCreateGraphicsPipelines failed");
+			}
 		}
 
 		vkDestroyShaderModule(device, fragShaderModule, nullptr);
@@ -1091,7 +1125,10 @@ public:
 			framebufferInfo.height = swapChainExtent.height;
 			framebufferInfo.layers = 1;
 			VkResult result = vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]);
-			VK_ASSERT_RESULT(result, "vkCreateFramebuffer");
+			if (result != VK_SUCCESS)
+			{
+				EG_EVENT_STRF(world, EgLogsError, "vkCreateFramebuffer failed");
+			}
 		}
 	}
 
@@ -1103,20 +1140,23 @@ public:
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 		VkResult result = vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool);
-		VK_ASSERT_RESULT(result, "vkCreateCommandPool");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateCommandPool failed");
+		}
 	}
 
 	void createColorResources() {
 		VkFormat colorFormat = swapChainImageFormat;
 
-		createImage(physicalDevice, device, swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
+		createImage(world, physicalDevice, device, swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
 		colorImageView = createImageView(colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 	}
 
 	void createDepthResources() {
 		VkFormat depthFormat = findDepthFormat();
 
-		createImage(physicalDevice, device, swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
+		createImage(world, physicalDevice, device, swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
 		depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 	}
 
@@ -1132,7 +1172,7 @@ public:
 			}
 		}
 
-		throw std::runtime_error("failed to find supported format!");
+		EG_EVENT_STRF(world, EgLogsError, "failed to find supported format!");
 	}
 
 	VkFormat findDepthFormat() {
@@ -1180,7 +1220,10 @@ public:
 		samplerInfo.mipLodBias = 0.0f;
 
 		VkResult result = vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler);
-		VK_ASSERT_RESULT(result, "vkCreateSampler");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateSampler failed");
+		}
 	}
 
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels) {
@@ -1197,7 +1240,10 @@ public:
 
 		VkImageView imageView;
 		VkResult result = vkCreateImageView(device, &viewInfo, nullptr, &imageView);
-		VK_ASSERT_RESULT(result, "vkCreateImageView");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateImageView failed");
+		}
 
 		return imageView;
 	}
@@ -1215,14 +1261,14 @@ public:
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
-		createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 		void* data;
 		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
 		memcpy(data, vertices.data(), (size_t) bufferSize);
 		vkUnmapMemory(device, stagingBufferMemory);
 
-		createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 
 		copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 
@@ -1235,14 +1281,14 @@ public:
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
-		createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 		void* data;
 		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
 		memcpy(data, indices.data(), (size_t) bufferSize);
 		vkUnmapMemory(device, stagingBufferMemory);
 
-		createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 
 		copyBuffer(stagingBuffer, indexBuffer, bufferSize);
 
@@ -1253,8 +1299,9 @@ public:
 	void createUniformBuffers() {
 		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			createBuffer(physicalDevice, device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
 		}
 	}
 
@@ -1272,7 +1319,10 @@ public:
 		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
 		VkResult result = vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
-		VK_ASSERT_RESULT(result, "vkCreateDescriptorPool");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateDescriptorPool failed");
+		}
 	}
 
 	void createDescriptorSets() {
@@ -1284,7 +1334,10 @@ public:
 		allocInfo.pSetLayouts = layouts.data();
 
 		VkResult result = vkAllocateDescriptorSets(device, &allocInfo, descriptorSets);
-		VK_ASSERT_RESULT(result, "vkAllocateDescriptorSets");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkAllocateDescriptorSets failed");
+		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			VkDescriptorBufferInfo bufferInfo{};
@@ -1343,7 +1396,10 @@ public:
 		allocInfo.commandBufferCount = (uint32_t) MAX_FRAMES_IN_FLIGHT;
 
 		VkResult result = vkAllocateCommandBuffers(device, &allocInfo, commandBuffers);
-		VK_ASSERT_RESULT(result, "vkAllocateCommandBuffers");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkAllocateCommandBuffers failed");
+		}
 	}
 
 	void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex)
@@ -1352,7 +1408,10 @@ public:
 			VkCommandBufferBeginInfo beginInfo{};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
-			VK_ASSERT_RESULT(result, "vkBeginCommandBuffer");
+			if (result != VK_SUCCESS)
+			{
+				EG_EVENT_STRF(world, EgLogsError, "vkBeginCommandBuffer failed");
+			}
 		}
 
 		VkRenderPassBeginInfo renderPassInfo{};
@@ -1402,7 +1461,10 @@ public:
 		vkCmdEndRenderPass(commandBuffer);
 
 		VkResult result = vkEndCommandBuffer(commandBuffer);
-		VK_ASSERT_RESULT(result, "vkEndCommandBuffer");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkEndCommandBuffer failed");
+		}
 	}
 
 	void createSyncObjects() {
@@ -1416,8 +1478,9 @@ public:
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
 			vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
-				throw std::runtime_error("failed to create synchronization objects for a frame!");
+			vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+			{
+				EG_EVENT_STRF(world, EgLogsError, "failed to create synchronization objects for a frame!");
 			}
 		}
 	}
@@ -1446,11 +1509,14 @@ public:
 		uint32_t imageIndex;
 		VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		if (result == VK_ERROR_OUT_OF_DATE_KHR)
+		{
 			recreateSwapChain();
 			return;
-		} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "failed to acquire swap chain image!");
 		}
 
 		updateUniformBuffer(currentFrame);
@@ -1478,7 +1544,10 @@ public:
 
 		{
 			VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
-			VK_ASSERT_RESULT(result, "vkQueueSubmit");
+			if (result != VK_SUCCESS)
+			{
+				EG_EVENT_STRF(world, EgLogsError, "vkQueueSubmit failed");
+			}
 		}
 
 		VkPresentInfoKHR presentInfo{};
@@ -1499,7 +1568,7 @@ public:
 			framebufferResized = false;
 			recreateSwapChain();
 		} else if (result != VK_SUCCESS) {
-			throw std::runtime_error("failed to present swap chain image!");
+			EG_EVENT_STRF(world, EgLogsError, "failed to present swap chain image!");
 		}
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -1515,7 +1584,10 @@ public:
 		VkShaderModule shaderModule;
 
 		VkResult result = vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);
-		VK_ASSERT_RESULT(result, "vkCreateShaderModule");
+		if (result != VK_SUCCESS)
+		{
+			EG_EVENT_STRF(world, EgLogsError, "vkCreateShaderModule failed");
+		}
 
 		return shaderModule;
 	}
@@ -1633,6 +1705,7 @@ void renderer_init()
 
 
 	app.world = ecs_init();
+	ECS_IMPORT(app.world, EgLogs);
 	ECS_IMPORT(app.world, EgWindows);
 	ECS_IMPORT(app.world, EgGeometries);
 	ECS_IMPORT(app.world, EgVk);
@@ -1655,12 +1728,7 @@ void renderer_init()
 	}
 	catch (const std::exception& e)
 	{
-		printf("what: %s\n", e.what() );
-		while(1)
-		{
-			//ecs_os_abort();
-			ecs_progress(app.world, 0);
-		}
+		EG_EVENT_STRF(app.world, EgLogsError, "std::exception: %s\n", e.what());
 	}
 }
 

@@ -68,12 +68,7 @@ VkPhysicalDevice render1_pick_physical_device(ecs_world_t * world)
 
 	if (device == NULL)
 	{
-		EG_TRACE(world, EgLogsError, "failed to find a suitable GPU!");
-		//ecs_os_abort();
-		while(1)
-		{
-			ecs_progress(world, 0);
-		}
+		EG_EVENT_STRF(world, EgLogsError, "failed to find a suitable GPU!");
 	}
 
 	return device;
