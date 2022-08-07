@@ -43,22 +43,6 @@ void populate_VkPresentModeKHR(ecs_world_t * world, ecs_entity_t parent, VkPhysi
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkInstance instance, VkSurfaceKHR surface)
 {
 	uint32_t count = 0;
@@ -88,11 +72,6 @@ void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkInsta
 	}
 	ecs_os_free(devices);
 }
-
-
-
-
-
 
 
 static void Observer_populate_VkPhysicalDevice(ecs_iter_t *it)
