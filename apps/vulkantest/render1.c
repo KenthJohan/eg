@@ -467,3 +467,37 @@ void createDescriptorSetLayout(ecs_world_t * world, VkDevice device, VkDescripto
 	}
 }
 
+
+
+
+void copyBuffer(VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+{
+	VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+	VkBufferCopy copyRegion = {};
+	copyRegion.size = size;
+	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+	endSingleTimeCommands(device, commandBuffer, graphicsQueue, commandPool);
+}
+
+
+
+void createDescriptorPool(ecs_world_t * world, VkDevice device, VkDescriptorPool * descriptorPool)
+{
+	VkDescriptorPoolSize poolSizes[2] = {};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	VkDescriptorPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = 2;
+	poolInfo.pPoolSizes = poolSizes;
+	poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
+
+	VkResult result = vkCreateDescriptorPool(device, &poolInfo, NULL, descriptorPool);
+	if (result != VK_SUCCESS)
+	{
+		EG_EVENT_STRF(world, EgLogsError, "vkCreateDescriptorPool failed");
+	}
+}

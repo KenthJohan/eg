@@ -56,7 +56,6 @@
 
 #define MODEL_PATH "viking_room.obj"
 
-#define MAX_FRAMES_IN_FLIGHT 2
 #define FRAMEBUFFER_ATTACHMENT_COUNT 3
 #define RENDERPASS_CLEARVALUE_COUNT 2
 #define VALIDATION_LAYER_COUNT 1
@@ -216,7 +215,7 @@ public:
 		createVertexBuffer();
 		createIndexBuffer();
 		createUniformBuffers();
-		createDescriptorPool();
+		createDescriptorPool(world, device, &descriptorPool);
 		createDescriptorSets();
 		createCommandBuffers();
 		createSyncObjects();
@@ -813,7 +812,7 @@ public:
 
 		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &vertexBuffer, &vertexBufferMemory);
 
-		copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+		copyBuffer(device, graphicsQueue, commandPool, stagingBuffer, vertexBuffer, bufferSize);
 
 		vkDestroyBuffer(device, stagingBuffer, nullptr);
 		vkFreeMemory(device, stagingBufferMemory, nullptr);
@@ -833,7 +832,7 @@ public:
 
 		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &indexBuffer, &indexBufferMemory);
 
-		copyBuffer(stagingBuffer, indexBuffer, bufferSize);
+		copyBuffer(device, graphicsQueue, commandPool, stagingBuffer, indexBuffer, bufferSize);
 
 		vkDestroyBuffer(device, stagingBuffer, nullptr);
 		vkFreeMemory(device, stagingBufferMemory, nullptr);
@@ -848,25 +847,7 @@ public:
 		}
 	}
 
-	void createDescriptorPool() {
-		std::array<VkDescriptorPoolSize, 2> poolSizes{};
-		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-		poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-		VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-
-		VkResult result = vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
-		if (result != VK_SUCCESS)
-		{
-			EG_EVENT_STRF(world, EgLogsError, "vkCreateDescriptorPool failed");
-		}
-	}
 
 	void createDescriptorSets() {
 		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
@@ -919,15 +900,7 @@ public:
 
 
 
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-		VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
 
-		VkBufferCopy copyRegion{};
-		copyRegion.size = size;
-		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
-		endSingleTimeCommands(device, commandBuffer, graphicsQueue, commandPool);
-	}
 
 
 

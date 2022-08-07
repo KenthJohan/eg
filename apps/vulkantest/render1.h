@@ -6,6 +6,10 @@
 extern "C" {
 #endif
 
+
+
+#define MAX_FRAMES_IN_FLIGHT 2
+
 ecs_entity_t render1_init(ecs_world_t * world);
 VkSampleCountFlagBits render1_get_max_usable_sample_count(VkPhysicalDevice physicalDevice);
 VkPhysicalDevice render1_pick_physical_device(ecs_world_t * world);
@@ -29,6 +33,12 @@ VkMemoryPropertyFlags properties,
 VkImage * image, VkDeviceMemory * imageMemory
 );
 void createDescriptorSetLayout(ecs_world_t * world, VkDevice device, VkDescriptorSetLayout * descriptorSetLayout);
+
+
+void copyBuffer(VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+
+void createDescriptorPool(ecs_world_t * world, VkDevice device, VkDescriptorPool * descriptorPool);
 
 #ifdef __cplusplus
 }
