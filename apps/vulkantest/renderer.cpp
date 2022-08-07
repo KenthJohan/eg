@@ -2,8 +2,7 @@
 
 
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
+
 
 
 
@@ -233,13 +232,6 @@ public:
 	bool framebufferResized = false;
 
 
-
-	static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
-	{
-		auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
-		app->framebufferResized = true;
-	}
-
 	void initVulkan() {
 		//createInstance(world, entity_instance, instance);
 		//setupDebugMessenger();
@@ -332,8 +324,7 @@ public:
 		//vkDestroyInstance(instance, nullptr);
 
 		//glfwDestroyWindow(window);
-
-		glfwTerminate();
+		//glfwTerminate();
 	}
 
 	void recreateSwapChain()
@@ -1328,7 +1319,7 @@ void renderer_fini()
 int renderer_update()
 {
 	ecs_progress(app.world, 0);
-	glfwPollEvents();
+	eg_platform_update();
 	app.drawFrame();
 	vkDeviceWaitIdle(app.device);
 	//int r = glfwWindowShouldClose(app.window);

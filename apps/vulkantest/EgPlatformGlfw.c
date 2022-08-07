@@ -8,6 +8,8 @@
 #include "EgVkInstances.h"
 #include "eg_basics.h"
 #include "EgLogs.h"
+
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 
@@ -139,6 +141,12 @@ void eg_platform_wait_positive_framebuffer_size(ecs_world_t *world, ecs_entity_t
 		glfwWaitEvents();
 	}
 }
+
+
+void eg_platform_update()
+{
+	glfwPollEvents();
+};
 
 
 void EgPlatformImport(ecs_world_t *world)
