@@ -125,10 +125,10 @@ void EgLogsImport(ecs_world_t *world)
 	ecs_add(world, EgLogsInfo,     EgEventsPrint);
 	ecs_add(world, EgLogsWarning,  EgEventsPrint);
 
-	ecs_doc_set_color(world, EgLogsError,   "#FF1111");
-	ecs_doc_set_color(world, EgLogsVerbose, "#47B5FF");
-	ecs_doc_set_color(world, EgLogsInfo,    "#CCCCFF");
-	ecs_doc_set_color(world, EgLogsWarning, "#FFFF76");
+	ecs_doc_set_color(world, EgLogsError,   EG_LOGS_COLOR_ERROR);
+	ecs_doc_set_color(world, EgLogsVerbose, EG_LOGS_COLOR_VERBOSE);
+	ecs_doc_set_color(world, EgLogsInfo,    EG_LOGS_COLOR_INFO);
+	ecs_doc_set_color(world, EgLogsWarning, EG_LOGS_COLOR_WARNING);
 
 
 }

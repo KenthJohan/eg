@@ -21,6 +21,13 @@ typedef struct
 
 ECS_COMPONENT_DECLARE(EgPlatformWindow);
 
+ECS_DECLARE(EgPlatformLogVerbose);
+ECS_DECLARE(EgPlatformLogInfo);
+ECS_DECLARE(EgPlatformLogWarning);
+ECS_DECLARE(EgPlatformLogError);
+
+
+
 void platform_populate_required_extension_names(ecs_world_t * world)
 {
 	uint32_t count = 0;
@@ -77,7 +84,7 @@ static void Observer_Window1(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i ++)
 	{
 		GLFWwindow * w = glfwCreateWindow(200, 100, "Vulkan", NULL, NULL);
-		EG_EVENT_STRF(it->world, EgLogsVerbose, "glfwCreateWindow : %p\n", w);
+		EG_EVENT_STRF(it->world, EgPlatformLogVerbose, "glfwCreateWindow : %p\n", w);
 		window[i].window = w;
 		ecs_add_pair(it->world, it->entities[i], EgState, EgValid);
 		//eg_world_entity_t * we = ecs_os_malloc_t(eg_world_entity_t);
@@ -98,7 +105,7 @@ static void Observer_Surface(ecs_iter_t *it)
 		VkInstance instance = field_instance[i].instance;
 		VkSurfaceKHR surface;
 		VkResult result = glfwCreateWindowSurface(instance, window, NULL, &surface);
-		EG_EVENT_STRF(it->world, EgLogsVerbose, "glfwCreateWindowSurface %p %p : %i\n", window, instance, result);
+		EG_EVENT_STRF(it->world, EgPlatformLogVerbose, "glfwCreateWindowSurface %p %p : %i\n", window, instance, result);
 		VK_ASSERT_RESULT(result, "glfwCreateWindowSurface");
 		ecs_set(it->world, it->entities[i], EgVkSurfaceKHR, {surface});
 	}
@@ -160,11 +167,27 @@ void EgPlatformImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgPlatform");
 	ECS_COMPONENT_DEFINE(world, EgPlatformWindow);
 
+	ECS_TAG_DEFINE(world, EgPlatformLogError);
+	ECS_TAG_DEFINE(world, EgPlatformLogVerbose);
+	ECS_TAG_DEFINE(world, EgPlatformLogInfo);
+	ECS_TAG_DEFINE(world, EgPlatformLogWarning);
+
+	ecs_doc_set_color(world, EgPlatformLogError,   EG_LOGS_COLOR_ERROR);
+	ecs_doc_set_color(world, EgPlatformLogVerbose, EG_LOGS_COLOR_VERBOSE);
+	ecs_doc_set_color(world, EgPlatformLogInfo,    EG_LOGS_COLOR_INFO);
+	ecs_doc_set_color(world, EgPlatformLogWarning, EG_LOGS_COLOR_WARNING);
+
+	ecs_add(world, EgPlatformLogError,    EgEventsIdling);
+	ecs_add(world, EgPlatformLogError,    EgEventsPrint);
+	ecs_add(world, EgPlatformLogVerbose,  EgEventsPrint);
+	ecs_add(world, EgPlatformLogInfo,     EgEventsPrint);
+	ecs_add(world, EgPlatformLogWarning,  EgEventsPrint);
+
 	glfwInit();
-	EG_EVENT_STRF(world, EgLogsVerbose, "glfwInit\n");
+	EG_EVENT_STRF(world, EgPlatformLogVerbose, "glfwInit\n");
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	EG_EVENT_STRF(world, EgLogsVerbose, "glfwWindowHint\n");
+	EG_EVENT_STRF(world, EgPlatformLogVerbose, "glfwWindowHint\n");
 
 	ECS_OBSERVER(world, Observer_Window, EcsOnAdd, EgWindow);
 	ECS_OBSERVER(world, Observer_Window1, EcsOnAdd, EgPlatformWindow);

@@ -37,6 +37,30 @@ void populate_VkPresentModeKHR(ecs_world_t * world, ecs_entity_t parent, VkPhysi
 		ecs_add_pair(world, r, EcsChildOf, parent);
 		ecs_doc_set_name(world, r, "PresentModeKHR");
 		ecs_set(world, r, EgVkPresentModeKHR, {items[i]});
+		switch(items[i])
+		{
+		case VK_PRESENT_MODE_IMMEDIATE_KHR:
+			ecs_add(world, r, Eg_VK_PRESENT_MODE_IMMEDIATE_KHR);
+			break;
+		case VK_PRESENT_MODE_MAILBOX_KHR:
+			ecs_add(world, r, Eg_VK_PRESENT_MODE_MAILBOX_KHR);
+			break;
+		case VK_PRESENT_MODE_FIFO_KHR:
+			ecs_add(world, r, Eg_VK_PRESENT_MODE_FIFO_KHR);
+			break;
+		case VK_PRESENT_MODE_FIFO_RELAXED_KHR:
+			ecs_add(world, r, Eg_VK_PRESENT_MODE_FIFO_RELAXED_KHR);
+			break;
+		case VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR:
+			ecs_add(world, r, Eg_VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR);
+			break;
+		case VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR:
+			ecs_add(world, r, Eg_VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR);
+			break;
+		case VK_PRESENT_MODE_MAX_ENUM_KHR:
+			ecs_add(world, r, Eg_VK_PRESENT_MODE_MAX_ENUM_KHR);
+			break;
+		}
 	}
 	ecs_os_free(items);
 }
@@ -48,7 +72,7 @@ void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkInsta
 	vkEnumeratePhysicalDevices(instance, &count, NULL);
 	VkPhysicalDevice * devices = ecs_os_malloc_n(VkPhysicalDevice, count);
 	vkEnumeratePhysicalDevices(instance, &count, devices);
-	EG_EVENT_STRF(world, EgLogsVerbose, "vkEnumeratePhysicalDevices : %i\n", count);
+	EG_EVENT_STRF(world, EgVkLogVerbose, "vkEnumeratePhysicalDevices : %i\n", count);
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		VkPhysicalDeviceProperties props;
@@ -56,17 +80,14 @@ void populate_VkPhysicalDevice(ecs_world_t * world, ecs_entity_t parent, VkInsta
 		char name[100];
 		snprintf(name, 100, "gpu%i", props.deviceID);
 		ecs_entity_t r = ecs_new_entity(world, name);
+		ecs_doc_set_color(world, r, "#706546");
 		ecs_add_pair(world, r, EcsChildOf, parent);
-
 		ecs_entity_t scope = ecs_set_scope(world, r);
 		ecs_set(world, r, EgVkPhysicalDevice, {devices[i]});
 		ecs_set_ptr(world, r, EgVkPhysicalDeviceProperties, &props);
 		ecs_doc_set_name(world, r, props.deviceName);
-
 		populate_VkSurfaceFormatKHR(world, r, devices[i], surface);
 		populate_VkPresentModeKHR(world, r, devices[i], surface);
-
-
 		ecs_set_scope(world, scope);
 	}
 	ecs_os_free(devices);

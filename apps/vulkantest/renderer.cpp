@@ -336,9 +336,10 @@ public:
 		}
 
 		VkResult result = vkCreateDevice(physicalDevice, &createInfo, nullptr, &device);
+		EG_EVENT_STRF(world, EgVkLogVerbose, "vkCreateDevice : %i\n", result);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkCreateDevice failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkCreateDevice failed\n");
 		}
 
 		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
@@ -386,9 +387,10 @@ public:
 		createInfo.clipped = VK_TRUE;
 
 		VkResult result = vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain);
+		EG_EVENT_STRF(world, EgVkLogVerbose, "vkCreateSwapchainKHR %p : %i\n", device, result);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkCreateSwapchainKHR failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkCreateSwapchainKHR failed");
 		}
 
 		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
@@ -589,7 +591,7 @@ public:
 			VkResult result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
 			if (result != VK_SUCCESS)
 			{
-				EG_EVENT_STRF(world, EgLogsError, "vkCreatePipelineLayout failed");
+				EG_EVENT_STRF(world, EgVkLogError, "vkCreatePipelineLayout failed");
 			}
 		}
 
@@ -614,7 +616,7 @@ public:
 			VkResult result = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
 			if (result != VK_SUCCESS)
 			{
-				EG_EVENT_STRF(world, EgLogsError, "vkCreateGraphicsPipelines failed");
+				EG_EVENT_STRF(world, EgVkLogError, "vkCreateGraphicsPipelines failed");
 			}
 		}
 
@@ -645,7 +647,7 @@ public:
 			VkResult result = vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]);
 			if (result != VK_SUCCESS)
 			{
-				EG_EVENT_STRF(world, EgLogsError, "vkCreateFramebuffer failed");
+				EG_EVENT_STRF(world, EgVkLogError, "vkCreateFramebuffer failed");
 			}
 		}
 	}
@@ -660,7 +662,7 @@ public:
 		VkResult result = vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkCreateCommandPool failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkCreateCommandPool failed");
 		}
 	}
 
@@ -705,7 +707,7 @@ public:
 			}
 		}
 
-		EG_EVENT_STRF(world, EgLogsError, "failed to find supported format!");
+		EG_EVENT_STRF(world, EgVkLogError, "failed to find supported format!");
 	}
 
 	VkFormat findDepthFormat() {
@@ -755,7 +757,7 @@ public:
 		VkResult result = vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkCreateSampler failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkCreateSampler failed");
 		}
 	}
 
@@ -775,7 +777,7 @@ public:
 		VkResult result = vkCreateImageView(device, &viewInfo, nullptr, &imageView);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkCreateImageView failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkCreateImageView failed");
 		}
 
 		return imageView;
@@ -851,7 +853,7 @@ public:
 		VkResult result = vkAllocateDescriptorSets(device, &allocInfo, descriptorSets);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkAllocateDescriptorSets failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkAllocateDescriptorSets failed");
 		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -905,7 +907,7 @@ public:
 		VkResult result = vkAllocateCommandBuffers(device, &allocInfo, commandBuffers);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkAllocateCommandBuffers failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkAllocateCommandBuffers failed");
 		}
 	}
 
@@ -917,7 +919,7 @@ public:
 			VkResult result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
 			if (result != VK_SUCCESS)
 			{
-				EG_EVENT_STRF(world, EgLogsError, "vkBeginCommandBuffer failed");
+				EG_EVENT_STRF(world, EgVkLogError, "vkBeginCommandBuffer failed");
 			}
 		}
 
@@ -970,7 +972,7 @@ public:
 		VkResult result = vkEndCommandBuffer(commandBuffer);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkEndCommandBuffer failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkEndCommandBuffer failed");
 		}
 	}
 
@@ -987,7 +989,7 @@ public:
 			vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
 			vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
 			{
-				EG_EVENT_STRF(world, EgLogsError, "failed to create synchronization objects for a frame!");
+				EG_EVENT_STRF(world, EgVkLogError, "failed to create synchronization objects for a frame!");
 			}
 		}
 	}
@@ -1008,7 +1010,7 @@ public:
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "failed to acquire swap chain image!");
+			EG_EVENT_STRF(world, EgVkLogError, "failed to acquire swap chain image!");
 		}
 
 		updateUniformBuffer(device, swapChainExtent, uniformBuffersMemory[currentFrame]);
@@ -1038,7 +1040,7 @@ public:
 			VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
 			if (result != VK_SUCCESS)
 			{
-				EG_EVENT_STRF(world, EgLogsError, "vkQueueSubmit failed");
+				EG_EVENT_STRF(world, EgVkLogError, "vkQueueSubmit failed");
 			}
 		}
 
@@ -1060,7 +1062,7 @@ public:
 			framebufferResized = false;
 			recreateSwapChain();
 		} else if (result != VK_SUCCESS) {
-			EG_EVENT_STRF(world, EgLogsError, "failed to present swap chain image!");
+			EG_EVENT_STRF(world, EgVkLogError, "failed to present swap chain image!");
 		}
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -1078,7 +1080,7 @@ public:
 		VkResult result = vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkCreateShaderModule failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkCreateShaderModule failed");
 		}
 
 		return shaderModule;

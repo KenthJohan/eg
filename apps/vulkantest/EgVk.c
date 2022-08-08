@@ -97,6 +97,15 @@ ECS_DECLARE(EgVkPhysicalDeviceFeature_variableMultisampleRate);
 ECS_DECLARE(EgVkPhysicalDeviceFeature_inheritedQueries);
 
 
+ECS_DECLARE(Eg_VK_PRESENT_MODE_IMMEDIATE_KHR);
+ECS_DECLARE(Eg_VK_PRESENT_MODE_MAILBOX_KHR);
+ECS_DECLARE(Eg_VK_PRESENT_MODE_FIFO_KHR);
+ECS_DECLARE(Eg_VK_PRESENT_MODE_FIFO_RELAXED_KHR);
+ECS_DECLARE(Eg_VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR);
+ECS_DECLARE(Eg_VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR);
+ECS_DECLARE(Eg_VK_PRESENT_MODE_MAX_ENUM_KHR);
+
+
 ECS_DECLARE(EgVkLogVerbose);
 ECS_DECLARE(EgVkLogInfo);
 ECS_DECLARE(EgVkLogWarning);
@@ -198,12 +207,20 @@ void EgVkImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgVkPhysicalDeviceFeature_variableMultisampleRate);
 	ECS_TAG_DEFINE(world, EgVkPhysicalDeviceFeature_inheritedQueries);
 
+	ECS_TAG_DEFINE(world, Eg_VK_PRESENT_MODE_IMMEDIATE_KHR);
+	ECS_TAG_DEFINE(world, Eg_VK_PRESENT_MODE_MAILBOX_KHR);
+	ECS_TAG_DEFINE(world, Eg_VK_PRESENT_MODE_FIFO_KHR);
+	ECS_TAG_DEFINE(world, Eg_VK_PRESENT_MODE_FIFO_RELAXED_KHR);
+	ECS_TAG_DEFINE(world, Eg_VK_PRESENT_MODE_SHARED_DEMAND_REFRESH_KHR);
+	ECS_TAG_DEFINE(world, Eg_VK_PRESENT_MODE_SHARED_CONTINUOUS_REFRESH_KHR);
+	ECS_TAG_DEFINE(world, Eg_VK_PRESENT_MODE_MAX_ENUM_KHR);
 
-	ecs_doc_set_color(world, EgVkLogError,   "#FF1111");
-	ecs_doc_set_color(world, EgVkLogVerbose, "#47B5FF");
-	ecs_doc_set_color(world, EgVkLogInfo,    "#CCCCFF");
-	ecs_doc_set_color(world, EgVkLogWarning, "#FFFF76");
+	ecs_doc_set_color(world, EgVkLogError,   EG_LOGS_COLOR_ERROR);
+	ecs_doc_set_color(world, EgVkLogVerbose, EG_LOGS_COLOR_VERBOSE);
+	ecs_doc_set_color(world, EgVkLogInfo,    EG_LOGS_COLOR_INFO);
+	ecs_doc_set_color(world, EgVkLogWarning, EG_LOGS_COLOR_WARNING);
 
+	ecs_add(world, EgVkLogError,    EgEventsIdling);
 	ecs_add(world, EgVkLogError,    EgEventsPrint);
 	ecs_add(world, EgVkLogVerbose,  EgEventsPrint);
 	ecs_add(world, EgVkLogInfo,     EgEventsPrint);

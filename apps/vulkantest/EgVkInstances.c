@@ -49,7 +49,7 @@ static void Observer_debug(ecs_iter_t *it)
 		debugCreateInfo.pfnUserCallback = debugCallback;
 		debugCreateInfo.pUserData = it->world;
 		VkResult result = CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, NULL, &(d[i].debug_messenger));
-		EG_EVENT_STRF(it->world, EgLogsVerbose, "vkCreateDebugUtilsMessengerEXT : %i\n", result);
+		EG_EVENT_STRF(it->world, EgVkLogVerbose, "vkCreateDebugUtilsMessengerEXT : %i\n", result);
 		VK_ASSERT_RESULT(result, "CreateDebugUtilsMessengerEXT");
 	}
 
@@ -105,7 +105,7 @@ static void Observer_createInstance1(ecs_iter_t *it)
 
 		VkInstance instance;
 		VkResult result = vkCreateInstance(&create, NULL, &instance);
-		EG_EVENT_STRF(world, EgLogsVerbose, "vkCreateInstance : %i %p\n", result, instance);
+		EG_EVENT_STRF(world, EgVkLogVerbose, "vkCreateInstance : %i %p\n", result, instance);
 		if (result == VK_SUCCESS)
 		{
 			ecs_set(world, e, EgVkInstance, {instance, NULL});
