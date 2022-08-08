@@ -1,15 +1,6 @@
 #include "renderer.h"
 
 
-
-
-
-
-
-
-
-
-
 #include <vector>
 #include <array>
 #include <cstring>
@@ -36,6 +27,7 @@
 #include "EgVkDeviceExtensions.h"
 #include "EgVkQueueFamilies.h"
 #include "EgVkInstances.h"
+#include "EgVkDevices.h"
 
 #include "EgTypes.h"
 #include "EgWindows.h"
@@ -1218,6 +1210,7 @@ void renderer_init()
 	ECS_IMPORT(app.world, EgVkInstanceExtensions);
 	ECS_IMPORT(app.world, EgVkDeviceExtensions);
 	ECS_IMPORT(app.world, EgVkPhysicalDevices);
+	ECS_IMPORT(app.world, EgVkDevices);
 
 	try
 	{

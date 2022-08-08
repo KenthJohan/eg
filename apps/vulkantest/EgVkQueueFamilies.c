@@ -20,7 +20,7 @@ void populate_VkQueueFamilyProperties(ecs_world_t * world, ecs_entity_t parent, 
 	for (uint32_t i = 0; i < count; ++i)
 	{
 		char name[100];
-		snprintf(name, 100, "qf%i", i);
+		snprintf(name, 100, "QueueFamily%i", i);
 		ecs_entity_t r = ecs_entity_init(world, &(ecs_entity_desc_t)
 		{
 		.name = name
@@ -33,6 +33,26 @@ void populate_VkQueueFamilyProperties(ecs_world_t * world, ecs_entity_t parent, 
 		{
 			ecs_add(world, parent, Eg_VK_QUEUE_GRAPHICS_BIT);
 			ecs_add(world, r, Eg_VK_QUEUE_GRAPHICS_BIT);
+		}
+		if (items[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
+		{
+			ecs_add(world, parent, Eg_VK_QUEUE_COMPUTE_BIT);
+			ecs_add(world, r, Eg_VK_QUEUE_COMPUTE_BIT);
+		}
+		if (items[i].queueFlags & VK_QUEUE_TRANSFER_BIT)
+		{
+			ecs_add(world, parent, Eg_VK_QUEUE_TRANSFER_BIT);
+			ecs_add(world, r, Eg_VK_QUEUE_TRANSFER_BIT);
+		}
+		if (items[i].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT)
+		{
+			ecs_add(world, parent, Eg_VK_QUEUE_SPARSE_BINDING_BIT);
+			ecs_add(world, r, Eg_VK_QUEUE_SPARSE_BINDING_BIT);
+		}
+		if (items[i].queueFlags & VK_QUEUE_PROTECTED_BIT)
+		{
+			ecs_add(world, parent, Eg_VK_QUEUE_PROTECTED_BIT);
+			ecs_add(world, r, Eg_VK_QUEUE_PROTECTED_BIT);
 		}
 		VkBool32 presentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);

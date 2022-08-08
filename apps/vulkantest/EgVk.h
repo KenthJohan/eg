@@ -80,6 +80,13 @@ extern ECS_DECLARE(EgVkInstanceExtension);
 extern ECS_DECLARE(EgVkRequiredExtension);
 
 extern ECS_DECLARE(Eg_VK_QUEUE_GRAPHICS_BIT);
+extern ECS_DECLARE(Eg_VK_QUEUE_COMPUTE_BIT);
+extern ECS_DECLARE(Eg_VK_QUEUE_TRANSFER_BIT);
+extern ECS_DECLARE(Eg_VK_QUEUE_SPARSE_BINDING_BIT);
+extern ECS_DECLARE(Eg_VK_QUEUE_PROTECTED_BIT);
+
+
+
 extern ECS_DECLARE(Eg_PhysicalDeviceSurfaceSupportKHR);
 
 

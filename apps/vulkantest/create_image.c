@@ -24,7 +24,7 @@ VkImage * image, uint32_t * mipLevels, VkDeviceMemory * textureImageMemory
 	int w;
 	int h;
 	int c;
-	char const * path = TEXTURE_PATH "a";
+	char const * path = TEXTURE_PATH;
 	stbi_uc* pixels = stbi_load(path, &w, &h, &c, STBI_rgb_alpha);
 	VkDeviceSize size = w * h * 4;
 	(*mipLevels) = floor(log2(EG_MAX(w, h))) + 1;

@@ -36,6 +36,7 @@ SOURCES += EgVkInstanceExtensions.c
 SOURCES += EgVkDeviceExtensions.c
 SOURCES += EgVkQueueFamilies.c
 SOURCES += EgVkInstances.c
+SOURCES += EgVkDevices.c
 SOURCES += EgLogs.c
 SOURCES += renderer.cpp
 SOURCES += render1.c

@@ -33,6 +33,10 @@ ECS_DECLARE(EgVkInstanceExtension);
 ECS_DECLARE(EgVkRequiredExtension);
 
 ECS_DECLARE(Eg_VK_QUEUE_GRAPHICS_BIT);
+ECS_DECLARE(Eg_VK_QUEUE_COMPUTE_BIT);
+ECS_DECLARE(Eg_VK_QUEUE_TRANSFER_BIT);
+ECS_DECLARE(Eg_VK_QUEUE_SPARSE_BINDING_BIT);
+ECS_DECLARE(Eg_VK_QUEUE_PROTECTED_BIT);
 ECS_DECLARE(Eg_PhysicalDeviceSurfaceSupportKHR);
 
 
@@ -54,7 +58,12 @@ void EgVkImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgVkDeviceExtension);
 	ECS_TAG_DEFINE(world, EgVkInstanceExtension);
 	ECS_TAG_DEFINE(world, EgVkRequiredExtension);
+
 	ECS_TAG_DEFINE(world, Eg_VK_QUEUE_GRAPHICS_BIT);
+	ECS_TAG_DEFINE(world, Eg_VK_QUEUE_COMPUTE_BIT);
+	ECS_TAG_DEFINE(world, Eg_VK_QUEUE_TRANSFER_BIT);
+	ECS_TAG_DEFINE(world, Eg_VK_QUEUE_SPARSE_BINDING_BIT);
+	ECS_TAG_DEFINE(world, Eg_VK_QUEUE_PROTECTED_BIT);
 	ECS_TAG_DEFINE(world, Eg_PhysicalDeviceSurfaceSupportKHR);
 
 	//Handles
