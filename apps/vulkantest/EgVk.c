@@ -1,5 +1,6 @@
 #include "EgVk.h"
 #include "EgTypes.h"
+#include "EgLogs.h"
 #include <stdio.h>
 
 
@@ -35,12 +36,18 @@ ECS_DECLARE(Eg_VK_QUEUE_GRAPHICS_BIT);
 ECS_DECLARE(Eg_PhysicalDeviceSurfaceSupportKHR);
 
 
+ECS_DECLARE(EgVkLogVerbose);
+ECS_DECLARE(EgVkLogInfo);
+ECS_DECLARE(EgVkLogWarning);
+ECS_DECLARE(EgVkLogError);
+
 
 
 void EgVkImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgVk);
 	ECS_IMPORT(world, EgTypes);
+	ECS_IMPORT(world, EgLogs);
 	ecs_set_name_prefix(world, "EgVk");
 
 	ECS_TAG_DEFINE(world, EgVkExtension);
@@ -63,7 +70,20 @@ void EgVkImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgVkQueueFamilyProperties);
 	ECS_COMPONENT_DEFINE(world, EgVkSurfaceFormatKHR);
 
+	ECS_TAG_DEFINE(world, EgVkLogVerbose);
+	ECS_TAG_DEFINE(world, EgVkLogInfo);
+	ECS_TAG_DEFINE(world, EgVkLogWarning);
+	ECS_TAG_DEFINE(world, EgVkLogError);
 
+	ecs_doc_set_color(world, EgVkLogError,   "#FF1111");
+	ecs_doc_set_color(world, EgVkLogVerbose, "#47B5FF");
+	ecs_doc_set_color(world, EgVkLogInfo,    "#CCCCFF");
+	ecs_doc_set_color(world, EgVkLogWarning, "#FFFF76");
+
+	ecs_add(world, EgVkLogError,    EgEventsPrint);
+	ecs_add(world, EgVkLogVerbose,  EgEventsPrint);
+	ecs_add(world, EgVkLogInfo,     EgEventsPrint);
+	ecs_add(world, EgVkLogWarning,  EgEventsPrint);
 
 	ecs_struct_init(world, &(ecs_struct_desc_t){
 	.entity = ecs_entity(world, {.id = ecs_id(EgVkInstance)}),

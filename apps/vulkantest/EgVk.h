@@ -83,6 +83,14 @@ extern ECS_DECLARE(Eg_VK_QUEUE_GRAPHICS_BIT);
 extern ECS_DECLARE(Eg_PhysicalDeviceSurfaceSupportKHR);
 
 
+extern ECS_DECLARE(EgVkLogVerbose);
+extern ECS_DECLARE(EgVkLogInfo);
+extern ECS_DECLARE(EgVkLogWarning);
+extern ECS_DECLARE(EgVkLogError);
+
+
+
+
 void EgVkImport(ecs_world_t *world);
 
 

@@ -16,12 +16,12 @@ ECS_COMPONENT_DECLARE(EgVkInstances);
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
 (VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* data, void* user)
 {
-	char const * s = "NONE";
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {s = "\033[36;1;4m" "VERBOSE" "\033[0m";}
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)    {s = "\033[32;1;4m" "INFO"    "\033[0m";}
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {s = "\033[33;1;4m" "WARNING" "\033[0m";}
-	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)   {s = "\033[31;1;4m" "ERROR"   "\033[0m";}
-	EG_EVENT_STRF(user, EgLogsVerbose, "[%s] %s\n", s, data->pMessage);
+	ecs_entity_t e = EgVkLogVerbose;
+	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {e = EgVkLogVerbose;}
+	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)    {e = EgVkLogInfo;}
+	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {e = EgVkLogWarning;}
+	if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)   {e = EgVkLogError;}
+	EG_EVENT_STRF(user, e, "%s\n", data->pMessage);
 	//std::cerr << "validation layer: " << data->pMessage << std::endl;
 	return VK_FALSE;
 }

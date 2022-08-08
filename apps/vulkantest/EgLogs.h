@@ -7,11 +7,13 @@ extern "C" {
 #endif
 
 
-extern ECS_DECLARE(EgLogsError);
 extern ECS_DECLARE(EgLogsVerbose);
 extern ECS_DECLARE(EgLogsInfo);
+extern ECS_DECLARE(EgLogsWarning);
+extern ECS_DECLARE(EgLogsError);
 
-
+extern ECS_DECLARE(EgEventsIdling);
+extern ECS_DECLARE(EgEventsPrint);
 
 
 #define EG_EVENT_STRF(world, channel, ...) eg_event_strf((world), (channel), __FILE__, __LINE__, __VA_ARGS__)
