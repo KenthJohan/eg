@@ -22,7 +22,6 @@
 #include "EgVk.h"
 #include "EgVkPhysicalDevices.h"
 #include "EgVkLayers.h"
-#include "EgVkPhysicaldevicefeatures.h"
 #include "EgVkInstanceExtensions.h"
 #include "EgVkDeviceExtensions.h"
 #include "EgVkQueueFamilies.h"

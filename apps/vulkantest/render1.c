@@ -3,7 +3,6 @@
 #include "EgVk.h"
 #include "EgVkInstances.h"
 #include "EgWindows.h"
-#include "EgVkPhysicaldevicefeatures.h"
 #include "EgLogs.h"
 #include "eg_util.h"
 
@@ -380,7 +379,7 @@ void createBuffer(ecs_world_t * world, VkPhysicalDevice physicalDevice, VkDevice
 		VkResult result = vkAllocateMemory(device, &allocInfo, NULL, bufferMemory);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkAllocateMemory failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkAllocateMemory failed\n");
 		}
 		vkBindBufferMemory(device, (*buffer), (*bufferMemory), 0);
 	}
@@ -413,9 +412,10 @@ VkImage * image, VkDeviceMemory * imageMemory
 		imageInfo.samples = numSamples;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		VkResult result = vkCreateImage(device, &imageInfo, NULL, image);
+		EG_EVENT_STRF(world, EgVkLogVerbose, "vkCreateImage %p imageInfo NULL %p : %i\n", device, image, result);
 		if (result != VK_SUCCESS)
 		{
-			EG_EVENT_STRF(world, EgLogsError, "vkCreateImage failed");
+			EG_EVENT_STRF(world, EgVkLogError, "vkCreateImage failed\n");
 		}
 	}
 
@@ -461,9 +461,10 @@ void createDescriptorSetLayout(ecs_world_t * world, VkDevice device, VkDescripto
 	layoutInfo.pBindings = bindings;
 
 	VkResult result = vkCreateDescriptorSetLayout(device, &layoutInfo, NULL, descriptorSetLayout);
+	EG_EVENT_STRF(world, EgVkLogVerbose, "vkCreateDescriptorSetLayout %p layoutInfo NULL %p : %i\n", device, descriptorSetLayout, result);
 	if (result != VK_SUCCESS)
 	{
-		EG_EVENT_STRF(world, EgLogsError, "vkCreateDescriptorSetLayout failed");
+		EG_EVENT_STRF(world, EgVkLogError, "vkCreateDescriptorSetLayout failed");
 	}
 }
 
@@ -496,8 +497,28 @@ void createDescriptorPool(ecs_world_t * world, VkDevice device, VkDescriptorPool
 	poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
 
 	VkResult result = vkCreateDescriptorPool(device, &poolInfo, NULL, descriptorPool);
+	EG_EVENT_STRF(world, EgVkLogVerbose, "vkCreateDescriptorPool %p poolInfo NULL %p\n", device, descriptorPool);
 	if (result != VK_SUCCESS)
 	{
-		EG_EVENT_STRF(world, EgLogsError, "vkCreateDescriptorPool failed");
+		EG_EVENT_STRF(world, EgVkLogError, "vkCreateDescriptorPool failed");
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

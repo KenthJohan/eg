@@ -30,7 +30,6 @@ SOURCES += EgVk.c
 SOURCES += EgVkPhysicalDevices.c
 SOURCES += EgPlatformGlfw.c
 SOURCES += eg_util.c
-SOURCES += EgVkPhysicaldevicefeatures.c
 SOURCES += EgVkLayers.c
 SOURCES += EgVkInstanceExtensions.c
 SOURCES += EgVkDeviceExtensions.c
