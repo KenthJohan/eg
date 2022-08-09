@@ -52,7 +52,9 @@ VkSwapchainCreateInfoKHR * swapchain_create_info,
 VkSwapchainKHR * out_swapchain
 );
 
-
+VkImageView createImageView(ecs_world_t * world, VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+void render1_createRenderPass(ecs_world_t * world, VkPhysicalDevice physical, VkDevice device, VkSampleCountFlagBits msaaSamples, VkFormat imageFormat, VkRenderPass * renderPass);
+VkFormat findDepthFormat(VkPhysicalDevice physical);
 #ifdef __cplusplus
 }
 #endif

@@ -80,9 +80,11 @@ void render2_config(render2_context_t * ctx)
 		ctx->surface_format = formats[0].format;
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			if (formats[i].format == VK_FORMAT_B8G8R8A8_SRGB && formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+			VkFormat f = formats[i].format;
+			VkColorSpaceKHR c = formats[i].colorSpace;
+			if (f == VK_FORMAT_B8G8R8A8_SRGB && c == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 			{
-				ctx->surface_format = formats[i].format;
+				ctx->surface_format = f;
 			}
 		}
 	}
