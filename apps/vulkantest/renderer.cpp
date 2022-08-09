@@ -14,6 +14,7 @@
 #include "readfile.h"
 #include "load_model.h"
 #include "render1.h"
+#include "render2.h"
 #include "create_image.h"
 
 #include "types.hpp"
@@ -117,8 +118,13 @@ static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions
 }
 
 
+
+
+
 class HelloTriangleApplication {
 public:
+
+	render2_context_t context;
 
 
 	ecs_world_t* world;
@@ -282,8 +288,12 @@ public:
 	void recreateSwapChain()
 	{
 		EG_EVENT_STRF(world, EgLogsVerbose, "recreateSwapChain\n");
+
 		eg_platform_wait_positive_framebuffer_size(world, entity_instance);
+
+		//To wait on the host for the completion of outstanding queue operations for all queues on a given logical device
 		vkDeviceWaitIdle(device);
+
 		cleanupSwapChain();
 		createSwapChain();
 		createImageViews();
@@ -348,6 +358,8 @@ public:
 
 	void createSwapChain()
 	{
+
+		/*
 		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
 
 		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -355,9 +367,11 @@ public:
 		VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
 
 		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-		if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
+		if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+		{
 			imageCount = swapChainSupport.capabilities.maxImageCount;
 		}
+
 
 		VkSwapchainCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -369,6 +383,9 @@ public:
 		createInfo.imageExtent = extent;
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+
+		EG_EVENT_STRF(world, EgVkLogVerbose, "VkSwapchainCreateInfoKHR extent : %i %i\n", extent.width, extent.height);
 
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 		uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
@@ -392,8 +409,17 @@ public:
 		{
 			EG_EVENT_STRF(world, EgVkLogError, "vkCreateSwapchainKHR failed");
 		}
+		*/
 
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+
+
+		VkSurfaceCapabilitiesKHR capabilities;
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
+		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
+		render2_swapchain_create(world, device, &capabilities, r->width, r->height, &createInfo, &swapChain);
+
+		uint32_t imageCount;
+		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, NULL);
 		swapChainImages.resize(imageCount);
 		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
 
@@ -1219,6 +1245,13 @@ void renderer_init()
 		app.surface = ecs_get(app.world, app.entity_instance, EgVkSurfaceKHR)->surface;
 		app.physicalDevice = render1_pick_physical_device(app.world);
 		app.msaaSamples = render1_get_max_usable_sample_count(app.physicalDevice);
+
+		app.context.physical = render1_pick_physical_device(app.world);
+		app.context.surface = ecs_get(app.world, app.entity_instance, EgVkSurfaceKHR)->surface;
+		render2_config(&app.context);
+
+
+
 		app.initVulkan();
 	}
 	catch (const std::exception& e)

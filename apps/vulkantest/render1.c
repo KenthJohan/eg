@@ -5,6 +5,8 @@
 #include "EgWindows.h"
 #include "EgLogs.h"
 #include "eg_util.h"
+#include "eg_basics.h"
+
 
 
 
@@ -503,11 +505,6 @@ void createDescriptorPool(ecs_world_t * world, VkDevice device, VkDescriptorPool
 		EG_EVENT_STRF(world, EgVkLogError, "vkCreateDescriptorPool failed");
 	}
 }
-
-
-
-
-
 
 
 

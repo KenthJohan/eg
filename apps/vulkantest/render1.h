@@ -40,6 +40,19 @@ void copyBuffer(VkDevice device, VkQueue graphicsQueue, VkCommandPool commandPoo
 
 void createDescriptorPool(ecs_world_t * world, VkDevice device, VkDescriptorPool * descriptorPool);
 
+
+void render2_swapchain_create
+(
+ecs_world_t * world,
+VkDevice device,
+VkSurfaceCapabilitiesKHR * capabilities,
+uint32_t width,
+uint32_t height,
+VkSwapchainCreateInfoKHR * swapchain_create_info,
+VkSwapchainKHR * out_swapchain
+);
+
+
 #ifdef __cplusplus
 }
 #endif

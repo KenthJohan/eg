@@ -39,6 +39,7 @@ SOURCES += EgVkDevices.c
 SOURCES += EgLogs.c
 SOURCES += renderer.cpp
 SOURCES += render1.c
+SOURCES += render2.c
 SOURCES += create_image.c
 SOURCES += updateUniformBuffer.cpp
 

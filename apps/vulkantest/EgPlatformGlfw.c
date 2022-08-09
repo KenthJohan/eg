@@ -143,10 +143,13 @@ void eg_platform_wait_positive_framebuffer_size(ecs_world_t *world, ecs_entity_t
 	GLFWwindow * window = ecs_get(world, e, EgPlatformWindow)->window;
 	int width = 0, height = 0;
 	glfwGetFramebufferSize(window, &width, &height);
-	while (width == 0 || height == 0) {
+	while (width == 0 || height == 0)
+	{
 		glfwGetFramebufferSize(window, &width, &height);
 		glfwWaitEvents();
 	}
+
+	EG_EVENT_STRF(world, EgPlatformLogVerbose, "glfwGetFramebufferSize : %i %i\n", width, height);
 }
 
 
