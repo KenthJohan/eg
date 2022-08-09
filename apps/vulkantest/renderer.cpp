@@ -124,27 +124,17 @@ static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions
 class HelloTriangleApplication {
 public:
 
-	render2_context_t context;
-
-
 	ecs_world_t* world;
-	//GLFWwindow* window;
 	ecs_entity_t entity_instance;
 
-	//VkInstance instance;
-	VkSurfaceKHR surface;
+	render2_context_t context;
 
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-	VkDevice device;
-
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
 
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
-	VkFormat swapChainImageFormat;
-	VkExtent2D swapChainExtent;
+	//VkFormat swapChainImageFormat;
+	//VkExtent2D swapChainExtent;
 	std::vector<VkImageView> swapChainImageViews;
 	std::vector<VkFramebuffer> swapChainFramebuffers;
 
@@ -195,24 +185,25 @@ public:
 		//setupDebugMessenger();
 		//createSurface();
 		//pickPhysicalDevice();
-		createLogicalDevice();
+		//createLogicalDevice();
+
 		createSwapChain();
 		createImageViews();
 		createRenderPass();
-		createDescriptorSetLayout(world, device, &descriptorSetLayout);
+		createDescriptorSetLayout(world, context.device, &descriptorSetLayout);
 		createGraphicsPipeline();
 		createCommandPool();
 		createColorResources();
 		createDepthResources();
 		createFramebuffers();
-		createTextureImage(world, physicalDevice, device, commandPool, graphicsQueue, &textureImage, &mipLevels, &textureImageMemory);
+		createTextureImage(world, context.physical, context.device, commandPool, context.qf_graphics, &textureImage, &mipLevels, &textureImageMemory);
 		createTextureImageView();
 		createTextureSampler();
 		loadModel(vertices, indices, MODEL_PATH);
 		createVertexBuffer();
 		createIndexBuffer();
 		createUniformBuffers();
-		createDescriptorPool(world, device, &descriptorPool);
+		createDescriptorPool(world, context.device, &descriptorPool);
 		createDescriptorSets();
 		createCommandBuffers();
 		createSyncObjects();
@@ -221,62 +212,62 @@ public:
 
 
 	void cleanupSwapChain() {
-		vkDestroyImageView(device, depthImageView, nullptr);
-		vkDestroyImage(device, depthImage, nullptr);
-		vkFreeMemory(device, depthImageMemory, nullptr);
+		vkDestroyImageView(context.device, depthImageView, nullptr);
+		vkDestroyImage(context.device, depthImage, nullptr);
+		vkFreeMemory(context.device, depthImageMemory, nullptr);
 
-		vkDestroyImageView(device, colorImageView, nullptr);
-		vkDestroyImage(device, colorImage, nullptr);
-		vkFreeMemory(device, colorImageMemory, nullptr);
+		vkDestroyImageView(context.device, colorImageView, nullptr);
+		vkDestroyImage(context.device, colorImage, nullptr);
+		vkFreeMemory(context.device, colorImageMemory, nullptr);
 
 		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
+			vkDestroyFramebuffer(context.device, framebuffer, nullptr);
 		}
 
 		for (auto imageView : swapChainImageViews) {
-			vkDestroyImageView(device, imageView, nullptr);
+			vkDestroyImageView(context.device, imageView, nullptr);
 		}
 
-		vkDestroySwapchainKHR(device, swapChain, nullptr);
+		vkDestroySwapchainKHR(context.device, swapChain, nullptr);
 	}
 
 	void cleanup() {
 		cleanupSwapChain();
 
-		vkDestroyPipeline(device, graphicsPipeline, nullptr);
-		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-		vkDestroyRenderPass(device, renderPass, nullptr);
+		vkDestroyPipeline(context.device, graphicsPipeline, nullptr);
+		vkDestroyPipelineLayout(context.device, pipelineLayout, nullptr);
+		vkDestroyRenderPass(context.device, renderPass, nullptr);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			vkDestroyBuffer(device, uniformBuffers[i], nullptr);
-			vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+			vkDestroyBuffer(context.device, uniformBuffers[i], nullptr);
+			vkFreeMemory(context.device, uniformBuffersMemory[i], nullptr);
 		}
 
-		vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+		vkDestroyDescriptorPool(context.device, descriptorPool, nullptr);
 
-		vkDestroySampler(device, textureSampler, nullptr);
-		vkDestroyImageView(device, textureImageView, nullptr);
+		vkDestroySampler(context.device, textureSampler, nullptr);
+		vkDestroyImageView(context.device, textureImageView, nullptr);
 
-		vkDestroyImage(device, textureImage, nullptr);
-		vkFreeMemory(device, textureImageMemory, nullptr);
+		vkDestroyImage(context.device, textureImage, nullptr);
+		vkFreeMemory(context.device, textureImageMemory, nullptr);
 
-		vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+		vkDestroyDescriptorSetLayout(context.device, descriptorSetLayout, nullptr);
 
-		vkDestroyBuffer(device, indexBuffer, nullptr);
-		vkFreeMemory(device, indexBufferMemory, nullptr);
+		vkDestroyBuffer(context.device, indexBuffer, nullptr);
+		vkFreeMemory(context.device, indexBufferMemory, nullptr);
 
-		vkDestroyBuffer(device, vertexBuffer, nullptr);
-		vkFreeMemory(device, vertexBufferMemory, nullptr);
+		vkDestroyBuffer(context.device, vertexBuffer, nullptr);
+		vkFreeMemory(context.device, vertexBufferMemory, nullptr);
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
-			vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
-			vkDestroyFence(device, inFlightFences[i], nullptr);
+			vkDestroySemaphore(context.device, renderFinishedSemaphores[i], nullptr);
+			vkDestroySemaphore(context.device, imageAvailableSemaphores[i], nullptr);
+			vkDestroyFence(context.device, inFlightFences[i], nullptr);
 		}
 
-		vkDestroyCommandPool(device, commandPool, nullptr);
+		vkDestroyCommandPool(context.device, commandPool, nullptr);
 
-		vkDestroyDevice(device, nullptr);
+		vkDestroyDevice(context.device, nullptr);
 
 		//vkDestroySurfaceKHR(instance, surface, nullptr);
 		//vkDestroyInstance(instance, nullptr);
@@ -292,7 +283,7 @@ public:
 		eg_platform_wait_positive_framebuffer_size(world, entity_instance);
 
 		//To wait on the host for the completion of outstanding queue operations for all queues on a given logical device
-		vkDeviceWaitIdle(device);
+		vkDeviceWaitIdle(context.device);
 
 		cleanupSwapChain();
 		createSwapChain();
@@ -309,7 +300,7 @@ public:
 
 	void createLogicalDevice()
 	{
-		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+		QueueFamilyIndices indices = findQueueFamilies(context.physical);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
@@ -345,15 +336,15 @@ public:
 			createInfo.enabledLayerCount = 0;
 		}
 
-		VkResult result = vkCreateDevice(physicalDevice, &createInfo, nullptr, &device);
+		VkResult result = vkCreateDevice(context.physical, &createInfo, nullptr, &context.device);
 		EG_EVENT_STRF(world, EgVkLogVerbose, "vkCreateDevice : %i\n", result);
 		if (result != VK_SUCCESS)
 		{
 			EG_EVENT_STRF(world, EgVkLogError, "vkCreateDevice failed\n");
 		}
 
-		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
-		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
+		vkGetDeviceQueue(context.device, indices.graphicsFamily.value(), 0, &context.qf_graphics);
+		vkGetDeviceQueue(context.device, indices.presentFamily.value(), 0, &context.qf_present);
 	}
 
 	void createSwapChain()
@@ -414,30 +405,31 @@ public:
 
 
 		VkSurfaceCapabilitiesKHR capabilities;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.physical, context.surface, &capabilities);
 		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
-		render2_swapchain_create(world, device, &capabilities, r->width, r->height, &createInfo, &swapChain);
+		render2_swapchain_create(world, context.device, &capabilities, r->width, r->height, &(context.swapchain_create_info), &swapChain);
 
 		uint32_t imageCount;
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, NULL);
+		vkGetSwapchainImagesKHR(context.device, swapChain, &imageCount, NULL);
 		swapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+		vkGetSwapchainImagesKHR(context.device, swapChain, &imageCount, swapChainImages.data());
 
-		swapChainImageFormat = surfaceFormat.format;
-		swapChainExtent = extent;
+		//swapChainImageFormat = surfaceFormat.format;
+		//swapChainExtent = extent;
 	}
 
-	void createImageViews() {
+	void createImageViews()
+	{
 		swapChainImageViews.resize(swapChainImages.size());
-
-		for (uint32_t i = 0; i < swapChainImages.size(); i++) {
-			swapChainImageViews[i] = createImageView(swapChainImages[i], swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+		for (uint32_t i = 0; i < swapChainImages.size(); i++)
+		{
+			swapChainImageViews[i] = createImageView(swapChainImages[i], context.swapchain_create_info.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 		}
 	}
 
 	void createRenderPass() {
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = swapChainImageFormat;
+		colorAttachment.format = context.swapchain_create_info.imageFormat;
 		colorAttachment.samples = msaaSamples;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -457,7 +449,7 @@ public:
 		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 		VkAttachmentDescription colorAttachmentResolve{};
-		colorAttachmentResolve.format = swapChainImageFormat;
+		colorAttachmentResolve.format = context.swapchain_create_info.imageFormat;
 		colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -503,7 +495,7 @@ public:
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
 
-		VkResult result = vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
+		VkResult result = vkCreateRenderPass(context.device, &renderPassInfo, nullptr, &renderPass);
 		if (result != VK_SUCCESS)
 		{
 			EG_EVENT_STRF(world, EgLogsError, "vkCreateRenderPass failed");
@@ -614,7 +606,7 @@ public:
 			pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			pipelineLayoutInfo.setLayoutCount = 1;
 			pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
-			VkResult result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
+			VkResult result = vkCreatePipelineLayout(context.device, &pipelineLayoutInfo, nullptr, &pipelineLayout);
 			if (result != VK_SUCCESS)
 			{
 				EG_EVENT_STRF(world, EgVkLogError, "vkCreatePipelineLayout failed");
@@ -639,15 +631,15 @@ public:
 			pipelineInfo.renderPass = renderPass;
 			pipelineInfo.subpass = 0;
 			pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-			VkResult result = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
+			VkResult result = vkCreateGraphicsPipelines(context.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline);
 			if (result != VK_SUCCESS)
 			{
 				EG_EVENT_STRF(world, EgVkLogError, "vkCreateGraphicsPipelines failed");
 			}
 		}
 
-		vkDestroyShaderModule(device, fragShaderModule, nullptr);
-		vkDestroyShaderModule(device, vertShaderModule, nullptr);
+		vkDestroyShaderModule(context.device, fragShaderModule, nullptr);
+		vkDestroyShaderModule(context.device, vertShaderModule, nullptr);
 	}
 
 	void createFramebuffers() {
@@ -667,10 +659,10 @@ public:
 			framebufferInfo.renderPass = renderPass;
 			framebufferInfo.attachmentCount = FRAMEBUFFER_ATTACHMENT_COUNT;
 			framebufferInfo.pAttachments = attachments;
-			framebufferInfo.width = swapChainExtent.width;
-			framebufferInfo.height = swapChainExtent.height;
+			framebufferInfo.width = context.swapchain_create_info.imageExtent.width;
+			framebufferInfo.height = context.swapchain_create_info.imageExtent.height;
 			framebufferInfo.layers = 1;
-			VkResult result = vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]);
+			VkResult result = vkCreateFramebuffer(context.device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]);
 			if (result != VK_SUCCESS)
 			{
 				EG_EVENT_STRF(world, EgVkLogError, "vkCreateFramebuffer failed");
@@ -679,27 +671,29 @@ public:
 	}
 
 	void createCommandPool() {
-		QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
+		QueueFamilyIndices queueFamilyIndices = findQueueFamilies(context.physical);
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-		VkResult result = vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool);
+		VkResult result = vkCreateCommandPool(context.device, &poolInfo, nullptr, &commandPool);
 		if (result != VK_SUCCESS)
 		{
 			EG_EVENT_STRF(world, EgVkLogError, "vkCreateCommandPool failed");
 		}
 	}
 
-	void createColorResources() {
-		VkFormat colorFormat = swapChainImageFormat;
-
+	void createColorResources()
+	{
+		VkFormat colorFormat = context.swapchain_create_info.imageFormat;
+		uint32_t width = context.swapchain_create_info.imageExtent.width;
+		uint32_t height = context.swapchain_create_info.imageExtent.height;
 		createImage
 		(
 		world,
-		physicalDevice, device,
-		swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat,
+		context.physical, context.device,
+		width, height, 1, msaaSamples, colorFormat,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		&colorImage, &colorImageMemory
@@ -709,12 +703,14 @@ public:
 
 	void createDepthResources() {
 		VkFormat depthFormat = findDepthFormat();
+		uint32_t width = context.swapchain_create_info.imageExtent.width;
+		uint32_t height = context.swapchain_create_info.imageExtent.height;
 
 		createImage
 		(
 		world,
-		physicalDevice, device,
-		swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat,
+		context.physical, context.device,
+		width, height, 1, msaaSamples, depthFormat,
 		VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		&depthImage, &depthImageMemory
 		);
@@ -724,7 +720,7 @@ public:
 	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
 		for (VkFormat format : candidates) {
 			VkFormatProperties props;
-			vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+			vkGetPhysicalDeviceFormatProperties(context.physical, format, &props);
 
 			if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
 				return format;
@@ -760,7 +756,7 @@ public:
 
 	void createTextureSampler() {
 		VkPhysicalDeviceProperties properties{};
-		vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+		vkGetPhysicalDeviceProperties(context.physical, &properties);
 
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -780,7 +776,7 @@ public:
 		samplerInfo.maxLod = static_cast<float>(mipLevels);
 		samplerInfo.mipLodBias = 0.0f;
 
-		VkResult result = vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler);
+		VkResult result = vkCreateSampler(context.device, &samplerInfo, nullptr, &textureSampler);
 		if (result != VK_SUCCESS)
 		{
 			EG_EVENT_STRF(world, EgVkLogError, "vkCreateSampler failed");
@@ -800,7 +796,7 @@ public:
 		viewInfo.subresourceRange.layerCount = 1;
 
 		VkImageView imageView;
-		VkResult result = vkCreateImageView(device, &viewInfo, nullptr, &imageView);
+		VkResult result = vkCreateImageView(context.device, &viewInfo, nullptr, &imageView);
 		if (result != VK_SUCCESS)
 		{
 			EG_EVENT_STRF(world, EgVkLogError, "vkCreateImageView failed");
@@ -822,19 +818,19 @@ public:
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
-		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+		createBuffer(world, context.physical, context.device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
 
 		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		vkMapMemory(context.device, stagingBufferMemory, 0, bufferSize, 0, &data);
 		memcpy(data, vertices.data(), (size_t) bufferSize);
-		vkUnmapMemory(device, stagingBufferMemory);
+		vkUnmapMemory(context.device, stagingBufferMemory);
 
-		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &vertexBuffer, &vertexBufferMemory);
+		createBuffer(world, context.physical, context.device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &vertexBuffer, &vertexBufferMemory);
 
-		copyBuffer(device, graphicsQueue, commandPool, stagingBuffer, vertexBuffer, bufferSize);
+		copyBuffer(context.device, context.qf_graphics, commandPool, stagingBuffer, vertexBuffer, bufferSize);
 
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
+		vkDestroyBuffer(context.device, stagingBuffer, nullptr);
+		vkFreeMemory(context.device, stagingBufferMemory, nullptr);
 	}
 
 	void createIndexBuffer() {
@@ -842,19 +838,19 @@ public:
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
-		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+		createBuffer(world, context.physical, context.device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
 
 		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		vkMapMemory(context.device, stagingBufferMemory, 0, bufferSize, 0, &data);
 		memcpy(data, indices.data(), (size_t) bufferSize);
-		vkUnmapMemory(device, stagingBufferMemory);
+		vkUnmapMemory(context.device, stagingBufferMemory);
 
-		createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &indexBuffer, &indexBufferMemory);
+		createBuffer(world, context.physical, context.device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, &indexBuffer, &indexBufferMemory);
 
-		copyBuffer(device, graphicsQueue, commandPool, stagingBuffer, indexBuffer, bufferSize);
+		copyBuffer(context.device, context.qf_graphics, commandPool, stagingBuffer, indexBuffer, bufferSize);
 
-		vkDestroyBuffer(device, stagingBuffer, nullptr);
-		vkFreeMemory(device, stagingBufferMemory, nullptr);
+		vkDestroyBuffer(context.device, stagingBuffer, nullptr);
+		vkFreeMemory(context.device, stagingBufferMemory, nullptr);
 	}
 
 	void createUniformBuffers() {
@@ -862,7 +858,7 @@ public:
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			createBuffer(world, physicalDevice, device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &uniformBuffers[i], &uniformBuffersMemory[i]);
+			createBuffer(world, context.physical, context.device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &uniformBuffers[i], &uniformBuffersMemory[i]);
 		}
 	}
 
@@ -876,7 +872,7 @@ public:
 		allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 		allocInfo.pSetLayouts = layouts.data();
 
-		VkResult result = vkAllocateDescriptorSets(device, &allocInfo, descriptorSets);
+		VkResult result = vkAllocateDescriptorSets(context.device, &allocInfo, descriptorSets);
 		if (result != VK_SUCCESS)
 		{
 			EG_EVENT_STRF(world, EgVkLogError, "vkAllocateDescriptorSets failed");
@@ -911,7 +907,7 @@ public:
 			descriptorWrites[1].descriptorCount = 1;
 			descriptorWrites[1].pImageInfo = &imageInfo;
 
-			vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			vkUpdateDescriptorSets(context.device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
 	}
 
@@ -930,7 +926,7 @@ public:
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = (uint32_t) MAX_FRAMES_IN_FLIGHT;
 
-		VkResult result = vkAllocateCommandBuffers(device, &allocInfo, commandBuffers);
+		VkResult result = vkAllocateCommandBuffers(context.device, &allocInfo, commandBuffers);
 		if (result != VK_SUCCESS)
 		{
 			EG_EVENT_STRF(world, EgVkLogError, "vkAllocateCommandBuffers failed");
@@ -954,7 +950,7 @@ public:
 		renderPassInfo.renderPass = renderPass;
 		renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
 		renderPassInfo.renderArea.offset = {0, 0};
-		renderPassInfo.renderArea.extent = swapChainExtent;
+		renderPassInfo.renderArea.extent = context.swapchain_create_info.imageExtent;
 
 
 		VkClearValue clearValues[RENDERPASS_CLEARVALUE_COUNT] = {
@@ -972,15 +968,15 @@ public:
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = (float) swapChainExtent.width;
-		viewport.height = (float) swapChainExtent.height;
+		viewport.width = (float) context.swapchain_create_info.imageExtent.width;
+		viewport.height = (float) context.swapchain_create_info.imageExtent.height;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 		VkRect2D scissor{};
 		scissor.offset = {0, 0};
-		scissor.extent = swapChainExtent;
+		scissor.extent = context.swapchain_create_info.imageExtent;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		VkBuffer vertexBuffers[] = {vertexBuffer};
@@ -1011,9 +1007,9 @@ public:
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-			vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+			if (vkCreateSemaphore(context.device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+			vkCreateSemaphore(context.device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+			vkCreateFence(context.device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
 			{
 				EG_EVENT_STRF(world, EgVkLogError, "failed to create synchronization objects for a frame!");
 			}
@@ -1024,10 +1020,10 @@ public:
 
 	void drawFrame()
 	{
-		vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+		vkWaitForFences(context.device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
 		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+		VkResult result = vkAcquireNextImageKHR(context.device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 		{
@@ -1039,9 +1035,9 @@ public:
 			EG_EVENT_STRF(world, EgVkLogError, "failed to acquire swap chain image!");
 		}
 
-		updateUniformBuffer(device, swapChainExtent, uniformBuffersMemory[currentFrame]);
+		updateUniformBuffer(context.device, context.swapchain_create_info.imageExtent, uniformBuffersMemory[currentFrame]);
 
-		vkResetFences(device, 1, &inFlightFences[currentFrame]);
+		vkResetFences(context.device, 1, &inFlightFences[currentFrame]);
 
 		vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
 		recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
@@ -1063,7 +1059,7 @@ public:
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
 		{
-			VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
+			VkResult result = vkQueueSubmit(context.qf_graphics, 1, &submitInfo, inFlightFences[currentFrame]);
 			if (result != VK_SUCCESS)
 			{
 				EG_EVENT_STRF(world, EgVkLogError, "vkQueueSubmit failed");
@@ -1082,7 +1078,7 @@ public:
 
 		presentInfo.pImageIndices = &imageIndex;
 
-		result = vkQueuePresentKHR(presentQueue, &presentInfo);
+		result = vkQueuePresentKHR(context.qf_present, &presentInfo);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 			framebufferResized = false;
@@ -1103,7 +1099,7 @@ public:
 
 		VkShaderModule shaderModule;
 
-		VkResult result = vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule);
+		VkResult result = vkCreateShaderModule(context.device, &createInfo, nullptr, &shaderModule);
 		if (result != VK_SUCCESS)
 		{
 			EG_EVENT_STRF(world, EgVkLogError, "vkCreateShaderModule failed");
@@ -1155,22 +1151,22 @@ public:
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
 		SwapChainSupportDetails details;
 
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, context.surface, &details.capabilities);
 
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, context.surface, &formatCount, nullptr);
 
 		if (formatCount != 0) {
 			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(device, context.surface, &formatCount, details.formats.data());
 		}
 
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, context.surface, &presentModeCount, nullptr);
 
 		if (presentModeCount != 0) {
 			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+			vkGetPhysicalDeviceSurfacePresentModesKHR(device, context.surface, &presentModeCount, details.presentModes.data());
 		}
 
 		return details;
@@ -1192,7 +1188,7 @@ public:
 			}
 
 			VkBool32 presentSupport = false;
-			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, context.surface, &presentSupport);
 
 			if (presentSupport) {
 				indices.presentFamily = i;
@@ -1242,15 +1238,10 @@ void renderer_init()
 	try
 	{
 		app.entity_instance = render1_init(app.world);
-		app.surface = ecs_get(app.world, app.entity_instance, EgVkSurfaceKHR)->surface;
-		app.physicalDevice = render1_pick_physical_device(app.world);
-		app.msaaSamples = render1_get_max_usable_sample_count(app.physicalDevice);
-
 		app.context.physical = render1_pick_physical_device(app.world);
 		app.context.surface = ecs_get(app.world, app.entity_instance, EgVkSurfaceKHR)->surface;
+		app.msaaSamples = render1_get_max_usable_sample_count(app.context.physical);
 		render2_config(&app.context);
-
-
 
 		app.initVulkan();
 	}
@@ -1271,7 +1262,7 @@ int renderer_update()
 	ecs_progress(app.world, 0);
 	eg_platform_update();
 	app.drawFrame();
-	vkDeviceWaitIdle(app.device);
+	vkDeviceWaitIdle(app.context.device);
 	//int r = glfwWindowShouldClose(app.window);
 	//return r;
 }
