@@ -119,7 +119,7 @@ public:
 	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 	VkSwapchainKHR swapChain;
-	std::vector<VkImage> swapChainImages;
+	//std::vector<VkImage> swapChainImages;
 	//VkFormat swapChainImageFormat;
 	//VkExtent2D swapChainExtent;
 	std::vector<VkImageView> swapChainImageViews;
@@ -279,16 +279,22 @@ public:
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.physical, context.surface, &capabilities);
 		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
 		render2_swapchain_create(world, context.device, &capabilities, r->width, r->height, &(context.swapchain_create_info), &swapChain);
-		uint32_t imageCount;
-		vkGetSwapchainImagesKHR(context.device, swapChain, &imageCount, NULL);
-		swapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(context.device, swapChain, &imageCount, swapChainImages.data());
 
-		swapChainImageViews.resize(swapChainImages.size());
-		for (uint32_t i = 0; i < swapChainImages.size(); i++)
+
+
 		{
-			swapChainImageViews[i] = createImageView(swapChainImages[i], context.swapchain_create_info.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+			uint32_t count;
+			VkImage images[32];
+			vkGetSwapchainImagesKHR(context.device, swapChain, &count, NULL);
+			count = EG_MIN(count, 32);
+			vkGetSwapchainImagesKHR(context.device, swapChain, &count, images);
+			swapChainImageViews.resize(count);
+			for (uint32_t i = 0; i < count; i++)
+			{
+				swapChainImageViews[i] = createImageView(images[i], context.swapchain_create_info.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+			}
 		}
+
 	}
 
 	void createRenderPass()
