@@ -122,8 +122,9 @@ public:
 	//std::vector<VkImage> swapChainImages;
 	//VkFormat swapChainImageFormat;
 	//VkExtent2D swapChainExtent;
-	std::vector<VkImageView> swapChainImageViews;
-	std::vector<VkFramebuffer> swapChainFramebuffers;
+	uint32_t swapChainImageViews_count;
+	VkImageView swapChainImageViews[32];
+	VkFramebuffer swapChainFramebuffers[32];
 
 	VkRenderPass renderPass;
 	VkDescriptorSetLayout descriptorSetLayout;
@@ -170,13 +171,12 @@ public:
 	void initVulkan()
 	{
 		render1_createRenderPass(world, context.physical, context.device, msaaSamples, VK_FORMAT_B8G8R8A8_SRGB, &renderPass);
+
 		createSwapChain();
+
 		createDescriptorSetLayout(world, context.device, &descriptorSetLayout);
 		createGraphicsPipeline();
 		createCommandPool();
-		createColorResources();
-		createDepthResources();
-		createFramebuffers();
 		createTextureImage(world, context.physical, context.device, commandPool, context.qf_graphics, &textureImage, &mipLevels, &textureImageMemory);
 		createTextureImageView();
 		createTextureSampler();
@@ -202,12 +202,10 @@ public:
 		vkDestroyImage(context.device, colorImage, nullptr);
 		vkFreeMemory(context.device, colorImageMemory, nullptr);
 
-		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(context.device, framebuffer, nullptr);
-		}
-
-		for (auto imageView : swapChainImageViews) {
-			vkDestroyImageView(context.device, imageView, nullptr);
+		for(uint32_t i = 0; i < swapChainImageViews_count; ++i)
+		{
+			vkDestroyFramebuffer(context.device, swapChainFramebuffers[i], NULL);
+			vkDestroyImageView(context.device, swapChainImageViews[i], NULL);
 		}
 
 		vkDestroySwapchainKHR(context.device, swapChain, nullptr);
@@ -269,9 +267,6 @@ public:
 
 		cleanupSwapChain();
 		createSwapChain();
-		createColorResources();
-		createDepthResources();
-		createFramebuffers();
 	}
 
 
@@ -282,7 +277,37 @@ public:
 		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
 		render2_swapchain_create(world, context.device, &capabilities, r->width, r->height, &(context.swapchain_create_info), &swapChain);
 
+		{
+			VkFormat colorFormat = context.swapchain_create_info.imageFormat;
+			uint32_t width = context.swapchain_create_info.imageExtent.width;
+			uint32_t height = context.swapchain_create_info.imageExtent.height;
+			createImage
+			(
+			world,
+			context.physical, context.device,
+			width, height, 1, msaaSamples, colorFormat,
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			&colorImage, &colorImageMemory
+			);
+			colorImageView = createImageView(world, context.device, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+		}
 
+		{
+			VkFormat depthFormat = findDepthFormat(context.physical);
+			uint32_t width = context.swapchain_create_info.imageExtent.width;
+			uint32_t height = context.swapchain_create_info.imageExtent.height;
+
+			createImage
+			(
+			world,
+			context.physical, context.device,
+			width, height, 1, msaaSamples, depthFormat,
+			VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			&depthImage, &depthImageMemory
+			);
+			depthImageView = createImageView(world, context.device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+		}
 
 		{
 			uint32_t count;
@@ -290,10 +315,30 @@ public:
 			vkGetSwapchainImagesKHR(context.device, swapChain, &count, NULL);
 			count = EG_MIN(count, 32);
 			vkGetSwapchainImagesKHR(context.device, swapChain, &count, images);
-			swapChainImageViews.resize(count);
+			swapChainImageViews_count = count;
 			for (uint32_t i = 0; i < count; i++)
 			{
 				swapChainImageViews[i] = createImageView(world, context.device, images[i], context.swapchain_create_info.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+			}
+		}
+
+		{
+			for (size_t i = 0; i < swapChainImageViews_count; i++)
+			{
+				VkImageView attachments[FRAMEBUFFER_ATTACHMENT_COUNT] = {colorImageView, depthImageView, swapChainImageViews[i]};
+				VkFramebufferCreateInfo framebufferInfo{};
+				framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+				framebufferInfo.renderPass = renderPass;
+				framebufferInfo.attachmentCount = FRAMEBUFFER_ATTACHMENT_COUNT;
+				framebufferInfo.pAttachments = attachments;
+				framebufferInfo.width = context.swapchain_create_info.imageExtent.width;
+				framebufferInfo.height = context.swapchain_create_info.imageExtent.height;
+				framebufferInfo.layers = 1;
+				VkResult result = vkCreateFramebuffer(context.device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]);
+				if (result != VK_SUCCESS)
+				{
+					EG_EVENT_STRF(world, EgVkLogError, "vkCreateFramebuffer failed");
+				}
 			}
 		}
 
@@ -440,33 +485,6 @@ public:
 		vkDestroyShaderModule(context.device, vertShaderModule, nullptr);
 	}
 
-	void createFramebuffers() {
-		swapChainFramebuffers.resize(swapChainImageViews.size());
-
-		for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-			VkImageView attachments[FRAMEBUFFER_ATTACHMENT_COUNT] = {colorImageView, depthImageView, swapChainImageViews[i]};
-			/*
-			std::array<VkImageView, 3> attachments = {
-			colorImageView,
-			depthImageView,
-			swapChainImageViews[i]
-			};
-			*/
-			VkFramebufferCreateInfo framebufferInfo{};
-			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebufferInfo.renderPass = renderPass;
-			framebufferInfo.attachmentCount = FRAMEBUFFER_ATTACHMENT_COUNT;
-			framebufferInfo.pAttachments = attachments;
-			framebufferInfo.width = context.swapchain_create_info.imageExtent.width;
-			framebufferInfo.height = context.swapchain_create_info.imageExtent.height;
-			framebufferInfo.layers = 1;
-			VkResult result = vkCreateFramebuffer(context.device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]);
-			if (result != VK_SUCCESS)
-			{
-				EG_EVENT_STRF(world, EgVkLogError, "vkCreateFramebuffer failed");
-			}
-		}
-	}
 
 	void createCommandPool()
 	{
@@ -481,38 +499,7 @@ public:
 		}
 	}
 
-	void createColorResources()
-	{
-		VkFormat colorFormat = context.swapchain_create_info.imageFormat;
-		uint32_t width = context.swapchain_create_info.imageExtent.width;
-		uint32_t height = context.swapchain_create_info.imageExtent.height;
-		createImage
-		(
-		world,
-		context.physical, context.device,
-		width, height, 1, msaaSamples, colorFormat,
-		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		&colorImage, &colorImageMemory
-		);
-		colorImageView = createImageView(world, context.device, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-	}
 
-	void createDepthResources() {
-		VkFormat depthFormat = findDepthFormat(context.physical);
-		uint32_t width = context.swapchain_create_info.imageExtent.width;
-		uint32_t height = context.swapchain_create_info.imageExtent.height;
-
-		createImage
-		(
-		world,
-		context.physical, context.device,
-		width, height, 1, msaaSamples, depthFormat,
-		VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		&depthImage, &depthImageMemory
-		);
-		depthImageView = createImageView(world, context.device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-	}
 
 
 
