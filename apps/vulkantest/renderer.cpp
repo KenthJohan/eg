@@ -71,23 +71,9 @@ const bool enableValidationLayers = true;
 
 
 
-struct QueueFamilyIndices {
-	std::optional<uint32_t> graphicsFamily;
-	std::optional<uint32_t> presentFamily;
 
-	bool isComplete() {
-		return graphicsFamily.has_value() && presentFamily.has_value();
-	}
-};
-
-struct SwapChainSupportDetails {
-	VkSurfaceCapabilitiesKHR capabilities;
-	std::vector<VkSurfaceFormatKHR> formats;
-	std::vector<VkPresentModeKHR> presentModes;
-};
-
-
-static VkVertexInputBindingDescription getBindingDescription() {
+static VkVertexInputBindingDescription getBindingDescription()
+{
 	VkVertexInputBindingDescription bindingDescription{};
 	bindingDescription.binding = 0;
 	bindingDescription.stride = sizeof(Vertex);
@@ -96,7 +82,8 @@ static VkVertexInputBindingDescription getBindingDescription() {
 	return bindingDescription;
 }
 
-static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+{
 	std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
 	attributeDescriptions[0].binding = 0;
@@ -180,15 +167,9 @@ public:
 	bool framebufferResized = false;
 
 
-	void initVulkan() {
-		//createInstance(world, entity_instance, instance);
-		//setupDebugMessenger();
-		//createSurface();
-		//pickPhysicalDevice();
-		//createLogicalDevice();
-
+	void initVulkan()
+	{
 		createSwapChain();
-		createImageViews();
 		createRenderPass();
 		createDescriptorSetLayout(world, context.device, &descriptorSetLayout);
 		createGraphicsPipeline();
@@ -279,7 +260,6 @@ public:
 	void recreateSwapChain()
 	{
 		EG_EVENT_STRF(world, EgLogsVerbose, "recreateSwapChain\n");
-
 		eg_platform_wait_positive_framebuffer_size(world, entity_instance);
 
 		//To wait on the host for the completion of outstanding queue operations for all queues on a given logical device
@@ -287,139 +267,23 @@ public:
 
 		cleanupSwapChain();
 		createSwapChain();
-		createImageViews();
 		createColorResources();
 		createDepthResources();
 		createFramebuffers();
 	}
 
 
-
-
-
-
-	void createLogicalDevice()
-	{
-		QueueFamilyIndices indices = findQueueFamilies(context.physical);
-
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
-
-		float queuePriority = 1.0f;
-		for (uint32_t queueFamily : uniqueQueueFamilies) {
-			VkDeviceQueueCreateInfo queueCreateInfo{};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = queueFamily;
-			queueCreateInfo.queueCount = 1;
-			queueCreateInfo.pQueuePriorities = &queuePriority;
-			queueCreateInfos.push_back(queueCreateInfo);
-		}
-
-		VkPhysicalDeviceFeatures deviceFeatures{};
-		deviceFeatures.samplerAnisotropy = VK_TRUE;
-
-		VkDeviceCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
-		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-		createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
-		createInfo.pEnabledFeatures = &deviceFeatures;
-
-		createInfo.enabledExtensionCount = DEVICE_EXTENSION_COUNT;
-		createInfo.ppEnabledExtensionNames = deviceExtensions;
-
-		if (enableValidationLayers) {
-			createInfo.enabledLayerCount = VALIDATION_LAYER_COUNT;
-			createInfo.ppEnabledLayerNames = validationLayers;
-		} else {
-			createInfo.enabledLayerCount = 0;
-		}
-
-		VkResult result = vkCreateDevice(context.physical, &createInfo, nullptr, &context.device);
-		EG_EVENT_STRF(world, EgVkLogVerbose, "vkCreateDevice : %i\n", result);
-		if (result != VK_SUCCESS)
-		{
-			EG_EVENT_STRF(world, EgVkLogError, "vkCreateDevice failed\n");
-		}
-
-		vkGetDeviceQueue(context.device, indices.graphicsFamily.value(), 0, &context.qf_graphics);
-		vkGetDeviceQueue(context.device, indices.presentFamily.value(), 0, &context.qf_present);
-	}
-
 	void createSwapChain()
 	{
-
-		/*
-		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
-
-		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-		VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-		VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
-
-		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-		if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
-		{
-			imageCount = swapChainSupport.capabilities.maxImageCount;
-		}
-
-
-		VkSwapchainCreateInfoKHR createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = surface;
-
-		createInfo.minImageCount = imageCount;
-		createInfo.imageFormat = surfaceFormat.format;
-		createInfo.imageColorSpace = surfaceFormat.colorSpace;
-		createInfo.imageExtent = extent;
-		createInfo.imageArrayLayers = 1;
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-
-		EG_EVENT_STRF(world, EgVkLogVerbose, "VkSwapchainCreateInfoKHR extent : %i %i\n", extent.width, extent.height);
-
-		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
-		uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
-
-		if (indices.graphicsFamily != indices.presentFamily) {
-			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-			createInfo.queueFamilyIndexCount = 2;
-			createInfo.pQueueFamilyIndices = queueFamilyIndices;
-		} else {
-			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		}
-
-		createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		createInfo.presentMode = presentMode;
-		createInfo.clipped = VK_TRUE;
-
-		VkResult result = vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain);
-		EG_EVENT_STRF(world, EgVkLogVerbose, "vkCreateSwapchainKHR %p : %i\n", device, result);
-		if (result != VK_SUCCESS)
-		{
-			EG_EVENT_STRF(world, EgVkLogError, "vkCreateSwapchainKHR failed");
-		}
-		*/
-
-
-
 		VkSurfaceCapabilitiesKHR capabilities;
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.physical, context.surface, &capabilities);
 		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
 		render2_swapchain_create(world, context.device, &capabilities, r->width, r->height, &(context.swapchain_create_info), &swapChain);
-
 		uint32_t imageCount;
 		vkGetSwapchainImagesKHR(context.device, swapChain, &imageCount, NULL);
 		swapChainImages.resize(imageCount);
 		vkGetSwapchainImagesKHR(context.device, swapChain, &imageCount, swapChainImages.data());
 
-		//swapChainImageFormat = surfaceFormat.format;
-		//swapChainExtent = extent;
-	}
-
-	void createImageViews()
-	{
 		swapChainImageViews.resize(swapChainImages.size());
 		for (uint32_t i = 0; i < swapChainImages.size(); i++)
 		{
@@ -427,7 +291,8 @@ public:
 		}
 	}
 
-	void createRenderPass() {
+	void createRenderPass()
+	{
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = context.swapchain_create_info.imageFormat;
 		colorAttachment.samples = msaaSamples;
@@ -670,13 +535,12 @@ public:
 		}
 	}
 
-	void createCommandPool() {
-		QueueFamilyIndices queueFamilyIndices = findQueueFamilies(context.physical);
-
-		VkCommandPoolCreateInfo poolInfo{};
+	void createCommandPool()
+	{
+		VkCommandPoolCreateInfo poolInfo = {};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+		poolInfo.queueFamilyIndex = context.qf_index_graphics;
 		VkResult result = vkCreateCommandPool(context.device, &poolInfo, nullptr, &commandPool);
 		if (result != VK_SUCCESS)
 		{
@@ -1107,104 +971,6 @@ public:
 
 		return shaderModule;
 	}
-
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-		for (const auto& availableFormat : availableFormats) {
-			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-				return availableFormat;
-			}
-		}
-
-		return availableFormats[0];
-	}
-
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-		for (const auto& availablePresentMode : availablePresentModes) {
-			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-				return availablePresentMode;
-			}
-		}
-
-		return VK_PRESENT_MODE_FIFO_KHR;
-	}
-
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities)
-	{
-		if (capabilities.currentExtent.width != UINT32_MAX)
-		{
-			return capabilities.currentExtent;
-		}
-		else
-		{
-			//int width, height;
-			//glfwGetFramebufferSize(window, &width, &height);
-			EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
-			EG_ASSERT(r->width > 0);
-			EG_ASSERT(r->height > 0);
-			VkExtent2D actualExtent = {(uint32_t)r->width, (uint32_t)r->height};
-			actualExtent.width = EG_CLAMP(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-			actualExtent.height = EG_CLAMP(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-			return actualExtent;
-		}
-	}
-
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device) {
-		SwapChainSupportDetails details;
-
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, context.surface, &details.capabilities);
-
-		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, context.surface, &formatCount, nullptr);
-
-		if (formatCount != 0) {
-			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(device, context.surface, &formatCount, details.formats.data());
-		}
-
-		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, context.surface, &presentModeCount, nullptr);
-
-		if (presentModeCount != 0) {
-			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(device, context.surface, &presentModeCount, details.presentModes.data());
-		}
-
-		return details;
-	}
-
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
-		QueueFamilyIndices indices;
-
-		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-		int i = 0;
-		for (const auto& queueFamily : queueFamilies) {
-			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				indices.graphicsFamily = i;
-			}
-
-			VkBool32 presentSupport = false;
-			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, context.surface, &presentSupport);
-
-			if (presentSupport) {
-				indices.presentFamily = i;
-			}
-
-			if (indices.isComplete()) {
-				break;
-			}
-
-			i++;
-		}
-
-		return indices;
-	}
-
-
 
 
 
