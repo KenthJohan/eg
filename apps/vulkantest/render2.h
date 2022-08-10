@@ -14,6 +14,9 @@ typedef struct
 	VkDevice device;
 	VkSwapchainCreateInfoKHR swapchain_create_info;
 	VkSwapchainKHR swapchain;
+	VkImageView swapchain_imageview[32];
+	VkFramebuffer swapchain_framebuffer[32];
+	uint32_t swapChainImageViews_count;
 	VkSurfaceKHR surface;
 	VkFormat surface_format;
 	VkColorSpaceKHR surface_colorspace;

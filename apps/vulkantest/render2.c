@@ -155,6 +155,9 @@ VkSwapchainKHR * out_swapchain
 	{
 		EG_EVENT_STRF(world, EgVkLogError, "vkCreateSwapchainKHR failed");
 	}
+
+
+
 }
 
 
