@@ -40,6 +40,7 @@ SOURCES += EgLogs.c
 SOURCES += renderer.cpp
 SOURCES += render1.c
 SOURCES += render2.c
+SOURCES += swapchain.c
 SOURCES += create_image.c
 SOURCES += updateUniformBuffer.cpp
 
