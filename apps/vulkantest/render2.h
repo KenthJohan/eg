@@ -7,16 +7,20 @@ extern "C" {
 #endif
 
 
-
 typedef struct
 {
-	VkPhysicalDevice physical;
-	VkDevice device;
 	VkSwapchainCreateInfoKHR swapchain_create_info;
 	VkSwapchainKHR swapchain;
 	VkImageView swapchain_imageview[32];
 	VkFramebuffer swapchain_framebuffer[32];
 	uint32_t swapChainImageViews_count;
+} render2_swapchain_t;
+
+
+typedef struct
+{
+	VkPhysicalDevice physical;
+	VkDevice device;
 	VkSurfaceKHR surface;
 	VkFormat surface_format;
 	VkColorSpaceKHR surface_colorspace;
@@ -27,6 +31,9 @@ typedef struct
 	uint32_t qf_index_graphics;
 	VkQueue qf_present;
 	VkQueue qf_graphics;
+
+	render2_swapchain_t swapchain;
+
 } render2_context_t;
 
 

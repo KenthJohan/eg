@@ -105,16 +105,16 @@ void render2_config(render2_context_t * ctx)
 		}
 	}
 
-	ctx->swapchain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	ctx->swapchain_create_info.surface = ctx->surface;
-	ctx->swapchain_create_info.imageFormat = ctx->surface_format;
-	ctx->swapchain_create_info.imageColorSpace = ctx->surface_colorspace;
-	ctx->swapchain_create_info.imageArrayLayers = 1;
-	ctx->swapchain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	ctx->swapchain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	ctx->swapchain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	ctx->swapchain_create_info.presentMode = ctx->surface_presentmode;
-	ctx->swapchain_create_info.clipped = VK_TRUE;
+	ctx->swapchain.swapchain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	ctx->swapchain.swapchain_create_info.surface = ctx->surface;
+	ctx->swapchain.swapchain_create_info.imageFormat = ctx->surface_format;
+	ctx->swapchain.swapchain_create_info.imageColorSpace = ctx->surface_colorspace;
+	ctx->swapchain.swapchain_create_info.imageArrayLayers = 1;
+	ctx->swapchain.swapchain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	ctx->swapchain.swapchain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	ctx->swapchain.swapchain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	ctx->swapchain.swapchain_create_info.presentMode = ctx->surface_presentmode;
+	ctx->swapchain.swapchain_create_info.clipped = VK_TRUE;
 }
 
 
