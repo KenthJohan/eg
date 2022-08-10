@@ -133,13 +133,7 @@ public:
 
 	VkCommandPool commandPool;
 
-	VkImage colorImage;
-	VkDeviceMemory colorImageMemory;
-	VkImageView colorImageView;
 
-	VkImage depthImage;
-	VkDeviceMemory depthImageMemory;
-	VkImageView depthImageView;
 
 	uint32_t mipLevels;
 	VkImage textureImage;
@@ -172,7 +166,8 @@ public:
 	{
 		render1_createRenderPass(world, context.physical, context.device, msaaSamples, VK_FORMAT_B8G8R8A8_SRGB, &renderPass);
 
-		createSwapChain();
+		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
+		createSwapChain(&context.swapchain, world, context.physical, context.device, context.surface, r->width, r->height, msaaSamples, renderPass);
 
 		createDescriptorSetLayout(world, context.device, &descriptorSetLayout);
 		createGraphicsPipeline();
@@ -192,28 +187,11 @@ public:
 
 
 
-	void cleanupSwapChain()
-	{
-		vkDestroyImageView(context.device, depthImageView, nullptr);
-		vkDestroyImage(context.device, depthImage, nullptr);
-		vkFreeMemory(context.device, depthImageMemory, nullptr);
 
-		vkDestroyImageView(context.device, colorImageView, nullptr);
-		vkDestroyImage(context.device, colorImage, nullptr);
-		vkFreeMemory(context.device, colorImageMemory, nullptr);
-
-		for(uint32_t i = 0; i < context.swapchain.swapChainImageViews_count; ++i)
-		{
-			vkDestroyFramebuffer(context.device, context.swapchain.swapchain_framebuffer[i], NULL);
-			vkDestroyImageView(context.device, context.swapchain.swapchain_imageview[i], NULL);
-		}
-
-		vkDestroySwapchainKHR(context.device, context.swapchain.swapchain, nullptr);
-	}
 
 	void cleanup()
 	{
-		cleanupSwapChain();
+		swapchain_cleanup(context.device, &context.swapchain);
 
 		vkDestroyPipeline(context.device, graphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(context.device, pipelineLayout, nullptr);
@@ -265,85 +243,13 @@ public:
 		//To wait on the host for the completion of outstanding queue operations for all queues on a given logical device
 		vkDeviceWaitIdle(context.device);
 
-		cleanupSwapChain();
-		createSwapChain();
-	}
-
-
-	void createSwapChain()
-	{
-		VkSurfaceCapabilitiesKHR capabilities;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(context.physical, context.surface, &capabilities);
+		swapchain_cleanup(context.device, &context.swapchain);
 		EgRectangleI32 * r = (EgRectangleI32 *)ecs_get(world, entity_instance, EgRectangleI32);
-		render2_swapchain_create(world, context.device, &capabilities, r->width, r->height, &(context.swapchain.swapchain_create_info), &context.swapchain.swapchain);
-
-		{
-			VkFormat colorFormat = context.swapchain.swapchain_create_info.imageFormat;
-			uint32_t width = context.swapchain.swapchain_create_info.imageExtent.width;
-			uint32_t height = context.swapchain.swapchain_create_info.imageExtent.height;
-			createImage
-			(
-			world,
-			context.physical, context.device,
-			width, height, 1, msaaSamples, colorFormat,
-			VK_IMAGE_TILING_OPTIMAL,
-			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			&colorImage, &colorImageMemory
-			);
-			colorImageView = createImageView(world, context.device, colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-		}
-
-		{
-			VkFormat depthFormat = findDepthFormat(context.physical);
-			uint32_t width = context.swapchain.swapchain_create_info.imageExtent.width;
-			uint32_t height = context.swapchain.swapchain_create_info.imageExtent.height;
-
-			createImage
-			(
-			world,
-			context.physical, context.device,
-			width, height, 1, msaaSamples, depthFormat,
-			VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			&depthImage, &depthImageMemory
-			);
-			depthImageView = createImageView(world, context.device, depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-		}
-
-		{
-			uint32_t count;
-			VkImage images[32];
-			vkGetSwapchainImagesKHR(context.device, context.swapchain.swapchain, &count, NULL);
-			count = EG_MIN(count, 32);
-			vkGetSwapchainImagesKHR(context.device, context.swapchain.swapchain, &count, images);
-			context.swapchain.swapChainImageViews_count = count;
-			for (uint32_t i = 0; i < count; i++)
-			{
-				//vkCreateImageView
-				context.swapchain.swapchain_imageview[i] = createImageView(world, context.device, images[i], context.swapchain.swapchain_create_info.imageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-			}
-		}
-
-		{
-			for (size_t i = 0; i < context.swapchain.swapChainImageViews_count; i++)
-			{
-				VkImageView attachments[FRAMEBUFFER_ATTACHMENT_COUNT] = {colorImageView, depthImageView, context.swapchain.swapchain_imageview[i]};
-				VkFramebufferCreateInfo framebufferInfo = {};
-				framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-				framebufferInfo.renderPass = renderPass;
-				framebufferInfo.attachmentCount = FRAMEBUFFER_ATTACHMENT_COUNT;
-				framebufferInfo.pAttachments = attachments;
-				framebufferInfo.width = context.swapchain.swapchain_create_info.imageExtent.width;
-				framebufferInfo.height = context.swapchain.swapchain_create_info.imageExtent.height;
-				framebufferInfo.layers = 1;
-				VkResult result = vkCreateFramebuffer(context.device, &framebufferInfo, NULL, &context.swapchain.swapchain_framebuffer[i]);
-				if (result != VK_SUCCESS)
-				{
-					EG_EVENT_STRF(world, EgVkLogError, "vkCreateFramebuffer failed");
-				}
-			}
-		}
-
+		createSwapChain(&context.swapchain, world, context.physical, context.device, context.surface, r->width, r->height, msaaSamples, renderPass);
 	}
+
+
+
 
 
 	void createGraphicsPipeline()
