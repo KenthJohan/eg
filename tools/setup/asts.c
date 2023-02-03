@@ -1,5 +1,5 @@
 #include "asts.h"
-
+#include <stdio.h>
 
 
 
@@ -115,6 +115,12 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 	char const * p0;
 	int n;
 	ecs_entity_t e;
+
+	e = ecs_new_entity(world, "ROOT");
+	ast->stack1[ast->sp] = ecs_set_scope(world, e);
+	ast->stack[ast->sp] = AST_STATE_ROOT;
+	ast->sp++;
+
 	while(1)
 	{
 		skip_whitespace(&p);
@@ -124,19 +130,15 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 		case AST_TOKEN_EOF: return;
 
 		case AST_TOKEN_BLOCK_OPEN:
-			e = ecs_new_entity(world, "AST_STATE_BLOCK");
+			e = ecs_new_entity(world, "BLOCK");
 			ast->stack1[ast->sp] = ecs_set_scope(world, e);
 			ast->stack[ast->sp] = AST_STATE_BLOCK;
-			ast->sp++;
-			e = ecs_new_entity(world, "AST_STATE_STATEMENT");
-			ast->stack1[ast->sp] = ecs_set_scope(world, e);
-			ast->stack[ast->sp] = AST_STATE_STATEMENT;
 			ast->sp++;
 			break;
 
 
 		case AST_TOKEN_EXP_OPEN:
-			e = ecs_new_entity(world, "AST_STATE_EXPRESSION");
+			e = ecs_new_entity(world, "EXPRESSION");
 			ast->stack1[ast->sp] = ecs_set_scope(world, e);
 			ast->stack[ast->sp] = AST_STATE_EXPRESSION;
 			ast->sp++;
@@ -145,6 +147,11 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 		case AST_TOKEN_BLOCK_CLOSE:
 			ast->sp--;
 			if((ast->sp >= 1) && (ast->stack[ast->sp-1] == AST_STATE_IF))
+			{
+				ast->stack[ast->sp] = 0;
+				ast->sp--;
+			}
+			if((ast->sp >= 1) && (ast->stack[ast->sp-1] == AST_STATE_IFCASE))
 			{
 				ast->stack[ast->sp] = 0;
 				ast->sp--;
@@ -169,6 +176,10 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 			break;
 
 		case AST_TOKEN_IF:
+			e = ecs_new_entity(world, "IFCASE");
+			ast->stack1[ast->sp] = ecs_set_scope(world, e);
+			ast->stack[ast->sp] = AST_STATE_IFCASE;
+			ast->sp++;
 			e = ecs_new_entity(world, "IF");
 			ast->stack1[ast->sp] = ecs_set_scope(world, e);
 			ast->stack[ast->sp] = AST_STATE_IF;
@@ -176,6 +187,16 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 			break;
 
 		default:
+			if(ast->sp >= 1)
+			{
+				if ((ast->stack[ast->sp-1] == AST_STATE_BLOCK) || (ast->stack[ast->sp-1] == AST_STATE_ROOT))
+				{
+					e = ecs_new_entity(world, "STATEMENT");
+					ast->stack1[ast->sp] = ecs_set_scope(world, e);
+					ast->stack[ast->sp] = AST_STATE_STATEMENT;
+					ast->sp++;
+				}
+			}
 			p0 = p;
 			skip_word(&p);
 			n = (int)(p-p0);
