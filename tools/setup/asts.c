@@ -124,7 +124,7 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 		case AST_TOKEN_EOF: return;
 
 		case AST_TOKEN_BLOCK_OPEN:
-			e = ecs_new_entity(world, ast_get_tokenstr(token));
+			e = ecs_new_entity(world, "AST_STATE_BLOCK");
 			ast->stack1[ast->sp] = ecs_set_scope(world, e);
 			ast->stack[ast->sp] = AST_STATE_BLOCK;
 			ast->sp++;
