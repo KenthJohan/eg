@@ -7,6 +7,8 @@
 
 #include "eg_fs.h"
 #include "EgAst.h"
+#include "asts.h"
+#include "eg_template.h"
 
 void my_abort(void)
 {
@@ -35,7 +37,10 @@ int main(int argc, char **argv)
     ecs_singleton_set(world, EcsRest, {0});
     ECS_IMPORT(world, EgAst);
 	
+    load1(world, "test.txt");
 
+
+    /*
     {
         ecs_entity_t node_if = ecs_new_entity(world, "if");
         ecs_entity_t node_condition = ecs_new_entity(world, "if_condition");
@@ -43,6 +48,7 @@ int main(int argc, char **argv)
         ecs_add_pair(world, node_condition, EcsChildOf, node_if);
         ecs_add_pair(world, node_content, EcsChildOf, node_if);
     }
+    */
 
 
 

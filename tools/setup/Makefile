@@ -21,6 +21,8 @@ endif
 SRCS := main.c
 SRCS += eg_fs.c
 SRCS += EgAst.c
+SRCS += asts.c
+SRCS += eg_template.c
 SRCS += ../../vendor/flecs.c
 SRCS += ../../src/EgWindows.c
 
