@@ -1,6 +1,7 @@
 #include "eg_template.h"
 #include "eg_fs.h"
 #include "asts.h"
+#include <stdio.h>
 
 
 void load1(ecs_world_t * world, char const * filename)
