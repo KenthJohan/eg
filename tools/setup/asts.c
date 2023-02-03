@@ -4,82 +4,6 @@
 
 
 
-char const * ast_get_tokenstr(ast_token_t token)
-{
-	switch (token)
-	{
-	case AST_TOKEN_EOF: return "AST_TOKEN_EOF";
-	case AST_TOKEN_EXP_OPEN: return "AST_TOKEN_EXP_OPEN";
-	case AST_TOKEN_EXP_CLOSE: return "AST_TOKEN_EXP_CLOSE";
-	case AST_TOKEN_BLOCK_OPEN: return "AST_TOKEN_BLOCK_OPEN";
-	case AST_TOKEN_BLOCK_CLOSE: return "AST_TOKEN_BLOCK_CLOSE";
-	case AST_TOKEN_IF: return "AST_TOKEN_IF";
-	case AST_TOKEN_STATEMENT_TERMINATOR: return "AST_TOKEN_STATEMENT_TERMINATOR";
-	case AST_TOKEN_ELSE: return "AST_TOKEN_ELSE";
-	case AST_TOKEN_ELSEIF: return "AST_TOKEN_ELSEIF";
-	default: return "UNKNOWN";
-	}
-}
-
-
-int32_t ast_get_tokenlen(int32_t token)
-{
-	switch (token)
-	{
-	case AST_TOKEN_EOF:
-	case AST_TOKEN_EXP_OPEN:
-	case AST_TOKEN_EXP_CLOSE:
-	case AST_TOKEN_BLOCK_OPEN:
-	case AST_TOKEN_BLOCK_CLOSE:
-	case AST_TOKEN_STATEMENT_TERMINATOR:
-		return 1;
-	case AST_TOKEN_IF:
-		return 2;
-	case AST_TOKEN_ELSE:
-		return 4;
-	case AST_TOKEN_ELSEIF:
-		return 6;
-	default:
-		return 0;
-	}
-}
-
-
-ast_token_t ast_get_token(char const ** out_p)
-{
-	skip_whitespace(out_p);
-	ast_token_t token = AST_TOKEN_UNKNOWN;
-	char const * p = (*out_p);
-	switch (p[0])
-	{
-	case '\0': token = AST_TOKEN_EOF;break;
-	case '(': token = AST_TOKEN_EXP_OPEN;break;
-	case ')': token = AST_TOKEN_EXP_CLOSE;break;
-	case '{': token = AST_TOKEN_BLOCK_OPEN;break;
-	case '}': token = AST_TOKEN_BLOCK_CLOSE;break;
-	case ';': token = AST_TOKEN_STATEMENT_TERMINATOR;break;
-	}
-	if(0){}
-	else if(ecs_os_strncmp(p, "if ", 3) == 0){token = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(p, "if(", 3) == 0){token = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(p, "if\n", 3) == 0){token = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(p, "if\t", 3) == 0){token = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(p, "else ", 5) == 0){token = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(p, "else{", 5) == 0){token = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(p, "else\n", 5) == 0){token = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(p, "else\t", 5) == 0){token = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(p, "elseif ", 7) == 0){token = AST_TOKEN_ELSEIF;}
-	else if(ecs_os_strncmp(p, "elseif{", 7) == 0){token = AST_TOKEN_ELSEIF;}
-	else if(ecs_os_strncmp(p, "elseif\n", 7) == 0){token = AST_TOKEN_ELSEIF;}
-	else if(ecs_os_strncmp(p, "elseif\t", 7) == 0){token = AST_TOKEN_ELSEIF;}
-	(*out_p) += ast_get_tokenlen(token);
-	return token;
-}
-
-
-
-
-
 int is_alpha(int c)
 {
 	if(('a' <= c) && (c <= 'z')){return 1;}
@@ -132,6 +56,108 @@ void skip_word(char const ** p)
 
 
 
+
+
+
+
+
+
+
+char const * ast_get_tokenstr(ast_token_t token)
+{
+	switch (token)
+	{
+	case AST_TOKEN_EOF: return "AST_TOKEN_EOF";
+	case AST_TOKEN_EXP_OPEN: return "AST_TOKEN_EXP_OPEN";
+	case AST_TOKEN_EXP_CLOSE: return "AST_TOKEN_EXP_CLOSE";
+	case AST_TOKEN_BLOCK_OPEN: return "AST_TOKEN_BLOCK_OPEN";
+	case AST_TOKEN_BLOCK_CLOSE: return "AST_TOKEN_BLOCK_CLOSE";
+	case AST_TOKEN_IF: return "AST_TOKEN_IF";
+	case AST_TOKEN_STATEMENT_TERMINATOR: return "AST_TOKEN_STATEMENT_TERMINATOR";
+	case AST_TOKEN_ELSE: return "AST_TOKEN_ELSE";
+	case AST_TOKEN_ELSEIF: return "AST_TOKEN_ELSEIF";
+	default: return "UNKNOWN";
+	}
+}
+
+
+int32_t ast_get_tokenlen(int32_t token)
+{
+	switch (token)
+	{
+	case AST_TOKEN_EOF:
+	case AST_TOKEN_EXP_OPEN:
+	case AST_TOKEN_EXP_CLOSE:
+	case AST_TOKEN_BLOCK_OPEN:
+	case AST_TOKEN_BLOCK_CLOSE:
+	case AST_TOKEN_STATEMENT_TERMINATOR:
+		return 1;
+	case AST_TOKEN_IF:
+		return 2;
+	case AST_TOKEN_ELSE:
+		return 4;
+	case AST_TOKEN_ELSEIF:
+		return 6;
+	default:
+		return 0;
+	}
+}
+
+
+ast_token_t ast_get_token(char const ** out_p, char buf[], int32_t buflen)
+{
+	skip_whitespace(out_p);
+	ast_token_t token = AST_TOKEN_UNKNOWN;
+	char const * p = (*out_p);
+	switch (p[0])
+	{
+	case '\0': token = AST_TOKEN_EOF;break;
+	case '(': token = AST_TOKEN_EXP_OPEN;break;
+	case ')': token = AST_TOKEN_EXP_CLOSE;break;
+	case '{': token = AST_TOKEN_BLOCK_OPEN;break;
+	case '}': token = AST_TOKEN_BLOCK_CLOSE;break;
+	case ';': token = AST_TOKEN_STATEMENT_TERMINATOR;break;
+	}
+
+	if(0){}
+	else if(ecs_os_strncmp(p, "if ", 3) == 0){token = AST_TOKEN_IF;}
+	else if(ecs_os_strncmp(p, "if(", 3) == 0){token = AST_TOKEN_IF;}
+	else if(ecs_os_strncmp(p, "if\n", 3) == 0){token = AST_TOKEN_IF;}
+	else if(ecs_os_strncmp(p, "if\t", 3) == 0){token = AST_TOKEN_IF;}
+	else if(ecs_os_strncmp(p, "else ", 5) == 0){token = AST_TOKEN_ELSE;}
+	else if(ecs_os_strncmp(p, "else{", 5) == 0){token = AST_TOKEN_ELSE;}
+	else if(ecs_os_strncmp(p, "else\n", 5) == 0){token = AST_TOKEN_ELSE;}
+	else if(ecs_os_strncmp(p, "else\t", 5) == 0){token = AST_TOKEN_ELSE;}
+	else if(ecs_os_strncmp(p, "elseif ", 7) == 0){token = AST_TOKEN_ELSEIF;}
+	else if(ecs_os_strncmp(p, "elseif{", 7) == 0){token = AST_TOKEN_ELSEIF;}
+	else if(ecs_os_strncmp(p, "elseif\n", 7) == 0){token = AST_TOKEN_ELSEIF;}
+	else if(ecs_os_strncmp(p, "elseif\t", 7) == 0){token = AST_TOKEN_ELSEIF;}
+
+
+	if(token != AST_TOKEN_UNKNOWN)
+	{
+		(*out_p) += ast_get_tokenlen(token);
+	}
+	else
+	{
+		skip_word(out_p);
+		int32_t n = (int)((*out_p) - p);
+		n = n > buflen ? buflen : n;
+		ecs_os_memcpy_n(buf, p, char, n);
+		buf[n] = '\0'; // Null terminate
+		token = AST_TOKEN_ID;
+	}
+	return token;
+}
+
+
+
+
+
+
+
+
+
 void ast_push(ecs_world_t * world, ast_context_t * ast, char const * name, ast_state_t state)
 {
 	ecs_entity_t e = ecs_new_entity(world, name);
@@ -165,12 +191,11 @@ void get_word(char buf[], int32_t n, char const ** p)
 
 
 
-
+#define BUFLEN 128
 void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 {
-	char buf[128];
+	char buf[BUFLEN];
 	char const * p = text;
-	char const * p0;
 	int n;
 	ecs_entity_t e;
 	ast_token_t token;
@@ -189,7 +214,7 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 	{
 		i++;
 
-		token = ast_get_token(&p);
+		token = ast_get_token(&p, buf, BUFLEN);
 		
 		
 		switch (token)
@@ -222,8 +247,9 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 
 			if(ast->sp >= 1 && ast->stack[ast->sp-1] == AST_STATE_IFCASE)
 			{
-				p0 = p;
-				ast_token_t token1 = ast_get_token(&p0);
+				// Peek one token forward:
+				char const * p0 = p;
+				ast_token_t token1 = ast_get_token(&p0, buf, BUFLEN);
 				if(token1 != AST_TOKEN_ELSE)
 				{
 					ast->stack[ast->sp] = 0;
@@ -254,7 +280,7 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 			ast_push(world, ast, buf, AST_STATE_ELSE);
 			break;
 
-		default:
+		case AST_TOKEN_ID:
 			if(ast->sp >= 1)
 			{
 				if ((ast->stack[ast->sp-1] == AST_STATE_BLOCK) || (ast->stack[ast->sp-1] == AST_STATE_ROOT))
@@ -262,11 +288,6 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 					ast_push(world, ast, "STATEMENT", AST_STATE_STATEMENT);
 				}
 			}
-			p0 = p;
-			skip_word(&p);
-			n = (int)(p-p0);
-			ecs_os_memcpy_n(buf, p0, char, n);
-			buf[n] = '\0'; // Null terminate
 			printf("Word %s\n", buf);
 			e = ecs_new_entity(world, buf);
 			break;

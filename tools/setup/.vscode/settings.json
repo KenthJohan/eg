@@ -20,7 +20,8 @@
         "array": "cpp",
         "tuple": "cpp",
         "utility": "cpp",
-        "numbers": "c"
+        "numbers": "c",
+        "compare": "c"
     },
 
 }
