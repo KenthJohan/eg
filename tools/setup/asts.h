@@ -24,6 +24,7 @@ struct eg_astnode_t
 
 typedef enum
 {
+AST_STATE_UNKNOWN,
 AST_STATE_ROOT,
 AST_STATE_IFCASE,
 	AST_STATE_IF,
