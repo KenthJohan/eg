@@ -14,6 +14,7 @@ char const * ast_get_tokenstr(ast_token_t token)
 	case AST_TOKEN_BLOCK_OPEN: return "AST_TOKEN_BLOCK_OPEN";
 	case AST_TOKEN_BLOCK_CLOSE: return "AST_TOKEN_BLOCK_CLOSE";
 	case AST_TOKEN_IF: return "AST_TOKEN_IF";
+	case AST_TOKEN_STATEMENT_TERMINATOR: return "AST_TOKEN_STATEMENT_TERMINATOR";
 	default: return "UNKNOWN";
 	}
 }
@@ -29,6 +30,7 @@ int32_t ast_get_token(char const * text)
 	case ')': return AST_TOKEN_EXP_CLOSE;
 	case '{': return AST_TOKEN_BLOCK_OPEN;
 	case '}': return AST_TOKEN_BLOCK_CLOSE;
+	case ';': return AST_TOKEN_STATEMENT_TERMINATOR;
 	}
 	if(ecs_os_strncmp(p, "if(", 3) == 0){return AST_TOKEN_IF;}
 	if(ecs_os_strncmp(p, "if ", 3) == 0){return AST_TOKEN_IF;}
@@ -46,6 +48,7 @@ int32_t ast_get_tokenlen(int32_t token)
 	case AST_TOKEN_EXP_CLOSE:
 	case AST_TOKEN_BLOCK_OPEN:
 	case AST_TOKEN_BLOCK_CLOSE:
+	case AST_TOKEN_STATEMENT_TERMINATOR:
 		return 1;
 	case AST_TOKEN_IF:
 		return 2;
@@ -119,17 +122,29 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 		switch (token)
 		{
 		case AST_TOKEN_EOF: return;
+
 		case AST_TOKEN_BLOCK_OPEN:
-		case AST_TOKEN_EXP_OPEN:
 			e = ecs_new_entity(world, ast_get_tokenstr(token));
 			ast->stack1[ast->sp] = ecs_set_scope(world, e);
-			ast->stack[ast->sp] = token;
+			ast->stack[ast->sp] = AST_STATE_BLOCK;
+			ast->sp++;
+			e = ecs_new_entity(world, "AST_STATE_STATEMENT");
+			ast->stack1[ast->sp] = ecs_set_scope(world, e);
+			ast->stack[ast->sp] = AST_STATE_STATEMENT;
 			ast->sp++;
 			break;
+
+
+		case AST_TOKEN_EXP_OPEN:
+			e = ecs_new_entity(world, "AST_STATE_EXPRESSION");
+			ast->stack1[ast->sp] = ecs_set_scope(world, e);
+			ast->stack[ast->sp] = AST_STATE_EXPRESSION;
+			ast->sp++;
+			break;
+
 		case AST_TOKEN_BLOCK_CLOSE:
-		case AST_TOKEN_EXP_CLOSE:
 			ast->sp--;
-			if((ast->sp >= 1) && (ast->stack[ast->sp] == AST_TOKEN_BLOCK_OPEN) && (ast->stack[ast->sp-1] == AST_TOKEN_IF))
+			if((ast->sp >= 1) && (ast->stack[ast->sp-1] == AST_STATE_IF))
 			{
 				ast->stack[ast->sp] = 0;
 				ast->sp--;
@@ -138,12 +153,28 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 			ecs_set_scope(world, ast->stack1[ast->sp]);
 			ast->stack1[ast->sp] = 0;
 			break;
+
+		case AST_TOKEN_EXP_CLOSE:
+			ast->sp--;
+			ast->stack[ast->sp] = 0;
+			ecs_set_scope(world, ast->stack1[ast->sp]);
+			ast->stack1[ast->sp] = 0;
+			break;
+
+		case AST_TOKEN_STATEMENT_TERMINATOR:
+			ast->sp--;
+			ast->stack[ast->sp] = 0;
+			ecs_set_scope(world, ast->stack1[ast->sp]);
+			ast->stack1[ast->sp] = 0;
+			break;
+
 		case AST_TOKEN_IF:
 			e = ecs_new_entity(world, "IF");
 			ast->stack1[ast->sp] = ecs_set_scope(world, e);
-			ast->stack[ast->sp] = token;
+			ast->stack[ast->sp] = AST_STATE_IF;
 			ast->sp++;
 			break;
+
 		default:
 			p0 = p;
 			skip_word(&p);
@@ -153,6 +184,7 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 			printf("Word %s\n", buf);
 			e = ecs_new_entity(world, buf);
 			break;
+
 		}
 		p += ast_get_tokenlen(token);
 	}
