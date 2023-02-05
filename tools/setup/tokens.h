@@ -1,5 +1,5 @@
 #pragma once
-
+#include <stdint.h>
 
 typedef enum
 {
@@ -15,6 +15,10 @@ AST_TOKEN_IF,
 AST_TOKEN_ELSE,
 AST_TOKEN_ELSEIF,
 AST_TOKEN_NUMBER,
+AST_TOKEN_EQUAL,
 AST_TOKEN_ID,
 AST_TOKEN_COUNT
 } ast_token_t;
+
+
+ast_token_t ast_get_token(char const ** out_p, char buf[], int32_t buflen);

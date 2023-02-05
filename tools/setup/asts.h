@@ -43,11 +43,17 @@ AST_STATE_COUNT
 #define AST_STACK_COUNT 128
 typedef struct
 {
+	char const * text_start;
+	char const * text_current;
+
 	int32_t sp;
 	ast_state_t stack[AST_STACK_COUNT];
 	ecs_entity_t stack1[AST_STACK_COUNT];
+
+	ecs_entity_t estack[AST_STACK_COUNT];
+	int32_t genid;
 } ast_context_t;
 
 
 
-void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text);
+void ast_parse(ecs_world_t * world, ast_context_t * ast);

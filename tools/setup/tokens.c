@@ -1,4 +1,5 @@
 #include "tokens.h"
+#include "str.h"
 #include <stdint.h>
 #include <flecs.h>
 
@@ -15,6 +16,7 @@ char const * ast_get_tokenstr(ast_token_t token)
 	case AST_TOKEN_STATEMENT_TERMINATOR: return "AST_TOKEN_STATEMENT_TERMINATOR";
 	case AST_TOKEN_ELSE: return "AST_TOKEN_ELSE";
 	case AST_TOKEN_ELSEIF: return "AST_TOKEN_ELSEIF";
+	case AST_TOKEN_EQUAL: return "AST_TOKEN_EQUAL";
 	default: return "UNKNOWN";
 	}
 }
@@ -30,6 +32,7 @@ int32_t ast_get_tokenlen(int32_t token)
 	case AST_TOKEN_BLOCK_OPEN:
 	case AST_TOKEN_BLOCK_CLOSE:
 	case AST_TOKEN_STATEMENT_TERMINATOR:
+	case AST_TOKEN_EQUAL:
 		return 1;
 	case AST_TOKEN_IF:
 		return 2;
@@ -50,13 +53,15 @@ ast_token_t ast_get_token(char const ** out_p, char buf[], int32_t buflen)
 	char const * p = (*out_p);
 	switch (p[0])
 	{
-	case '\0': token = AST_TOKEN_EOF;break;
-	case '(': token = AST_TOKEN_EXP_OPEN;break;
-	case ')': token = AST_TOKEN_EXP_CLOSE;break;
-	case '{': token = AST_TOKEN_BLOCK_OPEN;break;
-	case '}': token = AST_TOKEN_BLOCK_CLOSE;break;
-	case ';': token = AST_TOKEN_STATEMENT_TERMINATOR;break;
+	case '\0': return AST_TOKEN_EOF;
+	case '(': (*out_p)++; return AST_TOKEN_EXP_OPEN;
+	case ')': (*out_p)++; return AST_TOKEN_EXP_CLOSE;
+	case '{': (*out_p)++; return AST_TOKEN_BLOCK_OPEN;
+	case '}': (*out_p)++; return AST_TOKEN_BLOCK_CLOSE;
+	case ';': (*out_p)++; return AST_TOKEN_STATEMENT_TERMINATOR;
+	case '=': (*out_p)++; return AST_TOKEN_EQUAL;
 	}
+
 
 	if(0){}
 	else if(ecs_os_strncmp(p, "if ", 3) == 0){token = AST_TOKEN_IF;}

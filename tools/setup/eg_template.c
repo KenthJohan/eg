@@ -10,5 +10,7 @@ void load1(ecs_world_t * world, char const * filename)
 	eg_fs_readfile(&content, filename);
 	printf("content: %s\n", content);
 	ast_context_t ast = {0};
-	ast_parse(world, &ast, content);
+	ast.text_start = content;
+	ast.text_current = content;
+	ast_parse(world, &ast);
 }

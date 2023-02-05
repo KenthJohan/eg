@@ -3,11 +3,14 @@
 #include "tokens.h"
 #include <stdio.h>
 
-
+#define BUFLEN 128
 
 void ast_push(ecs_world_t * world, ast_context_t * ast, char const * name, ast_state_t state)
 {
-	ecs_entity_t e = ecs_new_entity(world, name);
+	ast->genid++;
+	char buf[BUFLEN];
+	snprintf(buf, BUFLEN, "%s%i", name, ast->genid);
+	ecs_entity_t e = ecs_new_entity(world, buf);
 	ast->stack1[ast->sp] = ecs_set_scope(world, e);
 	ast->stack[ast->sp] = state;
 	ast->sp++;
@@ -38,15 +41,27 @@ void get_word(char buf[], int32_t n, char const ** p)
 
 
 
-#define BUFLEN 128
-void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
+
+void ast_parsex(ecs_world_t * world, ast_context_t * ast)
 {
-	char buf[BUFLEN];
-	char const * p = text;
+
+}
+
+
+
+
+
+
+
+void ast_parse(ecs_world_t * world, ast_context_t * ast)
+{
 	int n;
 	ecs_entity_t e;
 	ast_token_t token;
-	int i = 0;
+	char buf[BUFLEN];
+
+	ecs_entity_t current;
+
 
 	ast_push(world, ast, "ROOT", AST_STATE_ROOT);
 
@@ -59,9 +74,7 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 
 	while(1)
 	{
-		i++;
-
-		token = ast_get_token(&p, buf, BUFLEN);
+		token = ast_get_token(&ast->text_current, buf, BUFLEN);
 		
 		
 		switch (token)
@@ -72,6 +85,9 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 			ast_push(world, ast, "BLOCK", AST_STATE_BLOCK);
 			break;
 
+		case AST_TOKEN_EQUAL:
+			ast_push(world, ast, "EXPRESSION", AST_STATE_EXPRESSION);
+			break;
 
 		case AST_TOKEN_EXP_OPEN:
 			ast_push(world, ast, "EXPRESSION", AST_STATE_EXPRESSION);
@@ -79,6 +95,7 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 
 		case AST_TOKEN_BLOCK_CLOSE:
 			ast->sp--;
+			ast->stack[ast->sp] = 0;
 
 			if(ast->sp >= 1)
 			{
@@ -86,8 +103,8 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 				{
 					case AST_STATE_IF:
 					case AST_STATE_ELSE:
-						ast->stack[ast->sp] = 0;
 						ast->sp--;
+						ast->stack[ast->sp] = 0;
 						break;
 				}
 			}
@@ -95,16 +112,15 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 			if(ast->sp >= 1 && ast->stack[ast->sp-1] == AST_STATE_IFCASE)
 			{
 				// Peek one token forward:
-				char const * p0 = p;
+				char const * p0 = ast->text_current;
 				ast_token_t token1 = ast_get_token(&p0, buf, BUFLEN);
 				if(token1 != AST_TOKEN_ELSE)
 				{
-					ast->stack[ast->sp] = 0;
 					ast->sp--;
+					ast->stack[ast->sp] = 0;
 				}
 			}
-
-			ast->stack[ast->sp] = 0;
+			
 			ecs_set_scope(world, ast->stack1[ast->sp]);
 			ast->stack1[ast->sp] = 0;
 			break;
@@ -114,7 +130,14 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 			break;
 
 		case AST_TOKEN_STATEMENT_TERMINATOR:
-			ast_pop(world, ast);
+			ast->sp--;
+			if(ast->sp >= 1 && (ast->stack[ast->sp] == AST_STATE_EXPRESSION))
+			{
+				ast->stack[ast->sp] = 0;
+				ast->sp--;
+			}
+			ecs_set_scope(world, ast->stack1[ast->sp]);
+			ast->stack[ast->sp] = 0;
 			break;
 
 		case AST_TOKEN_IF:
@@ -123,8 +146,7 @@ void ast_parse(ecs_world_t * world, ast_context_t * ast, char const * text)
 			break;
 
 		case AST_TOKEN_ELSE:
-			snprintf(buf, 128, "%s%i", "ELSE", i);
-			ast_push(world, ast, buf, AST_STATE_ELSE);
+			ast_push(world, ast, "ELSE", AST_STATE_ELSE);
 			break;
 
 		case AST_TOKEN_ID:

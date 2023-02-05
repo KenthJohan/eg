@@ -1,14 +1,8 @@
-if(condition 6)
-{
-	banana;
-}
-else
-{
-	garlic;
-}
-else
+if(hello)
 {
 	hej;
 }
-
-Ender;
+else
+{
+	banana;
+}
