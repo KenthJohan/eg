@@ -16,9 +16,27 @@ AST_TOKEN_ELSE,
 AST_TOKEN_ELSEIF,
 AST_TOKEN_NUMBER,
 AST_TOKEN_EQUAL,
+AST_TOKEN_PLUS,
+AST_TOKEN_MINUS,
+AST_TOKEN_MUL,
+AST_TOKEN_DIV,
 AST_TOKEN_ID,
 AST_TOKEN_COUNT
 } ast_token_t;
 
 
-ast_token_t ast_get_token(char const ** out_p, char buf[], int32_t buflen);
+static int32_t tokens_precedence[] = 
+{
+	[AST_TOKEN_NUMBER] = 0,
+	[AST_TOKEN_ID] = 0,
+	[AST_TOKEN_EQUAL] = 14,
+	[AST_TOKEN_PLUS] = 2,
+	[AST_TOKEN_MINUS] = 2,
+	[AST_TOKEN_MUL] = 3,
+	[AST_TOKEN_DIV] = 3,
+	[AST_TOKEN_COUNT] = 0
+};
+
+
+
+ast_token_t tokens_next(char const ** out_p, char buf[], int32_t buflen);

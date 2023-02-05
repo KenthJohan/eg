@@ -21,7 +21,12 @@
         "tuple": "cpp",
         "utility": "cpp",
         "numbers": "c",
-        "compare": "c"
+        "compare": "c",
+        "exception": "c",
+        "stack": "c",
+        "variant": "c",
+        "*.inc": "c",
+        "*.def": "c"
     },
 
 }

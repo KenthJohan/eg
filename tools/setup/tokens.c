@@ -46,7 +46,7 @@ int32_t ast_get_tokenlen(int32_t token)
 }
 
 
-ast_token_t ast_get_token(char const ** out_p, char buf[], int32_t buflen)
+ast_token_t tokens_next(char const ** out_p, char buf[], int32_t buflen)
 {
 	skip_whitespace(out_p);
 	ast_token_t token = AST_TOKEN_UNKNOWN;
@@ -60,6 +60,10 @@ ast_token_t ast_get_token(char const ** out_p, char buf[], int32_t buflen)
 	case '}': (*out_p)++; return AST_TOKEN_BLOCK_CLOSE;
 	case ';': (*out_p)++; return AST_TOKEN_STATEMENT_TERMINATOR;
 	case '=': (*out_p)++; return AST_TOKEN_EQUAL;
+	case '+': (*out_p)++; return AST_TOKEN_PLUS;
+	case '-': (*out_p)++; return AST_TOKEN_MINUS;
+	case '/': (*out_p)++; return AST_TOKEN_DIV;
+	case '*': (*out_p)++; return AST_TOKEN_MUL;
 	}
 
 

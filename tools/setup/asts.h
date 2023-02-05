@@ -2,26 +2,6 @@
 #include <flecs.h>
 
 
-
-/*
-#define EG_NODE_TYPE_NUMBER 1
-#define EG_NODE_TYPE_ADD 2
-#define EG_NODE_TYPE_MUL 3
-
-typedef struct eg_astnode_t eg_astnode_t;
-struct eg_astnode_t
-{
-	int type;
-	union
-	{
-		struct AST_NUMBER { int number; } value;
-		struct AST_ADD { eg_astnode_t *left; eg_astnode_t *right; } add;
-		struct AST_MUL { eg_astnode_t *left; eg_astnode_t *right; } mul;
-	} data;
-};
-*/
-
-
 typedef enum
 {
 AST_STATE_UNKNOWN,
@@ -36,6 +16,17 @@ AST_STATE_STATEMENT,
 AST_STATE_COUNT
 } ast_state_t;
 
+typedef enum
+{
+PARSE_MACHINE_ROOT,
+PARSE_MACHINE_ASSIGNMENT,
+PARSE_MACHINE_FUNCTION_DECLARTION_ARGUMENTS,
+PARSE_MACHINE_EXPRESSION,
+PARSE_MACHINE_STATEMENTS,
+PARSE_MACHINE_FORLOOP,
+PARSE_MACHINE_COUNT
+} parse_machine_t;
+
 
 
 
@@ -43,17 +34,19 @@ AST_STATE_COUNT
 #define AST_STACK_COUNT 128
 typedef struct
 {
+	ecs_world_t * world;
 	char const * text_start;
 	char const * text_current;
 
 	int32_t sp;
-	ast_state_t stack[AST_STACK_COUNT];
-	ecs_entity_t stack1[AST_STACK_COUNT];
+	ast_state_t ssta[AST_STACK_COUNT];
+	ast_token_t stok[AST_STACK_COUNT];
+	ecs_entity_t sent[AST_STACK_COUNT];
+	int32_t spre[AST_STACK_COUNT];
 
-	ecs_entity_t estack[AST_STACK_COUNT];
 	int32_t genid;
 } ast_context_t;
 
 
 
-void ast_parse(ecs_world_t * world, ast_context_t * ast);
+void ast_parse(ast_context_t * ast);
