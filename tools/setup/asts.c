@@ -3,13 +3,24 @@
 #include "tokens.h"
 #include <stdio.h>
 
-#define BUFLEN 128
+#define BUFLEN 256
+
+char const * ast_get_token_color(ast_token_t token)
+{
+	switch (token)
+	{
+	case AST_TOKEN_NUMBER: return "#FFF0FF";
+	case AST_TOKEN_ID: return "#FFF0FF";
+	case AST_TOKEN_MUL: return "#FF0000";
+	case AST_TOKEN_PLUS: return "#F0F000";
+	default: return "#FFFFFF";
+	}
+}
+
 
 void ast_push(ast_context_t * ast, char const * name, ast_state_t state, ast_token_t token, int32_t precedence)
 {
-	ast->genid++;
-	char buf[BUFLEN];
-	snprintf(buf, BUFLEN, "%s%i", name, ast->genid);
+
 
 /*
 	int32_t sp;
@@ -23,7 +34,9 @@ void ast_push(ast_context_t * ast, char const * name, ast_state_t state, ast_tok
 	*/
 
 
-	ecs_entity_t e = ecs_new_entity(ast->world, buf);
+	ecs_entity_t e = ecs_new_entity(ast->world, 0);
+    ecs_doc_set_color(ast->world, e, ast_get_token_color(token));
+	ecs_doc_set_name(ast->world, e, name);
 	ast->stack_entity[ast->sp] = ecs_set_scope(ast->world, e);
 	ast->stack_state[ast->sp] = state;
 	ast->stack_token[ast->sp] = token;
@@ -42,6 +55,17 @@ void ast_pop(ast_context_t * ast)
 }
 
 
+
+
+
+void setup_ast_entity(ecs_world_t * world, ecs_entity_t e, ast_token_t token, char const * name)
+{
+	char buf[BUFLEN];
+	char const * t = ast_get_tokenstr(token);
+	snprintf(buf, BUFLEN, "%s%s", t, name);
+	ecs_doc_set_color(world, e, ast_get_token_color(token));
+	ecs_doc_set_name(world, e, buf);
+}
 
 
 
@@ -148,8 +172,8 @@ machine_root:
 
 machine_expression:
 	
-	ast_push(ast, "EXPRESSION_A", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
-	ast_push(ast, "EXPRESSION_B", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
+	ast_push(ast, "EXPRESSION", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
+	ast_push(ast, "EXPRESSION", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
 	while(1)
 	{
 		char buf[BUFLEN];
@@ -160,22 +184,23 @@ machine_expression:
 			return;
 
 		case AST_TOKEN_DIV:
-			ast_push(ast, "DIV", AST_STATE_EXPRESSION, token, tokens_precedence[token]);
+			setup_ast_entity(ast->world, ecs_get_scope(ast->world), token, "XDIV");
+			ast_push(ast, "EXPRESSION", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
 			break;
 
 		case AST_TOKEN_MUL:
-			ecs_set_pair(ast->world, ast->stack_entity[ast->sp-1], EcsIdentifier, EcsName, {"Mul"});
-			ast_push(ast, "MUL", AST_STATE_EXPRESSION, token, tokens_precedence[token]);
-			break;
-
-		case AST_TOKEN_ID:
-			ecs_set_pair(ast->world, ast->stack_entity[ast->sp-1], EcsIdentifier, EcsName, {"IDNew"});
-			ast_pop(ast);
+			setup_ast_entity(ast->world, ecs_get_scope(ast->world), token, "XMUL");
+			ast_push(ast, "EXPRESSION", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
 			break;
 
 		case AST_TOKEN_PLUS:
-			ecs_set_pair(ast->world, ast->stack_entity[ast->sp-1], EcsIdentifier, EcsName, {"Plus"});
-			ast_push(ast, "PLUS", AST_STATE_EXPRESSION, token, tokens_precedence[token]);
+			setup_ast_entity(ast->world, ecs_get_scope(ast->world), token, "XPLUS");
+			ast_push(ast, "EXPRESSION_PLUS", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
+			break;
+
+		case AST_TOKEN_ID:
+			setup_ast_entity(ast->world, ecs_get_scope(ast->world), token, buf);
+			ast_pop(ast);
 			break;
 
 		case AST_TOKEN_STATEMENT_TERMINATOR:

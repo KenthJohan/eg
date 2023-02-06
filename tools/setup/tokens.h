@@ -40,3 +40,4 @@ static int32_t tokens_precedence[] =
 
 
 ast_token_t tokens_next(char const ** out_p, char buf[], int32_t buflen);
+char const * ast_get_tokenstr(ast_token_t token);

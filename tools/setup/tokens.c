@@ -7,16 +7,19 @@ char const * ast_get_tokenstr(ast_token_t token)
 {
 	switch (token)
 	{
-	case AST_TOKEN_EOF: return "AST_TOKEN_EOF";
-	case AST_TOKEN_EXP_OPEN: return "AST_TOKEN_EXP_OPEN";
-	case AST_TOKEN_EXP_CLOSE: return "AST_TOKEN_EXP_CLOSE";
-	case AST_TOKEN_BLOCK_OPEN: return "AST_TOKEN_BLOCK_OPEN";
-	case AST_TOKEN_BLOCK_CLOSE: return "AST_TOKEN_BLOCK_CLOSE";
-	case AST_TOKEN_IF: return "AST_TOKEN_IF";
-	case AST_TOKEN_STATEMENT_TERMINATOR: return "AST_TOKEN_STATEMENT_TERMINATOR";
-	case AST_TOKEN_ELSE: return "AST_TOKEN_ELSE";
-	case AST_TOKEN_ELSEIF: return "AST_TOKEN_ELSEIF";
-	case AST_TOKEN_EQUAL: return "AST_TOKEN_EQUAL";
+	case AST_TOKEN_EOF: return "EOF";
+	case AST_TOKEN_EXP_OPEN: return "EXP_OPEN";
+	case AST_TOKEN_EXP_CLOSE: return "EXP_CLOSE";
+	case AST_TOKEN_BLOCK_OPEN: return "BLOCK_OPEN";
+	case AST_TOKEN_BLOCK_CLOSE: return "BLOCK_CLOSE";
+	case AST_TOKEN_IF: return "IF";
+	case AST_TOKEN_STATEMENT_TERMINATOR: return "STATEMENT_TERMINATOR";
+	case AST_TOKEN_ELSE: return "ELSE";
+	case AST_TOKEN_ELSEIF: return "ELSEIF";
+	case AST_TOKEN_EQUAL: return "EQUAL";
+	case AST_TOKEN_PLUS: return "PLUS";
+	case AST_TOKEN_MUL: return "MUL";
+	case AST_TOKEN_ID: return "ID";
 	default: return "UNKNOWN";
 	}
 }

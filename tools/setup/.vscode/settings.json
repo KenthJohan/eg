@@ -26,7 +26,13 @@
         "stack": "c",
         "variant": "c",
         "*.inc": "c",
-        "*.def": "c"
+        "*.def": "c",
+        "optional": "c",
+        "ratio": "c",
+        "system_error": "c",
+        "functional": "c",
+        "type_traits": "c",
+        "typeinfo": "c"
     },
 
 }
