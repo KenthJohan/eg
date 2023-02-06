@@ -1,6 +1,6 @@
 #pragma once
 #include <flecs.h>
-
+#include "tokens.h"
 
 typedef enum
 {
@@ -13,19 +13,12 @@ AST_STATE_IFCASE,
 AST_STATE_EXPRESSION,
 AST_STATE_BLOCK,
 AST_STATE_STATEMENT,
+AST_STATE_FORLOOP_ARGS,
+AST_STATE_ASSIGNMENT,
+AST_STATE_FUNCTION_DECLARTION_ARGUMENTS,
 AST_STATE_COUNT
 } ast_state_t;
 
-typedef enum
-{
-PARSE_MACHINE_ROOT,
-PARSE_MACHINE_ASSIGNMENT,
-PARSE_MACHINE_FUNCTION_DECLARTION_ARGUMENTS,
-PARSE_MACHINE_EXPRESSION,
-PARSE_MACHINE_STATEMENTS,
-PARSE_MACHINE_FORLOOP,
-PARSE_MACHINE_COUNT
-} parse_machine_t;
 
 
 
@@ -39,10 +32,10 @@ typedef struct
 	char const * text_current;
 
 	int32_t sp;
-	ast_state_t ssta[AST_STACK_COUNT];
-	ast_token_t stok[AST_STACK_COUNT];
-	ecs_entity_t sent[AST_STACK_COUNT];
-	int32_t spre[AST_STACK_COUNT];
+	ast_state_t stack_state[AST_STACK_COUNT];
+	ast_token_t stack_token[AST_STACK_COUNT];
+	ecs_entity_t stack_entity[AST_STACK_COUNT];
+	int32_t stack_precedence[AST_STACK_COUNT];
 
 	int32_t genid;
 } ast_context_t;

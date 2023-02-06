@@ -11,31 +11,34 @@ void ast_push(ast_context_t * ast, char const * name, ast_state_t state, ast_tok
 	char buf[BUFLEN];
 	snprintf(buf, BUFLEN, "%s%i", name, ast->genid);
 
+/*
 	int32_t sp;
 	for(sp = ast->sp-1; sp > 0; --sp)
 	{
-		if(precedence < ast->spre[sp])
+		if(precedence < ast->stack_precedence[sp])
 		{
 			break;
 		}
 	}
+	*/
 
 
 	ecs_entity_t e = ecs_new_entity(ast->world, buf);
-	ast->sent[ast->sp] = ecs_set_scope(ast->world, e);
-	ast->ssta[ast->sp] = state;
-	ast->stok[ast->sp] = token;
-	ast->spre[ast->sp] = precedence;
+	ast->stack_entity[ast->sp] = ecs_set_scope(ast->world, e);
+	ast->stack_state[ast->sp] = state;
+	ast->stack_token[ast->sp] = token;
+	ast->stack_precedence[ast->sp] = precedence;
 	ast->sp++;
 }
 
 void ast_pop(ast_context_t * ast)
 {
 	ast->sp--;
-	ecs_set_scope(ast->world, ast->sent[ast->sp]);
-	ast->ssta[ast->sp] = 0;
-	ast->sent[ast->sp] = 0;
-	ast->stok[ast->sp] = 0;
+	ecs_set_scope(ast->world, ast->stack_entity[ast->sp]);
+	ast->stack_state[ast->sp] = 0;
+	ast->stack_entity[ast->sp] = 0;
+	ast->stack_token[ast->sp] = 0;
+	ast->stack_precedence[ast->sp] = 0;
 }
 
 
@@ -70,21 +73,21 @@ machine_root:
 
 		case AST_TOKEN_BLOCK_CLOSE:
 			ast->sp--;
-			ast->ssta[ast->sp] = 0;
+			ast->stack_state[ast->sp] = 0;
 
 			if(ast->sp >= 1)
 			{
-				switch (ast->ssta[ast->sp-1])
+				switch (ast->stack_state[ast->sp-1])
 				{
 					case AST_STATE_IF:
 					case AST_STATE_ELSE:
 						ast->sp--;
-						ast->ssta[ast->sp] = 0;
+						ast->stack_state[ast->sp] = 0;
 						break;
 				}
 			}
 
-			if(ast->sp >= 1 && ast->ssta[ast->sp-1] == AST_STATE_IFCASE)
+			if(ast->sp >= 1 && ast->stack_state[ast->sp-1] == AST_STATE_IFCASE)
 			{
 				// Peek one token forward:
 				char const * p0 = ast->text_current;
@@ -92,12 +95,12 @@ machine_root:
 				if(token1 != AST_TOKEN_ELSE)
 				{
 					ast->sp--;
-					ast->ssta[ast->sp] = 0;
+					ast->stack_state[ast->sp] = 0;
 				}
 			}
 			
-			ecs_set_scope(ast->world, ast->sent[ast->sp]);
-			ast->sent[ast->sp] = 0;
+			ecs_set_scope(ast->world, ast->stack_entity[ast->sp]);
+			ast->stack_entity[ast->sp] = 0;
 			break;
 
 		case AST_TOKEN_EXP_CLOSE:
@@ -106,13 +109,13 @@ machine_root:
 
 		case AST_TOKEN_STATEMENT_TERMINATOR:
 			ast->sp--;
-			if(ast->sp >= 1 && (ast->ssta[ast->sp] == AST_STATE_EXPRESSION))
+			if(ast->sp >= 1 && (ast->stack_state[ast->sp] == AST_STATE_EXPRESSION))
 			{
-				ast->ssta[ast->sp] = 0;
+				ast->stack_state[ast->sp] = 0;
 				ast->sp--;
 			}
-			ecs_set_scope(ast->world, ast->sent[ast->sp]);
-			ast->ssta[ast->sp] = 0;
+			ecs_set_scope(ast->world, ast->stack_entity[ast->sp]);
+			ast->stack_state[ast->sp] = 0;
 			break;
 
 		case AST_TOKEN_IF:
@@ -127,7 +130,7 @@ machine_root:
 		case AST_TOKEN_ID:
 			if(ast->sp >= 1)
 			{
-				if ((ast->ssta[ast->sp-1] == AST_STATE_BLOCK) || (ast->ssta[ast->sp-1] == AST_STATE_ROOT))
+				if ((ast->stack_state[ast->sp-1] == AST_STATE_BLOCK) || (ast->stack_state[ast->sp-1] == AST_STATE_ROOT))
 				{
 					ast_push(ast, "STATEMENT", AST_STATE_STATEMENT, token, 0);
 				}
@@ -144,6 +147,9 @@ machine_root:
 
 
 machine_expression:
+	
+	ast_push(ast, "EXPRESSION_A", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
+	ast_push(ast, "EXPRESSION_B", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
 	while(1)
 	{
 		char buf[BUFLEN];
@@ -158,22 +164,23 @@ machine_expression:
 			break;
 
 		case AST_TOKEN_MUL:
+			ecs_set_pair(ast->world, ast->stack_entity[ast->sp-1], EcsIdentifier, EcsName, {"Mul"});
 			ast_push(ast, "MUL", AST_STATE_EXPRESSION, token, tokens_precedence[token]);
 			break;
 
 		case AST_TOKEN_ID:
-			ast_push(ast, "ID", AST_STATE_EXPRESSION, token, tokens_precedence[token]);
+			ecs_set_pair(ast->world, ast->stack_entity[ast->sp-1], EcsIdentifier, EcsName, {"IDNew"});
+			ast_pop(ast);
 			break;
 
 		case AST_TOKEN_PLUS:
+			ecs_set_pair(ast->world, ast->stack_entity[ast->sp-1], EcsIdentifier, EcsName, {"Plus"});
 			ast_push(ast, "PLUS", AST_STATE_EXPRESSION, token, tokens_precedence[token]);
 			break;
 
 		case AST_TOKEN_STATEMENT_TERMINATOR:
 			goto machine_root;
 		}
-
-
 	}
 
 
