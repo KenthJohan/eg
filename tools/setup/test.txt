@@ -1,1 +1,8 @@
-int a = 3 + 4 * 5;
+if(a+b)
+{
+	hej;
+}
+else
+{
+	garlic;
+}

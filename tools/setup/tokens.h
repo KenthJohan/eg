@@ -25,6 +25,7 @@ AST_TOKEN_COUNT
 } ast_token_t;
 
 
+
 static int32_t tokens_precedence[] = 
 {
 	[AST_TOKEN_NUMBER] = 0,
@@ -36,6 +37,7 @@ static int32_t tokens_precedence[] =
 	[AST_TOKEN_DIV] = 3,
 	[AST_TOKEN_COUNT] = 0
 };
+
 
 
 

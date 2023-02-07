@@ -88,15 +88,19 @@ ast_token_t tokens_next(char const ** out_p, char buf[], int32_t buflen)
 	if(token != AST_TOKEN_UNKNOWN)
 	{
 		(*out_p) += ast_get_tokenlen(token);
+		return token;
 	}
-	else
+
+	token = AST_TOKEN_ID;
+	skip_word(out_p);
+
+	if(buf)
 	{
-		skip_word(out_p);
 		int32_t n = (int)((*out_p) - p);
 		n = n > buflen ? buflen : n;
 		ecs_os_memcpy_n(buf, p, char, n);
 		buf[n] = '\0'; // Null terminate
-		token = AST_TOKEN_ID;
 	}
+
 	return token;
 }
