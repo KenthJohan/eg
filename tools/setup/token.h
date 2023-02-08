@@ -24,7 +24,7 @@ AST_TOKEN_MUL,
 AST_TOKEN_DIV,
 AST_TOKEN_ID,
 AST_TOKEN_COUNT
-} ast_token_t;
+} token_constant_t;
 
 
 
@@ -41,5 +41,5 @@ static int32_t tokens_precedence[] =
 };
 
 
-char const * ast_token_t_str(ast_token_t token);
-int32_t ast_token_t_len(ast_token_t token);
+char const * ast_token_t_str(token_constant_t token);
+int32_t ast_token_t_len(token_constant_t token);

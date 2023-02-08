@@ -1,6 +1,6 @@
 #include "lexer.h"
-#include "tokens.h"
 #include <ctype.h>
+#include <flecs.h>
 
 int is_symbol_start(int c)
 {
@@ -17,7 +17,7 @@ int is_symbol(int c)
 
 
 
-ast_token_t lexer_one(int c)
+token_constant_t lexer_one(int c)
 {
 	switch (c)
 	{
@@ -81,7 +81,7 @@ void lexer_init(lexer_t * lexer)
 void lexer_next(lexer_t * lexer, token_t * out_token)
 {
 	lexer_skip_whitespace(&lexer->text_current, &lexer->line, &lexer->column);
-	ast_token_t t = lexer_one(lexer->text_current[0]);
+	token_constant_t t = lexer_one(lexer->text_current[0]);
 	if(t != AST_TOKEN_UNKNOWN)
 	{
 		out_token->cursor = lexer->text_current;

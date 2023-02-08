@@ -1,9 +1,5 @@
 #include "asts.h"
-#include "str.h"
-#include "tokens.h"
-#include "lexer.h"
 #include <stdio.h>
-#include <flecs.h>
 
 #define BUFLEN 256
 

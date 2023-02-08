@@ -1,12 +1,11 @@
-#include "tokens.h"
-#include "str.h"
+#include "token.h"
 #include <stdint.h>
 #include <flecs.h>
 
 
 
 
-char const * ast_token_t_str(ast_token_t token)
+char const * ast_token_t_str(token_constant_t token)
 {
 	switch (token)
 	{
@@ -28,7 +27,7 @@ char const * ast_token_t_str(ast_token_t token)
 }
 
 
-int32_t ast_token_t_len(ast_token_t token)
+int32_t ast_token_t_len(token_constant_t token)
 {
 	switch (token)
 	{
