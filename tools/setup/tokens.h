@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.h>
 
+//https://github.com/nothings/stb/blob/master/stb_c_lexer.h
+
 typedef enum
 {
 AST_TOKEN_UNKNOWN,
@@ -43,3 +45,4 @@ static int32_t tokens_precedence[] =
 
 ast_token_t tokens_next(char const ** out_p, char buf[], int32_t buflen);
 char const * ast_get_tokenstr(ast_token_t token);
+int32_t ast_get_tokenlen(int32_t token);

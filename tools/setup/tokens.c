@@ -3,6 +3,9 @@
 #include <stdint.h>
 #include <flecs.h>
 
+
+
+
 char const * ast_get_tokenstr(ast_token_t token)
 {
 	switch (token)
@@ -83,6 +86,8 @@ ast_token_t tokens_next(char const ** out_p, char buf[], int32_t buflen)
 	else if(ecs_os_strncmp(p, "elseif{", 7) == 0){token = AST_TOKEN_ELSEIF;}
 	else if(ecs_os_strncmp(p, "elseif\n", 7) == 0){token = AST_TOKEN_ELSEIF;}
 	else if(ecs_os_strncmp(p, "elseif\t", 7) == 0){token = AST_TOKEN_ELSEIF;}
+
+	
 
 
 	if(token != AST_TOKEN_UNKNOWN)

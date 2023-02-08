@@ -1,6 +1,7 @@
 #include "asts.h"
 #include "str.h"
 #include "tokens.h"
+#include "lexer.h"
 #include <stdio.h>
 
 #define BUFLEN 256
@@ -44,53 +45,39 @@ char const * ast_state_t_str(ast_state_t state)
 
 
 
-
-
-
-
-
-
-
-
-
-
-void ast_push(ast_context_t * ast, char const * name, ast_state_t state, ast_token_t token, int32_t precedence)
+typedef enum
 {
+	AST_NEWFLAGS_NONE = 0x00,
+	AST_NEWFLAGS_PUSH = 0x01,
+} ast_newflags_t;
 
 
-/*
-	int32_t sp;
-	for(sp = ast->sp-1; sp > 0; --sp)
-	{
-		if(precedence < ast->stack_precedence[sp])
-		{
-			break;
-		}
-	}
-	*/
+void ast_new(ast_context_t * ast, char const * name, ast_state_t state, ast_token_t token, int32_t precedence, int32_t flags)
+{
 	if(name == NULL)
 	{
 		name = ast_state_t_str(state);
 	}
-	
+
 	{
 		ecs_entity_t g = ecs_get_scope(ast->world);
 		if(g){printf("Adding %s to %s\n", name, ecs_doc_get_name(ast->world, g));}
+		else{printf("Adding %s\n", name);}
 	}
-
 
 	ecs_entity_t e = ecs_new_entity(ast->world, 0);
     ecs_doc_set_color(ast->world, e, ast_get_state_color(state));
-
 	ecs_doc_set_name(ast->world, e, name);
-	ast->stack_entity[ast->sp] = ecs_set_scope(ast->world, e);
 
-
-	ast->sp++;
-	ast->stack_entity[ast->sp] = e;
-	ast->stack_state[ast->sp] = state;
-	ast->stack_token[ast->sp] = token;
-	ast->stack_precedence[ast->sp] = precedence;
+	if(flags & AST_NEWFLAGS_PUSH)
+	{
+		ast->stack_entity[ast->sp] = ecs_set_scope(ast->world, e);
+		ast->sp++;
+		ast->stack_entity[ast->sp] = e;
+		ast->stack_state[ast->sp] = state;
+		ast->stack_token[ast->sp] = token;
+		ast->stack_precedence[ast->sp] = precedence;
+	}
 }
 
 void ast_pop(ast_context_t * ast)
@@ -185,7 +172,7 @@ machine_statement:
 			break;}
 
 		case AST_TOKEN_EQUAL:
-			ast_push(ast, NULL, AST_STATE_EXPRESSION, token, 0);
+			ast_new(ast, NULL, AST_STATE_EXPRESSION, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_expression;
 
 		case AST_TOKEN_STATEMENT_TERMINATOR:
@@ -207,21 +194,21 @@ machine_ifcase:
 		case AST_TOKEN_EOF: return;
 
 		case AST_TOKEN_EXP_OPEN:
-			ast_push(ast, NULL, AST_STATE_EXPRESSION, token, 0);
+			ast_new(ast, NULL, AST_STATE_EXPRESSION, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_expression;
 
 		case AST_TOKEN_ELSE:
 			ast_pop(ast);
-			ast_push(ast, NULL, AST_STATE_ELSE, token, 0);
+			ast_new(ast, NULL, AST_STATE_ELSE, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_ifcase;
 
 		case AST_TOKEN_ELSEIF:
 			ast_pop(ast);
-			ast_push(ast, NULL, AST_TOKEN_ELSEIF, token, 0);
+			ast_new(ast, NULL, AST_TOKEN_ELSEIF, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_ifcase;
 
 		case AST_TOKEN_BLOCK_OPEN:
-			ast_push(ast, NULL, AST_STATE_BLOCK, token, 0);
+			ast_new(ast, NULL, AST_STATE_BLOCK, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_codeblock;
 
 		default:
@@ -243,15 +230,15 @@ machine_codeblock:
 		case AST_TOKEN_EOF: return;
 
 		case AST_TOKEN_BLOCK_OPEN:
-			ast_push(ast, NULL, AST_STATE_BLOCK, token, 0);
+			ast_new(ast, NULL, AST_STATE_BLOCK, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_codeblock;
 
 		case AST_TOKEN_EQUAL:
-			ast_push(ast, NULL, AST_STATE_EXPRESSION, token, 0);
+			ast_new(ast, NULL, AST_STATE_EXPRESSION, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_expression;
 
 		case AST_TOKEN_EXP_OPEN:
-			ast_push(ast, NULL, AST_STATE_EXPRESSION, token, 0);
+			ast_new(ast, NULL, AST_STATE_EXPRESSION, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_expression;
 
 		case AST_TOKEN_BLOCK_CLOSE:
@@ -259,16 +246,16 @@ machine_codeblock:
 			goto machine_goto;
 
 		case AST_TOKEN_IF:
-			ast_push(ast, NULL, AST_STATE_BRANCHES, AST_TOKEN_UNKNOWN, 0);
-			ast_push(ast, NULL, AST_STATE_IF, token, 0);
+			ast_new(ast, NULL, AST_STATE_BRANCHES, AST_TOKEN_UNKNOWN, 0, AST_NEWFLAGS_PUSH);
+			ast_new(ast, NULL, AST_STATE_IF, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_ifcase;
 
 		case AST_TOKEN_ELSE:
-			ast_push(ast, NULL, AST_STATE_ELSE, token, 0);
+			ast_new(ast, NULL, AST_STATE_ELSE, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_codeblock;
 
 		case AST_TOKEN_ID:
-			ast_push(ast, NULL, AST_STATE_STATEMENT, token, 0);
+			ast_new(ast, NULL, AST_STATE_STATEMENT, token, 0, AST_NEWFLAGS_PUSH);
 			goto machine_statement;
 
 
@@ -302,16 +289,14 @@ machine_expression:
 
 		case AST_TOKEN_ID:
 			{
-				ast_push(ast, "PLACEHOLDER", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
-				ecs_entity_t e = ecs_new_entity(ast->world, 0);
-			    ecs_doc_set_color(ast->world, e, ast_get_state_color(AST_STATE_EXPRESSION));
-				ecs_doc_set_name(ast->world, e, buf);
+				ast_new(ast, "PLACEHOLDER", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0, AST_NEWFLAGS_PUSH);
+				ast_new(ast, buf, AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0, AST_NEWFLAGS_NONE);
 			}
 			break;
 
 		
 		case AST_TOKEN_EXP_OPEN:
-			ast_push(ast, "PLACEHOLDER", AST_STATE_EXPRESSION, token, 0);
+			ast_new(ast, "PLACEHOLDER", AST_STATE_EXPRESSION, token, 0, AST_NEWFLAGS_PUSH);
 			break;
 
 		case AST_TOKEN_EXP_CLOSE:
