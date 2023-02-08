@@ -5,17 +5,53 @@
 
 #define BUFLEN 256
 
-char const * ast_get_token_color(ast_token_t token)
+char const * ast_get_state_color(ast_state_t state)
 {
-	switch (token)
+	switch (state)
 	{
-	case AST_TOKEN_NUMBER: return "#FFF0FF";
-	case AST_TOKEN_ID: return "#FFF0FF";
-	case AST_TOKEN_MUL: return "#FF0000";
-	case AST_TOKEN_PLUS: return "#F0F000";
+	case AST_STATE_ROOT: return "#444444";
+	case AST_STATE_IFCASE: return "#880088";
+	case AST_STATE_IF: return "#880088";
+	case AST_STATE_ELSEIF: return "#880088";
+	case AST_STATE_ELSE: return "#880088";
+	case AST_STATE_STATEMENT: return "#F0F00F";
+	case AST_STATE_BLOCK: return "#00F0FF";
+	case AST_STATE_EXPRESSION: return "#0F0FFF";
 	default: return "#FFFFFF";
 	}
 }
+
+char const * ast_state_t_str(ast_state_t state)
+{
+	switch (state)
+	{
+	case AST_STATE_UNKNOWN: return "AST_STATE_UNKNOWN";
+	case AST_STATE_ROOT: return "AST_STATE_ROOT";
+	case AST_STATE_IFCASE: return "AST_STATE_IFCASE";
+	case AST_STATE_IF: return "AST_STATE_IF";
+	case AST_STATE_ELSEIF: return "AST_STATE_ELSEIF";
+	case AST_STATE_ELSE: return "AST_STATE_ELSE";
+	case AST_STATE_EXPRESSION: return "AST_STATE_EXPRESSION";
+	case AST_STATE_BLOCK: return "AST_STATE_BLOCK";
+	case AST_STATE_STATEMENT: return "AST_STATE_STATEMENT";
+	case AST_STATE_FORLOOP_ARGS: return "AST_STATE_FORLOOP_ARGS";
+	case AST_STATE_ASSIGNMENT: return "AST_STATE_ASSIGNMENT";
+	case AST_STATE_FUNCTION_DECLARTION_ARGUMENTS: return "AST_STATE_FUNCTION_DECLARTION_ARGUMENTS";
+	case AST_STATE_COUNT: return "AST_STATE_COUNT";
+	default: return "";
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
 
 
 void ast_push(ast_context_t * ast, char const * name, ast_state_t state, ast_token_t token, int32_t precedence)
@@ -40,7 +76,7 @@ void ast_push(ast_context_t * ast, char const * name, ast_state_t state, ast_tok
 
 
 	ecs_entity_t e = ecs_new_entity(ast->world, 0);
-    ecs_doc_set_color(ast->world, e, ast_get_token_color(token));
+    ecs_doc_set_color(ast->world, e, ast_get_state_color(state));
 	ecs_doc_set_name(ast->world, e, name);
 	ast->stack_entity[ast->sp] = ecs_set_scope(ast->world, e);
 
@@ -54,24 +90,24 @@ void ast_push(ast_context_t * ast, char const * name, ast_state_t state, ast_tok
 
 void ast_pop(ast_context_t * ast)
 {
-	ecs_set_scope(ast->world, ast->stack_entity[ast->sp]);
 	ast->stack_state[ast->sp] = 0;
 	ast->stack_entity[ast->sp] = 0;
 	ast->stack_token[ast->sp] = 0;
 	ast->stack_precedence[ast->sp] = 0;
 	ast->sp--;
+	ecs_set_scope(ast->world, ast->stack_entity[ast->sp]);
 }
 
 
 
 
 
-void setup_ast_entity(ecs_world_t * world, ecs_entity_t e, ast_token_t token, char const * name)
+void setup_ast_entity(ecs_world_t * world, ecs_entity_t e, ast_state_t state, ast_token_t token, char const * name)
 {
 	char buf[BUFLEN];
 	char const * t = ast_get_tokenstr(token);
 	snprintf(buf, BUFLEN, "%s%s", t, name);
-	ecs_doc_set_color(world, e, ast_get_token_color(token));
+	ecs_doc_set_color(world, e, ast_get_state_color(state));
 	ecs_doc_set_name(world, e, buf);
 }
 
@@ -108,22 +144,28 @@ void ast_parse(ast_context_t * ast)
 
 
 machine_goto:
+	printf("machine_goto\n");
 	switch (ast->stack_state[ast->sp])
 	{
 	case AST_STATE_ROOT:
-	case AST_STATE_IF:
 	case AST_STATE_BLOCK:
 		goto machine_codeblock;
+	case AST_STATE_ELSEIF:
+	case AST_STATE_ELSE:
+	case AST_STATE_IF:
+		goto machine_ifcase;
 	case AST_STATE_STATEMENT:
 		goto machine_statement;
 	case AST_STATE_EXPRESSION:
 		goto machine_expression;
+	default:
+		printf("machine_goto: state %s not handled\n", ast_state_t_str(ast->stack_state[ast->sp]));
+		goto machine_error;
 	}
 
 
-
-
 machine_statement:
+	printf("machine_statement\n");
 	while(1)
 	{
 		char buf[BUFLEN];
@@ -149,10 +191,44 @@ machine_statement:
 	} // End of while
 
 
+machine_ifcase:
+	printf("machine_ifcase\n");
+	while(1)
+	{
+		char buf[BUFLEN];
+		ast_token_t token = tokens_next(&ast->text_current, buf, BUFLEN);
+		switch (token)
+		{
+		case AST_TOKEN_EOF: return;
 
+		case AST_TOKEN_EXP_OPEN:
+			ast_push(ast, "EXPRESSION", AST_STATE_EXPRESSION, token, 0);
+			goto machine_expression;
+
+		case AST_TOKEN_ELSE:
+			ast_pop(ast);
+			ast_push(ast, "ELSE", AST_STATE_ELSE, token, 0);
+			goto machine_ifcase;
+
+		case AST_TOKEN_ELSEIF:
+			ast_pop(ast);
+			ast_push(ast, "ELSEIF", AST_TOKEN_ELSEIF, token, 0);
+			goto machine_ifcase;
+
+		case AST_TOKEN_BLOCK_OPEN:
+			ast_push(ast, "BLOCK", AST_STATE_BLOCK, token, 0);
+			goto machine_codeblock;
+
+		default:
+			ast_pop(ast);
+			goto machine_goto;
+
+		} // End of switch
+	} // End of while
 
 
 machine_codeblock:
+	printf("machine_codeblock\n");
 	while(1)
 	{
 		char buf[BUFLEN];
@@ -175,22 +251,12 @@ machine_codeblock:
 
 		case AST_TOKEN_BLOCK_CLOSE:
 			ast_pop(ast);
-			char const * p0 = ast->text_current;
-			ast_token_t tokenpeek = tokens_next(&p0, NULL, 0);
-			switch (tokenpeek)
-			{
-			case AST_TOKEN_ELSE:
-			case AST_TOKEN_ELSEIF:
-				ast_pop(ast);
-				goto machine_codeblock;
-			}
 			goto machine_goto;
-
 
 		case AST_TOKEN_IF:
 			ast_push(ast, "IFCASE", AST_STATE_IFCASE, AST_TOKEN_UNKNOWN, 0);
 			ast_push(ast, "IF", AST_STATE_IF, token, 0);
-			goto machine_codeblock;
+			goto machine_ifcase;
 
 		case AST_TOKEN_ELSE:
 			ast_push(ast, "ELSE", AST_STATE_ELSE, token, 0);
@@ -205,11 +271,8 @@ machine_codeblock:
 	} // End of while
 
 
-
-
-
-
 machine_expression:
+	printf("machine_expression\n");
 	while(1)
 	{
 		char buf[BUFLEN];
@@ -220,23 +283,23 @@ machine_expression:
 			return;
 
 		case AST_TOKEN_DIV:
-			setup_ast_entity(ast->world, ecs_get_scope(ast->world), token, "");
+			setup_ast_entity(ast->world, ecs_get_scope(ast->world), AST_STATE_EXPRESSION, token, "");
 			break;
 
 		case AST_TOKEN_MUL:
-			setup_ast_entity(ast->world, ecs_get_scope(ast->world), token, "");
+			setup_ast_entity(ast->world, ecs_get_scope(ast->world), AST_STATE_EXPRESSION, token, "");
 			break;
 
 		case AST_TOKEN_PLUS:
 			if(tokens_precedence[token]){}
-			setup_ast_entity(ast->world, ecs_get_scope(ast->world), token, "");
+			setup_ast_entity(ast->world, ecs_get_scope(ast->world), AST_STATE_EXPRESSION, token, "");
 			break;
 
 		case AST_TOKEN_ID:
 			{
 				ast_push(ast, "PLACEHOLDER", AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, 0);
 				ecs_entity_t e = ecs_new_entity(ast->world, 0);
-			    ecs_doc_set_color(ast->world, e, ast_get_token_color(token));
+			    ecs_doc_set_color(ast->world, e, ast_get_state_color(AST_STATE_EXPRESSION));
 				ecs_doc_set_name(ast->world, e, buf);
 			}
 			break;
@@ -287,7 +350,12 @@ machine_expression:
 	} // End of while
 
 
+machine_error:
+	printf("machine_error: AST machine error\n");
+	return;
 
-
+machine_eof:
+	printf("machine_eof: AST machine end of file\n");
+	return;
 
 }
