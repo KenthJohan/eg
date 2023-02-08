@@ -10,7 +10,7 @@ char const * ast_get_state_color(ast_state_t state)
 	switch (state)
 	{
 	case AST_STATE_ROOT: return "#444444";
-	case AST_STATE_IFCASE: return "#880088";
+	case AST_STATE_BRANCHES: return "#880088";
 	case AST_STATE_IF: return "#880088";
 	case AST_STATE_ELSEIF: return "#880088";
 	case AST_STATE_ELSE: return "#880088";
@@ -25,18 +25,18 @@ char const * ast_state_t_str(ast_state_t state)
 {
 	switch (state)
 	{
-	case AST_STATE_UNKNOWN: return "AST_STATE_UNKNOWN";
-	case AST_STATE_ROOT: return "AST_STATE_ROOT";
-	case AST_STATE_IFCASE: return "AST_STATE_IFCASE";
-	case AST_STATE_IF: return "AST_STATE_IF";
-	case AST_STATE_ELSEIF: return "AST_STATE_ELSEIF";
-	case AST_STATE_ELSE: return "AST_STATE_ELSE";
-	case AST_STATE_EXPRESSION: return "AST_STATE_EXPRESSION";
-	case AST_STATE_BLOCK: return "AST_STATE_BLOCK";
-	case AST_STATE_STATEMENT: return "AST_STATE_STATEMENT";
-	case AST_STATE_FORLOOP_ARGS: return "AST_STATE_FORLOOP_ARGS";
-	case AST_STATE_ASSIGNMENT: return "AST_STATE_ASSIGNMENT";
-	case AST_STATE_FUNCTION_DECLARTION_ARGUMENTS: return "AST_STATE_FUNCTION_DECLARTION_ARGUMENTS";
+	case AST_STATE_UNKNOWN: return "UNKNOWN";
+	case AST_STATE_ROOT: return "ROOT";
+	case AST_STATE_BRANCHES: return "BRANCHES";
+	case AST_STATE_IF: return "IF";
+	case AST_STATE_ELSEIF: return "ELSEIF";
+	case AST_STATE_ELSE: return "ELSE";
+	case AST_STATE_EXPRESSION: return "EXPRESSION";
+	case AST_STATE_BLOCK: return "BLOCK";
+	case AST_STATE_STATEMENT: return "STATEMENT";
+	case AST_STATE_FORLOOP_ARGS: return "FORLOOP_ARGS";
+	case AST_STATE_ASSIGNMENT: return "ASSIGNMENT";
+	case AST_STATE_FUNCTION_DECLARTION_ARGUMENTS: return "FUNCTION_DECLARTION_ARGUMENTS";
 	case AST_STATE_COUNT: return "AST_STATE_COUNT";
 	default: return "";
 	}
@@ -68,7 +68,11 @@ void ast_push(ast_context_t * ast, char const * name, ast_state_t state, ast_tok
 		}
 	}
 	*/
-
+	if(name == NULL)
+	{
+		name = ast_state_t_str(state);
+	}
+	
 	{
 		ecs_entity_t g = ecs_get_scope(ast->world);
 		if(g){printf("Adding %s to %s\n", name, ecs_doc_get_name(ast->world, g));}
@@ -77,6 +81,7 @@ void ast_push(ast_context_t * ast, char const * name, ast_state_t state, ast_tok
 
 	ecs_entity_t e = ecs_new_entity(ast->world, 0);
     ecs_doc_set_color(ast->world, e, ast_get_state_color(state));
+
 	ecs_doc_set_name(ast->world, e, name);
 	ast->stack_entity[ast->sp] = ecs_set_scope(ast->world, e);
 
@@ -180,7 +185,7 @@ machine_statement:
 			break;}
 
 		case AST_TOKEN_EQUAL:
-			ast_push(ast, "EXPRESSION", AST_STATE_EXPRESSION, token, 0);
+			ast_push(ast, NULL, AST_STATE_EXPRESSION, token, 0);
 			goto machine_expression;
 
 		case AST_TOKEN_STATEMENT_TERMINATOR:
@@ -202,21 +207,21 @@ machine_ifcase:
 		case AST_TOKEN_EOF: return;
 
 		case AST_TOKEN_EXP_OPEN:
-			ast_push(ast, "EXPRESSION", AST_STATE_EXPRESSION, token, 0);
+			ast_push(ast, NULL, AST_STATE_EXPRESSION, token, 0);
 			goto machine_expression;
 
 		case AST_TOKEN_ELSE:
 			ast_pop(ast);
-			ast_push(ast, "ELSE", AST_STATE_ELSE, token, 0);
+			ast_push(ast, NULL, AST_STATE_ELSE, token, 0);
 			goto machine_ifcase;
 
 		case AST_TOKEN_ELSEIF:
 			ast_pop(ast);
-			ast_push(ast, "ELSEIF", AST_TOKEN_ELSEIF, token, 0);
+			ast_push(ast, NULL, AST_TOKEN_ELSEIF, token, 0);
 			goto machine_ifcase;
 
 		case AST_TOKEN_BLOCK_OPEN:
-			ast_push(ast, "BLOCK", AST_STATE_BLOCK, token, 0);
+			ast_push(ast, NULL, AST_STATE_BLOCK, token, 0);
 			goto machine_codeblock;
 
 		default:
@@ -238,15 +243,15 @@ machine_codeblock:
 		case AST_TOKEN_EOF: return;
 
 		case AST_TOKEN_BLOCK_OPEN:
-			ast_push(ast, "BLOCK", AST_STATE_BLOCK, token, 0);
+			ast_push(ast, NULL, AST_STATE_BLOCK, token, 0);
 			goto machine_codeblock;
 
 		case AST_TOKEN_EQUAL:
-			ast_push(ast, "EXPRESSION", AST_STATE_EXPRESSION, token, 0);
+			ast_push(ast, NULL, AST_STATE_EXPRESSION, token, 0);
 			goto machine_expression;
 
 		case AST_TOKEN_EXP_OPEN:
-			ast_push(ast, "EXPRESSION", AST_STATE_EXPRESSION, token, 0);
+			ast_push(ast, NULL, AST_STATE_EXPRESSION, token, 0);
 			goto machine_expression;
 
 		case AST_TOKEN_BLOCK_CLOSE:
@@ -254,16 +259,16 @@ machine_codeblock:
 			goto machine_goto;
 
 		case AST_TOKEN_IF:
-			ast_push(ast, "IFCASE", AST_STATE_IFCASE, AST_TOKEN_UNKNOWN, 0);
-			ast_push(ast, "IF", AST_STATE_IF, token, 0);
+			ast_push(ast, NULL, AST_STATE_BRANCHES, AST_TOKEN_UNKNOWN, 0);
+			ast_push(ast, NULL, AST_STATE_IF, token, 0);
 			goto machine_ifcase;
 
 		case AST_TOKEN_ELSE:
-			ast_push(ast, "ELSE", AST_STATE_ELSE, token, 0);
+			ast_push(ast, NULL, AST_STATE_ELSE, token, 0);
 			goto machine_codeblock;
 
 		case AST_TOKEN_ID:
-			ast_push(ast, "STATEMENT", AST_STATE_STATEMENT, token, 0);
+			ast_push(ast, NULL, AST_STATE_STATEMENT, token, 0);
 			goto machine_statement;
 
 
