@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <flecs.h>
 #include "tokens.h"
 
 typedef struct
@@ -18,3 +19,6 @@ typedef struct
 	int32_t column;
 	ast_token_t type;
 } token_t;
+
+void lexer_init(lexer_t * lexer);
+void lexer_next(lexer_t * lexer, token_t * out_token);

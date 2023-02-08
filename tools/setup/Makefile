@@ -22,7 +22,6 @@ SRCS := main.c
 SRCS += eg_fs.c
 SRCS += EgAst.c
 SRCS += asts.c
-SRCS += str.c
 SRCS += tokens.c
 SRCS += lexer.c
 SRCS += eg_template.c

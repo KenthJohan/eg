@@ -6,7 +6,7 @@
 
 
 
-char const * ast_get_tokenstr(ast_token_t token)
+char const * ast_token_t_str(ast_token_t token)
 {
 	switch (token)
 	{
@@ -28,7 +28,7 @@ char const * ast_get_tokenstr(ast_token_t token)
 }
 
 
-int32_t ast_get_tokenlen(int32_t token)
+int32_t ast_token_t_len(ast_token_t token)
 {
 	switch (token)
 	{
@@ -49,63 +49,4 @@ int32_t ast_get_tokenlen(int32_t token)
 	default:
 		return 0;
 	}
-}
-
-
-ast_token_t tokens_next(char const ** out_p, char buf[], int32_t buflen)
-{
-	skip_whitespace(out_p);
-	ast_token_t token = AST_TOKEN_UNKNOWN;
-	char const * p = (*out_p);
-	switch (p[0])
-	{
-	case '\0': return AST_TOKEN_EOF;
-	case '(': (*out_p)++; return AST_TOKEN_EXP_OPEN;
-	case ')': (*out_p)++; return AST_TOKEN_EXP_CLOSE;
-	case '{': (*out_p)++; return AST_TOKEN_BLOCK_OPEN;
-	case '}': (*out_p)++; return AST_TOKEN_BLOCK_CLOSE;
-	case ';': (*out_p)++; return AST_TOKEN_STATEMENT_TERMINATOR;
-	case '=': (*out_p)++; return AST_TOKEN_EQUAL;
-	case '+': (*out_p)++; return AST_TOKEN_PLUS;
-	case '-': (*out_p)++; return AST_TOKEN_MINUS;
-	case '/': (*out_p)++; return AST_TOKEN_DIV;
-	case '*': (*out_p)++; return AST_TOKEN_MUL;
-	}
-
-
-	if(0){}
-	else if(ecs_os_strncmp(p, "if ", 3) == 0){token = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(p, "if(", 3) == 0){token = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(p, "if\n", 3) == 0){token = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(p, "if\t", 3) == 0){token = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(p, "else ", 5) == 0){token = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(p, "else{", 5) == 0){token = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(p, "else\n", 5) == 0){token = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(p, "else\t", 5) == 0){token = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(p, "elseif ", 7) == 0){token = AST_TOKEN_ELSEIF;}
-	else if(ecs_os_strncmp(p, "elseif{", 7) == 0){token = AST_TOKEN_ELSEIF;}
-	else if(ecs_os_strncmp(p, "elseif\n", 7) == 0){token = AST_TOKEN_ELSEIF;}
-	else if(ecs_os_strncmp(p, "elseif\t", 7) == 0){token = AST_TOKEN_ELSEIF;}
-
-	
-
-
-	if(token != AST_TOKEN_UNKNOWN)
-	{
-		(*out_p) += ast_get_tokenlen(token);
-		return token;
-	}
-
-	token = AST_TOKEN_ID;
-	skip_word(out_p);
-
-	if(buf)
-	{
-		int32_t n = (int)((*out_p) - p);
-		n = n > buflen ? buflen : n;
-		ecs_os_memcpy_n(buf, p, char, n);
-		buf[n] = '\0'; // Null terminate
-	}
-
-	return token;
 }

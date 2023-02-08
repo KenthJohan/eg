@@ -1,6 +1,7 @@
 #pragma once
 #include <flecs.h>
 #include "tokens.h"
+#include "lexer.h"
 
 typedef enum
 {
@@ -28,8 +29,7 @@ AST_STATE_COUNT
 typedef struct
 {
 	ecs_world_t * world;
-	char const * text_start;
-	char const * text_current;
+	lexer_t lexer;
 
 	int32_t sp;
 	ast_state_t stack_state[AST_STACK_COUNT];
