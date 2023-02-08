@@ -21,18 +21,18 @@ token_constant_t lexer_one(int c)
 {
 	switch (c)
 	{
-	case '\0': return AST_TOKEN_EOF;
-	case '(': return AST_TOKEN_EXP_OPEN;
-	case ')': return AST_TOKEN_EXP_CLOSE;
-	case '{': return AST_TOKEN_BLOCK_OPEN;
-	case '}': return AST_TOKEN_BLOCK_CLOSE;
-	case ';': return AST_TOKEN_STATEMENT_TERMINATOR;
-	case '=': return AST_TOKEN_EQUAL;
-	case '+': return AST_TOKEN_PLUS;
-	case '-': return AST_TOKEN_MINUS;
-	case '/': return AST_TOKEN_DIV;
-	case '*': return AST_TOKEN_MUL;
-	default: return AST_TOKEN_UNKNOWN;
+	case '\0': return TOKEN_CONSTANT_EOF;
+	case '(': return TOKEN_CONSTANT_EXP_OPEN;
+	case ')': return TOKEN_CONSTANT_EXP_CLOSE;
+	case '{': return TOKEN_CONSTANT_BLOCK_OPEN;
+	case '}': return TOKEN_CONSTANT_BLOCK_CLOSE;
+	case ';': return TOKEN_CONSTANT_STATEMENT_TERMINATOR;
+	case '=': return TOKEN_CONSTANT_EQUAL;
+	case '+': return TOKEN_CONSTANT_PLUS;
+	case '-': return TOKEN_CONSTANT_MINUS;
+	case '/': return TOKEN_CONSTANT_DIV;
+	case '*': return TOKEN_CONSTANT_MUL;
+	default: return TOKEN_CONSTANT_UNKNOWN;
 	}
 }
 
@@ -82,37 +82,38 @@ void lexer_next(lexer_t * lexer, token_t * out_token)
 {
 	lexer_skip_whitespace(&lexer->text_current, &lexer->line, &lexer->column);
 	token_constant_t t = lexer_one(lexer->text_current[0]);
-	if(t != AST_TOKEN_UNKNOWN)
+	if(t != TOKEN_CONSTANT_UNKNOWN)
 	{
 		out_token->cursor = lexer->text_current;
 		out_token->length = 1;
 		out_token->column = lexer->column;
 		out_token->line = lexer->line;
-		out_token->type = t;
+		out_token->tokconstant = t;
 		lexer->text_current += out_token->length;
 		lexer->column += out_token->length;
 		return;
 	}
-	else if(ecs_os_strncmp(lexer->text_current, "if ", 3) == 0){t = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(lexer->text_current, "if(", 3) == 0){t = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(lexer->text_current, "if\n", 3) == 0){t = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(lexer->text_current, "if\t", 3) == 0){t = AST_TOKEN_IF;}
-	else if(ecs_os_strncmp(lexer->text_current, "else ", 5) == 0){t = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(lexer->text_current, "else{", 5) == 0){t = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(lexer->text_current, "else\n", 5) == 0){t = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(lexer->text_current, "else\t", 5) == 0){t = AST_TOKEN_ELSE;}
-	else if(ecs_os_strncmp(lexer->text_current, "elseif ", 7) == 0){t = AST_TOKEN_ELSEIF;}
-	else if(ecs_os_strncmp(lexer->text_current, "elseif{", 7) == 0){t = AST_TOKEN_ELSEIF;}
-	else if(ecs_os_strncmp(lexer->text_current, "elseif\n", 7) == 0){t = AST_TOKEN_ELSEIF;}
-	else if(ecs_os_strncmp(lexer->text_current, "elseif\t", 7) == 0){t = AST_TOKEN_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "if ", 3) == 0){t = TOKEN_CONSTANT_IF;}
+	else if(ecs_os_strncmp(lexer->text_current, "if(", 3) == 0){t = TOKEN_CONSTANT_IF;}
+	else if(ecs_os_strncmp(lexer->text_current, "if\n", 3) == 0){t = TOKEN_CONSTANT_IF;}
+	else if(ecs_os_strncmp(lexer->text_current, "if\t", 3) == 0){t = TOKEN_CONSTANT_IF;}
+	else if(ecs_os_strncmp(lexer->text_current, "else ", 5) == 0){t = TOKEN_CONSTANT_ELSE;}
+	else if(ecs_os_strncmp(lexer->text_current, "else{", 5) == 0){t = TOKEN_CONSTANT_ELSE;}
+	else if(ecs_os_strncmp(lexer->text_current, "else\n", 5) == 0){t = TOKEN_CONSTANT_ELSE;}
+	else if(ecs_os_strncmp(lexer->text_current, "else\t", 5) == 0){t = TOKEN_CONSTANT_ELSE;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif ", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif(", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif{", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif\n", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif\t", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
 
-	if(t != AST_TOKEN_UNKNOWN)
+	if(t != TOKEN_CONSTANT_UNKNOWN)
 	{
 		out_token->cursor = lexer->text_current;
-		out_token->length = ast_token_t_len(t);
+		out_token->length = token_constant_t_tolen(t);
 		out_token->column = lexer->column;
 		out_token->line = lexer->line;
-		out_token->type = t;
+		out_token->tokconstant = t;
 		lexer->text_current += out_token->length;
 		lexer->column += out_token->length;
 		return;
@@ -121,7 +122,7 @@ void lexer_next(lexer_t * lexer, token_t * out_token)
 	if(is_symbol_start(lexer->text_current[0]))
 	{
 		out_token->length = 0;
-		out_token->type = AST_TOKEN_ID;
+		out_token->tokconstant = TOKEN_CONSTANT_ID;
 		out_token->cursor = lexer->text_current;
 		while(1)
 		{

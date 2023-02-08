@@ -2,6 +2,10 @@ if(a+b)
 {
 	hej;
 }
+elseif(x*y)
+{
+	melon;
+}
 else
 {
 	garlic;

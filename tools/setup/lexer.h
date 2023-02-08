@@ -16,7 +16,7 @@ typedef struct
 	int32_t length;
 	int32_t line;
 	int32_t column;
-	token_constant_t type;
+	token_constant_t tokconstant;
 } token_t;
 
 void lexer_init(lexer_t * lexer);

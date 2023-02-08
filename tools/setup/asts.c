@@ -55,7 +55,7 @@ void ast_new(ast_context_t * ast, token_t * token, ast_state_t state, int32_t pr
 
 	if(token)
 	{
-		if(token->type == AST_TOKEN_ID)
+		if(token->tokconstant == TOKEN_CONSTANT_ID)
 		{
 			int32_t l = (token->length < BUFLEN) ? token->length : BUFLEN-1;
 			memcpy(name, token->cursor, l);
@@ -63,7 +63,7 @@ void ast_new(ast_context_t * ast, token_t * token, ast_state_t state, int32_t pr
 		}
 		else
 		{
-			snprintf(name, BUFLEN, "%s", ast_token_t_str(token->type));
+			snprintf(name, BUFLEN, "%s", token_constant_t_tostr(token->tokconstant));
 		}
 	}
 	else
@@ -89,7 +89,7 @@ void ast_new(ast_context_t * ast, token_t * token, ast_state_t state, int32_t pr
 		ast->sp++;
 		ast->stack_entity[ast->sp] = e;
 		ast->stack_state[ast->sp] = state;
-		ast->stack_token[ast->sp] = token->type;
+		ast->stack_token[ast->sp] = token->tokconstant;
 		ast->stack_precedence[ast->sp] = precedence;
 	}
 }
@@ -111,7 +111,7 @@ void ast_pop(ast_context_t * ast)
 void setup_ast_entity(ecs_world_t * world, ecs_entity_t e, ast_state_t state, token_t * token, char const * name)
 {
 	char buf[BUFLEN];
-	char const * t = ast_token_t_str(token->type);
+	char const * t = token_constant_t_tostr(token->tokconstant);
 	snprintf(buf, BUFLEN, "%s%s", t, name);
 	ecs_doc_set_color(world, e, ast_get_state_color(state));
 	ecs_doc_set_name(world, e, buf);
@@ -143,7 +143,7 @@ void ast_parse(ast_context_t * ast)
 		ecs_set_scope(ast->world, root);
 		ast->stack_entity[ast->sp] = root;
 		ast->stack_state[ast->sp] = AST_STATE_ROOT;
-		ast->stack_token[ast->sp] = AST_TOKEN_UNKNOWN;
+		ast->stack_token[ast->sp] = TOKEN_CONSTANT_UNKNOWN;
 		ast->stack_precedence[ast->sp] = 0;
 	}
 
@@ -177,19 +177,19 @@ machine_statement:
 		token_t token;
 		lexer_next(&ast->lexer, &token);
 
-		switch (token.type)
+		switch (token.tokconstant)
 		{
-		case AST_TOKEN_EOF: return;
+		case TOKEN_CONSTANT_EOF: return;
 
-		case AST_TOKEN_ID:
+		case TOKEN_CONSTANT_ID:
 			ast_new(ast, &token, AST_STATE_EXPRESSION, 0, AST_NEWFLAGS_NONE);
 			goto machine_statement;
 
-		case AST_TOKEN_EQUAL:
+		case TOKEN_CONSTANT_EQUAL:
 			ast_new(ast, &token, AST_STATE_EXPRESSION, 0, AST_NEWFLAGS_PUSH);
 			goto machine_expression;
 
-		case AST_TOKEN_STATEMENT_TERMINATOR:
+		case TOKEN_CONSTANT_STATEMENT_TERMINATOR:
 			ast_pop(ast);
 			goto machine_goto;
 
@@ -203,25 +203,25 @@ machine_ifcase:
 	{
 		token_t token;
 		lexer_next(&ast->lexer, &token);
-		switch (token.type)
+		switch (token.tokconstant)
 		{
-		case AST_TOKEN_EOF: return;
+		case TOKEN_CONSTANT_EOF: return;
 
-		case AST_TOKEN_EXP_OPEN:
+		case TOKEN_CONSTANT_EXP_OPEN:
 			ast_new(ast, &token, AST_STATE_EXPRESSION, 0, AST_NEWFLAGS_PUSH);
 			goto machine_expression;
 
-		case AST_TOKEN_ELSE:
+		case TOKEN_CONSTANT_ELSE:
 			ast_pop(ast);
 			ast_new(ast, &token, AST_STATE_ELSE, 0, AST_NEWFLAGS_PUSH);
 			goto machine_ifcase;
 
-		case AST_TOKEN_ELSEIF:
+		case TOKEN_CONSTANT_ELSEIF:
 			ast_pop(ast);
-			ast_new(ast, &token, AST_TOKEN_ELSEIF, 0, AST_NEWFLAGS_PUSH);
+			ast_new(ast, &token, AST_STATE_ELSEIF, 0, AST_NEWFLAGS_PUSH);
 			goto machine_ifcase;
 
-		case AST_TOKEN_BLOCK_OPEN:
+		case TOKEN_CONSTANT_BLOCK_OPEN:
 			ast_new(ast, &token, AST_STATE_BLOCK, 0, AST_NEWFLAGS_PUSH);
 			goto machine_codeblock;
 
@@ -239,36 +239,36 @@ machine_codeblock:
 	{
 		token_t token;
 		lexer_next(&ast->lexer, &token);
-		switch (token.type)
+		switch (token.tokconstant)
 		{
-		case AST_TOKEN_EOF: return;
+		case TOKEN_CONSTANT_EOF: return;
 
-		case AST_TOKEN_BLOCK_OPEN:
+		case TOKEN_CONSTANT_BLOCK_OPEN:
 			ast_new(ast, &token, AST_STATE_BLOCK, 0, AST_NEWFLAGS_PUSH);
 			goto machine_codeblock;
 
-		case AST_TOKEN_EQUAL:
+		case TOKEN_CONSTANT_EQUAL:
 			ast_new(ast, &token, AST_STATE_EXPRESSION, 0, AST_NEWFLAGS_PUSH);
 			goto machine_expression;
 
-		case AST_TOKEN_EXP_OPEN:
+		case TOKEN_CONSTANT_EXP_OPEN:
 			ast_new(ast, &token, AST_STATE_EXPRESSION, 0, AST_NEWFLAGS_PUSH);
 			goto machine_expression;
 
-		case AST_TOKEN_BLOCK_CLOSE:
+		case TOKEN_CONSTANT_BLOCK_CLOSE:
 			ast_pop(ast);
 			goto machine_goto;
 
-		case AST_TOKEN_IF:
+		case TOKEN_CONSTANT_IF:
 			ast_new(ast, &token, AST_STATE_BRANCHES, 0, AST_NEWFLAGS_PUSH);
 			ast_new(ast, &token, AST_STATE_IF, 0, AST_NEWFLAGS_PUSH);
 			goto machine_ifcase;
 
-		case AST_TOKEN_ELSE:
+		case TOKEN_CONSTANT_ELSE:
 			ast_new(ast, &token, AST_STATE_ELSE, 0, AST_NEWFLAGS_PUSH);
 			goto machine_codeblock;
 
-		case AST_TOKEN_ID:
+		case TOKEN_CONSTANT_ID:
 			ast_new(ast, &token, AST_STATE_STATEMENT, 0, AST_NEWFLAGS_PUSH);
 			goto machine_statement;
 
@@ -283,39 +283,39 @@ machine_expression:
 	{
 		token_t token;
 		lexer_next(&ast->lexer, &token);
-		switch (token.type)
+		switch (token.tokconstant)
 		{
-		case AST_TOKEN_EOF:
+		case TOKEN_CONSTANT_EOF:
 			return;
 
-		case AST_TOKEN_DIV:
+		case TOKEN_CONSTANT_DIV:
 			setup_ast_entity(ast->world, ecs_get_scope(ast->world), AST_STATE_EXPRESSION, &token, "");
 			break;
 
-		case AST_TOKEN_MUL:
+		case TOKEN_CONSTANT_MUL:
 			setup_ast_entity(ast->world, ecs_get_scope(ast->world), AST_STATE_EXPRESSION, &token, "");
 			break;
 
-		case AST_TOKEN_PLUS:
+		case TOKEN_CONSTANT_PLUS:
 			setup_ast_entity(ast->world, ecs_get_scope(ast->world), AST_STATE_EXPRESSION, &token, "");
 			break;
 
-		case AST_TOKEN_ID:
+		case TOKEN_CONSTANT_ID:
 			{
-				ast_new(ast, &token, AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, AST_NEWFLAGS_PUSH);
-				ast_new(ast, &token, AST_STATE_EXPRESSION, AST_TOKEN_UNKNOWN, AST_NEWFLAGS_NONE);
+				ast_new(ast, &token, AST_STATE_EXPRESSION, TOKEN_CONSTANT_UNKNOWN, AST_NEWFLAGS_PUSH);
+				ast_new(ast, &token, AST_STATE_EXPRESSION, TOKEN_CONSTANT_UNKNOWN, AST_NEWFLAGS_NONE);
 			}
 			break;
 
 		
-		case AST_TOKEN_EXP_OPEN:
+		case TOKEN_CONSTANT_EXP_OPEN:
 			ast_new(ast, &token, AST_STATE_EXPRESSION, 0, AST_NEWFLAGS_PUSH);
 			break;
 
-		case AST_TOKEN_EXP_CLOSE:
+		case TOKEN_CONSTANT_EXP_CLOSE:
 			while(1)
 			{
-				if(ast->stack_state[ast->sp] == AST_TOKEN_EXP_OPEN)
+				if(ast->stack_state[ast->sp] == TOKEN_CONSTANT_EXP_OPEN)
 				{
 					ast_pop(ast);
 					break;
@@ -334,7 +334,7 @@ machine_expression:
 			}
 			goto machine_goto;
 
-		case AST_TOKEN_STATEMENT_TERMINATOR:
+		case TOKEN_CONSTANT_STATEMENT_TERMINATOR:
 			while(1)
 			{
 				if(ast->stack_state[ast->sp] != AST_STATE_EXPRESSION){break;}
