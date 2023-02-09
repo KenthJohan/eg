@@ -106,6 +106,9 @@ void lexer_next(lexer_t * lexer, token_t * out_token)
 	else if(ecs_os_strncmp(lexer->text_current, "elseif{", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
 	else if(ecs_os_strncmp(lexer->text_current, "elseif\n", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
 	else if(ecs_os_strncmp(lexer->text_current, "elseif\t", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "//", 2) == 0){t = TOKEN_CONSTANT_COMMENT_LINE;}
+	else if(ecs_os_strncmp(lexer->text_current, "/*", 2) == 0){t = TOKEN_CONSTANT_COMMENT_OPEN;}
+	else if(ecs_os_strncmp(lexer->text_current, "*/", 2) == 0){t = TOKEN_CONSTANT_COMMENT_CLOSE;}
 
 	if(t != TOKEN_CONSTANT_UNKNOWN)
 	{

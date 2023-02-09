@@ -193,6 +193,9 @@ machine_statement:
 			ast_pop(ast);
 			goto machine_goto;
 
+		default:
+			printf("machine_statement: state %s not handled\n", ast_state_t_str(ast->stack_state[ast->sp]));
+			goto machine_error;
 		} // End of switch
 	} // End of while
 
@@ -301,10 +304,8 @@ machine_expression:
 			break;
 
 		case TOKEN_CONSTANT_ID:
-			{
-				ast_new(ast, &token, AST_STATE_EXPRESSION, TOKEN_CONSTANT_UNKNOWN, AST_NEWFLAGS_PUSH);
-				ast_new(ast, &token, AST_STATE_EXPRESSION, TOKEN_CONSTANT_UNKNOWN, AST_NEWFLAGS_NONE);
-			}
+			ast_new(ast, &token, AST_STATE_EXPRESSION, TOKEN_CONSTANT_UNKNOWN, AST_NEWFLAGS_PUSH);
+			ast_new(ast, &token, AST_STATE_EXPRESSION, TOKEN_CONSTANT_UNKNOWN, AST_NEWFLAGS_NONE);
 			break;
 
 		

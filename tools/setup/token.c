@@ -22,6 +22,9 @@ char const * token_constant_t_tostr(token_constant_t token)
 	case TOKEN_CONSTANT_PLUS: return "PLUS";
 	case TOKEN_CONSTANT_MUL: return "MUL";
 	case TOKEN_CONSTANT_ID: return "ID";
+	case TOKEN_CONSTANT_COMMENT_LINE: return "COMMENT_LINE";
+	case TOKEN_CONSTANT_COMMENT_OPEN: return "COMMENT_OPEN";
+	case TOKEN_CONSTANT_COMMENT_CLOSE: return "COMMENT_CLOSE";
 	default: return "UNKNOWN";
 	}
 }
@@ -39,6 +42,9 @@ int32_t token_constant_t_tolen(token_constant_t token)
 	case TOKEN_CONSTANT_STATEMENT_TERMINATOR:
 	case TOKEN_CONSTANT_EQUAL:
 		return 1;
+	case TOKEN_CONSTANT_COMMENT_LINE:
+	case TOKEN_CONSTANT_COMMENT_OPEN:
+	case TOKEN_CONSTANT_COMMENT_CLOSE:
 	case TOKEN_CONSTANT_IF:
 		return 2;
 	case TOKEN_CONSTANT_ELSE:
