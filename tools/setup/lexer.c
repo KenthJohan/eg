@@ -17,22 +17,22 @@ int is_symbol(int c)
 
 
 
-token_constant_t lexer_one(int c)
+tok_t lexer_one(int c)
 {
 	switch (c)
 	{
-	case '\0': return TOKEN_CONSTANT_EOF;
-	case '(': return TOKEN_CONSTANT_EXP_OPEN;
-	case ')': return TOKEN_CONSTANT_EXP_CLOSE;
-	case '{': return TOKEN_CONSTANT_BLOCK_OPEN;
-	case '}': return TOKEN_CONSTANT_BLOCK_CLOSE;
-	case ';': return TOKEN_CONSTANT_STATEMENT_TERMINATOR;
-	case '=': return TOKEN_CONSTANT_EQUAL;
-	case '+': return TOKEN_CONSTANT_PLUS;
-	case '-': return TOKEN_CONSTANT_MINUS;
-	case '/': return TOKEN_CONSTANT_DIV;
-	case '*': return TOKEN_CONSTANT_MUL;
-	default: return TOKEN_CONSTANT_UNKNOWN;
+	case '\0': return TOK_EOF;
+	case '(': return TOK_PAREN_OPEN;
+	case ')': return TOK_PAREN_CLOSE;
+	case '{': return TOK_BLOCK_OPEN;
+	case '}': return TOK_BLOCK_CLOSE;
+	case ';': return TOK_SEMICOLON;
+	case '=': return TOK_EQUAL;
+	case '+': return TOK_PLUS;
+	case '-': return TOK_MINUS;
+	case '/': return TOK_DIV;
+	case '*': return TOK_MUL;
+	default: return TOK_UNKNOWN;
 	}
 }
 
@@ -81,42 +81,42 @@ void lexer_init(lexer_t * lexer)
 void lexer_next(lexer_t * lexer, token_t * out_token)
 {
 	lexer_skip_whitespace(&lexer->text_current, &lexer->line, &lexer->column);
-	token_constant_t t = lexer_one(lexer->text_current[0]);
-	if(t != TOKEN_CONSTANT_UNKNOWN)
+	tok_t t = lexer_one(lexer->text_current[0]);
+	if(t != TOK_UNKNOWN)
 	{
 		out_token->cursor = lexer->text_current;
 		out_token->length = 1;
 		out_token->column = lexer->column;
 		out_token->line = lexer->line;
-		out_token->tokconstant = t;
+		out_token->tok = t;
 		lexer->text_current += out_token->length;
 		lexer->column += out_token->length;
 		return;
 	}
-	else if(ecs_os_strncmp(lexer->text_current, "if ", 3) == 0){t = TOKEN_CONSTANT_IF;}
-	else if(ecs_os_strncmp(lexer->text_current, "if(", 3) == 0){t = TOKEN_CONSTANT_IF;}
-	else if(ecs_os_strncmp(lexer->text_current, "if\n", 3) == 0){t = TOKEN_CONSTANT_IF;}
-	else if(ecs_os_strncmp(lexer->text_current, "if\t", 3) == 0){t = TOKEN_CONSTANT_IF;}
-	else if(ecs_os_strncmp(lexer->text_current, "else ", 5) == 0){t = TOKEN_CONSTANT_ELSE;}
-	else if(ecs_os_strncmp(lexer->text_current, "else{", 5) == 0){t = TOKEN_CONSTANT_ELSE;}
-	else if(ecs_os_strncmp(lexer->text_current, "else\n", 5) == 0){t = TOKEN_CONSTANT_ELSE;}
-	else if(ecs_os_strncmp(lexer->text_current, "else\t", 5) == 0){t = TOKEN_CONSTANT_ELSE;}
-	else if(ecs_os_strncmp(lexer->text_current, "elseif ", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
-	else if(ecs_os_strncmp(lexer->text_current, "elseif(", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
-	else if(ecs_os_strncmp(lexer->text_current, "elseif{", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
-	else if(ecs_os_strncmp(lexer->text_current, "elseif\n", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
-	else if(ecs_os_strncmp(lexer->text_current, "elseif\t", 7) == 0){t = TOKEN_CONSTANT_ELSEIF;}
-	else if(ecs_os_strncmp(lexer->text_current, "//", 2) == 0){t = TOKEN_CONSTANT_COMMENT_LINE;}
-	else if(ecs_os_strncmp(lexer->text_current, "/*", 2) == 0){t = TOKEN_CONSTANT_COMMENT_OPEN;}
-	else if(ecs_os_strncmp(lexer->text_current, "*/", 2) == 0){t = TOKEN_CONSTANT_COMMENT_CLOSE;}
+	else if(ecs_os_strncmp(lexer->text_current, "if ", 3) == 0){t = TOK_IF;}
+	else if(ecs_os_strncmp(lexer->text_current, "if(", 3) == 0){t = TOK_IF;}
+	else if(ecs_os_strncmp(lexer->text_current, "if\n", 3) == 0){t = TOK_IF;}
+	else if(ecs_os_strncmp(lexer->text_current, "if\t", 3) == 0){t = TOK_IF;}
+	else if(ecs_os_strncmp(lexer->text_current, "else ", 5) == 0){t = TOK_ELSE;}
+	else if(ecs_os_strncmp(lexer->text_current, "else{", 5) == 0){t = TOK_ELSE;}
+	else if(ecs_os_strncmp(lexer->text_current, "else\n", 5) == 0){t = TOK_ELSE;}
+	else if(ecs_os_strncmp(lexer->text_current, "else\t", 5) == 0){t = TOK_ELSE;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif ", 7) == 0){t = TOK_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif(", 7) == 0){t = TOK_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif{", 7) == 0){t = TOK_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif\n", 7) == 0){t = TOK_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "elseif\t", 7) == 0){t = TOK_ELSEIF;}
+	else if(ecs_os_strncmp(lexer->text_current, "//", 2) == 0){t = TOK_COMMENT_LINE;}
+	else if(ecs_os_strncmp(lexer->text_current, "/*", 2) == 0){t = TOK_COMMENT_OPEN;}
+	else if(ecs_os_strncmp(lexer->text_current, "*/", 2) == 0){t = TOK_COMMENT_CLOSE;}
 
-	if(t != TOKEN_CONSTANT_UNKNOWN)
+	if(t != TOK_UNKNOWN)
 	{
 		out_token->cursor = lexer->text_current;
-		out_token->length = token_constant_t_tolen(t);
+		out_token->length = tok_t_tolen(t);
 		out_token->column = lexer->column;
 		out_token->line = lexer->line;
-		out_token->tokconstant = t;
+		out_token->tok = t;
 		lexer->text_current += out_token->length;
 		lexer->column += out_token->length;
 		return;
@@ -125,7 +125,7 @@ void lexer_next(lexer_t * lexer, token_t * out_token)
 	if(is_symbol_start(lexer->text_current[0]))
 	{
 		out_token->length = 0;
-		out_token->tokconstant = TOKEN_CONSTANT_ID;
+		out_token->tok = TOK_ID;
 		out_token->cursor = lexer->text_current;
 		while(1)
 		{
