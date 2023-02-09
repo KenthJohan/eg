@@ -53,6 +53,8 @@ ACTION_UNKNOWN,
 ACTION_NOP,
 ACTION_PUSH,
 ACTION_POP,
+ACTION_PUSH_ADD_CHILD,
+ACTION_PUSH_ADD_PARENT_PRECEDENCE,
 } action_t;
 
 
@@ -80,6 +82,8 @@ char const * action_t_tostr(action_t state)
 	case ACTION_NOP: return "ACTION_NOP";
 	case ACTION_PUSH: return "ACTION_PUSH";
 	case ACTION_POP: return "ACTION_POP";
+	case ACTION_PUSH_ADD_CHILD: return "ACTION_PUSH_ADD_CHILD";
+	case ACTION_PUSH_ADD_PARENT_PRECEDENCE: return "ACTION_PUSH_ADD_PARENT_PRECEDENCE";
 	default: return "?";
 	}
 }
@@ -97,28 +101,28 @@ typedef struct
 
 state_t table_expl[]=
 {
-	[TOK_ID] = {PARSE_STATE_EXPO, ACTION_NOP},
-	[TOK_NUMBER] = {PARSE_STATE_EXPO, ACTION_NOP},
+	[TOK_ID] = {PARSE_STATE_EXPO, ACTION_PUSH_ADD_CHILD},
+	[TOK_NUMBER] = {PARSE_STATE_EXPO, ACTION_PUSH_ADD_CHILD},
 	[TOK_COUNT] = {0}
 };
 
 state_t table_expo[]=
 {
-	[TOK_PLUS] = {PARSE_STATE_EXPR, ACTION_NOP},
-	[TOK_MUL] = {PARSE_STATE_EXPR, ACTION_NOP},
-	[TOK_SEMICOLON] = {PARSE_STATE_EXPR, ACTION_NOP},
+	[TOK_PLUS] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_PARENT_PRECEDENCE},
+	[TOK_MUL] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_PARENT_PRECEDENCE},
+	[TOK_SEMICOLON] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_PARENT_PRECEDENCE},
 	[TOK_COUNT] = {0}
 };
 
 state_t table_expr[]=
 {
-	[TOK_ID] = {PARSE_STATE_EXPO, ACTION_NOP},
-	[TOK_NUMBER] = {PARSE_STATE_EXPO, ACTION_POP},
+	[TOK_ID] = {PARSE_STATE_EXPO, ACTION_PUSH_ADD_CHILD},
+	[TOK_NUMBER] = {PARSE_STATE_EXPO, ACTION_PUSH_ADD_CHILD},
 	[TOK_COUNT] = {0}
 };
 
 
-void * tables[] = 
+state_t * tables[] = 
 {
 	[PARSE_STATE_EXPL] = table_expl,
 	[PARSE_STATE_EXPR] = table_expr,
@@ -145,17 +149,24 @@ void ast_parse(ast_context_t * ast)
 
 
 
-	parse_state_t stack[100];
-	int32_t sp;
+	state_t stack[100];
+	stack[0].action = ACTION_NOP;
+	stack[0].state = PARSE_STATE_EXPL;
+	parse_state_t current = PARSE_STATE_EXPL;
+	action_t action = ACTION_NOP;
+
+
+	int32_t sp = 0;
 	token_t token;
-	state_t next = {PARSE_STATE_EXPL, ACTION_NOP};
 	while(1)
 	{
-		state_t * t = tables[next.state];
-		printf("next %s %s\n", parse_state_t_tostr(next.state), action_t_tostr(next.action));
+		printf("State: %s\n", parse_state_t_tostr(current), action_t_tostr(action));
 		lexer_next(&ast->lexer, &token);
+		printf("Token: %s\n", tok_t_tostr(token.tok));
 		if(token.tok == TOK_EOF) {break;}
-		next = t[token.tok];
+		action = tables[current][token.tok].action;
+		current = tables[current][token.tok].state;
+		printf("Action: %s\n", action_t_tostr(action));
 	}
 
 }

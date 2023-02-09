@@ -31,7 +31,7 @@ TOK_COUNT
 
 
 
-static int32_t tokens_precedence[] = 
+static int32_t tok_t_precedence[] = 
 {
 	[TOK_NUMBER] = 0,
 	[TOK_ID] = 0,

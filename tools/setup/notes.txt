@@ -27,10 +27,10 @@ int a = A + B * C + D;
 
 C ^ D * B + A;
 
-C
-^(C)
-^(C D)
-*(^(C D))
+C                    PUSH_ADD_CHILD
+^(C)                 PUSH_ADD_PARENT_PRECEDENCE
+^(C D)               PUSH_ADD_CHILD
+*(^(C D))            PUSH_ADD_PARENT_PRECEDENCE
 *(^(C D) B)
 +(*(^(C D) B))
 +(*(^(C D) B) A)
