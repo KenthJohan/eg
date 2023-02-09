@@ -149,14 +149,11 @@ void ast_parse(ast_context_t * ast)
 
 
 
-	state_t stack[100];
-	stack[0].action = ACTION_NOP;
-	stack[0].state = PARSE_STATE_EXPL;
 	parse_state_t current = PARSE_STATE_EXPL;
 	action_t action = ACTION_NOP;
-
-
+	tok_t stack_tok[100] = {0};
 	int32_t sp = 0;
+	stack_tok[sp] = TOK_UNKNOWN;
 	token_t token;
 	while(1)
 	{
@@ -167,6 +164,25 @@ void ast_parse(ast_context_t * ast)
 		action = tables[current][token.tok].action;
 		current = tables[current][token.tok].state;
 		printf("Action: %s\n", action_t_tostr(action));
+
+		switch (action)
+		{
+		case ACTION_PUSH_ADD_CHILD:
+			sp++;
+			stack_tok[sp] = token.tok;
+			break;
+
+		case ACTION_PUSH_ADD_PARENT_PRECEDENCE:
+			{
+				int32_t p1 = tok_t_precedence[token.tok];
+				int32_t p2 = tok_t_precedence[stack_tok[sp-1]];
+				if(p1 < p2){sp--;}
+			}
+			break;
+		
+		default:
+			break;
+		}
 	}
 
 }
