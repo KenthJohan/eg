@@ -40,6 +40,8 @@ EXP      | TERMINATOR  | ?          | POPX
 typedef enum
 {
 PARSE_STATE_UNKNOWN,
+PARSE_STATE_ROOT,
+PARSE_STATE_STATEMENT,
 PARSE_STATE_EXPR,
 PARSE_STATE_EXPO,
 PARSE_STATE_COUNT
@@ -63,6 +65,8 @@ char const * parse_state_t_tostr(parse_state_t state)
 	switch (state)
 	{
 	case PARSE_STATE_UNKNOWN: return "PARSE_STATE_UNKNOWN";
+	case PARSE_STATE_ROOT: return "PARSE_STATE_ROOT";
+	case PARSE_STATE_STATEMENT: return "PARSE_STATE_STATEMENT";
 	case PARSE_STATE_EXPR: return "PARSE_STATE_EXPR";
 	case PARSE_STATE_EXPO: return "PARSE_STATE_EXPO";
 	case PARSE_STATE_COUNT: return "PARSE_STATE_COUNT";
@@ -92,28 +96,34 @@ typedef struct
 	action_t action;
 } state_t;
 
-
-
-
-
+state_t table_root[]=
+{
+	[TOK_ID       ] = {PARSE_STATE_STATEMENT, ACTION_PUSH_ADD_CHILD},
+	[TOK_COUNT    ] = {0}
+};
+state_t table_statement[]=
+{
+	[TOK_EQUAL    ] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_CHILD},
+	[TOK_COUNT    ] = {0}
+};
 state_t table_expo[]=
 {
-	[TOK_PLUS] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_PARENT_PRECEDENCE},
-	[TOK_MUL] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_PARENT_PRECEDENCE},
+	[TOK_PLUS     ] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_PARENT_PRECEDENCE},
+	[TOK_MINUS    ] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_PARENT_PRECEDENCE},
+	[TOK_MUL      ] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_PARENT_PRECEDENCE},
 	[TOK_SEMICOLON] = {PARSE_STATE_EXPR, ACTION_PUSH_ADD_PARENT_PRECEDENCE},
-	[TOK_COUNT] = {0}
+	[TOK_COUNT    ] = {0}
 };
-
 state_t table_expr[]=
 {
-	[TOK_ID] = {PARSE_STATE_EXPO, ACTION_PUSH_ADD_CHILD},
-	[TOK_NUMBER] = {PARSE_STATE_EXPO, ACTION_PUSH_ADD_CHILD},
-	[TOK_COUNT] = {0}
+	[TOK_ID     ] = {PARSE_STATE_EXPO, ACTION_PUSH_ADD_CHILD},
+	[TOK_NUMBER ] = {PARSE_STATE_EXPO, ACTION_PUSH_ADD_CHILD},
+	[TOK_COUNT  ] = {0}
 };
-
-
 state_t * tables[] = 
 {
+	[PARSE_STATE_ROOT] = table_root,
+	[PARSE_STATE_STATEMENT] = table_statement,
 	[PARSE_STATE_EXPR] = table_expr,
 	[PARSE_STATE_EXPO] = table_expo,
 	[PARSE_STATE_COUNT] = 0
@@ -167,17 +177,19 @@ void ast_parse(ast_context_t * ast)
 
 
 
-	parse_state_t current = PARSE_STATE_EXPR;
+	parse_state_t current = PARSE_STATE_ROOT;
 	action_t action = ACTION_NOP;
 
 	tok_t stack_tok[STACK_SIZE] = {0};
 	parse_state_t stack_parstate[STACK_SIZE] = {0};
 	ecs_entity_t stack_ents[STACK_SIZE] = {0};
+	int32_t stack_pres[STACK_SIZE] = {0};
 
 	int32_t sp = 0;
 	stack_tok[sp] = TOK_UNKNOWN;
 	stack_parstate[sp] = current;
 	stack_ents[sp] = root;
+	stack_pres[sp] = 0;
 
 	token_t token;
 	ecs_entity_t e;
@@ -201,30 +213,27 @@ void ast_parse(ast_context_t * ast)
 			stack_tok[sp] = token.tok;
 			stack_parstate[sp] = current;
 			stack_ents[sp] = e;
+			stack_pres[sp] = 0;
 			break;
 
 		case ACTION_PUSH_ADD_PARENT_PRECEDENCE:{
-				//printf("Remove pair %s EcsChildOf %s\n", ecs_doc_get_name(ast->world, stack_ents[sp]), ecs_doc_get_name(ast->world, stack_ents[sp-1]));
-
 				int32_t p1 = tok_t_precedence[token.tok];
-				int32_t p2 = tok_t_precedence[stack_tok[sp-1]];
-				if(p2 && (p1 < p2))
+				int32_t p2 = stack_pres[sp-1];
+				if(p1 < p2)
 				{
 					stack_tok[sp] = 0;
 					stack_parstate[sp] = 0;
 					sp--;
 				}
-				
 				ecs_set_scope(ast->world, stack_ents[sp-1]);
 				e = newent(ast->world, &token);
 				printf("Add pair %s EcsChildOf %s\n", ecs_doc_get_name(ast->world, stack_ents[sp]), ecs_doc_get_name(ast->world, e));
 				ecs_add_pair(ast->world, stack_ents[sp], EcsChildOf, e);
 				ecs_set_scope(ast->world, e);
-
-
 				stack_tok[sp] = token.tok;
 				stack_parstate[sp] = current;
 				stack_ents[sp] = e;
+				stack_pres[sp] = tok_t_precedence[token.tok];
 			}break;
 		
 		default:

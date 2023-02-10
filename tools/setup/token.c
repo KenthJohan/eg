@@ -20,6 +20,7 @@ char const * tok_t_tostr(tok_t token)
 	case TOK_ELSEIF: return "ELSEIF";
 	case TOK_EQUAL: return "EQUAL";
 	case TOK_PLUS: return "PLUS";
+	case TOK_MINUS: return "MINUS";
 	case TOK_MUL: return "MUL";
 	case TOK_ID: return "ID";
 	case TOK_COMMENT_LINE: return "COMMENT_LINE";
