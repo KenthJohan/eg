@@ -27,13 +27,13 @@ int a = A + B * C + D;
 
 C ^ D * B + A;
 
-C                    PUSH_ADD_CHILD
-^(C)                 PUSH_ADD_PARENT_PRECEDENCE
-^(C D)               PUSH_ADD_CHILD
-*(^(C D))            PUSH_ADD_PARENT_PRECEDENCE
-*(^(C D) B)
-+(*(^(C D) B))
-+(*(^(C D) B) A)
+C => (C)                 
+^ => ^(C)                // REMOVE_PAIR(sp, sp-1) SET_SCOPE(sp-1) 
+D => ^(C D)               
+* => *(^(C D))            
+B => *(^(C D) B)
++ => +(*(^(C D) B))
+A => +(*(^(C D) B) A)
 
 
 
@@ -41,17 +41,22 @@ C                    PUSH_ADD_CHILD
 
 A + B * C ^ D;
 
-A
-+(A)
-+(A B)
-+(A *(B))
-+(A *(B C))
-+(A *(B ^(C)))
-+(A *(B ^(C D)))
+A => A
++ => +(A)
+B => +(A B)
+* => +(A *(B))
+C => +(A *(B C))
+^ => +(A *(B ^(C)))
+D => +(A *(B ^(C D)))
 
 
 
-
+A + B * C
+A => A
++ => +(A)
+B => +(A B)
+* => +(A *(B))
+C => +(A *(B) C)
 
 
 
