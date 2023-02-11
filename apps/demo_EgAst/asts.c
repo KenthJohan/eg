@@ -86,6 +86,31 @@ char const * ast_error_t_tostr(ast_error_t e)
 	}
 }
 
+char const * tok_t_tocolor(tok_t token)
+{
+	switch (token)
+	{
+	case TOK_EOF: return "#111111";
+	case TOK_PAREN_OPEN: return "#111111";
+	case TOK_PAREN_CLOSE: return "#111111";
+	case TOK_BLOCK_OPEN: return "#111111";
+	case TOK_BLOCK_CLOSE: return "#111111";
+	case TOK_IF: return "#111111";
+	case TOK_SEMICOLON: return "#111111";
+	case TOK_ELSE: return "#111111";
+	case TOK_ELSEIF: return "#111111";
+	case TOK_EQUAL: return "#0000FF";
+	case TOK_PLUS: return "#0000FF";
+	case TOK_MINUS: return "#0000FF";
+	case TOK_MUL: return "#0000FF";
+	case TOK_ID: return "#FF0000";
+	case TOK_COMMENT_LINE: return "#111111";
+	case TOK_COMMENT_OPEN: return "#111111";
+	case TOK_COMMENT_CLOSE: return "#111111";
+	default: return "#111111";
+	}
+}
+
 typedef struct 
 {
 	ast_parse_t state;
@@ -131,29 +156,28 @@ state_t * tables[] =
 
 
 #define BUFLEN 128
+#define TITLE_FORMAT "%-10s : "
 ecs_entity_t newent(ecs_world_t * world, token_t * token)
 {
-	ecs_entity_t s = ecs_get_scope(world);
 	char buf[BUFLEN];
-	int32_t l = token->length;
-	ecs_entity_t e;
+	ecs_entity_t e = ecs_new_entity(world, 0);
 	switch (token->tok)
 	{
-	case TOK_ID:
+	case TOK_ID:{
+		int32_t l = token->length;
 		l = l < BUFLEN ? l : BUFLEN-1;
 		memcpy(buf, token->cursor, l);
 		buf[l] = '\0';
-		e = ecs_new_entity(world, 0);
-		ecs_doc_set_name(world, e, buf);
-		break;
+		break;}
 	
 	default:
-		e = ecs_new_entity(world, 0);
-		ecs_doc_set_name(world, e, tok_t_tostr(token->tok));
+		snprintf(buf, BUFLEN, "%s", tok_t_tostr(token->tok));
 		break;
 	}
-	printf("[%-10s] "ECS_GREY"%s"ECS_NORMAL" > "ECS_BLUE"%s"ECS_NORMAL"\n", "New",
-		ecs_doc_get_name(world, s), 
+	ecs_doc_set_name(world, e, buf);
+	ecs_doc_set_color(world, e, tok_t_tocolor(token->tok));
+	printf(TITLE_FORMAT ECS_GREY"%s"ECS_NORMAL" > "ECS_BLUE"%s"ECS_NORMAL"\n", "[New]",
+		ecs_doc_get_name(world, ecs_get_scope(world)),  
 		ecs_doc_get_name(world, e));
 	return e;
 }
@@ -187,8 +211,8 @@ ast_error_t ast_parse(ast_context_t * ast)
 		action_t action = table ? table[token.tok].action : ACTION_UNKNOWN;
 
 		
-		printf("[%-10s] "ECS_YELLOW"%-10s"ECS_NORMAL" "ECS_MAGENTA"%-10s"ECS_NORMAL" "ECS_GREEN"%-10s"ECS_NORMAL"\n",
-			"State", 
+		printf(TITLE_FORMAT ECS_YELLOW"%-10s"ECS_NORMAL" "ECS_MAGENTA"%-10s"ECS_NORMAL" "ECS_GREEN"%-10s"ECS_NORMAL"\n",
+			"[State]", 
 			ast_parse_t_tostr(current),
 			      tok_t_tostr(token.tok),
 			   action_t_tostr(action)
@@ -211,6 +235,7 @@ ast_error_t ast_parse(ast_context_t * ast)
 			ast->stack_parse      [ast->sp] = current;
 			ast->stack_entity     [ast->sp] = e;
 			ast->stack_precedence [ast->sp] = 0;
+			printf(TITLE_FORMAT"\n", "[Push]");
 			break;}
 
 		case ACTION_INSERT_PARENT_PRECEDENCE:{
@@ -224,11 +249,12 @@ ast_error_t ast_parse(ast_context_t * ast)
 					ast->stack_precedence [ast->sp] = 0;
 					ast->sp--;
 					if(ast->sp < 0){return AST_ERROR_STACK_UNDERFLOW;}
+					printf(TITLE_FORMAT"\n", "[Pop]");
 				}
 				ecs_set_scope(ast->world, ast->stack_entity[ast->sp-1]);
 				ecs_entity_t e = newent(ast->world, &token);
-				printf("[%-10s] "ECS_BLUE"%s"ECS_NORMAL" EcsChildOf "ECS_BLUE"%s"ECS_NORMAL"\n",
-					"Pair",
+				printf(TITLE_FORMAT ECS_BLUE"%s"ECS_NORMAL" EcsChildOf "ECS_BLUE"%s"ECS_NORMAL"\n",
+					"[Pair]",
 					ecs_doc_get_name(ast->world, ast->stack_entity[ast->sp]),
 					ecs_doc_get_name(ast->world, e));
 				ecs_add_pair(ast->world, ast->stack_entity[ast->sp], EcsChildOf, e);

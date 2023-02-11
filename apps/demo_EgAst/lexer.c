@@ -1,20 +1,23 @@
 #include "lexer.h"
-#include <ctype.h>
 #include <flecs.h>
 
-int is_symbol_start(int c)
+bool is_symbol_start(int c)
 {
-	return isalpha(c) || (c == '_');
+	if(c == '_'){return true;}
+	if(c >= 'a' && c <= 'z'){return true;}
+	if(c >= 'A' && c <= 'Z'){return true;}
+	return false;
 }
 
 
 int is_symbol(int c)
 {
-	return isalnum(c) || (c == '_');
+	if(c == '_'){return true;}
+	if(c >= 'a' && c <= 'z'){return true;}
+	if(c >= 'A' && c <= 'Z'){return true;}
+	if(c >= '0' && c <= '9'){return true;}
+	return false;
 }
-
-
-
 
 
 tok_t lexer_one(int c)
@@ -35,7 +38,6 @@ tok_t lexer_one(int c)
 	default: return TOK_UNKNOWN;
 	}
 }
-
 
 
 void lexer_skip_whitespace(char const ** p, int32_t * out_line, int32_t * out_column)
