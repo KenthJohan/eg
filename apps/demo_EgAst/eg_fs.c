@@ -1,5 +1,6 @@
 #include "eg_fs.h"
 #include <stdio.h>
+#include <flecs.h>
 
 
 int eg_fs_readfile(char ** out_result, char const * path)
