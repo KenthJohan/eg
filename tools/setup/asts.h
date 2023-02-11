@@ -21,8 +21,32 @@ AST_STATE_COUNT
 } ast_state_t;
 
 
+typedef enum
+{
+PARSE_STATE_UNKNOWN,
+PARSE_STATE_ROOT,
+PARSE_STATE_STATEMENT,
+PARSE_STATE_EXPR,
+PARSE_STATE_EXPO,
+PARSE_STATE_COUNT
+} parse_state_t;
 
+typedef enum
+{
+ACTION_UNKNOWN,
+ACTION_NOP,
+ACTION_PUSH,
+ACTION_POP,
+ACTION_PUSH_ADD_CHILD,
+ACTION_PUSH_ADD_PARENT_PRECEDENCE,
+} action_t;
 
+typedef enum
+{
+AST_ERROR_NONE,
+AST_ERROR_STACK_OVERFLOW,
+AST_ERROR_STACK_UNDERFLOW
+} ast_error_t;
 
 
 #define AST_STACK_COUNT 128
@@ -32,14 +56,16 @@ typedef struct
 	lexer_t lexer;
 
 	int32_t sp;
-	ast_state_t stack_state[AST_STACK_COUNT];
-	tok_t stack_token[AST_STACK_COUNT];
-	ecs_entity_t stack_entity[AST_STACK_COUNT];
-	int32_t stack_precedence[AST_STACK_COUNT];
+	parse_state_t stack_state[AST_STACK_COUNT];
+	tok_t         stack_tok[AST_STACK_COUNT];
+	ecs_entity_t  stack_entity[AST_STACK_COUNT];
+	int32_t       stack_precedence[AST_STACK_COUNT];
 
 	int32_t genid;
 } ast_context_t;
 
 
 
-void ast_parse(ast_context_t * ast);
+
+char const * ast_error_t_tostr(ast_error_t e);
+ast_error_t ast_parse(ast_context_t * ast);

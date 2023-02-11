@@ -37,25 +37,7 @@ EXP      | TERMINATOR  | ?          | POPX
 
 
 
-typedef enum
-{
-PARSE_STATE_UNKNOWN,
-PARSE_STATE_ROOT,
-PARSE_STATE_STATEMENT,
-PARSE_STATE_EXPR,
-PARSE_STATE_EXPO,
-PARSE_STATE_COUNT
-} parse_state_t;
 
-typedef enum
-{
-ACTION_UNKNOWN,
-ACTION_NOP,
-ACTION_PUSH,
-ACTION_POP,
-ACTION_PUSH_ADD_CHILD,
-ACTION_PUSH_ADD_PARENT_PRECEDENCE,
-} action_t;
 
 
 
@@ -89,6 +71,16 @@ char const * action_t_tostr(action_t state)
 }
 
 
+char const * ast_error_t_tostr(ast_error_t e)
+{
+	switch (e)
+	{
+	case AST_ERROR_NONE: return "AST_ERROR_NONE";
+	case AST_ERROR_STACK_OVERFLOW: return "AST_ERROR_STACK_OVERFLOW";
+	case AST_ERROR_STACK_UNDERFLOW: return "AST_ERROR_STACK_UNDERFLO";
+	default: return "?";
+	}
+}
 
 typedef struct 
 {
@@ -161,35 +153,24 @@ ecs_entity_t newent(ecs_world_t * world, token_t * token)
 
 
 
-#define STACK_SIZE 128
-
-void ast_parse(ast_context_t * ast)
+ast_error_t ast_parse(ast_context_t * ast)
 {
-	
 	ecs_entity_t root = ecs_new_entity(ast->world, 0);
 	ecs_doc_set_name(ast->world, root, "ASTROOT");
 	ecs_set_scope(ast->world, root);
 	ast->stack_entity[ast->sp] = root;
 	ast->stack_state[ast->sp] = AST_STATE_ROOT;
-	ast->stack_token[ast->sp] = TOK_UNKNOWN;
+	ast->stack_tok[ast->sp] = TOK_UNKNOWN;
 	ast->stack_precedence[ast->sp] = 0;
-	
-
-
 
 	parse_state_t current = PARSE_STATE_ROOT;
 	action_t action = ACTION_NOP;
+	ast->sp = 0;
+	ast->stack_tok[ast->sp] = TOK_UNKNOWN;
+	ast->stack_state[ast->sp] = current;
+	ast->stack_entity[ast->sp] = root;
+	ast->stack_precedence[ast->sp] = 0;
 
-	tok_t stack_tok[STACK_SIZE] = {0};
-	parse_state_t stack_parstate[STACK_SIZE] = {0};
-	ecs_entity_t stack_ents[STACK_SIZE] = {0};
-	int32_t stack_pres[STACK_SIZE] = {0};
-
-	int32_t sp = 0;
-	stack_tok[sp] = TOK_UNKNOWN;
-	stack_parstate[sp] = current;
-	stack_ents[sp] = root;
-	stack_pres[sp] = 0;
 
 	token_t token;
 	ecs_entity_t e;
@@ -209,39 +190,43 @@ void ast_parse(ast_context_t * ast)
 		case ACTION_PUSH_ADD_CHILD:
 			e = newent(ast->world, &token);
 			ecs_set_scope(ast->world, e);
-			sp++;
-			stack_tok[sp] = token.tok;
-			stack_parstate[sp] = current;
-			stack_ents[sp] = e;
-			stack_pres[sp] = 0;
+			ast->sp++;
+			if(ast->sp >= AST_STACK_COUNT){return AST_ERROR_STACK_OVERFLOW;}
+			ast->stack_tok[ast->sp] = token.tok;
+			ast->stack_state[ast->sp] = current;
+			ast->stack_entity[ast->sp] = e;
+			ast->stack_precedence[ast->sp] = 0;
 			break;
 
 		case ACTION_PUSH_ADD_PARENT_PRECEDENCE:{
 				int32_t p1 = tok_t_precedence[token.tok];
-				int32_t p2 = stack_pres[sp-1];
+				int32_t p2 = ast->stack_precedence[ast->sp-1];
 				if(p1 < p2)
 				{
-					stack_tok[sp] = 0;
-					stack_parstate[sp] = 0;
-					sp--;
+					ast->stack_tok[ast->sp] = 0;
+					ast->stack_state[ast->sp] = 0;
+					ast->stack_entity[ast->sp] = 0;
+					ast->stack_precedence[ast->sp] = 0;
+					ast->sp--;
+					if(ast->sp < 0){return AST_ERROR_STACK_UNDERFLOW;}
 				}
-				ecs_set_scope(ast->world, stack_ents[sp-1]);
+				ecs_set_scope(ast->world, ast->stack_entity[ast->sp-1]);
 				e = newent(ast->world, &token);
-				printf("Add pair %s EcsChildOf %s\n", ecs_doc_get_name(ast->world, stack_ents[sp]), ecs_doc_get_name(ast->world, e));
-				ecs_add_pair(ast->world, stack_ents[sp], EcsChildOf, e);
+				printf("Add pair %s EcsChildOf %s\n", ecs_doc_get_name(ast->world, ast->stack_entity[ast->sp]), ecs_doc_get_name(ast->world, e));
+				ecs_add_pair(ast->world, ast->stack_entity[ast->sp], EcsChildOf, e);
 				ecs_set_scope(ast->world, e);
-				stack_tok[sp] = token.tok;
-				stack_parstate[sp] = current;
-				stack_ents[sp] = e;
-				stack_pres[sp] = tok_t_precedence[token.tok];
+				ast->stack_tok[ast->sp] = token.tok;
+				ast->stack_state[ast->sp] = current;
+				ast->stack_entity[ast->sp] = e;
+				ast->stack_precedence[ast->sp] = tok_t_precedence[token.tok];
 			}break;
 		
 		default:
 			break;
 		}
-
-		
 		current = tables[current][token.tok].state;
 	}
 
+
+	return AST_ERROR_NONE;
 }
