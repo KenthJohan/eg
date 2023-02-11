@@ -62,8 +62,7 @@ char const * action_t_tostr(action_t state)
 	{
 	case ACTION_UNKNOWN: return "UNKNOWN";
 	case ACTION_NOP: return "NOP";
-	case ACTION_PUSH: return "PUSH";
-	case ACTION_POP: return "POP";
+	case ACTION_ADD: return "ADD";
 	case ACTION_PUSH_ADD_CHILD: return "PUSH_ADD_CHILD";
 	case ACTION_INSERT_PARENT_PRECEDENCE: return "INSERT_PARENT_PRECEDENCE";
 	default: return "?";
@@ -76,6 +75,9 @@ char const * ast_error_t_tostr(ast_error_t e)
 	switch (e)
 	{
 	case AST_ERROR_NONE: return "AST_ERROR_NONE";
+	case AST_ERROR_UNKNOWN: return "AST_ERROR_UNKNOWN";
+	case AST_ERROR_NULL: return "AST_ERROR_NULL";
+	case AST_ERROR_UNHANDLED_STATE: return "AST_ERROR_UNHANDLED_STATE";
 	case AST_ERROR_STACK_OVERFLOW: return "AST_ERROR_STACK_OVERFLOW";
 	case AST_ERROR_STACK_UNDERFLOW: return "AST_ERROR_STACK_UNDERFLOW";
 	case AST_ERROR_OUT_OF_RANGE: return "AST_ERROR_OUT_OF_RANGE";
@@ -97,6 +99,7 @@ state_t table_root[]=
 };
 state_t table_statement[]=
 {
+	[TOK_ID       ] = {AST_PARSE_STATEMENT, ACTION_ADD},
 	[TOK_EQUAL    ] = {AST_PARSE_EXPR, ACTION_PUSH_ADD_CHILD},
 	[TOK_COUNT    ] = {0}
 };
@@ -180,7 +183,8 @@ ast_error_t ast_parse(ast_context_t * ast)
 		token_t token;
 		lexer_next(&ast->lexer, &token);
 		if(token.tok == TOK_EOF) {break;}
-		action_t action = tables[current][token.tok].action;
+		state_t * table = tables[current];
+		action_t action = table ? table[token.tok].action : ACTION_UNKNOWN;
 
 		
 		printf("[%-10s] "ECS_YELLOW"%-10s"ECS_NORMAL" "ECS_MAGENTA"%-10s"ECS_NORMAL" "ECS_GREEN"%-10s"ECS_NORMAL"\n",
@@ -190,9 +194,14 @@ ast_error_t ast_parse(ast_context_t * ast)
 			   action_t_tostr(action)
 		);
 
+		if(table == NULL) {return AST_ERROR_UNHANDLED_STATE;}
+		if(action == ACTION_UNKNOWN) {return AST_ERROR_UNHANDLED_STATE;}
 
 		switch (action)
 		{
+		case ACTION_ADD:{
+			ecs_entity_t e = newent(ast->world, &token);
+			break;}
 		case ACTION_PUSH_ADD_CHILD:{
 			ecs_entity_t e = newent(ast->world, &token);
 			ecs_set_scope(ast->world, e);

@@ -1,1 +1,1 @@
-foo = A * B + C * D + E
+int foo = A * B + C * D + E
