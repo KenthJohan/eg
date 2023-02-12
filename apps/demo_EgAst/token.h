@@ -31,6 +31,15 @@ TOK_COUNT
 
 
 
+static int32_t tok_t_antiscope[] = 
+{
+	[TOK_BLOCK_OPEN] = TOK_BLOCK_CLOSE,
+	[TOK_BLOCK_CLOSE] = TOK_BLOCK_OPEN,
+	[TOK_PAREN_OPEN] = TOK_PAREN_CLOSE,
+	[TOK_PAREN_CLOSE] = TOK_PAREN_OPEN,
+	[TOK_COUNT] = 0
+};
+
 static int32_t tok_t_precedence[] = 
 {
 	[TOK_NUMBER] = 0,

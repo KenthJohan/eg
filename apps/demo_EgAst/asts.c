@@ -62,6 +62,8 @@ char const * action_t_tostr(action_t state)
 	{
 	case ACTION_UNKNOWN: return "UNKNOWN";
 	case ACTION_NOP: return "NOP";
+	case ACTION_POP: return "POP";
+	case ACTION_POP_ANTISCOPE: return "POP_ANTISCOPE";
 	case ACTION_ADD: return "ADD";
 	case ACTION_PUSH_ADD_CHILD: return "PUSH_ADD_CHILD";
 	case ACTION_INSERT_PARENT_PRECEDENCE: return "INSERT_PARENT_PRECEDENCE";
@@ -134,13 +136,15 @@ state_t table_expo[]=
 	[TOK_MINUS    ] = {AST_PARSE_EXPR, ACTION_INSERT_PARENT_PRECEDENCE},
 	[TOK_MUL      ] = {AST_PARSE_EXPR, ACTION_INSERT_PARENT_PRECEDENCE},
 	[TOK_SEMICOLON] = {AST_PARSE_EXPR, ACTION_INSERT_PARENT_PRECEDENCE},
+	[TOK_PAREN_CLOSE] = {AST_PARSE_EXPO , ACTION_POP_ANTISCOPE},
 	[TOK_COUNT    ] = {0}
 };
 state_t table_expr[]=
 {
-	[TOK_ID     ] = {AST_PARSE_EXPO, ACTION_PUSH_ADD_CHILD},
-	[TOK_NUMBER ] = {AST_PARSE_EXPO, ACTION_PUSH_ADD_CHILD},
-	[TOK_COUNT  ] = {0}
+	[TOK_ID         ] = {AST_PARSE_EXPO, ACTION_PUSH_ADD_CHILD},
+	[TOK_NUMBER     ] = {AST_PARSE_EXPO, ACTION_PUSH_ADD_CHILD},
+	[TOK_PAREN_OPEN ] = {AST_PARSE_EXPR, ACTION_PUSH_ADD_CHILD},
+	[TOK_COUNT      ] = {0}
 };
 state_t * tables[] = 
 {
@@ -226,6 +230,21 @@ ast_error_t ast_parse(ast_context_t * ast)
 		case ACTION_ADD:{
 			ecs_entity_t e = newent(ast->world, &token);
 			break;}
+		case ACTION_POP_ANTISCOPE:
+			while(1)
+			{
+				if(ast->stack_tok[ast->sp] == tok_t_antiscope[token.tok])
+				{
+					break;
+				}
+				ast->stack_tok        [ast->sp] = 0;
+				ast->stack_parse      [ast->sp] = 0;
+				ast->stack_entity     [ast->sp] = 0;
+				ast->stack_precedence [ast->sp] = 0;
+				ast->sp--;
+			}
+			break;
+			
 		case ACTION_PUSH_ADD_CHILD:{
 			ecs_entity_t e = newent(ast->world, &token);
 			ecs_set_scope(ast->world, e);

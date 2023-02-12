@@ -10,8 +10,8 @@ char const * tok_t_tostr(tok_t token)
 	switch (token)
 	{
 	case TOK_EOF: return "EOF";
-	case TOK_PAREN_OPEN: return "EXP_OPEN";
-	case TOK_PAREN_CLOSE: return "EXP_CLOSE";
+	case TOK_PAREN_OPEN: return "PAREN_OPEN";
+	case TOK_PAREN_CLOSE: return "PAREN_CLOSE";
 	case TOK_BLOCK_OPEN: return "BLOCK_OPEN";
 	case TOK_BLOCK_CLOSE: return "BLOCK_CLOSE";
 	case TOK_IF: return "IF";
