@@ -46,13 +46,14 @@ char const * ast_parse_t_tostr(ast_parse_t state)
 {
 	switch (state)
 	{
-	case AST_PARSE_UNKNOWN: return "UNKNOWN";
-	case AST_PARSE_ROOT: return "ROOT";
-	case AST_PARSE_STATEMENT: return "STATEMENT";
-	case AST_PARSE_EXPR: return "EXPR";
-	case AST_PARSE_EXPO: return "EXPO";
-	case AST_PARSE_COUNT: return "COUNT";
-	default: return "?";
+	case AST_PARSE_UNKNOWN:         return "UNKNOWN";
+	case AST_PARSE_UNKNOWN_STACK:   return "UNKNOWN_STACK";
+	case AST_PARSE_ROOT:            return "ROOT";
+	case AST_PARSE_STATEMENT:       return "STATEMENT";
+	case AST_PARSE_EXPR:            return "EXPR";
+	case AST_PARSE_EXPO:            return "EXPO";
+	case AST_PARSE_COUNT:           return "COUNT";
+	default:                        return "?";
 	}
 }
 
@@ -76,14 +77,14 @@ char const * ast_error_t_tostr(ast_error_t e)
 {
 	switch (e)
 	{
-	case AST_ERROR_NONE: return "AST_ERROR_NONE";
-	case AST_ERROR_UNKNOWN: return "AST_ERROR_UNKNOWN";
-	case AST_ERROR_NULL: return "AST_ERROR_NULL";
+	case AST_ERROR_NONE:            return "AST_ERROR_NONE";
+	case AST_ERROR_UNKNOWN:         return "AST_ERROR_UNKNOWN";
+	case AST_ERROR_NULL:            return "AST_ERROR_NULL";
 	case AST_ERROR_UNHANDLED_STATE: return "AST_ERROR_UNHANDLED_STATE";
-	case AST_ERROR_STACK_OVERFLOW: return "AST_ERROR_STACK_OVERFLOW";
+	case AST_ERROR_STACK_OVERFLOW:  return "AST_ERROR_STACK_OVERFLOW";
 	case AST_ERROR_STACK_UNDERFLOW: return "AST_ERROR_STACK_UNDERFLOW";
-	case AST_ERROR_OUT_OF_RANGE: return "AST_ERROR_OUT_OF_RANGE";
-	case AST_ARROR_COUNT: return "AST_ARROR_COUNT";
+	case AST_ERROR_OUT_OF_RANGE:    return "AST_ERROR_OUT_OF_RANGE";
+	case AST_ARROR_COUNT:           return "AST_ARROR_COUNT";
 	default: return "?";
 	}
 }
@@ -117,6 +118,10 @@ typedef struct
 {
 	ast_parse_t state;
 	action_t action;
+	union
+	{
+		ast_parse_t until_parse;
+	};
 } state_t;
 
 state_t table_root[]=
@@ -132,12 +137,12 @@ state_t table_statement[]=
 };
 state_t table_expo[]=
 {
-	[TOK_PLUS     ] = {AST_PARSE_EXPR, ACTION_INSERT_PARENT_PRECEDENCE},
-	[TOK_MINUS    ] = {AST_PARSE_EXPR, ACTION_INSERT_PARENT_PRECEDENCE},
-	[TOK_MUL      ] = {AST_PARSE_EXPR, ACTION_INSERT_PARENT_PRECEDENCE},
-	[TOK_SEMICOLON] = {AST_PARSE_EXPR, ACTION_INSERT_PARENT_PRECEDENCE},
-	[TOK_PAREN_CLOSE] = {AST_PARSE_EXPO , ACTION_POP_ANTISCOPE},
-	[TOK_COUNT    ] = {0}
+	[TOK_PLUS       ] = {AST_PARSE_EXPR,          ACTION_INSERT_PARENT_PRECEDENCE},
+	[TOK_MINUS      ] = {AST_PARSE_EXPR,          ACTION_INSERT_PARENT_PRECEDENCE},
+	[TOK_MUL        ] = {AST_PARSE_EXPR,          ACTION_INSERT_PARENT_PRECEDENCE},
+	[TOK_SEMICOLON  ] = {AST_PARSE_UNKNOWN_STACK, ACTION_POP, .until_parse = AST_PARSE_STATEMENT},
+	[TOK_PAREN_CLOSE] = {AST_PARSE_EXPO,          ACTION_POP_ANTISCOPE},
+	[TOK_COUNT      ] = {0}
 };
 state_t table_expr[]=
 {
@@ -193,11 +198,6 @@ ast_error_t ast_parse(ast_context_t * ast)
 	ecs_entity_t root = ecs_new_entity(ast->world, 0);
 	ecs_doc_set_name(ast->world, root, "ASTROOT");
 	ecs_set_scope(ast->world, root);
-	ast->stack_entity    [ast->sp] = root;
-	ast->stack_parse     [ast->sp] = AST_PARSE_ROOT;
-	ast->stack_tok       [ast->sp] = TOK_UNKNOWN;
-	ast->stack_precedence[ast->sp] = 0;
-
 	ast_parse_t current = AST_PARSE_ROOT;
 	ast->sp = 0;
 	ast->stack_tok        [ast->sp] = TOK_UNKNOWN;
@@ -212,29 +212,38 @@ ast_error_t ast_parse(ast_context_t * ast)
 		lexer_next(&ast->lexer, &token);
 		if(token.tok == TOK_EOF) {break;}
 		state_t * table = tables[current];
-		action_t action = table ? table[token.tok].action : ACTION_UNKNOWN;
 
 		
 		printf(TITLE_FORMAT ECS_YELLOW"%-10s"ECS_NORMAL" "ECS_MAGENTA"%-10s"ECS_NORMAL" "ECS_GREEN"%-10s"ECS_NORMAL"\n",
 			"[State]", 
 			ast_parse_t_tostr(current),
 			      tok_t_tostr(token.tok),
-			   action_t_tostr(action)
+			   action_t_tostr(table ? table[token.tok].action : ACTION_UNKNOWN)
 		);
 
 		if(table == NULL) {return AST_ERROR_UNHANDLED_STATE;}
-		if(action == ACTION_UNKNOWN) {return AST_ERROR_UNHANDLED_STATE;}
+		table += token.tok;
+		if(table->action == ACTION_UNKNOWN) {return AST_ERROR_UNHANDLED_STATE;}
 
-		switch (action)
+		
+		current = tables[current][token.tok].state;
+
+		switch (table->action)
 		{
 		case ACTION_ADD:{
 			ecs_entity_t e = newent(ast->world, &token);
 			break;}
-		case ACTION_POP_ANTISCOPE:
+		case ACTION_POP:
 			while(1)
 			{
-				if(ast->stack_tok[ast->sp] == tok_t_antiscope[token.tok])
+				if(ast->sp <= 0){return AST_ERROR_STACK_UNDERFLOW;}
+				if(ast->stack_parse[ast->sp] == table->until_parse)
 				{
+					ast->stack_tok        [ast->sp] = 0;
+					ast->stack_parse      [ast->sp] = 0;
+					ast->stack_entity     [ast->sp] = 0;
+					ast->stack_precedence [ast->sp] = 0;
+					ast->sp--;
 					break;
 				}
 				ast->stack_tok        [ast->sp] = 0;
@@ -243,6 +252,20 @@ ast_error_t ast_parse(ast_context_t * ast)
 				ast->stack_precedence [ast->sp] = 0;
 				ast->sp--;
 			}
+			ecs_set_scope(ast->world, ast->stack_entity[ast->sp]);
+			break;
+		case ACTION_POP_ANTISCOPE:
+			while(1)
+			{
+				if(ast->stack_tok[ast->sp] == tok_t_antiscope[token.tok]){break;}
+				if(ast->sp <= 0){return AST_ERROR_STACK_UNDERFLOW;}
+				ast->stack_tok        [ast->sp] = 0;
+				ast->stack_parse      [ast->sp] = 0;
+				ast->stack_entity     [ast->sp] = 0;
+				ast->stack_precedence [ast->sp] = 0;
+				ast->sp--;
+			}
+			ecs_set_scope(ast->world, ast->stack_entity[ast->sp]);
 			break;
 			
 		case ACTION_PUSH_ADD_CHILD:{
@@ -286,9 +309,18 @@ ast_error_t ast_parse(ast_context_t * ast)
 		
 		default:
 			break;
+
+
+		} // END switch
+
+		if(current == AST_PARSE_UNKNOWN_STACK)
+		{
+			current = ast->stack_parse[ast->sp];
 		}
-		current = tables[current][token.tok].state;
-	}
+
+	} // END while
+
+
 
 
 	return AST_ERROR_NONE;
