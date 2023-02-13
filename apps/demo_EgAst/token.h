@@ -13,6 +13,7 @@ TOK_BLOCK_CLOSE,
 TOK_PAREN_OPEN,
 TOK_PAREN_CLOSE,
 TOK_SEMICOLON,
+TOK_COMMA,
 TOK_IF,
 TOK_ELSE,
 TOK_ELSEIF,
@@ -49,6 +50,7 @@ static int32_t tok_t_precedence[] =
 	[TOK_MINUS] = 2,
 	[TOK_MUL] = 3,
 	[TOK_DIV] = 3,
+	[TOK_COMMA] = 15,
 	[TOK_COUNT] = 0
 };
 

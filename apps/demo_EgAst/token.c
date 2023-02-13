@@ -15,7 +15,8 @@ char const * tok_t_tostr(tok_t token)
 	case TOK_BLOCK_OPEN: return "BLOCK_OPEN";
 	case TOK_BLOCK_CLOSE: return "BLOCK_CLOSE";
 	case TOK_IF: return "IF";
-	case TOK_SEMICOLON: return "STATEMENT_TERMINATOR";
+	case TOK_SEMICOLON: return "SEMICOLON";
+	case TOK_COMMA: return "TOK_COMMA";
 	case TOK_ELSE: return "ELSE";
 	case TOK_ELSEIF: return "ELSEIF";
 	case TOK_EQUAL: return "EQUAL";

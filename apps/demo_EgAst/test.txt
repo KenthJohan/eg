@@ -1,2 +1,1 @@
-int foo = A * (B+C) * D;
-int bar = A * (B+C) * D;
+int foo = a + f(x,y,z);

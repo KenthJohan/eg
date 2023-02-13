@@ -30,6 +30,7 @@ tok_t lexer_one(int c)
 	case '{': return TOK_BLOCK_OPEN;
 	case '}': return TOK_BLOCK_CLOSE;
 	case ';': return TOK_SEMICOLON;
+	case ',': return TOK_COMMA;
 	case '=': return TOK_EQUAL;
 	case '+': return TOK_PLUS;
 	case '-': return TOK_MINUS;
