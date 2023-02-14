@@ -32,7 +32,9 @@
         "system_error": "c",
         "functional": "c",
         "type_traits": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "string_view": "c",
+        "random": "c"
     },
 
 }

@@ -1,1 +1,1 @@
-int foo = a + f(x,y,z);
+int foo = f(a+b);

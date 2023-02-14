@@ -3,6 +3,9 @@
 #include "token.h"
 #include "lexer.h"
 
+
+#define AST_TITLE_FORMAT "%-10s : "
+
 typedef enum
 {
 AST_NODE_UNKNOWN,
@@ -22,6 +25,7 @@ AST_PARSE_UNKNOWN,
 AST_PARSE_UNKNOWN_STACK,
 AST_PARSE_ROOT,
 AST_PARSE_STATEMENT,
+AST_PARSE_EROOT,
 AST_PARSE_EXPR,
 AST_PARSE_EXPO,
 AST_PARSE_COUNT
@@ -58,12 +62,15 @@ typedef struct
 	lexer_t lexer;
 
 	int32_t sp;
-	ast_parse_t stack_parse[AST_STACK_COUNT];
-	tok_t         stack_tok[AST_STACK_COUNT];
-	ecs_entity_t  stack_entity[AST_STACK_COUNT];
-	int32_t       stack_precedence[AST_STACK_COUNT];
+	ast_parse_t   stack_parse      [AST_STACK_COUNT];
+	tok_t         stack_tok        [AST_STACK_COUNT];
+	ecs_entity_t  stack_entity     [AST_STACK_COUNT];
+	int32_t       stack_precedence [AST_STACK_COUNT];
 
 	int32_t genid;
+
+	ecs_entity_t (*newent)(ecs_world_t * world, token_t * token, ast_parse_t parse);
+
 } ast_context_t;
 
 
