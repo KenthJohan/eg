@@ -63,7 +63,8 @@ char const * action_t_tostr(ast_action_t state)
 	{
 	case AST_ACTION_UNKNOWN:                  return "UNKNOWN";
 	case AST_ACTION_NOP:                      return "NOP";
-	case AST_ACTION_POP:                      return "POP";
+	case AST_ACTION_POP1:                     return "POP1";
+	case AST_ACTION_POP2:                     return "POP2";
 	case AST_ACTION_POP_ANTISCOPE:            return "POP_ANTISCOPE";
 	case AST_ACTION_ADD:                      return "ADD";
 	case AST_ACTION_PUSH_ADD_CHILD:           return "PUSH_ADD_CHILD";
@@ -101,6 +102,9 @@ typedef struct
 	};
 } state_t;
 
+
+// https://stackoverflow.com/questions/18820624/compilers-how-to-parse-function-calls-and-function-definitions
+
 state_t table_root[]=
 {
 	[TOK_ID       ] = {AST_PARSE_STATEMENT, AST_ACTION_PUSH_ADD_CHILD},
@@ -112,22 +116,24 @@ state_t table_statement[]=
 	[TOK_EQUAL    ] = {AST_PARSE_EROOT, AST_ACTION_PUSH_ADD_CHILD},
 	[TOK_COUNT    ] = {0}
 };
-state_t table_eroot[]=
-{
-	[TOK_ID         ] = {AST_PARSE_EXPO, AST_ACTION_PUSH_ADD_CHILD},
-	[TOK_NUMBER     ] = {AST_PARSE_EXPO, AST_ACTION_PUSH_ADD_CHILD},
-	[TOK_PAREN_OPEN ] = {AST_PARSE_EXPR, AST_ACTION_PUSH_ADD_CHILD},
-	[TOK_COUNT      ] = {0}
-};
+
 state_t table_expo[]=
 {
 	[TOK_PLUS       ] = {AST_PARSE_EXPR,          AST_ACTION_INSERT_PARENT_PRECEDENCE},
 	[TOK_MINUS      ] = {AST_PARSE_EXPR,          AST_ACTION_INSERT_PARENT_PRECEDENCE},
 	[TOK_MUL        ] = {AST_PARSE_EXPR,          AST_ACTION_INSERT_PARENT_PRECEDENCE},
-	[TOK_COMMA      ] = {AST_PARSE_EXPR,          AST_ACTION_INSERT_PARENT_PRECEDENCE},
-	[TOK_SEMICOLON  ] = {AST_PARSE_UNKNOWN_STACK, AST_ACTION_POP, .until_parse = AST_PARSE_STATEMENT},
-	[TOK_PAREN_OPEN ] = {AST_PARSE_EROOT,         AST_ACTION_PUSH_ADD_CHILD},
+	//[TOK_COMMA      ] = {AST_PARSE_EXPR,          AST_ACTION_INSERT_PARENT_PRECEDENCE},
+	[TOK_COMMA      ] = {AST_PARSE_EXPR,          AST_ACTION_POP1, .until_parse = AST_PARSE_EROOT},
+	[TOK_SEMICOLON  ] = {AST_PARSE_UNKNOWN_STACK, AST_ACTION_POP2, .until_parse = AST_PARSE_STATEMENT},
+	[TOK_PAREN_OPEN ] = {AST_PARSE_EROOT,         AST_ACTION_NOP},
 	[TOK_PAREN_CLOSE] = {AST_PARSE_EXPO,          AST_ACTION_POP_ANTISCOPE},
+	[TOK_COUNT      ] = {0}
+};
+state_t table_eroot[]=
+{
+	[TOK_ID         ] = {AST_PARSE_EXPO, AST_ACTION_PUSH_ADD_CHILD},
+	[TOK_NUMBER     ] = {AST_PARSE_EXPO, AST_ACTION_PUSH_ADD_CHILD},
+	[TOK_PAREN_OPEN ] = {AST_PARSE_EXPR, AST_ACTION_PUSH_ADD_CHILD},
 	[TOK_COUNT      ] = {0}
 };
 state_t table_expr[]=
@@ -206,10 +212,26 @@ ast_error_t ast_parse(ast_context_t * ast)
 
 		switch (table->action)
 		{
+		case AST_ACTION_NOP:{
+			break;}
 		case AST_ACTION_ADD:{
 			ecs_entity_t e = ast->newent(ast->world, &token, current);
 			break;}
-		case AST_ACTION_POP:
+		case AST_ACTION_POP1:{ 
+			while(1)
+			{
+				if(ast->sp <= 0){return AST_ERROR_STACK_UNDERFLOW;}
+				if(ast->stack_parse[ast->sp] == table->until_parse)
+				{
+					//ast_pop(ast);
+					break;
+				}
+				ast_pop(ast);
+			}
+			ecs_set_scope(ast->world, ast->stack_entity[ast->sp]);
+			ecs_entity_t e = ast->newent(ast->world, &token, current);
+			break;}
+		case AST_ACTION_POP2:{ 
 			while(1)
 			{
 				if(ast->sp <= 0){return AST_ERROR_STACK_UNDERFLOW;}
@@ -221,7 +243,8 @@ ast_error_t ast_parse(ast_context_t * ast)
 				ast_pop(ast);
 			}
 			ecs_set_scope(ast->world, ast->stack_entity[ast->sp]);
-			break;
+			ecs_entity_t e = ast->newent(ast->world, &token, current);
+			break;}
 		case AST_ACTION_POP_ANTISCOPE:
 			while(1)
 			{

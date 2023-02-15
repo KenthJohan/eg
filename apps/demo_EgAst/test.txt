@@ -1,1 +1,1 @@
-int foo = f(a+b);
+int foo = a(x) + w;
