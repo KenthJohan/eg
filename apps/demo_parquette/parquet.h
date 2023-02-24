@@ -173,7 +173,10 @@ typedef struct
 
 
 
-
+typedef struct
+{
+	parquet_filemetadata_t meta;
+} parquet_reader1_t;
 
 
 
@@ -183,6 +186,7 @@ typedef struct
 
 
 void parquet_read(parquet_reader_t *reader, char const * filename);
+void parquet_read1(parquet_reader1_t *reader, char const * filename);
 void parquet_testcase1();
 
 
