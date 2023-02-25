@@ -83,12 +83,9 @@ void print_field1(int32_t id, int32_t type, thrift_value_t value, int indent)
 	switch (type)
 	{
 	case THRIFT_STRUCT:
-		printf(",");
-        /*
 		printf("%02i =\n", id);
 		for(int i = 0; i < indent; ++i){printf("    ");}
 		printf("{\n");
-        */
 		break;
 	case THRIFT_STOP:printf("}\n");break;
 	}
