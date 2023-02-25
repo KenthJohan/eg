@@ -14,7 +14,7 @@ int main (int argc, char * argv [])
 {
 	ecs_world_t *world = ecs_init_w_args(argc, argv);
 	ECS_IMPORT(world, FlecsUnits);
-	parquet_reader_t reader = {0};
+	parquet_reader1_t reader = {0};
     parquet_read1(&reader, "userdata1.parquet");
 	//https://www.flecs.dev/explorer/?remote=true
     ecs_singleton_set(world, EcsRest, {0});

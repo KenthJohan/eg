@@ -49,26 +49,16 @@ typedef struct
 } thrift_reader_t;
 
 
-#define THRIFT_STACK_MAX_SIZE 100
-struct thrift_context
-{
-	thrift_reader_t reader;
-	int32_t last_field_id;
-	int32_t stack_id[THRIFT_STACK_MAX_SIZE];
-	int32_t sp;
-    void (*cb_field)(struct thrift_context * ctx, int32_t id, int32_t type, thrift_value_t value);
-};
 
 
 
-void thrift_recursive_read(struct thrift_context * ctx, int32_t id, int32_t type);
 void thrift_get_field_str(int32_t type, thrift_value_t value, char * buf, int n);
 char const * thrift_get_type_string(uint32_t t);
 
 
 
 
-
+#define THRIFT_STACK_MAX_SIZE 100
 typedef struct thrift_stack_t thrift_stack_t;
 struct thrift_stack_t
 {

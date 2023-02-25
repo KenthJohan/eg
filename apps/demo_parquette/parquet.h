@@ -164,15 +164,6 @@ typedef struct
 
 
 
-
-typedef struct
-{
-	struct thrift_context footer;
-	parquet_filemetadata_t meta;
-} parquet_reader_t;
-
-
-
 typedef struct
 {
 	parquet_filemetadata_t meta;
@@ -180,12 +171,6 @@ typedef struct
 
 
 
-
-
-
-
-
-void parquet_read(parquet_reader_t *reader, char const * filename);
 void parquet_read1(parquet_reader1_t *reader, char const * filename);
 void parquet_testcase1();
 
