@@ -176,7 +176,7 @@ machine0:
 		goto machine_start;
 
 	case THRIFT_BINARY:
-		value.string_size = thrift_read_varint_i64(ctx);
+		value.string_size = thrift_read_varint_i64(&ctx->reader);
 		value.string_data = NULL;
 		if(value.string_size < 0){goto error_invalid_state;}
 		if(value.string_size > 0)
