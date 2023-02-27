@@ -193,7 +193,7 @@ machine0:
 			value.string_data[value.string_size] = '\0';
 			ctx->reader.data_current += value.string_size;
 		}
-		ctx->cb_field(ctx, ctx->last_field_id, type, value);
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_BINARY, value);
 		pop(ctx);
 		goto machine_start;
 
