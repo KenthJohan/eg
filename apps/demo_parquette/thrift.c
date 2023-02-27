@@ -144,7 +144,7 @@ machine0:
 	switch (ctx->stack_type[ctx->sp])
 	{
 	case THRIFT_STRUCT:
-		ctx->cb_field(ctx, 0, THRIFT_STRUCT, value);
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STRUCT, value);
 		ctx->last_field_id = 0;
 		goto machine_start;
 
@@ -164,14 +164,20 @@ machine0:
 		goto machine0;
 
 	case THRIFT_I32:
-		value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, value);
+		for(int32_t i = 0; i < ctx->stack_repeat[ctx->sp]; ++i)
+		{
+			value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
+			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, value);
+		}
 		pop(ctx);
 		goto machine_start;
 
 	case THRIFT_I64:
-		value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, value);
+		for(int32_t i = 0; i < ctx->stack_repeat[ctx->sp]; ++i)
+		{
+			value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
+			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I64, value);
+		}
 		pop(ctx);
 		goto machine_start;
 
@@ -181,7 +187,7 @@ machine0:
 		if(value.string_size < 0){goto error_invalid_state;}
 		if(value.string_size > 0)
 		{
-			value.string_size = value.string_size < 100 ? value.string_size : 100; // temprary safeguard
+			value.string_size = value.string_size < 100 ? value.string_size : 100; // temporary safeguard
 			value.string_data = ecs_os_malloc(value.string_size+1);
 			memcpy(value.string_data, ctx->reader.data_current, value.string_size);
 			value.string_data[value.string_size] = '\0';
@@ -227,9 +233,12 @@ machine_start:
 		ctx->sp++;
 		ctx->stack_id[ctx->sp] = ctx->last_field_id;
 		ctx->stack_type[ctx->sp] = type;
+		ctx->stack_repeat[ctx->sp] = 1;
 		goto machine0;
 
-
+	case THRIFT_LIST:
+		pop(ctx);
+		goto machine_start;
 
 	default:
 		goto error_invalid_state;
