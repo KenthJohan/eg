@@ -19,7 +19,7 @@ typedef enum
 	THRIFT_SET = 0x0A,
 	THRIFT_MAP = 0x0B,
 	THRIFT_STRUCT = 0x0C
-} thrift_t;
+} thrift_type_t;
 
 
 
@@ -30,7 +30,7 @@ typedef union
 	int64_t value_i64;
 	struct
 	{
-		thrift_t list_type;
+		thrift_type_t list_type;
 		int32_t list_size;
 	};
 	struct
@@ -61,24 +61,22 @@ char const * thrift_get_type_string(uint32_t t);
 
 
 
-#define THRIFT_STACK_MAX_SIZE 100
+#define THRIFT_STACK_MAX_SIZE 64
+#define THRIFT_MAX_STRING_SIZE 1024
 typedef struct thrift_stack_t thrift_stack_t;
 struct thrift_stack_t
 {
 	thrift_reader_t reader;
 	int32_t last_field_id;
-	int32_t stack_id[THRIFT_STACK_MAX_SIZE];
-	thrift_t stack_type[THRIFT_STACK_MAX_SIZE];
-
-
-	thrift_t stack_list_type[THRIFT_STACK_MAX_SIZE];
-	int32_t stack_list_repeat[THRIFT_STACK_MAX_SIZE];
-
 
 	int32_t sp;
+	int32_t       stack_id        [THRIFT_STACK_MAX_SIZE];
+	thrift_type_t stack_type      [THRIFT_STACK_MAX_SIZE];
+	thrift_type_t stack_list_type [THRIFT_STACK_MAX_SIZE];
+	int32_t       stack_list_size [THRIFT_STACK_MAX_SIZE];
+
     void (*cb_field)(thrift_stack_t * ctx, int32_t id, int32_t type, thrift_value_t value);
 };
 
 
-
-void thrift_stacked_read(thrift_stack_t * ctx);
+int thrift_read(thrift_stack_t * ctx);

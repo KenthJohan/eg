@@ -131,11 +131,7 @@ void parquet_read1(parquet_reader1_t * reader, char const * filename)
     footer.reader.data_end = footer.reader.data_start + l;
     footer.cb_field = parquet_footer_cb;
     fread(footer.reader.data_start, l, 1, file); 
-
-    footer.sp = 0;
-    footer.stack_id[footer.sp] = 1;
-    footer.stack_type[footer.sp] = THRIFT_STRUCT;
-    thrift_stacked_read(&footer);
+    thrift_read(&footer);
 
     // column first_name
     /*
