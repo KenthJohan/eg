@@ -58,6 +58,9 @@ char const * thrift_get_type_string(uint32_t t);
 
 
 
+
+
+
 #define THRIFT_STACK_MAX_SIZE 100
 typedef struct thrift_stack_t thrift_stack_t;
 struct thrift_stack_t
@@ -66,7 +69,12 @@ struct thrift_stack_t
 	int32_t last_field_id;
 	int32_t stack_id[THRIFT_STACK_MAX_SIZE];
 	thrift_t stack_type[THRIFT_STACK_MAX_SIZE];
-	int32_t stack_repeat[THRIFT_STACK_MAX_SIZE];
+
+
+	thrift_t stack_list_type[THRIFT_STACK_MAX_SIZE];
+	int32_t stack_list_repeat[THRIFT_STACK_MAX_SIZE];
+
+
 	int32_t sp;
     void (*cb_field)(thrift_stack_t * ctx, int32_t id, int32_t type, thrift_value_t value);
 };

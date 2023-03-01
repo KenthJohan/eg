@@ -121,13 +121,55 @@ int64_t thrift_read_zigzag_i64(thrift_reader_t * reader)
 }
 
 
+
+
 void pop(thrift_stack_t * ctx)
 {
 	ctx->stack_id[ctx->sp] = 0;
 	ctx->stack_type[ctx->sp] = 0;
-	ctx->stack_repeat[ctx->sp] = 0;
 	ctx->sp--;
 }
+
+
+
+
+
+
+void read_primitive(thrift_stack_t * ctx, int32_t n, thrift_t type)
+{
+	thrift_value_t value;
+	for(int32_t i = 0; i < n; ++i)
+	{
+		switch (type)
+		{
+		case THRIFT_I32:
+			value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
+			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, value);
+			break;
+
+		case THRIFT_I64:
+			value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
+			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I64, value);
+			break;
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -139,6 +181,79 @@ void thrift_stacked_read(thrift_stack_t * ctx)
 	uint8_t modifier;
 	thrift_t type;
 
+	ctx->sp = 0;
+	ctx->stack_type[ctx->sp] = THRIFT_STRUCT;
+
+
+
+
+
+machine_branch:
+	switch (ctx->stack_type[ctx->sp])
+	{
+	case THRIFT_I32:
+		value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, value);
+		pop(ctx);
+		goto machine_branch;
+
+	case THRIFT_I64:
+		value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I64, value);
+		pop(ctx);
+		goto machine_branch;
+
+	case THRIFT_BINARY:
+		value.string_size = thrift_read_varint_i64(ctx);
+		value.string_data = NULL;
+		if(value.string_size < 0){goto error_invalid_state;}
+		if(value.string_size > 0)
+		{
+			value.string_size = value.string_size < 100 ? value.string_size : 100; // temprary safeguard
+			value.string_data = ecs_os_malloc(value.string_size+1);
+			memcpy(value.string_data, ctx->reader.data_current, value.string_size);
+			value.string_data[value.string_size] = '\0';
+			ctx->reader.data_current += value.string_size;
+		}
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_BINARY, value);
+		pop(ctx);
+		goto machine_branch;
+
+	case THRIFT_STRUCT:
+		byte = thrift_read_u8(&ctx->reader);
+		modifier = (byte & 0xF0) >> 4;
+		type = byte & 0x0F;
+		if(type == THRIFT_STOP)
+		{
+			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STOP, value);
+			pop(ctx);
+			goto machine_branch;
+		}
+		if (modifier == 0)
+		{
+			ctx->last_field_id = thrift_read_varint_i64(&ctx->reader);
+		}
+		else
+		{
+			ctx->last_field_id = ctx->last_field_id + modifier;
+		}
+		ctx->sp++;
+		ctx->stack_type[ctx->sp] = type;
+		ctx->stack_id[ctx->sp] = ctx->last_field_id;
+		goto machine0;
+
+	case THRIFT_LIST:
+		if(ctx->stack_list_repeat[ctx->sp] == 0)
+		{
+			pop(ctx);
+			goto machine_branch;
+		}
+		ctx->stack_list_repeat[ctx->sp]--;
+		ctx->sp++;
+		ctx->stack_type[ctx->sp] = ctx->stack_list_type[ctx->sp-1];
+		goto machine0;
+
+	}
 
 machine0:
 	switch (ctx->stack_type[ctx->sp])
@@ -146,8 +261,8 @@ machine0:
 	case THRIFT_STRUCT:
 		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STRUCT, value);
 		ctx->last_field_id = 0;
-		goto machine_start;
-
+		break;
+	
 	case THRIFT_LIST:
 		byte = thrift_read_u8(&ctx->reader);
 		value.list_type = byte & 0x0F;
@@ -158,110 +273,11 @@ machine0:
 			value.list_size = thrift_read_varint_i64(&ctx->reader);
 		}
 		ctx->cb_field(ctx, ctx->last_field_id, type, value);
-		ctx->sp++;
-		ctx->stack_type[ctx->sp] = value.list_type;
-		ctx->stack_repeat[ctx->sp] = value.list_size;
-		goto machine0;
-
-	case THRIFT_I32:
-		for(int32_t i = 0; i < ctx->stack_repeat[ctx->sp]; ++i)
-		{
-			value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
-			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, value);
-		}
-		pop(ctx);
-		goto machine_start;
-
-	case THRIFT_I64:
-		for(int32_t i = 0; i < ctx->stack_repeat[ctx->sp]; ++i)
-		{
-			value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
-			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I64, value);
-		}
-		pop(ctx);
-		goto machine_start;
-
-	case THRIFT_BINARY:
-		value.string_size = thrift_read_varint_i64(&ctx->reader);
-		value.string_data = NULL;
-		if(value.string_size < 0){goto error_invalid_state;}
-		if(value.string_size > 0)
-		{
-			value.string_size = value.string_size < 100 ? value.string_size : 100; // temporary safeguard
-			value.string_data = ecs_os_malloc(value.string_size+1);
-			memcpy(value.string_data, ctx->reader.data_current, value.string_size);
-			value.string_data[value.string_size] = '\0';
-			ctx->reader.data_current += value.string_size;
-		}
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_BINARY, value);
-		pop(ctx);
-		goto machine_start;
-
-	default:
-		goto error_invalid_state;
+		ctx->stack_list_type[ctx->sp] = value.list_type;
+		ctx->stack_list_repeat[ctx->sp] = value.list_size;
+		break;
 	}
-
-
-
-machine_start:
-	switch (ctx->stack_type[ctx->sp])
-	{
-	case THRIFT_STRUCT:
-		byte = thrift_read_u8(&ctx->reader);
-		modifier = (byte & 0xF0) >> 4;
-		type = byte & 0x0F;
-		if(type == THRIFT_STOP)
-		{
-			ctx->last_field_id = ctx->stack_id[ctx->sp];
-			if(ctx->stack_repeat[ctx->sp] > 0)
-			{
-				ctx->stack_repeat[ctx->sp]--;
-				goto machine0;
-			}
-			pop(ctx);
-			goto machine_start;
-		}
-		if (modifier == 0)
-		{
-			ctx->last_field_id = thrift_read_varint_i64(&ctx->reader);
-		}
-		else
-		{
-			ctx->last_field_id = ctx->last_field_id + modifier;
-		}
-		//ctx->cb_field(ctx, 0, THRIFT_STRUCT, value);
-		ctx->sp++;
-		ctx->stack_id[ctx->sp] = ctx->last_field_id;
-		ctx->stack_type[ctx->sp] = type;
-		ctx->stack_repeat[ctx->sp] = 1;
-		goto machine0;
-
-	case THRIFT_LIST:
-		pop(ctx);
-		goto machine_start;
-
-	default:
-		goto error_invalid_state;
-	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	goto machine_branch;
 
 success_no_more_data:
 	printf("No more data is available!\n");

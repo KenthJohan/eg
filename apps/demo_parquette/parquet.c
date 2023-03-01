@@ -75,16 +75,16 @@ void parquet_assigner_filemetadata(parquet_filemetadata_t *data, int32_t id, int
 
 
 
-void print_field1(int32_t id, int32_t type, thrift_value_t value, int indent)
+void print_field1(int32_t id, int32_t type, thrift_value_t value, int32_t sp)
 {
 	char buf[100] = {0};
 	thrift_get_field_str(type, value, buf, 100);
-	for(int i = 0; i < indent; ++i){printf("    ");}
+	for(int i = 0; i < sp; ++i){printf("    ");}
 	switch (type)
 	{
 	case THRIFT_STRUCT:
 		printf("%02i =\n", id);
-		for(int i = 0; i < indent; ++i){printf("    ");}
+		for(int i = 0; i < sp; ++i){printf("    ");}
 		printf("{\n");
 		break;
 	case THRIFT_STOP:printf("}\n");break;
@@ -94,7 +94,7 @@ void print_field1(int32_t id, int32_t type, thrift_value_t value, int indent)
 	case THRIFT_STRUCT:break;
 	case THRIFT_STOP:break;
 	default:
-		printf("%02i = %-20s : %s\n", id, buf, thrift_get_type_string(type));
+		printf("%02i = %-20s : %s, %i\n", id, buf, thrift_get_type_string(type), sp);
 		break;
 	}
 }
