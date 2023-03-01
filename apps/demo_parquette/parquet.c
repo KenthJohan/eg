@@ -94,7 +94,8 @@ void print_field1(int32_t id, int32_t type, thrift_value_t value, int32_t sp)
 	case THRIFT_STRUCT:break;
 	case THRIFT_STOP:break;
 	default:
-		printf("%02i = %-20s : %s, %i\n", id, buf, thrift_get_type_string(type), sp);
+		//printf("%02i = %-20s : %s, %i\n", id, buf, thrift_get_type_string(type), sp);
+		printf("%02i = %-20s : %s\n", id, buf, thrift_get_type_string(type));
 		break;
 	}
 }

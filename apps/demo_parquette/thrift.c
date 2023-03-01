@@ -184,7 +184,30 @@ void thrift_stacked_read(thrift_stack_t * ctx)
 	ctx->sp = 0;
 	ctx->stack_type[ctx->sp] = THRIFT_STRUCT;
 
-
+machine0:
+	switch (ctx->stack_type[ctx->sp])
+	{
+	case THRIFT_STRUCT:
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STRUCT, value);
+		ctx->last_field_id = 0;
+		break;
+	
+	case THRIFT_LIST:
+		byte = thrift_read_u8(&ctx->reader);
+		value.list_type = byte & 0x0F;
+		value.list_size = (byte >> 4) & 0x0F;
+		if(ctx->reader.data_current >= ctx->reader.data_end){goto success_no_more_data;}
+		if(value.list_size == 0xF)
+		{
+			value.list_size = thrift_read_varint_i64(&ctx->reader);
+		}
+		ctx->cb_field(ctx, ctx->last_field_id, type, value);
+		ctx->stack_list_type[ctx->sp] = value.list_type;
+		ctx->stack_list_repeat[ctx->sp] = value.list_size;
+		ctx->stack_id[ctx->sp] = 0;
+		break;
+	}
+	goto machine_branch;
 
 
 
@@ -226,6 +249,7 @@ machine_branch:
 		if(type == THRIFT_STOP)
 		{
 			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STOP, value);
+			ctx->last_field_id = ctx->stack_id[ctx->sp];
 			pop(ctx);
 			goto machine_branch;
 		}
@@ -237,47 +261,27 @@ machine_branch:
 		{
 			ctx->last_field_id = ctx->last_field_id + modifier;
 		}
+		ctx->stack_id[ctx->sp] = ctx->last_field_id;
 		ctx->sp++;
 		ctx->stack_type[ctx->sp] = type;
-		ctx->stack_id[ctx->sp] = ctx->last_field_id;
 		goto machine0;
 
 	case THRIFT_LIST:
-		if(ctx->stack_list_repeat[ctx->sp] == 0)
+		if(ctx->stack_id[ctx->sp] >= ctx->stack_list_repeat[ctx->sp])
 		{
 			pop(ctx);
+			ctx->last_field_id = ctx->stack_id[ctx->sp];
 			goto machine_branch;
 		}
-		ctx->stack_list_repeat[ctx->sp]--;
+		ctx->last_field_id = ctx->stack_id[ctx->sp];
+		ctx->stack_id[ctx->sp]++;
 		ctx->sp++;
 		ctx->stack_type[ctx->sp] = ctx->stack_list_type[ctx->sp-1];
 		goto machine0;
 
 	}
 
-machine0:
-	switch (ctx->stack_type[ctx->sp])
-	{
-	case THRIFT_STRUCT:
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STRUCT, value);
-		ctx->last_field_id = 0;
-		break;
-	
-	case THRIFT_LIST:
-		byte = thrift_read_u8(&ctx->reader);
-		value.list_type = byte & 0x0F;
-		value.list_size = (byte >> 4) & 0x0F;
-		if(ctx->reader.data_current >= ctx->reader.data_end){goto success_no_more_data;}
-		if(value.list_size == 0xF)
-		{
-			value.list_size = thrift_read_varint_i64(&ctx->reader);
-		}
-		ctx->cb_field(ctx, ctx->last_field_id, type, value);
-		ctx->stack_list_type[ctx->sp] = value.list_type;
-		ctx->stack_list_repeat[ctx->sp] = value.list_size;
-		break;
-	}
-	goto machine_branch;
+
 
 success_no_more_data:
 	printf("No more data is available!\n");
