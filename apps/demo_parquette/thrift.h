@@ -67,7 +67,6 @@ struct thrift_cursor_t
 	thrift_type_t stack_type      [THRIFT_STACK_MAX_SIZE];
 	thrift_type_t stack_list_type [THRIFT_STACK_MAX_SIZE];
 	int32_t       stack_list_size [THRIFT_STACK_MAX_SIZE];
-    void (*cb_field)(thrift_cursor_t * ctx, int32_t id, int32_t type, thrift_value_t value);
 };
 
 void thrift_cursor_init(thrift_cursor_t * ctx);

@@ -159,7 +159,6 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * 
 	{
 	case THRIFT_STRUCT:
 		//The start of a struct
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STRUCT, *value);
 		ctx->last_field_id = 0;
 		break;
 	
@@ -176,7 +175,6 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * 
 			data = thrift_read_varint_i64(data, &list_size);
 			value->list_size = list_size;
 		}
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_LIST, *value);
 		ctx->stack_list_type[ctx->sp] = value->list_type;
 		ctx->stack_list_size[ctx->sp] = value->list_size;
 		ctx->stack_id[ctx->sp] = 0;
@@ -185,14 +183,12 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * 
 	case THRIFT_I32:
 		if(data >= (data_end)){goto error_no_more_data;}
 		data = thrift_read_zigzag_i64(data, &value->value_i64);
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, *value);
 		pop(ctx);
 		break;
 
 	case THRIFT_I64:
 		if(data >= (data_end)){goto error_no_more_data;}
 		data = thrift_read_zigzag_i64(data, &value->value_i64);
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I64, *value);
 		pop(ctx);
 		break;
 
@@ -209,7 +205,6 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * 
 			value->string_data[value->string_size] = '\0';
 			data += value->string_size;
 		}
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_BINARY, *value);
 		pop(ctx);
 		break;
 
@@ -253,7 +248,6 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * ctx, uint8_t const * d
 				// The end of thrift data:
 				goto success;
 			}
-			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STOP, (thrift_value_t){0});
 			ctx->last_field_id = ctx->stack_id[ctx->sp];
 			pop(ctx);
 			break;

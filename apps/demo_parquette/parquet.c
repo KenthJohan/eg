@@ -101,10 +101,6 @@ void print_field1(int32_t id, int32_t type, thrift_value_t value, int32_t sp)
 }
 
 
-void parquet_footer_cb(thrift_cursor_t *ctx, int32_t id, int32_t type, thrift_value_t value)
-{
-	print_field1(id, type, value, ctx->sp);
-}
 
 
 
@@ -131,7 +127,6 @@ void parquet_read1(parquet_reader1_t * reader, char const * filename)
     thrift_api.malloc_ = ecs_os_api.malloc_;
 
 	thrift_cursor_t cursor = {0};
-    cursor.cb_field = parquet_footer_cb;
     thrift_cursor_init(&cursor);
 
 
@@ -142,8 +137,11 @@ void parquet_read1(parquet_reader1_t * reader, char const * filename)
     while(current)
     {
         current = thrift_cursor_read_type(&cursor, current, data+l, &type, &id);
-        if(type == THRIFT_STOP){continue;}
-        current = thrift_cursor_read_value(&cursor, current, data+l, &value);
+        if(type != THRIFT_STOP)
+        {
+            current = thrift_cursor_read_value(&cursor, current, data+l, &value);
+        }
+        print_field1(id, type, value, cursor.sp - (type==THRIFT_STRUCT));
     }
 
 
