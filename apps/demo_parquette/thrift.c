@@ -1,9 +1,16 @@
 #include "thrift.h"
 #include <stdint.h>
-#include <ctype.h>
-#include "flecs.h"
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 // https://github.com/apache/thrift/blob/master/lib/cpp/src/thrift/protocol/TCompactProtocol.tcc
+
+
+thrift_api_t thrift_api = {
+    .malloc_ = NULL
+};
+
 
 char const * thrift_get_type_string(uint32_t t)
 {
@@ -64,11 +71,11 @@ void thrift_get_field_str(int32_t type, thrift_value_t value, char * buf, int n)
 }
 
 
-uint8_t thrift_read_u8(thrift_reader_t * reader)
+int8_t const * thrift_read_u8(int8_t const *data, int8_t * result)
 {
-	uint8_t b = reader->data_current[0];
-	reader->data_current++;
-	return b;
+	*result = data[0];
+	data++;
+	return data;
 }
 
 
@@ -78,7 +85,7 @@ int64_t thrift_zigzag_to_i32(uint64_t n)
 }
 
 
-int64_t thrift_read_varint_i64(thrift_reader_t * reader)
+int8_t const * thrift_read_varint_i64(int8_t const *data, int64_t * result)
 {
 	int rsize = 0;
 	int lo = 0;
@@ -86,7 +93,8 @@ int64_t thrift_read_varint_i64(thrift_reader_t * reader)
 	int shift = 0;
 	while (1)
 	{
-		uint8_t b = thrift_read_u8(reader);
+		uint8_t b = data[0];
+		data++;
 		rsize ++;
 		if (shift <= 25)
 		{
@@ -110,14 +118,16 @@ int64_t thrift_read_varint_i64(thrift_reader_t * reader)
 		}
 	}
 	//return new Int64(hi, lo);
-	return (hi << 32) | (lo << 0);
+	*result = (hi << 32) | (lo << 0);
+	return data;
 }
 
 
-int64_t thrift_read_zigzag_i64(thrift_reader_t * reader)
+int8_t const * thrift_read_zigzag_i64(int8_t const *data, int64_t * result)
 {
-	int64_t value = thrift_read_varint_i64(reader);
-	return thrift_zigzag_to_i32(value);
+	data = thrift_read_varint_i64(data, result);
+	*result = thrift_zigzag_to_i32(*result);
+	return data;
 }
 
 
@@ -134,9 +144,9 @@ void pop(thrift_stack_t * ctx)
 
 
 
-int thrift_read(thrift_stack_t * ctx)
+int thrift_read(thrift_stack_t * ctx, int8_t const * data, int32_t data_length)
 {
-	if(ctx->reader.data_current >= ctx->reader.data_end){goto error_no_more_data;}
+	int8_t const * current = data;
     thrift_value_t value = {0};
 	uint8_t byte;
 	uint8_t modifier;
@@ -157,14 +167,16 @@ machine0:
 		break;
 	
 	case THRIFT_LIST:
-		if(ctx->reader.data_current >= ctx->reader.data_end){goto error_no_more_data;}
-		byte = thrift_read_u8(&ctx->reader);
+		if(current >= (data+data_length)){goto error_no_more_data;}
+		current = thrift_read_u8(current, &byte);
 		value.list_type = byte & 0x0F;
 		value.list_size = (byte >> 4) & 0x0F;
 		if(value.list_size == 0xF)
 		{
-			if(ctx->reader.data_current >= ctx->reader.data_end){goto error_no_more_data;}
-			value.list_size = thrift_read_varint_i64(&ctx->reader);
+			if(current >= (data+data_length)){goto error_no_more_data;}
+			int64_t list_size;
+			current = thrift_read_varint_i64(current, &list_size);
+			value.list_size = list_size;
 		}
 		ctx->cb_field(ctx, ctx->last_field_id, type, value);
 		ctx->stack_list_type[ctx->sp] = value.list_type;
@@ -184,39 +196,39 @@ machine_branch:
 	switch (ctx->stack_type[ctx->sp])
 	{
 	case THRIFT_I32:
-		if(ctx->reader.data_current >= ctx->reader.data_end){goto error_no_more_data;}
-		value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
+		if(current >= (data+data_length)){goto error_no_more_data;}
+		current = thrift_read_zigzag_i64(current, &value.value_i64);
 		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, value);
 		pop(ctx);
 		goto machine_branch;
 
 	case THRIFT_I64:
-		if(ctx->reader.data_current >= ctx->reader.data_end){goto error_no_more_data;}
-		value.value_i64 = thrift_read_zigzag_i64(&ctx->reader);
+		if(current >= (data+data_length)){goto error_no_more_data;}
+		current = thrift_read_zigzag_i64(current, &value.value_i64);
 		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I64, value);
 		pop(ctx);
 		goto machine_branch;
 
 	case THRIFT_BINARY:
-		if(ctx->reader.data_current >= ctx->reader.data_end){goto error_no_more_data;}
-		value.string_size = thrift_read_varint_i64(&ctx->reader);
+		if(current >= (data+data_length)){goto error_no_more_data;}
+		current = thrift_read_varint_i64(current, &value.value_i64);
 		value.string_data = NULL;
 		if(value.string_size < 0){goto error_invalid_state;}
 		if(value.string_size >= THRIFT_MAX_STRING_SIZE){goto error_invalid_state;}
 		if(value.string_size > 0)
 		{
-			value.string_data = ecs_os_malloc(value.string_size + 1); // Allocate one extra for null-termination
-			memcpy(value.string_data, ctx->reader.data_current, value.string_size);
+			value.string_data = thrift_api.malloc_(value.string_size + 1); // Allocate one extra for null-termination
+			memcpy(value.string_data, current, value.string_size);
 			value.string_data[value.string_size] = '\0';
-			ctx->reader.data_current += value.string_size;
+			current += value.string_size;
 		}
 		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_BINARY, value);
 		pop(ctx);
 		goto machine_branch;
 
 	case THRIFT_STRUCT:
-		if(ctx->reader.data_current >= ctx->reader.data_end){goto error_no_more_data;}
-		byte = thrift_read_u8(&ctx->reader);
+		if(current >= (data+data_length)){goto error_no_more_data;}
+		current = thrift_read_u8(current, &byte);
 		modifier = (byte & 0xF0) >> 4;
 		type = byte & 0x0F;
 		if(type == THRIFT_STOP)
@@ -229,8 +241,8 @@ machine_branch:
 		}
 		if (modifier == 0)
 		{
-			if(ctx->reader.data_current >= ctx->reader.data_end){goto error_no_more_data;}
-			ctx->last_field_id = thrift_read_varint_i64(&ctx->reader);
+			if(current >= (data+data_length)){goto error_no_more_data;}
+			current = thrift_read_varint_i64(current, &ctx->last_field_id);
 		}
 		else
 		{

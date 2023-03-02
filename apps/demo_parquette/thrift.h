@@ -1,8 +1,5 @@
 #pragma once
 #include <stdint.h>
-#include <stdio.h>
-#include "flecs.h"
-
 
 typedef enum
 {
@@ -22,8 +19,6 @@ typedef enum
 } thrift_type_t;
 
 
-
-
 typedef union
 {
 	uint64_t value_u64;
@@ -41,14 +36,14 @@ typedef union
 } thrift_value_t;
 
 
-typedef struct
-{
-	uint8_t * data_start;
-	uint8_t * data_end;
-	uint8_t * data_current;
-} thrift_reader_t;
 
+typedef void* (*thrift_api_malloc_t)(int size);
 
+typedef struct {
+    thrift_api_malloc_t malloc_;
+} thrift_api_t;
+
+extern thrift_api_t thrift_api;
 
 
 
@@ -66,17 +61,14 @@ char const * thrift_get_type_string(uint32_t t);
 typedef struct thrift_stack_t thrift_stack_t;
 struct thrift_stack_t
 {
-	thrift_reader_t reader;
-	int32_t last_field_id;
-
+	int64_t last_field_id;
 	int32_t sp;
 	int32_t       stack_id        [THRIFT_STACK_MAX_SIZE];
 	thrift_type_t stack_type      [THRIFT_STACK_MAX_SIZE];
 	thrift_type_t stack_list_type [THRIFT_STACK_MAX_SIZE];
 	int32_t       stack_list_size [THRIFT_STACK_MAX_SIZE];
-
     void (*cb_field)(thrift_stack_t * ctx, int32_t id, int32_t type, thrift_value_t value);
 };
 
 
-int thrift_read(thrift_stack_t * ctx);
+int thrift_read(thrift_stack_t * ctx, int8_t const * data, int32_t data_length);
