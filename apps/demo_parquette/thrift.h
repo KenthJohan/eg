@@ -71,4 +71,7 @@ struct thrift_cursor_t
 };
 
 void thrift_cursor_init(thrift_cursor_t * ctx);
-int thrift_cursor_read(thrift_cursor_t * ctx, int8_t const * data, int32_t data_length);
+uint8_t const * thrift_cursor_read(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, thrift_value_t * value, int64_t * id);
+
+uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_value_t * value);
+uint8_t const * thrift_cursor_read_type(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id);

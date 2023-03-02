@@ -152,93 +152,100 @@ void thrift_cursor_init(thrift_cursor_t * ctx)
 	ctx->stack_list_size[ctx->sp] = 0;
 }
 
-
-
-int thrift_cursor_read(thrift_cursor_t * ctx, int8_t const * data, int32_t data_length)
+uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_value_t * value)
 {
-	int8_t const * current = data;
-    thrift_value_t value = {0};
 	uint8_t byte;
-	uint8_t modifier;
-	thrift_type_t type;
-
-machine0:
 	switch (ctx->stack_type[ctx->sp])
 	{
 	case THRIFT_STRUCT:
 		//The start of a struct
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STRUCT, value);
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STRUCT, *value);
 		ctx->last_field_id = 0;
 		break;
 	
 	case THRIFT_LIST:
-		//The start of a list
-		if(current >= (data+data_length)){goto error_no_more_data;}
-		current = thrift_read_u8(current, &byte);
-		value.list_type = byte & 0x0F;
-		value.list_size = (byte >> 4) & 0x0F;
-		if(value.list_size == 0xF)
+		//The start of a list  
+		if(data >= (data_end)){goto error_no_more_data;}
+		data = thrift_read_u8(data, &byte);
+		value->list_type = byte & 0x0F;
+		value->list_size = (byte >> 4) & 0x0F;
+		if(value->list_size == 0xF)
 		{
-			if(current >= (data+data_length)){goto error_no_more_data;}
+			if(data >= (data_end)){goto error_no_more_data;}
 			int64_t list_size;
-			current = thrift_read_varint_i64(current, &list_size);
-			value.list_size = list_size;
+			data = thrift_read_varint_i64(data, &list_size);
+			value->list_size = list_size;
 		}
-		ctx->cb_field(ctx, ctx->last_field_id, type, value);
-		ctx->stack_list_type[ctx->sp] = value.list_type;
-		ctx->stack_list_size[ctx->sp] = value.list_size;
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_LIST, *value);
+		ctx->stack_list_type[ctx->sp] = value->list_type;
+		ctx->stack_list_size[ctx->sp] = value->list_size;
 		ctx->stack_id[ctx->sp] = 0;
+		break;
+
+	case THRIFT_I32:
+		if(data >= (data_end)){goto error_no_more_data;}
+		data = thrift_read_zigzag_i64(data, &value->value_i64);
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, *value);
+		pop(ctx);
+		break;
+
+	case THRIFT_I64:
+		if(data >= (data_end)){goto error_no_more_data;}
+		data = thrift_read_zigzag_i64(data, &value->value_i64);
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I64, *value);
+		pop(ctx);
+		break;
+
+	case THRIFT_BINARY:
+		if(data >= (data_end)){goto error_no_more_data;}
+		data = thrift_read_varint_i64(data, &value->value_i64);
+		value->string_data = NULL;
+		if(value->string_size < 0){goto error_invalid_state;}
+		if(value->string_size >= THRIFT_MAX_STRING_SIZE){goto error_invalid_state;}
+		if(value->string_size > 0)
+		{
+			value->string_data = thrift_api.malloc_(value->string_size + 1); // Allocate one extra for null-termination
+			memcpy(value->string_data, data, value->string_size);
+			value->string_data[value->string_size] = '\0';
+			data += value->string_size;
+		}
+		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_BINARY, *value);
+		pop(ctx);
 		break;
 
 	default:
 		// Nothing to do here.
 		break;
 	}
-	goto machine_branch;
 
 
+	return data;
 
-machine_branch:
+error_no_more_data:
+	printf("[ERROR] No more data is available!\n");
+	return NULL;
+
+error_invalid_state:
+	printf("[ERROR] Invalid state!\n");
+	return NULL;
+
+}
+
+
+uint8_t const * thrift_cursor_read_type(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id)
+{
+	uint8_t byte;
+	uint8_t modifier;
+
 	switch (ctx->stack_type[ctx->sp])
 	{
-	case THRIFT_I32:
-		if(current >= (data+data_length)){goto error_no_more_data;}
-		current = thrift_read_zigzag_i64(current, &value.value_i64);
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I32, value);
-		pop(ctx);
-		goto machine_branch;
-
-	case THRIFT_I64:
-		if(current >= (data+data_length)){goto error_no_more_data;}
-		current = thrift_read_zigzag_i64(current, &value.value_i64);
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_I64, value);
-		pop(ctx);
-		goto machine_branch;
-
-	case THRIFT_BINARY:
-		if(current >= (data+data_length)){goto error_no_more_data;}
-		current = thrift_read_varint_i64(current, &value.value_i64);
-		value.string_data = NULL;
-		if(value.string_size < 0){goto error_invalid_state;}
-		if(value.string_size >= THRIFT_MAX_STRING_SIZE){goto error_invalid_state;}
-		if(value.string_size > 0)
-		{
-			value.string_data = thrift_api.malloc_(value.string_size + 1); // Allocate one extra for null-termination
-			memcpy(value.string_data, current, value.string_size);
-			value.string_data[value.string_size] = '\0';
-			current += value.string_size;
-		}
-		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_BINARY, value);
-		pop(ctx);
-		goto machine_branch;
-
 	case THRIFT_STRUCT:
 		// Reading a type of a struct member:
-		if(current >= (data+data_length)){goto error_no_more_data;}
-		current = thrift_read_u8(current, &byte);
+		if(data >= (data_end)){goto error_no_more_data;}
+		data = thrift_read_u8(data, &byte);
 		modifier = (byte & 0xF0) >> 4;
-		type = byte & 0x0F;
-		if(type == THRIFT_STOP)
+		(*type) = byte & 0x0F;
+		if((*type) == THRIFT_STOP)
 		{
 			// The end of a struct:
 			if(ctx->sp == 0)
@@ -246,60 +253,71 @@ machine_branch:
 				// The end of thrift data:
 				goto success;
 			}
-			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STOP, value);
+			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STOP, (thrift_value_t){0});
 			ctx->last_field_id = ctx->stack_id[ctx->sp];
 			pop(ctx);
-			goto machine_branch;
+			break;
 		}
 		if (modifier == 0)
 		{
-			if(current >= (data+data_length)){goto error_no_more_data;}
-			current = thrift_read_varint_i64(current, &ctx->last_field_id);
+			if(data >= (data_end)){goto error_no_more_data;}
+			data = thrift_read_varint_i64(data, &ctx->last_field_id);
 		}
 		else
 		{
 			ctx->last_field_id = ctx->last_field_id + modifier;
 		}
 		ctx->stack_id[ctx->sp] = ctx->last_field_id;
+		*id = ctx->last_field_id;
 		ctx->sp++;
 		if(ctx->sp > THRIFT_STACK_MAX_SIZE){goto error_stack_overflow;}
 		// Start to decode the member value depending on which type:
-		ctx->stack_type[ctx->sp] = type;
-		goto machine0;
+		ctx->stack_type[ctx->sp] = *type;
+		break;
 
 	case THRIFT_LIST:
+		// Check if end of list:
 		if(ctx->stack_id[ctx->sp] >= ctx->stack_list_size[ctx->sp])
 		{
-			//The end of a list
+			// The end of a list, pop out of list context:
 			pop(ctx);
+			// Restore last field id:
 			ctx->last_field_id = ctx->stack_id[ctx->sp];
-			goto machine_branch;
+			break;
 		}
 		ctx->last_field_id = ctx->stack_id[ctx->sp];
+		*id = ctx->stack_id[ctx->sp];
+		// Iterate single element in the list:
 		ctx->stack_id[ctx->sp]++;
+		// Push new context for next element:
 		ctx->sp++;
 		if(ctx->sp > THRIFT_STACK_MAX_SIZE){goto error_stack_overflow;}
 		ctx->stack_type[ctx->sp] = ctx->stack_list_type[ctx->sp-1];
-		goto machine0;
+		*type = ctx->stack_type[ctx->sp];
+		break;
 
 	default:
 		goto error_invalid_state;
 	}
 
+
+	return data;
+
+
 success:
 	printf("Success!\n");
-	return 0;
+	return NULL;
 
 error_no_more_data:
-	printf("No more data is available!\n");
-	return -1;
+	printf("[ERROR] No more data is available!\n");
+	return NULL;
 
 error_invalid_state:
 	printf("[ERROR] Invalid state!\n");
-	return -1;
+	return NULL;
 
 error_stack_overflow:
 	printf("[ERROR] Stack overflow!\n");
-	return -1;
+	return NULL;
 
 }

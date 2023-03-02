@@ -125,14 +125,27 @@ void parquet_read1(parquet_reader1_t * reader, char const * filename)
     fseek(file, 0, SEEK_SET);
     fread(par2, sizeof(par2), 1, file);
     fseek(file, -8-l, SEEK_END);
-	thrift_cursor_t footer = {0};
     int8_t * data = ecs_os_malloc(l);
-    footer.cb_field = parquet_footer_cb;
     fread(data, l, 1, file);
 
     thrift_api.malloc_ = ecs_os_api.malloc_;
-    thrift_cursor_init(&footer);
-    thrift_cursor_read(&footer, data, l);
+
+	thrift_cursor_t cursor = {0};
+    cursor.cb_field = parquet_footer_cb;
+    thrift_cursor_init(&cursor);
+
+
+    uint8_t * current = data;
+    thrift_type_t type = THRIFT_STRUCT;
+    thrift_value_t value;
+    int64_t id;
+    while(current)
+    {
+        current = thrift_cursor_read_type(&cursor, current, data+l, &type, &id);
+        if(type == THRIFT_STOP){continue;}
+        current = thrift_cursor_read_value(&cursor, current, data+l, &value);
+    }
+
 
     // column first_name
     /*
