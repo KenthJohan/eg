@@ -101,7 +101,7 @@ void print_field1(int32_t id, int32_t type, thrift_value_t value, int32_t sp)
 }
 
 
-void parquet_footer_cb(thrift_stack_t *ctx, int32_t id, int32_t type, thrift_value_t value)
+void parquet_footer_cb(thrift_cursor_t *ctx, int32_t id, int32_t type, thrift_value_t value)
 {
 	print_field1(id, type, value, ctx->sp);
 }
@@ -125,13 +125,14 @@ void parquet_read1(parquet_reader1_t * reader, char const * filename)
     fseek(file, 0, SEEK_SET);
     fread(par2, sizeof(par2), 1, file);
     fseek(file, -8-l, SEEK_END);
-	thrift_stack_t footer = {0};
+	thrift_cursor_t footer = {0};
     int8_t * data = ecs_os_malloc(l);
     footer.cb_field = parquet_footer_cb;
     fread(data, l, 1, file);
 
     thrift_api.malloc_ = ecs_os_api.malloc_;
-    thrift_read(&footer, data, l);
+    thrift_cursor_init(&footer);
+    thrift_cursor_read(&footer, data, l);
 
     // column first_name
     /*

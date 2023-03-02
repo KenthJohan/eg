@@ -133,7 +133,7 @@ int8_t const * thrift_read_zigzag_i64(int8_t const *data, int64_t * result)
 
 
 
-void pop(thrift_stack_t * ctx)
+void pop(thrift_cursor_t * ctx)
 {
 	ctx->stack_id[ctx->sp] = 0;
 	ctx->stack_type[ctx->sp] = 0;
@@ -143,8 +143,18 @@ void pop(thrift_stack_t * ctx)
 }
 
 
+void thrift_cursor_init(thrift_cursor_t * ctx)
+{
+	ctx->sp = 0;
+	ctx->stack_id[ctx->sp] = 0;
+	ctx->stack_type[ctx->sp] = THRIFT_STRUCT;
+	ctx->stack_list_type[ctx->sp] = THRIFT_STOP;
+	ctx->stack_list_size[ctx->sp] = 0;
+}
 
-int thrift_read(thrift_stack_t * ctx, int8_t const * data, int32_t data_length)
+
+
+int thrift_cursor_read(thrift_cursor_t * ctx, int8_t const * data, int32_t data_length)
 {
 	int8_t const * current = data;
     thrift_value_t value = {0};
@@ -152,21 +162,17 @@ int thrift_read(thrift_stack_t * ctx, int8_t const * data, int32_t data_length)
 	uint8_t modifier;
 	thrift_type_t type;
 
-	ctx->sp = 0;
-	ctx->stack_id[ctx->sp] = 0;
-	ctx->stack_type[ctx->sp] = THRIFT_STRUCT;
-	ctx->stack_list_type[ctx->sp] = THRIFT_STOP;
-	ctx->stack_list_size[ctx->sp] = 0;
-
 machine0:
 	switch (ctx->stack_type[ctx->sp])
 	{
 	case THRIFT_STRUCT:
+		//The start of a struct
 		ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STRUCT, value);
 		ctx->last_field_id = 0;
 		break;
 	
 	case THRIFT_LIST:
+		//The start of a list
 		if(current >= (data+data_length)){goto error_no_more_data;}
 		current = thrift_read_u8(current, &byte);
 		value.list_type = byte & 0x0F;
@@ -227,13 +233,19 @@ machine_branch:
 		goto machine_branch;
 
 	case THRIFT_STRUCT:
+		// Reading a type of a struct member:
 		if(current >= (data+data_length)){goto error_no_more_data;}
 		current = thrift_read_u8(current, &byte);
 		modifier = (byte & 0xF0) >> 4;
 		type = byte & 0x0F;
 		if(type == THRIFT_STOP)
 		{
-			if(ctx->sp == 0){goto success;}
+			// The end of a struct:
+			if(ctx->sp == 0)
+			{
+				// The end of thrift data:
+				goto success;
+			}
 			ctx->cb_field(ctx, ctx->last_field_id, THRIFT_STOP, value);
 			ctx->last_field_id = ctx->stack_id[ctx->sp];
 			pop(ctx);
@@ -251,12 +263,14 @@ machine_branch:
 		ctx->stack_id[ctx->sp] = ctx->last_field_id;
 		ctx->sp++;
 		if(ctx->sp > THRIFT_STACK_MAX_SIZE){goto error_stack_overflow;}
+		// Start to decode the member value depending on which type:
 		ctx->stack_type[ctx->sp] = type;
 		goto machine0;
 
 	case THRIFT_LIST:
 		if(ctx->stack_id[ctx->sp] >= ctx->stack_list_size[ctx->sp])
 		{
+			//The end of a list
 			pop(ctx);
 			ctx->last_field_id = ctx->stack_id[ctx->sp];
 			goto machine_branch;
