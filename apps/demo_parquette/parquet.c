@@ -132,6 +132,7 @@ void parquet_read1(parquet_reader1_t * reader, char const * filename)
     thrift_api.onerror_ = thrift_onerror;
 
 	thrift_cursor_t cursor = {0};
+    cursor.stack_size = 64;
     thrift_cursor_init(&cursor);
 
 

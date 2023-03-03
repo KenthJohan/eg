@@ -36,19 +36,23 @@ typedef union
 } thrift_value_t;
 
 
-
-
-#define THRIFT_STACK_MAX_SIZE 64
 #define THRIFT_MAX_STRING_SIZE 1024
+
+typedef struct
+{
+	int32_t id;
+	thrift_type_t type;
+	thrift_type_t list_type;
+	int32_t list_size;
+} thrift_stack_t;
+
 typedef struct thrift_cursor_t thrift_cursor_t;
 struct thrift_cursor_t
 {
 	int64_t last_field_id;
 	int32_t sp;
-	int32_t       stack_id        [THRIFT_STACK_MAX_SIZE];
-	thrift_type_t stack_type      [THRIFT_STACK_MAX_SIZE];
-	thrift_type_t stack_list_type [THRIFT_STACK_MAX_SIZE];
-	int32_t       stack_list_size [THRIFT_STACK_MAX_SIZE];
+	int32_t stack_size;
+	thrift_stack_t * stack;
 };
 
 typedef void* (*thrift_api_malloc_t)(int size);
