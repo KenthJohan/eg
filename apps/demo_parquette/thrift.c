@@ -4,6 +4,9 @@
 #include <stdio.h>
 
 
+
+
+#define THRIFT_MAX_STRING_SIZE 1024
 #define ENABLE_LOG
 #define ENABLE_ASSERT
 
@@ -22,8 +25,6 @@
 #define ASSERT(c)
 #endif
 
-
-// https://github.com/apache/thrift/blob/master/lib/cpp/src/thrift/protocol/TCompactProtocol.tcc
 
 
 
@@ -114,6 +115,7 @@ int64_t thrift_zigzag_to_i32(uint64_t n)
 
 int8_t const * thrift_read_varint_i64(uint8_t const *data, int64_t * result)
 {
+	ASSERT(data);
 	ASSERT(result);
 	int rsize = 0;
 	int lo = 0;
@@ -146,13 +148,14 @@ int8_t const * thrift_read_varint_i64(uint8_t const *data, int64_t * result)
 		}
 	}
 	//return new Int64(hi, lo);
-	*result = (hi << 32) | (lo << 0);
+	(*result) = (hi << 32) | (lo << 0);
 	return data;
 }
 
 
 uint8_t const * thrift_read_zigzag_i64(uint8_t const *data, int64_t * result)
 {
+	ASSERT(data);
 	ASSERT(result);
 	data = thrift_read_varint_i64(data, result);
 	*result = thrift_zigzag_to_i32(*result);
@@ -191,6 +194,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 	ASSERT(data);
 	ASSERT(data_end);
 	ASSERT(value);
+	ASSERT(cursor->stack);
 	
 	if(data >= (data_end))
 	{
@@ -232,12 +236,14 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 
 	// Decode primitive:
 	case THRIFT_I32:
+		ASSERT(data <= data_end);
 		data = thrift_read_zigzag_i64(data, &value->value_i64);
 		pop(cursor);
 		break;
 
 	// Decode primitive:
 	case THRIFT_I64:
+		ASSERT(data <= data_end);
 		data = thrift_read_zigzag_i64(data, &value->value_i64);
 		pop(cursor);
 		break;
@@ -271,6 +277,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		break;
 	}
 
+	// Return the current position of thrift byte array:
 	return data;
 }
 
@@ -282,6 +289,7 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 	ASSERT(data_end);
 	ASSERT(type);
 	ASSERT(id);
+	ASSERT(cursor->stack);
 
 	uint8_t byte;
 	uint8_t modifier;
@@ -294,24 +302,30 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 
 	switch (cursor->stack[cursor->sp].type)
 	{
-	// Decode struct member type:
+	// In the context of an struct there are fields we need to decode:
 	case THRIFT_STRUCT:
 		ASSERT(data <= data_end);
+		
+		// Decode field type:
 		data = thrift_read_u8(data, &byte);
 		modifier = (byte & 0xF0) >> 4;
 		(*type) = byte & 0x0F;
+		// If the field type is STOP then this is the end of the struct:
 		if((*type) == THRIFT_STOP)
 		{
-			// The end of a struct:
+			// If this is the end of thrift data:
 			if(cursor->sp == 0)
 			{
-				// The end of thrift data:
+				// Decoding is successful and finnished here:
 				return NULL;
 			}
 			cursor->last_field_id = cursor->stack[cursor->sp].id;
+			// We are done in this struct so we will pop out of this context:
 			pop(cursor);
 			break;
 		}
+
+		// Check if field id is large or small then use incrament delta:
 		if (modifier == 0)
 		{
 			if(data >= (data_end))
@@ -319,15 +333,17 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 				LOG_ERROR_CURSOR(cursor, "No more data");
 				return NULL;
 			}
+			// The field id is large then we need to read again for an larger id:
 			data = thrift_read_varint_i64(data, &cursor->last_field_id);
 		}
 		else
 		{
+			// The field id is small thus use incrament delta:
 			cursor->last_field_id = cursor->last_field_id + modifier;
 		}
 		cursor->stack[cursor->sp].id = cursor->last_field_id;
 		*id = cursor->last_field_id;
-		// Push new member on to stack:
+		// Push new field on to stack:
 		cursor->sp++;
 		if(cursor->sp >= cursor->stack_size)
 		{
@@ -335,7 +351,7 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 			return NULL;
 		}
 		cursor->stack[cursor->sp].type = (*type);
-		// After this we neeed to decode the member value depending on which type:
+		// After this we neeed to decode the field value depending on which type:
 		break;
 
 
@@ -370,5 +386,6 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 		return NULL;
 	}
 
+	// Return the current position of thrift byte array:
 	return data;
 }
