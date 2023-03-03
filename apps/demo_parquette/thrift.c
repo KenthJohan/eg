@@ -1,20 +1,26 @@
 #include "thrift.h"
 #include <stdint.h>
 #include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+
 
 // https://github.com/apache/thrift/blob/master/lib/cpp/src/thrift/protocol/TCompactProtocol.tcc
 
 
+
+
 thrift_api_t thrift_api = {
-    .malloc_ = NULL
+    .malloc_ = NULL,
+    .onerror_ = NULL,
 };
 
+#define LOG_ERROR(s) thrift_api.onerror_(s)
+#define LOG_ERROR_CURSOR(cursor, s) thrift_api.onerror_(s)
 
-char const * thrift_get_type_string(uint32_t t)
+
+char const * thrift_get_type_string(thrift_type_t type)
 {
-	switch(t)
+	switch(type)
 	{
 	case THRIFT_STOP: return "STOP";
 	case THRIFT_BOOLEAN_TRUE: return "BOOLEAN_TRUE";
@@ -46,7 +52,7 @@ void string_friendly(char s[], int n)
 	// Temorary end
 }
 
-void thrift_get_field_str(int32_t type, thrift_value_t value, char * buf, int n)
+void thrift_get_field_str(thrift_type_t type, thrift_value_t value, char * buf, int n)
 {
 	switch(type)
 	{
@@ -85,7 +91,7 @@ int64_t thrift_zigzag_to_i32(uint64_t n)
 }
 
 
-int8_t const * thrift_read_varint_i64(int8_t const *data, int64_t * result)
+int8_t const * thrift_read_varint_i64(uint8_t const *data, int64_t * result)
 {
 	int rsize = 0;
 	int lo = 0;
@@ -113,8 +119,8 @@ int8_t const * thrift_read_varint_i64(int8_t const *data, int64_t * result)
 		if (!(b & 0x80)){break;}
 		if (rsize >= 10)
 		{
-			printf("Variable-length int over 10 bytes.");
-			exit(1);
+			LOG_ERROR("Variable-length int over 10 bytes.");
+			return NULL;
 		}
 	}
 	//return new Int64(hi, lo);
@@ -123,7 +129,7 @@ int8_t const * thrift_read_varint_i64(int8_t const *data, int64_t * result)
 }
 
 
-int8_t const * thrift_read_zigzag_i64(int8_t const *data, int64_t * result)
+uint8_t const * thrift_read_zigzag_i64(uint8_t const *data, int64_t * result)
 {
 	data = thrift_read_varint_i64(data, result);
 	*result = thrift_zigzag_to_i32(*result);
@@ -133,71 +139,104 @@ int8_t const * thrift_read_zigzag_i64(int8_t const *data, int64_t * result)
 
 
 
-void pop(thrift_cursor_t * ctx)
+void pop(thrift_cursor_t * cursor)
 {
-	ctx->stack_id[ctx->sp] = 0;
-	ctx->stack_type[ctx->sp] = 0;
-	ctx->stack_list_type[ctx->sp] = 0;
-	ctx->stack_list_size[ctx->sp] = 0;
-	ctx->sp--;
+	cursor->stack_id[cursor->sp] = 0;
+	cursor->stack_type[cursor->sp] = 0;
+	cursor->stack_list_type[cursor->sp] = 0;
+	cursor->stack_list_size[cursor->sp] = 0;
+	cursor->sp--;
 }
 
 
-void thrift_cursor_init(thrift_cursor_t * ctx)
+void thrift_cursor_init(thrift_cursor_t * cursor)
 {
-	ctx->sp = 0;
-	ctx->stack_id[ctx->sp] = 0;
-	ctx->stack_type[ctx->sp] = THRIFT_STRUCT;
-	ctx->stack_list_type[ctx->sp] = THRIFT_STOP;
-	ctx->stack_list_size[ctx->sp] = 0;
+	cursor->sp = 0;
+	cursor->stack_id[cursor->sp] = 0;
+	cursor->stack_type[cursor->sp] = THRIFT_STRUCT;
+	cursor->stack_list_type[cursor->sp] = THRIFT_STOP;
+	cursor->stack_list_size[cursor->sp] = 0;
 }
 
-uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_value_t * value)
+uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_value_t * value)
 {
 	uint8_t byte;
-	switch (ctx->stack_type[ctx->sp])
+	switch (cursor->stack_type[cursor->sp])
 	{
+	// The type of the value is struct which can not be decoded here.
+	// Keep this in the stack so we can start decoding its fields in future iterations.
 	case THRIFT_STRUCT:
-		//The start of a struct
-		ctx->last_field_id = 0;
+		cursor->last_field_id = 0;
 		break;
 	
+	// The value type is a list so start decoding the list size and list type:
+	// Keep this in the stack so we can start decoding its elements in future iterations.
 	case THRIFT_LIST:
-		//The start of a list  
-		if(data >= (data_end)){goto error_no_more_data;}
+		if(data >= (data_end))
+		{
+			LOG_ERROR_CURSOR(cursor, "No more data");
+			return NULL;
+		}
 		data = thrift_read_u8(data, &byte);
 		value->list_type = byte & 0x0F;
 		value->list_size = (byte >> 4) & 0x0F;
 		if(value->list_size == 0xF)
 		{
-			if(data >= (data_end)){goto error_no_more_data;}
+			if(data >= (data_end))
+			{
+				LOG_ERROR_CURSOR(cursor, "No more data");
+				return NULL;
+			}
 			int64_t list_size;
 			data = thrift_read_varint_i64(data, &list_size);
 			value->list_size = list_size;
 		}
-		ctx->stack_list_type[ctx->sp] = value->list_type;
-		ctx->stack_list_size[ctx->sp] = value->list_size;
-		ctx->stack_id[ctx->sp] = 0;
+		cursor->stack_list_type[cursor->sp] = value->list_type;
+		cursor->stack_list_size[cursor->sp] = value->list_size;
+		cursor->stack_id[cursor->sp] = 0;
 		break;
 
+	// Decode primitive:
 	case THRIFT_I32:
-		if(data >= (data_end)){goto error_no_more_data;}
+		if(data >= (data_end))
+		{
+			LOG_ERROR_CURSOR(cursor, "No more data");
+			return NULL;
+		}
 		data = thrift_read_zigzag_i64(data, &value->value_i64);
-		pop(ctx);
+		pop(cursor);
 		break;
 
+	// Decode primitive:
 	case THRIFT_I64:
-		if(data >= (data_end)){goto error_no_more_data;}
+		if(data >= (data_end))
+		{
+			LOG_ERROR_CURSOR(cursor, "No more data");
+			return NULL;
+		}
 		data = thrift_read_zigzag_i64(data, &value->value_i64);
-		pop(ctx);
+		pop(cursor);
 		break;
 
+	// Decode string:
 	case THRIFT_BINARY:
-		if(data >= (data_end)){goto error_no_more_data;}
+		if(data >= (data_end))
+		{
+			LOG_ERROR_CURSOR(cursor, "No more data");
+			return NULL;
+		}
 		data = thrift_read_varint_i64(data, &value->value_i64);
 		value->string_data = NULL;
-		if(value->string_size < 0){goto error_invalid_state;}
-		if(value->string_size >= THRIFT_MAX_STRING_SIZE){goto error_invalid_state;}
+		if(value->string_size < 0)
+		{
+			LOG_ERROR_CURSOR(cursor, "Negative string size");
+			return NULL;
+		}
+		if(value->string_size >= THRIFT_MAX_STRING_SIZE)
+		{
+			LOG_ERROR_CURSOR(cursor, "Too big string size");
+			return NULL;
+		}
 		if(value->string_size > 0)
 		{
 			value->string_data = thrift_api.malloc_(value->string_size + 1); // Allocate one extra for null-termination
@@ -205,7 +244,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * 
 			value->string_data[value->string_size] = '\0';
 			data += value->string_size;
 		}
-		pop(ctx);
+		pop(cursor);
 		break;
 
 	default:
@@ -213,105 +252,96 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * 
 		break;
 	}
 
-
 	return data;
-
-error_no_more_data:
-	printf("[ERROR] No more data is available!\n");
-	return NULL;
-
-error_invalid_state:
-	printf("[ERROR] Invalid state!\n");
-	return NULL;
-
 }
 
 
-uint8_t const * thrift_cursor_read_type(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id)
+uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id)
 {
 	uint8_t byte;
 	uint8_t modifier;
 
-	switch (ctx->stack_type[ctx->sp])
+	switch (cursor->stack_type[cursor->sp])
 	{
+	// Decode struct member type:
 	case THRIFT_STRUCT:
-		// Reading a type of a struct member:
-		if(data >= (data_end)){goto error_no_more_data;}
+		if(data >= (data_end))
+		{
+			LOG_ERROR_CURSOR(cursor, "No more data");
+			return NULL;
+		}
 		data = thrift_read_u8(data, &byte);
 		modifier = (byte & 0xF0) >> 4;
 		(*type) = byte & 0x0F;
 		if((*type) == THRIFT_STOP)
 		{
 			// The end of a struct:
-			if(ctx->sp == 0)
+			if(cursor->sp == 0)
 			{
 				// The end of thrift data:
-				goto success;
+				return NULL;
 			}
-			ctx->last_field_id = ctx->stack_id[ctx->sp];
-			pop(ctx);
+			cursor->last_field_id = cursor->stack_id[cursor->sp];
+			pop(cursor);
 			break;
 		}
 		if (modifier == 0)
 		{
-			if(data >= (data_end)){goto error_no_more_data;}
-			data = thrift_read_varint_i64(data, &ctx->last_field_id);
+			if(data >= (data_end))
+			{
+				LOG_ERROR_CURSOR(cursor, "No more data");
+				return NULL;
+			}
+			data = thrift_read_varint_i64(data, &cursor->last_field_id);
 		}
 		else
 		{
-			ctx->last_field_id = ctx->last_field_id + modifier;
+			cursor->last_field_id = cursor->last_field_id + modifier;
 		}
-		ctx->stack_id[ctx->sp] = ctx->last_field_id;
-		*id = ctx->last_field_id;
-		ctx->sp++;
-		if(ctx->sp > THRIFT_STACK_MAX_SIZE){goto error_stack_overflow;}
-		// Start to decode the member value depending on which type:
-		ctx->stack_type[ctx->sp] = *type;
+		cursor->stack_id[cursor->sp] = cursor->last_field_id;
+		*id = cursor->last_field_id;
+		// Push new member on to stack:
+		cursor->sp++;
+		if(cursor->sp > THRIFT_STACK_MAX_SIZE)
+		{
+			LOG_ERROR_CURSOR(cursor, "Stack overflow");
+			return NULL;
+		}
+		cursor->stack_type[cursor->sp] = *type;
+		// After this we neeed to decode the member value depending on which type:
 		break;
 
+
+	// Step forward in list:
 	case THRIFT_LIST:
 		// Check if end of list:
-		if(ctx->stack_id[ctx->sp] >= ctx->stack_list_size[ctx->sp])
+		if(cursor->stack_id[cursor->sp] >= cursor->stack_list_size[cursor->sp])
 		{
 			// The end of a list, pop out of list context:
-			pop(ctx);
+			pop(cursor);
 			// Restore last field id:
-			ctx->last_field_id = ctx->stack_id[ctx->sp];
+			cursor->last_field_id = cursor->stack_id[cursor->sp];
 			break;
 		}
-		ctx->last_field_id = ctx->stack_id[ctx->sp];
-		*id = ctx->stack_id[ctx->sp];
+		cursor->last_field_id = cursor->stack_id[cursor->sp];
+		*id = cursor->stack_id[cursor->sp];
 		// Iterate single element in the list:
-		ctx->stack_id[ctx->sp]++;
+		cursor->stack_id[cursor->sp]++;
 		// Push new context for next element:
-		ctx->sp++;
-		if(ctx->sp > THRIFT_STACK_MAX_SIZE){goto error_stack_overflow;}
-		ctx->stack_type[ctx->sp] = ctx->stack_list_type[ctx->sp-1];
-		*type = ctx->stack_type[ctx->sp];
+		cursor->sp++;
+		if(cursor->sp > THRIFT_STACK_MAX_SIZE)
+		{
+			LOG_ERROR_CURSOR(cursor, "Stack overflow");
+			return NULL;
+		}
+		cursor->stack_type[cursor->sp] = cursor->stack_list_type[cursor->sp-1];
+		(*type) = cursor->stack_type[cursor->sp];
 		break;
 
 	default:
-		goto error_invalid_state;
+		LOG_ERROR_CURSOR(cursor, "Invalid state");
+		return NULL;
 	}
 
-
 	return data;
-
-
-success:
-	printf("Success!\n");
-	return NULL;
-
-error_no_more_data:
-	printf("[ERROR] No more data is available!\n");
-	return NULL;
-
-error_invalid_state:
-	printf("[ERROR] Invalid state!\n");
-	return NULL;
-
-error_stack_overflow:
-	printf("[ERROR] Stack overflow!\n");
-	return NULL;
-
 }

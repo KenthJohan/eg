@@ -37,24 +37,6 @@ typedef union
 
 
 
-typedef void* (*thrift_api_malloc_t)(int size);
-
-typedef struct {
-    thrift_api_malloc_t malloc_;
-} thrift_api_t;
-
-extern thrift_api_t thrift_api;
-
-
-
-void thrift_get_field_str(int32_t type, thrift_value_t value, char * buf, int n);
-char const * thrift_get_type_string(uint32_t t);
-
-
-
-
-
-
 
 #define THRIFT_STACK_MAX_SIZE 64
 #define THRIFT_MAX_STRING_SIZE 1024
@@ -69,8 +51,25 @@ struct thrift_cursor_t
 	int32_t       stack_list_size [THRIFT_STACK_MAX_SIZE];
 };
 
-void thrift_cursor_init(thrift_cursor_t * ctx);
-uint8_t const * thrift_cursor_read(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, thrift_value_t * value, int64_t * id);
+typedef void* (*thrift_api_malloc_t)(int size);
+typedef void (*thrift_api_onerror)(char const *);
 
-uint8_t const * thrift_cursor_read_value(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_value_t * value);
-uint8_t const * thrift_cursor_read_type(thrift_cursor_t * ctx, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id);
+typedef struct {
+    thrift_api_malloc_t malloc_;
+    thrift_api_onerror onerror_;
+} thrift_api_t;
+
+extern thrift_api_t thrift_api;
+
+
+
+
+void thrift_cursor_init(thrift_cursor_t * cursor);
+uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_value_t * value);
+uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id);
+
+// Convert type to string
+char const * thrift_get_type_string(thrift_type_t type);
+
+// Convert type and value to string
+void thrift_get_field_str(thrift_type_t type, thrift_value_t value, char * buf, int n);

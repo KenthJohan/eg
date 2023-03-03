@@ -75,9 +75,10 @@ void parquet_assigner_filemetadata(parquet_filemetadata_t *data, int32_t id, int
 
 
 
-void print_field1(int32_t id, int32_t type, thrift_value_t value, int32_t sp)
+void print_field1(int32_t id, thrift_type_t type, thrift_value_t value, int32_t sp)
 {
 	char buf[100] = {0};
+    char const * strtype;
 	thrift_get_field_str(type, value, buf, 100);
 	for(int i = 0; i < sp; ++i){printf("    ");}
 	switch (type)
@@ -94,14 +95,17 @@ void print_field1(int32_t id, int32_t type, thrift_value_t value, int32_t sp)
 	case THRIFT_STRUCT:break;
 	case THRIFT_STOP:break;
 	default:
-		//printf("%02i = %-20s : %s, %i\n", id, buf, thrift_get_type_string(type), sp);
-		printf("%02i = %-20s : %s\n", id, buf, thrift_get_type_string(type));
+        strtype = thrift_get_type_string(type);
+		printf("%02i = %-20s : %s, %i\n", id, buf, strtype, sp);
 		break;
 	}
 }
 
 
-
+void thrift_onerror(char const * text)
+{
+    printf("[THRIFT_ERROR] %s\n", text);
+}
 
 
 void parquet_read1(parquet_reader1_t * reader, char const * filename)
@@ -125,12 +129,13 @@ void parquet_read1(parquet_reader1_t * reader, char const * filename)
     fread(data, l, 1, file);
 
     thrift_api.malloc_ = ecs_os_api.malloc_;
+    thrift_api.onerror_ = thrift_onerror;
 
 	thrift_cursor_t cursor = {0};
     thrift_cursor_init(&cursor);
 
 
-    uint8_t * current = data;
+    uint8_t const * current = data;
     thrift_type_t type = THRIFT_STRUCT;
     thrift_value_t value;
     int64_t id;
@@ -141,7 +146,7 @@ void parquet_read1(parquet_reader1_t * reader, char const * filename)
         {
             current = thrift_cursor_read_value(&cursor, current, data+l, &value);
         }
-        print_field1(id, type, value, cursor.sp - (type==THRIFT_STRUCT));
+        print_field1(id, type, value, cursor.sp - ((type==THRIFT_STRUCT) || (type==THRIFT_LIST)));
     }
 
 
