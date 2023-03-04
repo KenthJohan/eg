@@ -10,6 +10,11 @@
 #define ENABLE_LOG
 #define ENABLE_ASSERT
 
+#ifdef __GNUC__
+#define UNLIKELY(val) (__builtin_expect((val), 0))
+#else
+#define UNLIKELY(val) (val)
+#endif
 
 #ifdef ENABLE_LOG
 #define LOG_ERROR(s) thrift_api.onerror_(s)
@@ -25,7 +30,14 @@
 #define ASSERT(c)
 #endif
 
+int64_t thrift_zigzag_to_i32(uint64_t n)
+{
+	return (int) (n >> 1) ^ -(int) (n & 1);
+}
 
+
+#define ZIGZAG_TO_I32(n) ((n) >> 1) ^ (-(int32_t)((n) & 1));
+#define ZIGZAG_TO_I64(n) ((n) >> 1) ^ (-(int64_t)((n) & 1));
 
 
 
@@ -80,9 +92,9 @@ void thrift_get_field_str(thrift_type_t type, thrift_value_t value, char * buf, 
 	case THRIFT_STOP: break;
 	case THRIFT_BOOLEAN_TRUE: snprintf(buf, n, "true"); break;
 	case THRIFT_BOOLEAN_FALSE: snprintf(buf, n, "false"); break;
-	case THRIFT_BYTE: snprintf(buf, n, "%02X", value.value_u64); break;
-	case THRIFT_I16: snprintf(buf, n, "%jd", value.value_i64); break;
-	case THRIFT_I32: snprintf(buf, n, "%jd", value.value_i64); break;
+	case THRIFT_BYTE: snprintf(buf, n, "%02X", value.value_u8); break;
+	case THRIFT_I16: snprintf(buf, n, "%jd", value.value_i16); break;
+	case THRIFT_I32: snprintf(buf, n, "%jd", value.value_i32); break;
 	case THRIFT_I64: snprintf(buf, n, "%jd", value.value_i64); break;
 	case THRIFT_DOUBLE: snprintf(buf, n, "%f", value.value_i64); break;
 	case THRIFT_BINARY:
@@ -108,10 +120,7 @@ uint8_t const * thrift_read_u8(uint8_t const *data, uint8_t * result)
 }
 
 
-int64_t thrift_zigzag_to_i32(uint64_t n)
-{
-	return (int) (n >> 1) ^ -(int) (n & 1);
-}
+
 
 
 int8_t const * thrift_read_varint_i64(uint8_t const *data, int64_t * result)
@@ -163,14 +172,16 @@ int8_t const * thrift_read_varint_i32(uint8_t const *data, int32_t * result)
 	return data;
 }
 
-uint8_t const * thrift_read_zigzag_i64(uint8_t const *data, int64_t * result)
+int8_t const * thrift_read_varint_i16(uint8_t const *data, int16_t * result)
 {
 	ASSERT(data);
 	ASSERT(result);
-	data = thrift_read_varint_i64(data, result);
-	*result = thrift_zigzag_to_i32(*result);
+	int64_t r64;
+	data = thrift_read_varint_i64(data, &r64);
+	(*result) = r64;
 	return data;
 }
+
 
 
 
@@ -226,7 +237,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 	ASSERT(value);
 	ASSERT(cursor->stack);
 	
-	if(data >= (data_end))
+	if(UNLIKELY(data >= (data_end)))
 	{
 		LOG_ERROR_CURSOR(cursor, "No more data");
 		return NULL;
@@ -247,7 +258,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		ASSERT(data <= data_end);
 		data = thrift_read_u8(data, &byte);
 		value->list_type = byte & 0x0F;
-		if(thrift_is_list_type(value->list_type) == 0)
+		if(UNLIKELY(thrift_is_list_type(value->list_type) == 0))
 		{
 			LOG_ERROR_CURSOR(cursor, "List type is not valid");
 			return NULL;
@@ -256,7 +267,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		// Check if list size is large:
 		if(value->list_size == 0xF)
 		{
-			if(data >= (data_end))
+			if(UNLIKELY(data >= (data_end)))
 			{
 				LOG_ERROR_CURSOR(cursor, "No more data");
 				return NULL;
@@ -269,29 +280,46 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		break;
 
 	// Decode primitive:
+	case THRIFT_BYTE:
+		ASSERT(data <= data_end);
+		data = thrift_read_u8(data, &value->value_u8);
+		pop(cursor);
+		break;
+
+	// Decode primitive:
+	case THRIFT_I16:
+		ASSERT(data <= data_end);
+		data = thrift_read_varint_i16(data, &value->value_i16);
+		value->value_i16 = (int16_t)ZIGZAG_TO_I32(value->value_i16);
+		pop(cursor);
+		break;
+
+	// Decode primitive:
 	case THRIFT_I32:
 		ASSERT(data <= data_end);
-		data = thrift_read_zigzag_i64(data, &value->value_i64);
+		data = thrift_read_varint_i32(data, &value->value_i32);
+		value->value_i32 = (int32_t)ZIGZAG_TO_I32(value->value_i32);
 		pop(cursor);
 		break;
 
 	// Decode primitive:
 	case THRIFT_I64:
 		ASSERT(data <= data_end);
-		data = thrift_read_zigzag_i64(data, &value->value_i64);
+		data = thrift_read_varint_i64(data, &value->value_i64);
+		value->value_i64 = (int64_t)ZIGZAG_TO_I64(value->value_i64);
 		pop(cursor);
 		break;
 
 	// Decode string:
 	case THRIFT_BINARY:
-		data = thrift_read_varint_i64(data, &value->value_i64);
+		data = thrift_read_varint_i32(data, &value->value_i32);
 		value->string_data = NULL;
-		if(value->string_size < 0)
+		if(UNLIKELY(value->string_size < 0))
 		{
 			LOG_ERROR_CURSOR(cursor, "Negative string size");
 			return NULL;
 		}
-		if(value->string_size >= THRIFT_MAX_STRING_SIZE)
+		if(UNLIKELY(value->string_size >= THRIFT_MAX_STRING_SIZE))
 		{
 			LOG_ERROR_CURSOR(cursor, "Too big string size");
 			return NULL;
@@ -344,6 +372,13 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 		data = thrift_read_u8(data, &byte);
 		modifier = (byte & 0xF0) >> 4;
 		(*type) = byte & 0x0F;
+		//TODO: Add support for these:
+		ASSERT((*type) != THRIFT_BOOLEAN_FALSE);
+		ASSERT((*type) != THRIFT_BOOLEAN_TRUE);
+		ASSERT((*type) != THRIFT_DOUBLE);
+		ASSERT((*type) != THRIFT_SET);
+		ASSERT((*type) != THRIFT_MAP);
+
 		// If the field type is STOP then this is the end of the struct:
 		if((*type) == THRIFT_STOP)
 		{
@@ -362,7 +397,7 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 		// Check if field id is large or small then use incrament delta:
 		if (modifier == 0)
 		{
-			if(data >= (data_end))
+			if(UNLIKELY(data >= (data_end)))
 			{
 				LOG_ERROR_CURSOR(cursor, "No more data");
 				return NULL;
@@ -379,7 +414,7 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 		(*id) = cursor->last_field_id;
 		// Push new field on to stack:
 		cursor->sp++;
-		if(cursor->sp >= cursor->stack_size)
+		if(UNLIKELY(cursor->sp >= cursor->stack_size))
 		{
 			LOG_ERROR_CURSOR(cursor, "Stack overflow");
 			return NULL;
@@ -401,12 +436,12 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 			break;
 		}
 		cursor->last_field_id = cursor->stack[cursor->sp].id;
-		*id = cursor->stack[cursor->sp].id;
+		(*id) = cursor->stack[cursor->sp].id;
 		// Iterate single element in the list:
 		cursor->stack[cursor->sp].id++;
 		// Push new context for next element:
 		cursor->sp++;
-		if(cursor->sp >= cursor->stack_size)
+		if(UNLIKELY(cursor->sp >= cursor->stack_size))
 		{
 			LOG_ERROR_CURSOR(cursor, "Stack overflow");
 			return NULL;

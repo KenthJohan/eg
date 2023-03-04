@@ -59,6 +59,9 @@ typedef union
 {
 	uint64_t value_u64;
 	int64_t value_i64;
+	int32_t value_i32;
+	int16_t value_i16;
+	int8_t value_u8;
 	struct
 	{
 		thrift_type_t list_type;
@@ -93,12 +96,12 @@ struct thrift_cursor_t
 
 // Global API:
 typedef void* (*thrift_api_malloc_t)(int size);
-typedef void (*thrift_api_onerror)(char const *);
+typedef void (*thrift_api_on_error_t)(char const *);
 typedef struct {
 	// Allocator callback:
     thrift_api_malloc_t malloc_;
 	// Error callback:
-    thrift_api_onerror onerror_;
+    thrift_api_on_error_t onerror_;
 } thrift_api_t;
 extern thrift_api_t thrift_api;
 
