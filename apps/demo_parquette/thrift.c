@@ -30,10 +30,15 @@
 #define ASSERT(c)
 #endif
 
-int64_t thrift_zigzag_to_i32(uint64_t n)
-{
-	return (int) (n >> 1) ^ -(int) (n & 1);
-}
+#define bswap_64(n) \
+      ( (((n) & 0xff00000000000000ull) >> 56) \
+      | (((n) & 0x00ff000000000000ull) >> 40) \
+      | (((n) & 0x0000ff0000000000ull) >> 24) \
+      | (((n) & 0x000000ff00000000ull) >> 8)  \
+      | (((n) & 0x00000000ff000000ull) << 8)  \
+      | (((n) & 0x0000000000ff0000ull) << 24) \
+      | (((n) & 0x000000000000ff00ull) << 40) \
+      | (((n) & 0x00000000000000ffull) << 56) )
 
 
 #define ZIGZAG_TO_I32(n) ((n) >> 1) ^ (-(int32_t)((n) & 1));
@@ -120,7 +125,29 @@ uint8_t const * thrift_read_u8(uint8_t const *data, uint8_t * result)
 }
 
 
-
+//TODO: Test if this work:
+uint8_t const * thrift_read_f64(uint8_t const *data, double * result)
+{
+	ASSERT(data);
+	ASSERT(result);
+	union {
+	uint64_t bits;
+	uint8_t b[8];
+	double v;
+	} u;
+	u.b[0] = data[0];
+	u.b[1] = data[1];
+	u.b[2] = data[2];
+	u.b[3] = data[3];
+	u.b[4] = data[4];
+	u.b[5] = data[5];
+	u.b[6] = data[6];
+	u.b[7] = data[7];
+	u.bits = bswap_64(u.bits);
+	(*result) = u.v;
+	data += 8;
+	return data;
+}
 
 
 int8_t const * thrift_read_varint_i64(uint8_t const *data, int64_t * result)
@@ -279,6 +306,16 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		cursor->stack[cursor->sp].id = 0;
 		break;
 
+	case THRIFT_BOOLEAN_FALSE:
+		value->value_bool = 0;
+		pop(cursor);
+		break;
+
+	case THRIFT_BOOLEAN_TRUE:
+		value->value_bool = 1;
+		pop(cursor);
+		break;
+
 	// Decode primitive:
 	case THRIFT_BYTE:
 		ASSERT(data <= data_end);
@@ -307,6 +344,13 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		ASSERT(data <= data_end);
 		data = thrift_read_varint_i64(data, &value->value_i64);
 		value->value_i64 = (int64_t)ZIGZAG_TO_I64(value->value_i64);
+		pop(cursor);
+		break;
+
+	// Decode primitive:
+	case THRIFT_DOUBLE:
+		ASSERT(data <= data_end);
+		data = thrift_read_f64(data, &value->value_f64);
 		pop(cursor);
 		break;
 
@@ -372,12 +416,14 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 		data = thrift_read_u8(data, &byte);
 		modifier = (byte & 0xF0) >> 4;
 		(*type) = byte & 0x0F;
+		//TODO: Test these:
+		//ASSERT((*type) != THRIFT_BOOLEAN_FALSE);
+		//ASSERT((*type) != THRIFT_BOOLEAN_TRUE);
 		//TODO: Add support for these:
-		ASSERT((*type) != THRIFT_BOOLEAN_FALSE);
-		ASSERT((*type) != THRIFT_BOOLEAN_TRUE);
 		ASSERT((*type) != THRIFT_DOUBLE);
 		ASSERT((*type) != THRIFT_SET);
 		ASSERT((*type) != THRIFT_MAP);
+		ASSERT((*type) != THRIFT_UUID);
 
 		// If the field type is STOP then this is the end of the struct:
 		if((*type) == THRIFT_STOP)

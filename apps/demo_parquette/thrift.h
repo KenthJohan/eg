@@ -5,8 +5,7 @@ Offical apache thrift implementation:
 		https://github.com/apache/thrift/blob/master/lib/cpp/src/thrift/protocol/TCompactProtocol.tcc
 	* Contain a recursive implementation of thrift protocol parser:
 		https://github.com/apache/thrift/blob/master/lib/cpp/src/thrift/protocol/TProtocol.h#L670
-
-
+	* https://github.com/apache/thrift/blob/master/doc/specs/thrift-compact-protocol.md
 
 
 This implementation differs from offical apache thrift implementation.
@@ -52,16 +51,19 @@ typedef enum
 	THRIFT_SET           = 0x0A, // Field type
 	THRIFT_MAP           = 0x0B, // Field type
 	THRIFT_STRUCT        = 0x0C, // Field type, start of struct
+	THRIFT_UUID          = 0x0D, // Field type
 } thrift_type_t;
 
 // Generic thrift value:
 typedef union
 {
+	double value_f64;
 	uint64_t value_u64;
 	int64_t value_i64;
 	int32_t value_i32;
 	int16_t value_i16;
 	int8_t value_u8;
+	int value_bool;
 	struct
 	{
 		thrift_type_t list_type;
