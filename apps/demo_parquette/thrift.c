@@ -40,20 +40,20 @@ char const * thrift_get_type_string(thrift_type_t type)
 {
 	switch(type)
 	{
-	case THRIFT_STOP: return "STOP";
-	case THRIFT_BOOLEAN_TRUE: return "BOOLEAN_TRUE";
+	case THRIFT_STOP:          return "STOP";
+	case THRIFT_BOOLEAN_TRUE:  return "BOOLEAN_TRUE";
 	case THRIFT_BOOLEAN_FALSE: return "BOOLEAN_FALSE";
-	case THRIFT_BYTE: return "BYTE";
-	case THRIFT_I16: return "I16";
-	case THRIFT_I32: return "I32";
-	case THRIFT_I64: return "I64";
-	case THRIFT_DOUBLE: return "DOUBLE";
-	case THRIFT_BINARY: return "BINARY";
-	case THRIFT_LIST: return "LIST";
-	case THRIFT_SET: return "SET";
-	case THRIFT_MAP: return "MAP";
-	case THRIFT_STRUCT: return "STRUCT";
-	default: return "";
+	case THRIFT_BYTE:          return "BYTE";
+	case THRIFT_I16:           return "I16";
+	case THRIFT_I32:           return "I32";
+	case THRIFT_I64:           return "I64";
+	case THRIFT_DOUBLE:        return "DOUBLE";
+	case THRIFT_BINARY:        return "BINARY";
+	case THRIFT_LIST:          return "LIST";
+	case THRIFT_SET:           return "SET";
+	case THRIFT_MAP:           return "MAP";
+	case THRIFT_STRUCT:        return "STRUCT";
+	default:                   return "";
 	}
 }
 
@@ -100,6 +100,7 @@ void thrift_get_field_str(thrift_type_t type, thrift_value_t value, char * buf, 
 
 uint8_t const * thrift_read_u8(uint8_t const *data, uint8_t * result)
 {
+	ASSERT(data);
 	ASSERT(result);
 	*result = data[0];
 	data++;
@@ -152,6 +153,15 @@ int8_t const * thrift_read_varint_i64(uint8_t const *data, int64_t * result)
 	return data;
 }
 
+int8_t const * thrift_read_varint_i32(uint8_t const *data, int32_t * result)
+{
+	ASSERT(data);
+	ASSERT(result);
+	int64_t r64;
+	data = thrift_read_varint_i64(data, &r64);
+	(*result) = r64;
+	return data;
+}
 
 uint8_t const * thrift_read_zigzag_i64(uint8_t const *data, int64_t * result)
 {
@@ -168,6 +178,7 @@ uint8_t const * thrift_read_zigzag_i64(uint8_t const *data, int64_t * result)
 void pop(thrift_cursor_t * cursor)
 {
 	ASSERT(cursor);
+	ASSERT(cursor->sp >= 0);
 	cursor->stack[cursor->sp].id = 0;
 	cursor->stack[cursor->sp].type = 0;
 	cursor->stack[cursor->sp].list_type = 0;
@@ -187,6 +198,25 @@ void thrift_cursor_init(thrift_cursor_t * cursor)
 	cursor->stack[cursor->sp].list_type = THRIFT_STOP;
 	cursor->stack[cursor->sp].list_size = 0;
 }
+
+int thrift_is_list_type(thrift_type_t type)
+{
+	switch (type)
+	{
+	case THRIFT_BYTE: return 1;
+	case THRIFT_I16: return 1;
+	case THRIFT_I32: return 1;
+	case THRIFT_I64: return 1;
+	case THRIFT_DOUBLE: return 1;
+	case THRIFT_BINARY: return 1;
+	case THRIFT_LIST: return 1;
+	case THRIFT_SET: return 1;
+	case THRIFT_MAP: return 1;
+	case THRIFT_STRUCT: return 1;
+	default:return 0;
+	}
+}
+
 
 uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_value_t * value)
 {
@@ -217,7 +247,13 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		ASSERT(data <= data_end);
 		data = thrift_read_u8(data, &byte);
 		value->list_type = byte & 0x0F;
+		if(thrift_is_list_type(value->list_type) == 0)
+		{
+			LOG_ERROR_CURSOR(cursor, "List type is not valid");
+			return NULL;
+		}
 		value->list_size = (byte >> 4) & 0x0F;
+		// Check if list size is large:
 		if(value->list_size == 0xF)
 		{
 			if(data >= (data_end))
@@ -225,9 +261,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 				LOG_ERROR_CURSOR(cursor, "No more data");
 				return NULL;
 			}
-			int64_t list_size;
-			data = thrift_read_varint_i64(data, &list_size);
-			value->list_size = list_size;
+			data = thrift_read_varint_i32(data, &value->list_size);
 		}
 		cursor->stack[cursor->sp].list_type = value->list_type;
 		cursor->stack[cursor->sp].list_size = value->list_size;
@@ -342,7 +376,7 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 			cursor->last_field_id = cursor->last_field_id + modifier;
 		}
 		cursor->stack[cursor->sp].id = cursor->last_field_id;
-		*id = cursor->last_field_id;
+		(*id) = cursor->last_field_id;
 		// Push new field on to stack:
 		cursor->sp++;
 		if(cursor->sp >= cursor->stack_size)

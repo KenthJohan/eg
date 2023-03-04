@@ -34,7 +34,7 @@ Usage example:
 
 #pragma once
 #include <stdint.h>
-
+ 
 // Apache reference:
 // https://github.com/apache/thrift/blob/0bc818f363a50282910fa19ae605689954239fcb/lib/cpp/src/thrift/protocol/TCompactProtocol.tcc#L51
 typedef enum
