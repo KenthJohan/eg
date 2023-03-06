@@ -35,7 +35,8 @@
         "typeinfo": "c",
         "string_view": "c",
         "random": "c",
-        "thread": "c"
+        "thread": "c",
+        "string": "c"
     },
 
 }

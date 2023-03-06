@@ -98,18 +98,18 @@ void thrift_get_field_str(thrift_type_t type, thrift_value_t value, char * buf, 
 	case THRIFT_BOOLEAN_TRUE: snprintf(buf, n, "true"); break;
 	case THRIFT_BOOLEAN_FALSE: snprintf(buf, n, "false"); break;
 	case THRIFT_BYTE: snprintf(buf, n, "%02X", value.value_u8); break;
-	case THRIFT_I16: snprintf(buf, n, "%jd", value.value_i16); break;
-	case THRIFT_I32: snprintf(buf, n, "%jd", value.value_i32); break;
+	case THRIFT_I16: snprintf(buf, n, "%jd", (intmax_t)value.value_i16); break;
+	case THRIFT_I32: snprintf(buf, n, "%jd", (intmax_t)value.value_i32); break;
 	case THRIFT_I64: snprintf(buf, n, "%jd", value.value_i64); break;
-	case THRIFT_DOUBLE: snprintf(buf, n, "%f", value.value_i64); break;
+	case THRIFT_DOUBLE: snprintf(buf, n, "%f", value.value_f64); break;
 	case THRIFT_BINARY:
 		//string_friendly(value.string_data, value.string_size);
 		snprintf(buf, n, "%.*s", value.string_size, value.string_data);
 		break;
 	case THRIFT_LIST: snprintf(buf, n, "%i of %s", value.list_size, thrift_get_type_string(value.list_type)); break;
-	case THRIFT_SET: snprintf(buf, n, ""); break;
-	case THRIFT_MAP: snprintf(buf, n, ""); break;
-	case THRIFT_STRUCT: snprintf(buf, n, ""); break;
+	case THRIFT_SET: snprintf(buf, n, "SET"); break;
+	case THRIFT_MAP: snprintf(buf, n, "MAP"); break;
+	case THRIFT_STRUCT: snprintf(buf, n, "STRUCT"); break;
 	default: snprintf(buf, n, "?"); break;
 	}
 }
@@ -150,46 +150,36 @@ uint8_t const * thrift_read_f64(uint8_t const *data, double * result)
 }
 
 
-int8_t const * thrift_read_varint_i64(uint8_t const *data, int64_t * result)
+uint8_t const * thrift_read_varint_i64(uint8_t const *data, int64_t * result)
 {
 	ASSERT(data);
 	ASSERT(result);
-	int rsize = 0;
-	int lo = 0;
-	int64_t hi = 0;
-	int shift = 0;
-	while (1)
+	uint8_t rsize = 0;
+	uint8_t shift = 0;
+	uint64_t val = 0;
+	while(1)
 	{
-		uint8_t b = data[0];
-		data++;
-		rsize ++;
-		if (shift <= 25)
-		{
-			lo = lo | ((b & 0x7f) << shift);
-		}
-		else if (25 < shift && shift < 32)
-		{
-			lo = lo | ((b & 0x7f) << shift);
-			hi = hi | ((b & 0x7f) >> (32-shift));
-		}
-		else
-		{
-			hi = hi | ((b & 0x7f) << (shift-32));
-		}
+		uint8_t byte = data[rsize];
+		rsize++;
+		val |= (uint64_t)(byte & 0x7F) << shift;
 		shift += 7;
-		if (!(b & 0x80)){break;}
+		if (!(byte & 0x80))
+		{
+			(*result) = val;
+			break;
+		}
+		// Have to check for invalid data so we don't crash.
 		if (rsize >= 10)
 		{
 			LOG_ERROR("Variable-length int over 10 bytes.");
 			return NULL;
 		}
 	}
-	//return new Int64(hi, lo);
-	(*result) = (hi << 32) | (lo << 0);
-	return data;
+
+	return data + rsize;
 }
 
-int8_t const * thrift_read_varint_i32(uint8_t const *data, int32_t * result)
+uint8_t const * thrift_read_varint_i32(uint8_t const *data, int32_t * result)
 {
 	ASSERT(data);
 	ASSERT(result);
@@ -199,7 +189,7 @@ int8_t const * thrift_read_varint_i32(uint8_t const *data, int32_t * result)
 	return data;
 }
 
-int8_t const * thrift_read_varint_i16(uint8_t const *data, int16_t * result)
+uint8_t const * thrift_read_varint_i16(uint8_t const *data, int16_t * result)
 {
 	ASSERT(data);
 	ASSERT(result);
@@ -270,7 +260,6 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		return NULL;
 	}
 
-	uint8_t byte;
 	switch (cursor->stack[cursor->sp].type)
 	{
 	// The type of the value is struct which can not be decoded here.
@@ -281,8 +270,9 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 	
 	// The value type is a list so start decoding the list size and list type:
 	// Keep this in the stack so we can start decoding its elements in future iterations.
-	case THRIFT_LIST:
+	case THRIFT_LIST:{
 		ASSERT(data <= data_end);
+		uint8_t byte = 0;
 		data = thrift_read_u8(data, &byte);
 		value->list_type = byte & 0x0F;
 		if(UNLIKELY(thrift_is_list_type(value->list_type) == 0))
@@ -304,7 +294,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		cursor->stack[cursor->sp].list_type = value->list_type;
 		cursor->stack[cursor->sp].list_size = value->list_size;
 		cursor->stack[cursor->sp].id = 0;
-		break;
+		break;}
 
 	case THRIFT_BOOLEAN_FALSE:
 		value->value_bool = 0;
@@ -355,8 +345,10 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		break;
 
 	// Decode string:
-	case THRIFT_BINARY:
-		data = thrift_read_varint_i32(data, &value->value_i32);
+	case THRIFT_BINARY:{
+		int32_t string_size = 0;
+		data = thrift_read_varint_i32(data, &string_size);
+		value->string_size = string_size;
 		value->string_data = NULL;
 		if(UNLIKELY(value->string_size < 0))
 		{
@@ -376,7 +368,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 			data += value->string_size;
 		}
 		pop(cursor);
-		break;
+		break;}
 
 	default:
 		// Nothing to do here.
@@ -420,7 +412,7 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 		//ASSERT((*type) != THRIFT_BOOLEAN_FALSE);
 		//ASSERT((*type) != THRIFT_BOOLEAN_TRUE);
 		//TODO: Add support for these:
-		ASSERT((*type) != THRIFT_DOUBLE);
+		//ASSERT((*type) != THRIFT_DOUBLE);
 		ASSERT((*type) != THRIFT_SET);
 		ASSERT((*type) != THRIFT_MAP);
 		ASSERT((*type) != THRIFT_UUID);

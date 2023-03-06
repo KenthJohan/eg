@@ -9,7 +9,7 @@ SRC_DIRS := ./
 INC_DIRS := . ../../src/ ../../vendor/
 ifeq ($(OS),Windows_NT)
 	INC_FLAGS := $(addprefix -I,$(INC_DIRS))
-	CFLAGS := $(INC_FLAGS) -g -MMD -MP
+	CFLAGS := $(INC_FLAGS) -g -MMD -MP -Wall -Wextra -Werror -Wno-unused-parameter
 	LDFLAGS := -lws2_32
 else
 	INC_FLAGS := $(addprefix -I,$(INC_DIRS))
@@ -22,6 +22,8 @@ SRCS := main.c
 SRCS += misc.c
 SRCS += parquet.c
 SRCS += thrift.c
+SRCS += base64.c
+SRCS += thrift_testing.c
 SRCS += ../../vendor/flecs.c
 
 

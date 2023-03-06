@@ -6,6 +6,7 @@ Offical apache thrift implementation:
 	* Contain a recursive implementation of thrift protocol parser:
 		https://github.com/apache/thrift/blob/master/lib/cpp/src/thrift/protocol/TProtocol.h#L670
 	* https://github.com/apache/thrift/blob/master/doc/specs/thrift-compact-protocol.md
+	* https://github.com/apache/thrift/blob/master/doc/specs/thrift-protocol-spec.md
 
 
 This implementation differs from offical apache thrift implementation.
@@ -62,7 +63,8 @@ typedef union
 	int64_t value_i64;
 	int32_t value_i32;
 	int16_t value_i16;
-	int8_t value_u8;
+	int8_t value_i8;
+	uint8_t value_u8;
 	int value_bool;
 	struct
 	{
@@ -97,7 +99,7 @@ struct thrift_cursor_t
 };
 
 // Global API:
-typedef void* (*thrift_api_malloc_t)(int size);
+typedef void* (*thrift_api_malloc_t)(size_t size);
 typedef void (*thrift_api_on_error_t)(char const *);
 typedef struct {
 	// Allocator callback:
