@@ -496,3 +496,17 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 	// Return the current position of thrift byte array:
 	return data;
 }
+
+
+
+
+
+uint8_t const * thrift_cursor_next(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id, thrift_value_t * value)
+{
+    data = thrift_cursor_read_type(cursor, data, data_end, type, id);
+    if((*type) != THRIFT_STOP)
+    {
+        data = thrift_cursor_read_value(cursor, data, data_end, value);
+    }
+	return data;
+}

@@ -116,6 +116,7 @@ void thrift_cursor_init(thrift_cursor_t * cursor);
 // Both of this need to be called to iterate one step in thrift binary data
 uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id);
 uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_value_t * value);
+uint8_t const * thrift_cursor_next(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id, thrift_value_t * value);
 
 // Convert type to string
 char const * thrift_get_type_string(thrift_type_t type);

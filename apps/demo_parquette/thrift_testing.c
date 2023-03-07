@@ -58,11 +58,7 @@ void thrift_testing_print(uint8_t const * data, int32_t l)
     thrift_cursor_init(&cursor);
     while(current)
     {
-        current = thrift_cursor_read_type(&cursor, current, data+l, &type, &id);
-        if(type != THRIFT_STOP)
-        {
-            current = thrift_cursor_read_value(&cursor, current, data+l, &value);
-        }
+        current = thrift_cursor_next(&cursor, current, data+l, &type, &id, &value);
         print_field1(id, type, value, cursor.sp - ((type==THRIFT_STRUCT) || (type==THRIFT_LIST)));
     }
 }

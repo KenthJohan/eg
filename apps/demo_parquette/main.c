@@ -16,8 +16,8 @@ int main (int argc, char * argv [])
 	ecs_world_t *world = ecs_init_w_args(argc, argv);
 	ECS_IMPORT(world, FlecsUnits);
 
-	//thrift_testing_parquette("userdata1.parquet");
-	thrift_testing_demo1();
+	thrift_testing_parquette("userdata1.parquet");
+	//thrift_testing_demo1();
 	/*
 	parquet_reader1_t reader = {0};
     parquet_read1(&reader, "userdata1.parquet");
