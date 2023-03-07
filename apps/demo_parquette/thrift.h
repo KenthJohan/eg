@@ -8,6 +8,7 @@ Offical apache thrift implementation:
 	* https://github.com/apache/thrift/blob/master/doc/specs/thrift-compact-protocol.md
 	* https://github.com/apache/thrift/blob/master/doc/specs/thrift-protocol-spec.md
 
+* https://klickverbot.at/code/gsoc/thrift/docs/htmlsrc/thrift.protocol.compact.html
 
 This implementation differs from offical apache thrift implementation.
 This uses a non recursive stack based thrift parser where you can set the max depth.

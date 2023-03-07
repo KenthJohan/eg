@@ -127,9 +127,14 @@ void thrift_testing_parquette(char const * filename)
 
 void thrift_testing_demo1()
 {
-    char const *b64 = "gAEAAQAAAAVsb2dpbgAAAAAMAAALAAAAAAANZGlmZmVyZW50dXNlcgsAAQAAABJkaWZmZXJlbnRwYXNzd29yZCEAAgABAQ8AAggAAAADAAAAAQAAAAIAAAADDQADCwsAAAACAAAAA2NhdAAAAARtZW93AAAAA2RvZwAAAARiYXJrAA==";
-	size_t l = 0;
-	unsigned char * d = base64_decode(b64, strlen(b64), &l);
+    base64_testunit1();
+
+    //char const *b64 = "SGVsbG8gV29ybGQh";
+    char const *b64 = "gAEAAQAAAAVsb2dpbgAAAAAMAAALAAAAAAAIY29vbHVzZXILAAEAAAALcGFzc3dvcmQxMjMAAA==";
+    size_t l = base64_decoded_len(b64, strlen(b64));
+    uint8_t * d = malloc(l);
+	base64_decode(b64, strlen(b64), d, l);
+
     thrift_testing_print((uint8_t const *)d, (int32_t)l);
 
 }
