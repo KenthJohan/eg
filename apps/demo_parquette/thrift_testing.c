@@ -13,13 +13,12 @@ void print_field1(int32_t id, thrift_type_t type, thrift_value_t value, int32_t 
 	char buf[100] = {0};
     char const * strtype;
 	thrift_get_field_str(type, value, buf, 100);
+    printf("%02i|  ", sp);
 	for(int i = 0; i < sp; ++i){printf("    ");}
 	switch (type)
 	{
 	case THRIFT_STRUCT:
-		printf("%02i =\n", id);
-		for(int i = 0; i < sp; ++i){printf("    ");}
-		printf("{\n");
+		printf("%02i = {\n", id);
 		break;
 	case THRIFT_STOP:printf("}\n");break;
 	default:
@@ -31,7 +30,7 @@ void print_field1(int32_t id, thrift_type_t type, thrift_value_t value, int32_t 
 	case THRIFT_STOP:break;
 	default:
         strtype = thrift_get_type_string(type);
-		printf("%02i = %-20s : %s, %i\n", id, buf, strtype, sp);
+		printf("%02i = %-20s : %s\n", id, buf, strtype);
 		break;
 	}
 }
@@ -59,7 +58,8 @@ void thrift_testing_print(uint8_t const * data, int32_t l)
     while(current)
     {
         current = thrift_cursor_next(&cursor, current, data+l, &type, &id, &value);
-        print_field1(id, type, value, cursor.sp - ((type==THRIFT_STRUCT) || (type==THRIFT_LIST)));
+        print_field1(id, type, value, cursor.sp);
+        //print_field1(id, type, value, cursor.sp - ((type==THRIFT_STRUCT) || (type==THRIFT_LIST)));
     }
 }
 
