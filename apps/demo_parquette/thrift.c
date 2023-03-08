@@ -207,10 +207,12 @@ void pop(thrift_cursor_t * cursor)
 {
 	ASSERT(cursor);
 	ASSERT(cursor->sp >= 0);
+	/*
 	cursor->stack[cursor->sp].id = 0;
 	cursor->stack[cursor->sp].type = 0;
 	cursor->stack[cursor->sp].list_type = 0;
 	cursor->stack[cursor->sp].list_size = 0;
+	*/
 	cursor->sp--;
 }
 
@@ -246,7 +248,7 @@ int thrift_is_list_type(thrift_type_t type)
 }
 
 
-uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_value_t * value)
+uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t type, thrift_value_t * value)
 {
 	ASSERT(cursor);
 	ASSERT(data);
@@ -254,18 +256,37 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 	ASSERT(value);
 	ASSERT(cursor->stack);
 	
+	if((type == THRIFT_STOP) && (cursor->sp == 0))
+	{
+		// Decoding is successful and finnished here:
+		return NULL;
+	}
+
 	if(UNLIKELY(data >= (data_end)))
 	{
 		LOG_ERROR_CURSOR(cursor, "No more data");
 		return NULL;
 	}
 
-	switch (cursor->stack[cursor->sp].type)
+	switch (type)
 	{
+	case THRIFT_STOP:
+		// We are done in this struct so we will pop out of this context:
+		pop(cursor);
+		cursor->last_field_id = cursor->stack[cursor->sp].id;
+		break;
+
 	// The type of the value is struct which can not be decoded here.
 	// Keep this in the stack so we can start decoding its fields in future iterations.
 	case THRIFT_STRUCT:
 		cursor->last_field_id = 0;
+		cursor->sp++;
+		if(UNLIKELY(cursor->sp >= cursor->stack_size))
+		{
+			LOG_ERROR_CURSOR(cursor, "Stack overflow");
+			return NULL;
+		}
+		cursor->stack[cursor->sp].type = THRIFT_STRUCT;
 		break;
 	
 	// The value type is a list so start decoding the list size and list type:
@@ -291,6 +312,13 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 			}
 			data = thrift_read_varint_i32(data, &value->list_size);
 		}
+		cursor->sp++;
+		if(UNLIKELY(cursor->sp >= cursor->stack_size))
+		{
+			LOG_ERROR_CURSOR(cursor, "Stack overflow");
+			return NULL;
+		}
+		cursor->stack[cursor->sp].type = THRIFT_LIST;
 		cursor->stack[cursor->sp].list_type = value->list_type;
 		cursor->stack[cursor->sp].list_size = value->list_size;
 		cursor->stack[cursor->sp].id = 0;
@@ -298,19 +326,19 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 
 	case THRIFT_BOOLEAN_FALSE:
 		value->value_bool = 0;
-		pop(cursor);
+		//pop(cursor);
 		break;
 
 	case THRIFT_BOOLEAN_TRUE:
 		value->value_bool = 1;
-		pop(cursor);
+		//pop(cursor);
 		break;
 
 	// Decode primitive:
 	case THRIFT_BYTE:
 		ASSERT(data <= data_end);
 		data = thrift_read_u8(data, &value->value_u8);
-		pop(cursor);
+		//pop(cursor);
 		break;
 
 	// Decode primitive:
@@ -318,7 +346,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		ASSERT(data <= data_end);
 		data = thrift_read_varint_i16(data, &value->value_i16);
 		value->value_i16 = (int16_t)ZIGZAG_TO_I32(value->value_i16);
-		pop(cursor);
+		//pop(cursor);
 		break;
 
 	// Decode primitive:
@@ -326,7 +354,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		ASSERT(data <= data_end);
 		data = thrift_read_varint_i32(data, &value->value_i32);
 		value->value_i32 = (int32_t)ZIGZAG_TO_I32(value->value_i32);
-		pop(cursor);
+		//pop(cursor);
 		break;
 
 	// Decode primitive:
@@ -334,14 +362,14 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 		ASSERT(data <= data_end);
 		data = thrift_read_varint_i64(data, &value->value_i64);
 		value->value_i64 = (int64_t)ZIGZAG_TO_I64(value->value_i64);
-		pop(cursor);
+		//pop(cursor);
 		break;
 
 	// Decode primitive:
 	case THRIFT_DOUBLE:
 		ASSERT(data <= data_end);
 		data = thrift_read_f64(data, &value->value_f64);
-		pop(cursor);
+		//pop(cursor);
 		break;
 
 	// Decode string:
@@ -367,7 +395,7 @@ uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const
 			value->string_data[value->string_size] = '\0';
 			data += value->string_size;
 		}
-		pop(cursor);
+		//pop(cursor);
 		break;}
 
 	default:
@@ -420,20 +448,11 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 		// If the field type is STOP then this is the end of the struct:
 		if((*type) == THRIFT_STOP)
 		{
-			// If this is the end of thrift data:
-			if(cursor->sp == 0)
-			{
-				// Decoding is successful and finnished here:
-				return NULL;
-			}
-			cursor->last_field_id = cursor->stack[cursor->sp].id;
-			// We are done in this struct so we will pop out of this context:
-			pop(cursor);
 			break;
 		}
 
 		// Check if field id is large or small then use incrament delta:
-		if (modifier == 0)
+		if(modifier == 0)
 		{
 			if(UNLIKELY(data >= (data_end)))
 			{
@@ -450,15 +469,6 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 		}
 		cursor->stack[cursor->sp].id = cursor->last_field_id;
 		(*id) = cursor->last_field_id;
-		// Push new field on to stack:
-		cursor->sp++;
-		if(UNLIKELY(cursor->sp >= cursor->stack_size))
-		{
-			LOG_ERROR_CURSOR(cursor, "Stack overflow");
-			return NULL;
-		}
-		cursor->stack[cursor->sp].type = (*type);
-		// After this we neeed to decode the field value depending on which type:
 		break;
 
 
@@ -467,25 +477,14 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 		// Check if end of list:
 		if(cursor->stack[cursor->sp].id >= cursor->stack[cursor->sp].list_size)
 		{
-			// The end of a list, pop out of list context:
-			pop(cursor);
-			// Restore last field id:
-			cursor->last_field_id = cursor->stack[cursor->sp].id;
+			(*type) = THRIFT_STOP;
 			break;
 		}
 		cursor->last_field_id = cursor->stack[cursor->sp].id;
 		(*id) = cursor->stack[cursor->sp].id;
 		// Iterate single element in the list:
 		cursor->stack[cursor->sp].id++;
-		// Push new context for next element:
-		cursor->sp++;
-		if(UNLIKELY(cursor->sp >= cursor->stack_size))
-		{
-			LOG_ERROR_CURSOR(cursor, "Stack overflow");
-			return NULL;
-		}
-		cursor->stack[cursor->sp].type = cursor->stack[cursor->sp-1].list_type;
-		(*type) = cursor->stack[cursor->sp].type;
+		(*type) = cursor->stack[cursor->sp].list_type;
 		break;
 
 	default:
@@ -504,9 +503,6 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 uint8_t const * thrift_cursor_next(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id, thrift_value_t * value)
 {
     data = thrift_cursor_read_type(cursor, data, data_end, type, id);
-    if((*type) != THRIFT_STOP)
-    {
-        data = thrift_cursor_read_value(cursor, data, data_end, value);
-    }
+    data = thrift_cursor_read_value(cursor, data, data_end, (*type), value);
 	return data;
 }
