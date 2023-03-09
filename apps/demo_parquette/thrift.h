@@ -85,8 +85,9 @@ typedef struct
 	int32_t id;
 	thrift_type_t type;
 	// TODO: These are only used when (type == THRIFT_LIST) which seems wasteful:
+	//       Is there a way to reduce stack bloat?
 	thrift_type_t list_type;
-	int32_t list_size;
+	int32_t       list_size;
 } thrift_stack_t;
 
 // Iterable thrift parse reader
@@ -113,9 +114,14 @@ extern thrift_api_t thrift_api;
 // Set the cursor.stack_size before calling init:
 void thrift_cursor_init(thrift_cursor_t * cursor);
 
-// Both of this need to be called to iterate one step in thrift binary data
-uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id);
-uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t type, thrift_value_t * value);
+// This will not push anything to the stack:
+uint8_t const * thrift_cursor_next_type(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id);
+
+// This might push things to the stack:
+uint8_t const * thrift_cursor_next_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t type, thrift_value_t * value);
+
+// Call this to parse a single item:
+// This is just a wrapper of thrift_cursor_next_type and thrift_cursor_next_value:
 uint8_t const * thrift_cursor_next(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id, thrift_value_t * value);
 
 // Convert type to string

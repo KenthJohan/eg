@@ -74,6 +74,27 @@ char const * thrift_get_type_string(thrift_type_t type)
 	}
 }
 
+// Return true if type can be a element type in a list
+int thrift_is_list_element_type(thrift_type_t type)
+{
+	switch (type)
+	{
+	case THRIFT_BYTE:    return 1;
+	case THRIFT_I16:     return 1;
+	case THRIFT_I32:     return 1;
+	case THRIFT_I64:     return 1;
+	case THRIFT_DOUBLE:  return 1;
+	case THRIFT_BINARY:  return 1;
+	case THRIFT_LIST:    return 1;
+	case THRIFT_SET:     return 1;
+	case THRIFT_MAP:     return 1;
+	case THRIFT_STRUCT:  return 1;
+	default:             return 0;
+	}
+}
+
+
+
 
 void string_friendly(char s[], int n)
 {
@@ -175,29 +196,43 @@ uint8_t const * thrift_read_varint_i64(uint8_t const *data, int64_t * result)
 			return NULL;
 		}
 	}
-
 	return data + rsize;
 }
 
-uint8_t const * thrift_read_varint_i32(uint8_t const *data, int32_t * result)
+
+
+uint8_t const * thrift_read_varint(uint8_t const *data, int32_t bytes, void * result)
 {
 	ASSERT(data);
 	ASSERT(result);
-	int64_t r64;
-	data = thrift_read_varint_i64(data, &r64);
-	(*result) = r64;
+	//uint8_t const *data_start = data;
+	int64_t val;
+	data = thrift_read_varint_i64(data, &val);
+	switch (bytes)
+	{
+	case 2:
+		*(int16_t*)result = val;
+		break;
+	case 4:
+		*(int32_t*)result = val;
+		break;
+	case 8:
+		*(int64_t*)result = val;
+		break;
+	default:
+		ASSERT(0);
+		return NULL;
+	}
+	//ASSERT((data_start + bytes) == data);
 	return data;
 }
 
-uint8_t const * thrift_read_varint_i16(uint8_t const *data, int16_t * result)
-{
-	ASSERT(data);
-	ASSERT(result);
-	int64_t r64;
-	data = thrift_read_varint_i64(data, &r64);
-	(*result) = r64;
-	return data;
-}
+
+
+
+
+
+
 
 
 
@@ -229,186 +264,8 @@ void thrift_cursor_init(thrift_cursor_t * cursor)
 	cursor->stack[cursor->sp].list_size = 0;
 }
 
-int thrift_is_list_type(thrift_type_t type)
-{
-	switch (type)
-	{
-	case THRIFT_BYTE: return 1;
-	case THRIFT_I16: return 1;
-	case THRIFT_I32: return 1;
-	case THRIFT_I64: return 1;
-	case THRIFT_DOUBLE: return 1;
-	case THRIFT_BINARY: return 1;
-	case THRIFT_LIST: return 1;
-	case THRIFT_SET: return 1;
-	case THRIFT_MAP: return 1;
-	case THRIFT_STRUCT: return 1;
-	default:return 0;
-	}
-}
 
-
-uint8_t const * thrift_cursor_read_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t type, thrift_value_t * value)
-{
-	ASSERT(cursor);
-	ASSERT(data);
-	ASSERT(data_end);
-	ASSERT(value);
-	ASSERT(cursor->stack);
-	
-	if((type == THRIFT_STOP) && (cursor->sp == 0))
-	{
-		// Decoding is successful and finnished here:
-		return NULL;
-	}
-
-	if(UNLIKELY(data >= (data_end)))
-	{
-		LOG_ERROR_CURSOR(cursor, "No more data");
-		return NULL;
-	}
-
-	switch (type)
-	{
-	case THRIFT_STOP:
-		// We are done in this struct so we will pop out of this context:
-		pop(cursor);
-		cursor->last_field_id = cursor->stack[cursor->sp].id;
-		break;
-
-	// The type of the value is struct which can not be decoded here.
-	// Keep this in the stack so we can start decoding its fields in future iterations.
-	case THRIFT_STRUCT:
-		cursor->last_field_id = 0;
-		cursor->sp++;
-		if(UNLIKELY(cursor->sp >= cursor->stack_size))
-		{
-			LOG_ERROR_CURSOR(cursor, "Stack overflow");
-			return NULL;
-		}
-		cursor->stack[cursor->sp].type = THRIFT_STRUCT;
-		break;
-	
-	// The value type is a list so start decoding the list size and list type:
-	// Keep this in the stack so we can start decoding its elements in future iterations.
-	case THRIFT_LIST:{
-		ASSERT(data <= data_end);
-		uint8_t byte = 0;
-		data = thrift_read_u8(data, &byte);
-		value->list_type = byte & 0x0F;
-		if(UNLIKELY(thrift_is_list_type(value->list_type) == 0))
-		{
-			LOG_ERROR_CURSOR(cursor, "List type is not valid");
-			return NULL;
-		}
-		value->list_size = (byte >> 4) & 0x0F;
-		// Check if list size is large:
-		if(value->list_size == 0xF)
-		{
-			if(UNLIKELY(data >= (data_end)))
-			{
-				LOG_ERROR_CURSOR(cursor, "No more data");
-				return NULL;
-			}
-			data = thrift_read_varint_i32(data, &value->list_size);
-		}
-		cursor->sp++;
-		if(UNLIKELY(cursor->sp >= cursor->stack_size))
-		{
-			LOG_ERROR_CURSOR(cursor, "Stack overflow");
-			return NULL;
-		}
-		cursor->stack[cursor->sp].type = THRIFT_LIST;
-		cursor->stack[cursor->sp].list_type = value->list_type;
-		cursor->stack[cursor->sp].list_size = value->list_size;
-		cursor->stack[cursor->sp].id = 0;
-		break;}
-
-	case THRIFT_BOOLEAN_FALSE:
-		value->value_bool = 0;
-		//pop(cursor);
-		break;
-
-	case THRIFT_BOOLEAN_TRUE:
-		value->value_bool = 1;
-		//pop(cursor);
-		break;
-
-	// Decode primitive:
-	case THRIFT_BYTE:
-		ASSERT(data <= data_end);
-		data = thrift_read_u8(data, &value->value_u8);
-		//pop(cursor);
-		break;
-
-	// Decode primitive:
-	case THRIFT_I16:
-		ASSERT(data <= data_end);
-		data = thrift_read_varint_i16(data, &value->value_i16);
-		value->value_i16 = (int16_t)ZIGZAG_TO_I32(value->value_i16);
-		//pop(cursor);
-		break;
-
-	// Decode primitive:
-	case THRIFT_I32:
-		ASSERT(data <= data_end);
-		data = thrift_read_varint_i32(data, &value->value_i32);
-		value->value_i32 = (int32_t)ZIGZAG_TO_I32(value->value_i32);
-		//pop(cursor);
-		break;
-
-	// Decode primitive:
-	case THRIFT_I64:
-		ASSERT(data <= data_end);
-		data = thrift_read_varint_i64(data, &value->value_i64);
-		value->value_i64 = (int64_t)ZIGZAG_TO_I64(value->value_i64);
-		//pop(cursor);
-		break;
-
-	// Decode primitive:
-	case THRIFT_DOUBLE:
-		ASSERT(data <= data_end);
-		data = thrift_read_f64(data, &value->value_f64);
-		//pop(cursor);
-		break;
-
-	// Decode string:
-	case THRIFT_BINARY:{
-		int32_t string_size = 0;
-		data = thrift_read_varint_i32(data, &string_size);
-		value->string_size = string_size;
-		value->string_data = NULL;
-		if(UNLIKELY(value->string_size < 0))
-		{
-			LOG_ERROR_CURSOR(cursor, "Negative string size");
-			return NULL;
-		}
-		if(UNLIKELY(value->string_size >= THRIFT_MAX_STRING_SIZE))
-		{
-			LOG_ERROR_CURSOR(cursor, "Too big string size");
-			return NULL;
-		}
-		if(value->string_size > 0)
-		{
-			value->string_data = thrift_api.malloc_(value->string_size + 1); // Allocate one extra for null-termination
-			memcpy(value->string_data, data, value->string_size);
-			value->string_data[value->string_size] = '\0';
-			data += value->string_size;
-		}
-		//pop(cursor);
-		break;}
-
-	default:
-		// Nothing to do here.
-		break;
-	}
-
-	// Return the current position of thrift byte array:
-	return data;
-}
-
-
-uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id)
+uint8_t const * thrift_cursor_next_type(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id)
 {
 	ASSERT(cursor);
 	ASSERT(data);
@@ -499,10 +356,161 @@ uint8_t const * thrift_cursor_read_type(thrift_cursor_t * cursor, uint8_t const 
 
 
 
+uint8_t const * thrift_cursor_next_value(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t type, thrift_value_t * value)
+{
+	ASSERT(cursor);
+	ASSERT(data);
+	ASSERT(data_end);
+	ASSERT(value);
+	ASSERT(cursor->stack);
+	
+	if((type == THRIFT_STOP) && (cursor->sp == 0))
+	{
+		// Decoding is successful and finnished here:
+		return NULL;
+	}
+
+	if(UNLIKELY(data >= (data_end)))
+	{
+		LOG_ERROR_CURSOR(cursor, "No more data");
+		return NULL;
+	}
+
+	switch (type)
+	{
+	case THRIFT_STOP:
+		// We are done in this struct so we will pop out of this context:
+		pop(cursor);
+		cursor->last_field_id = cursor->stack[cursor->sp].id;
+		break;
+
+	// This will push new in the stack
+	case THRIFT_STRUCT:
+		cursor->last_field_id = 0;
+		cursor->sp++;
+		if(UNLIKELY(cursor->sp >= cursor->stack_size))
+		{
+			LOG_ERROR_CURSOR(cursor, "Stack overflow");
+			return NULL;
+		}
+		cursor->stack[cursor->sp].type = THRIFT_STRUCT;
+		break;
+	
+	// This will push new in the stack
+	case THRIFT_LIST:{
+		ASSERT(data <= data_end);
+		uint8_t byte = 0;
+		data = thrift_read_u8(data, &byte);
+		value->list_type = byte & 0x0F;
+		if(UNLIKELY(thrift_is_list_element_type(value->list_type) == 0))
+		{
+			LOG_ERROR_CURSOR(cursor, "List type is not valid");
+			return NULL;
+		}
+		value->list_size = (byte >> 4) & 0x0F;
+		// Check if list size is large:
+		if(value->list_size == 0xF)
+		{
+			if(UNLIKELY(data >= (data_end)))
+			{
+				LOG_ERROR_CURSOR(cursor, "No more data");
+				return NULL;
+			}
+			data = thrift_read_varint(data, sizeof(int32_t), &value->list_size);
+		}
+		cursor->sp++;
+		if(UNLIKELY(cursor->sp >= cursor->stack_size))
+		{
+			LOG_ERROR_CURSOR(cursor, "Stack overflow");
+			return NULL;
+		}
+		cursor->stack[cursor->sp].type = THRIFT_LIST;
+		cursor->stack[cursor->sp].id = 0;
+		//TODO: Try making a less bloated stack by reducing this:
+		cursor->stack[cursor->sp].list_type = value->list_type;
+		cursor->stack[cursor->sp].list_size = value->list_size;
+		break;}
+ 
+	case THRIFT_BOOLEAN_FALSE:
+		value->value_bool = 0;
+		break;
+
+	case THRIFT_BOOLEAN_TRUE:
+		value->value_bool = 1;
+		break;
+
+	// Decode primitive:
+	case THRIFT_BYTE:
+		ASSERT(data <= data_end);
+		data = thrift_read_u8(data, &value->value_u8);
+		break;
+
+	// Decode primitive:
+	case THRIFT_I16:
+		ASSERT(data <= data_end);
+		data = thrift_read_varint(data, sizeof(int16_t), &value->value_i16);
+		value->value_i16 = (int16_t)ZIGZAG_TO_I32(value->value_i16);
+		break;
+
+	// Decode primitive:
+	case THRIFT_I32:
+		ASSERT(data <= data_end);
+		data = thrift_read_varint(data, sizeof(int32_t), &value->value_i32);
+		value->value_i32 = (int32_t)ZIGZAG_TO_I32(value->value_i32);
+		break;
+
+	// Decode primitive:
+	case THRIFT_I64:
+		ASSERT(data <= data_end);
+		data = thrift_read_varint(data, sizeof(int64_t), &value->value_i64);
+		value->value_i64 = (int64_t)ZIGZAG_TO_I64(value->value_i64);
+		break;
+
+	// Decode primitive:
+	case THRIFT_DOUBLE:
+		ASSERT(data <= data_end);
+		data = thrift_read_f64(data, &value->value_f64);
+		break;
+
+	// Decode string:
+	case THRIFT_BINARY:{
+		int32_t string_size = 0;
+		data = thrift_read_varint(data, sizeof(int32_t), &string_size);
+		value->string_size = string_size;
+		value->string_data = NULL;
+		if(UNLIKELY(value->string_size < 0))
+		{
+			LOG_ERROR_CURSOR(cursor, "Negative string size");
+			return NULL;
+		}
+		if(UNLIKELY(value->string_size >= THRIFT_MAX_STRING_SIZE))
+		{
+			LOG_ERROR_CURSOR(cursor, "Too big string size");
+			return NULL;
+		}
+		if(value->string_size > 0)
+		{
+			value->string_data = thrift_api.malloc_(value->string_size + 1); // Allocate one extra for null-termination
+			memcpy(value->string_data, data, value->string_size);
+			value->string_data[value->string_size] = '\0';
+			data += value->string_size;
+		}
+		break;}
+
+	default:
+		LOG_ERROR_CURSOR(cursor, "Invalid state");
+		return NULL;
+	}
+
+	// Return the current position of thrift byte array:
+	return data;
+}
+
+
 
 uint8_t const * thrift_cursor_next(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id, thrift_value_t * value)
 {
-    data = thrift_cursor_read_type(cursor, data, data_end, type, id);
-    data = thrift_cursor_read_value(cursor, data, data_end, (*type), value);
+    data = thrift_cursor_next_type(cursor, data, data_end, type, id);
+    data = thrift_cursor_next_value(cursor, data, data_end, (*type), value);
 	return data;
 }
