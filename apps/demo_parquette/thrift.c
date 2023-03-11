@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 #include "thrift.h"
 #include <stdint.h>
 #include <string.h>
@@ -31,14 +32,14 @@
 #endif
 
 #define bswap_64(n) \
-      ( (((n) & 0xff00000000000000ull) >> 56) \
-      | (((n) & 0x00ff000000000000ull) >> 40) \
-      | (((n) & 0x0000ff0000000000ull) >> 24) \
-      | (((n) & 0x000000ff00000000ull) >> 8)  \
-      | (((n) & 0x00000000ff000000ull) << 8)  \
-      | (((n) & 0x0000000000ff0000ull) << 24) \
-      | (((n) & 0x000000000000ff00ull) << 40) \
-      | (((n) & 0x00000000000000ffull) << 56) )
+	( (((n) & 0xff00000000000000ull) >> 56) \
+	| (((n) & 0x00ff000000000000ull) >> 40) \
+	| (((n) & 0x0000ff0000000000ull) >> 24) \
+	| (((n) & 0x000000ff00000000ull) >> 8)  \
+	| (((n) & 0x00000000ff000000ull) << 8)  \
+	| (((n) & 0x0000000000ff0000ull) << 24) \
+	| (((n) & 0x000000000000ff00ull) << 40) \
+	| (((n) & 0x00000000000000ffull) << 56) )
 
 
 #define ZIGZAG_TO_I32(n) ((n) >> 1) ^ (-(int32_t)((n) & 1));
@@ -47,8 +48,8 @@
 
 
 thrift_api_t thrift_api = {
-    .malloc_ = NULL,
-    .onerror_ = NULL,
+	.malloc_ = NULL,
+	.onerror_ = NULL,
 };
 
 
@@ -65,7 +66,7 @@ char const * thrift_get_type_string(thrift_type_t type)
 	case THRIFT_I32:           return "I32";
 	case THRIFT_I64:           return "I64";
 	case THRIFT_DOUBLE:        return "DOUBLE";
-	case THRIFT_BINARY:        return "BINARY";
+	case THRIFT_BINARY:         return "BINARY";
 	case THRIFT_LIST:          return "LIST";
 	case THRIFT_SET:           return "SET";
 	case THRIFT_MAP:           return "MAP";
@@ -115,7 +116,7 @@ void thrift_get_field_str(thrift_type_t type, thrift_value_t value, char * buf, 
 	ASSERT(n >= 0);
 	switch(type)
 	{
-	case THRIFT_STOP: break;
+	case THRIFT_STOP: snprintf(buf, n, "}"); break;
 	case THRIFT_BOOLEAN_TRUE: snprintf(buf, n, "true"); break;
 	case THRIFT_BOOLEAN_FALSE: snprintf(buf, n, "false"); break;
 	case THRIFT_BYTE: snprintf(buf, n, "%02X", value.value_u8); break;
@@ -130,7 +131,7 @@ void thrift_get_field_str(thrift_type_t type, thrift_value_t value, char * buf, 
 	case THRIFT_LIST: snprintf(buf, n, "%i of %s", value.list_size, thrift_get_type_string(value.list_type)); break;
 	case THRIFT_SET: snprintf(buf, n, "SET"); break;
 	case THRIFT_MAP: snprintf(buf, n, "MAP"); break;
-	case THRIFT_STRUCT: snprintf(buf, n, "STRUCT"); break;
+	case THRIFT_STRUCT: snprintf(buf, n, "{"); break;
 	default: snprintf(buf, n, "?"); break;
 	}
 }
@@ -510,7 +511,7 @@ uint8_t const * thrift_cursor_next_value(thrift_cursor_t * cursor, uint8_t const
 
 uint8_t const * thrift_cursor_next(thrift_cursor_t * cursor, uint8_t const * data, uint8_t const * data_end, thrift_type_t * type, int64_t * id, thrift_value_t * value)
 {
-    data = thrift_cursor_next_type(cursor, data, data_end, type, id);
-    data = thrift_cursor_next_value(cursor, data, data_end, (*type), value);
+	data = thrift_cursor_next_type(cursor, data, data_end, type, id);
+	data = thrift_cursor_next_value(cursor, data, data_end, (*type), value);
 	return data;
 }

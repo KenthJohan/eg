@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdio.h>
+#include <flecs.h>
 #include "thrift.h"
 
 
