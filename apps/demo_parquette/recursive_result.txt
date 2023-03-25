@@ -5,12 +5,12 @@
         00 =
         {
             04 = hive_schema          : BINARY
-            05 = 13                   : I32   
+            05 = 13                   : I32
         }
         01 =
         {
-            01 = 3                    : I32   
-            03 = 1                    : I32   
+            01 = 3                    : I32
+            03 = 1                    : I32
             04 = registration_dttm    : BINARY
         }
         02 =

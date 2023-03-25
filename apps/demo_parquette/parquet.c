@@ -99,7 +99,7 @@ void parquet_read1(parquet_reader1_t * reader, char const * filename)
     int8_t * data = ecs_os_malloc(l);
     fread(data, l, 1, file);
 
-
+    
 
     // column first_name
     {
