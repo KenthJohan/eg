@@ -195,7 +195,7 @@ void app_update()
         }
         gsi_camera2D(gsi, fbs.x, fbs.y);
         gsi_text(gsi, fbs.x * 0.5f - 198.f, fbs.y * 0.5f, "ESC to open term, TAB toggle autoscroll, help for more", NULL, false, 255, 255, 255, 255);
-        gsi_renderpass_submit(gsi, cb, fbs.x, fbs.y, gs_color(10, 10, 10, 255));
+        gsi_renderpass_submit(gsi, cb, gs_v4(0.f, 0.f, fbs.x, fbs.y), gs_color(10, 10, 10, 255));
 
         // Render gui
         gs_gui_begin(gui, NULL);
@@ -246,8 +246,8 @@ gs_app_desc_t gs_main(int32_t argc, char** argv)
 {
         return (gs_app_desc_t) {
                 .user_data = gs_malloc_init(app_t),
-                .window_width = 800,
-                .window_height = 600,
+                .window.width = 800,
+                .window.height = 600,
                 .init = app_init,
                 .update = app_update,
                 .shutdown = app_shutdown

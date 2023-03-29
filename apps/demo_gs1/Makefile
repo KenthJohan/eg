@@ -10,7 +10,7 @@ INC_DIRS := . ../../src/ ../../vendor/
 ifeq ($(OS),Windows_NT)
 	INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 	CFLAGS := $(INC_FLAGS) -g -MMD -MP
-	LDFLAGS := -lws2_32 -lgdi32
+	LDFLAGS := -lws2_32 -lgdi32 -lWinmm
 else
 	INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 	CFLAGS := $(INC_FLAGS) -g -MMD -MP
@@ -19,12 +19,6 @@ endif
 
 
 SRCS := main.c
-#SRCS := other.c
-SRCS := test.c
-SRCS += ../../vendor/flecs.c
-SRCS += ../../vendor/sokol_app.c
-SRCS += ../../vendor/sokol_gfx.c
-SRCS += ../../vendor/sokol_glue.c
 
 
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
