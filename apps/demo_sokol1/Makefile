@@ -19,7 +19,12 @@ endif
 
 
 SRCS := main.c
+#SRCS := other.c
+SRCS := test.c
 SRCS += ../../vendor/flecs.c
+SRCS += ../../vendor/sokol_app.c
+SRCS += ../../vendor/sokol_gfx.c
+SRCS += ../../vendor/sokol_glue.c
 
 
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
