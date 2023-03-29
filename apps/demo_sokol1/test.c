@@ -4,6 +4,7 @@
 #include "sokol_gfx.h"
 #include "sokol_gp.h"
 #include "sokol_glue.h"
+#include "flecs.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -102,7 +103,8 @@ static void draw_triangles(void) {
     sgp_pop_transform();
 }
 
-void frame(void) {
+void frame(ecs_world_t *world) {
+    ecs_progress(world, 0);
     // begin draw commands queue
     int width = sapp_width(), height = sapp_height();
     sgp_begin(width, height);

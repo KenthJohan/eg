@@ -1,16 +1,7 @@
-/*
- * This example is created form the gs_project_template
- * See the LICENSE file for details
- */
-
-#define GS_IMPL
 #include <gs/gs.h>
-
-#define GS_IMMEDIATE_DRAW_IMPL
 #include <gs/util/gs_idraw.h>
-
-#define GS_GUI_IMPL
 #include <gs/util/gs_gui.h>
+#include "gs_ddt/gs_ddt.h"
 
 typedef struct app_t 
 {
@@ -19,8 +10,6 @@ typedef struct app_t
         gs_gui_context_t gui;
 } app_t;
 
-#define GS_DDT_IMPL
-#include "gs_ddt/gs_ddt.h"
 
 static int bg, window = 1, embeded, summons;
 
@@ -37,12 +26,12 @@ gs_ddt_command_t commands[] = {
         {
                 .func = echo,
                 .name = "echo",
-                .desc = "repeat what was entered",
+                .desc = "repeat what was entered!!!",
         },
         {
                 .func = spam,
                 .name = "spam",
-                .desc = "send the word arg1, arg2 amount of times",
+                .desc = "send the word arg1, arg2 amount of times, HURRY UP!!!",
         },
         {
                 .func = help,

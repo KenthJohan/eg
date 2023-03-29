@@ -1,6 +1,8 @@
 #pragma once
 
-void frame(void);
+#include "flecs.h"
+
+void frame(ecs_world_t *world);
 
 void init(void);
 

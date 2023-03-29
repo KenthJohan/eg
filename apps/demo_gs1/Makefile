@@ -19,6 +19,7 @@ endif
 
 
 SRCS := main.c
+SRCS += gs.c
 
 
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
