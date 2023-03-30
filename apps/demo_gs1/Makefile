@@ -20,6 +20,9 @@ endif
 
 SRCS := main.c
 SRCS += gs.c
+SRCS += gs_idraw.c
+SRCS += gs_gui.c
+SRCS += gs_ddt.c
 
 
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
