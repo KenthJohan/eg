@@ -19,6 +19,7 @@ endif
 
 
 SRCS := main.c
+SRCS += ../../vendor/flecs.c
 SRCS += gs.c
 SRCS += gs_idraw.c
 SRCS += gs_gui.c
