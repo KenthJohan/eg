@@ -155,18 +155,72 @@ void help(int argc, char **argv)
 	}
 }
 
+
+
+
+
+
+
+void Draw_Rectangle(ecs_iter_t* it)
+{
+	gs_immediate_draw_t* gsi = it->ctx;
+    const EgV2F32 *p  = ecs_field(it, EgV2F32, 1);
+    const EgV2F32 *r  = ecs_field(it, EgV2F32, 2);
+
+    for (int i = 0; i < it->count; i ++)
+	{
+		gs_vec2 xy = {p[i].x, p[i].y};
+		gs_vec2 wh = {r[i].x, r[i].y};
+		gs_color_t color = {255, 255, 255, 255};
+        gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void app_init()
 {
 	app_t *app = gs_user_data(app_t);
 	app->cb = gs_command_buffer_new();
 	app->gsi = gs_immediate_draw_new(gs_platform_main_window());
 	gs_gui_init(&app->gui, gs_platform_main_window());
+
+
+
+    ecs_entity_t e_Draw_Rectangle = ecs_system(app->world, {
+        .entity = ecs_entity(app->world, {
+			.name = "Draw_Rectangle",
+			.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+        .query.filter.terms = {
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn },
+        },
+        .callback = Draw_Rectangle,
+		.ctx = &app->gsi
+    });
+
+
 }
 
 void app_update()
 {
 	app_t *app = gs_user_data(app_t);
-	ecs_progress(app->world, 0);
 
 	gs_command_buffer_t *cb = &app->cb;
 	gs_immediate_draw_t *gsi = &app->gsi;
@@ -192,6 +246,8 @@ void app_update()
 		gsi_sphere(gsi, 0.f, 0.f, 0.f, 1.f, 50, 150, 200, 50, GS_GRAPHICS_PRIMITIVE_LINES);
 	}
 	gsi_camera2D(gsi, fbs.x, fbs.y);
+	
+	ecs_progress(app->world, 0);
 	gsi_text(gsi, fbs.x * 0.5f - 198.f, fbs.y * 0.5f, "ESC to open term, TAB toggle autoscroll, help for more", NULL, false, 255, 255, 255, 255);
 	gsi_renderpass_submit(gsi, cb, gs_v4(0.f, 0.f, fbs.x, fbs.y), gs_color(10, 10, 10, 255));
 
