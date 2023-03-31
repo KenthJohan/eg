@@ -6,10 +6,12 @@
 ECS_DECLARE(EgPosition);
 ECS_DECLARE(EgPositionRelative);
 ECS_DECLARE(EgRectangle);
+ECS_DECLARE(EgColor);
 ECS_COMPONENT_DECLARE(EgV1F32);
 ECS_COMPONENT_DECLARE(EgV2F32);
 ECS_COMPONENT_DECLARE(EgV3F32);
 ECS_COMPONENT_DECLARE(EgV4F32);
+ECS_COMPONENT_DECLARE(EgV4U8);
 ECS_COMPONENT_DECLARE(EgText);
 
 static ECS_COPY(EgText, dst, src, {
@@ -53,10 +55,12 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgPosition);
 	ECS_TAG_DEFINE(world, EgPositionRelative);
 	ECS_TAG_DEFINE(world, EgRectangle);
+	ECS_TAG_DEFINE(world, EgColor);
 	ECS_COMPONENT_DEFINE(world, EgV1F32);
 	ECS_COMPONENT_DEFINE(world, EgV2F32);
 	ECS_COMPONENT_DEFINE(world, EgV3F32);
 	ECS_COMPONENT_DEFINE(world, EgV4F32);
+	ECS_COMPONENT_DEFINE(world, EgV4U8);
 	ECS_COMPONENT_DEFINE(world, EgText);
 
 	ecs_struct(world, {
@@ -93,7 +97,16 @@ void EgQuantitiesImport(ecs_world_t *world)
 	}
 	});
 
-
+	ecs_struct(world, {
+	.entity = ecs_id(EgV4U8),
+	.members = {
+	{ .name = "x", .type = ecs_id(ecs_u8_t) },
+	{ .name = "y", .type = ecs_id(ecs_u8_t) },
+	{ .name = "z", .type = ecs_id(ecs_u8_t) },
+	{ .name = "w", .type = ecs_id(ecs_u8_t) }
+	}
+	});
+	
 	ecs_set_hooks(world, EgText, {
 	.ctor = ecs_default_ctor,
 	.move = ecs_move(EgText),

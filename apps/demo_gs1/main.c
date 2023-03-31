@@ -166,12 +166,13 @@ void Draw_Rectangle(ecs_iter_t* it)
 	gs_immediate_draw_t* gsi = it->ctx;
     const EgV2F32 *p  = ecs_field(it, EgV2F32, 1);
     const EgV2F32 *r  = ecs_field(it, EgV2F32, 2);
+    const EgV4U8 *c  = ecs_field(it, EgV4U8, 3);
 
     for (int i = 0; i < it->count; i ++)
 	{
 		gs_vec2 xy = {p[i].x, p[i].y};
 		gs_vec2 wh = {r[i].x, r[i].y};
-		gs_color_t color = {255, 255, 255, 255};
+		gs_color_t color = {c[i].x, c[i].y, c[i].z, c[i].w};
         gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
     }
 }
@@ -210,6 +211,7 @@ void app_init()
         .query.filter.terms = {
             { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
             { .id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn },
+            { .id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn },
         },
         .callback = Draw_Rectangle,
 		.ctx = &app->gsi

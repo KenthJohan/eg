@@ -8,20 +8,30 @@ using eg.quantities
 
 // Plecs files can contain variables that can be referenced later on when 
 // assigning values to components
-const width = 5
+const width = 200
 
 // Variables and components can be assigned using expressions. Most arithmetic
 // and conditional operators are supported.
-const height = $width * 2
+const height = 100
 
 e {
-  - (V2F32, Position){0, -($height / 2)}
+  - (V2F32, Position){10, 10}
   - (V2F32, Rectangle){$width, $height}
+  - (V4U8, Color){255, 0, 0, 255}
 
 	e1 {
 	  - (V2F32, Position)
 	  - (V2F32, PositionRelative){4, 9}
-	  - (V2F32, Rectangle){6, 4}
+	  - (V2F32, Rectangle){$width/2, $height/2}
+      - (V4U8, Color){0, 255, 0, 255}
+
+		e2 {
+		  - (V2F32, Position)
+		  - (V2F32, PositionRelative){4, 9}
+	      - (V2F32, Rectangle){$width/4, $height/4}
+	      - (V4U8, Color){0, 0, 255, 255}
+		}
+
 	}
 
 }
