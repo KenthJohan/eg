@@ -1,8 +1,9 @@
 #include <gs/gs.h>
 #include <gs/util/gs_idraw.h>
 #include <gs/util/gs_gui.h>
-#include "gs_ddt/gs_ddt.h"
+#include <gs_ddt/gs_ddt.h>
 #include <flecs.h>
+#include "EgQuantities.h"
 
 typedef struct app_t
 {
@@ -246,8 +247,11 @@ gs_app_desc_t gs_main(int32_t argc, char **argv)
 {
 	app_t *app = gs_malloc_init(app_t);
 	app->world = ecs_init();
+	ECS_IMPORT(app->world, EgQuantities);
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
+	ecs_plecs_from_file(app->world, "test.flecs");
+
 
 	return (gs_app_desc_t){
 		.user_data = app,
