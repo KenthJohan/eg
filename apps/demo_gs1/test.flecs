@@ -17,4 +17,11 @@ const height = $width * 2
 e {
   - (V2F32, Position){0, -($height / 2)}
   - (V2F32, Rectangle){$width, $height}
+
+	e1 {
+	  - (V2F32, Position)
+	  - (V2F32, PositionRelative){4, 9}
+	  - (V2F32, Rectangle){6, 4}
+	}
+
 }

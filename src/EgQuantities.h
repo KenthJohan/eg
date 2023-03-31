@@ -34,6 +34,7 @@ typedef struct EgText {
 
 
 extern ECS_DECLARE(EgPosition);
+extern ECS_DECLARE(EgPositionRelative);
 extern ECS_DECLARE(EgRectangle);
 extern ECS_COMPONENT_DECLARE(EgV1F32);
 extern ECS_COMPONENT_DECLARE(EgV2F32);
