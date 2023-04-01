@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 
+ECS_DECLARE(EgMouse);
 ECS_DECLARE(EgPosition);
 ECS_DECLARE(EgPositionRelative);
 ECS_DECLARE(EgRectangle);
@@ -52,6 +53,7 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "Eg");
 
 
+	ECS_TAG_DEFINE(world, EgMouse);
 	ECS_TAG_DEFINE(world, EgPosition);
 	ECS_TAG_DEFINE(world, EgPositionRelative);
 	ECS_TAG_DEFINE(world, EgRectangle);

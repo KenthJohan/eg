@@ -180,6 +180,13 @@ void Draw_Rectangle(ecs_iter_t* it)
 
 
 
+void Update_Mouse(ecs_iter_t* it)
+{
+    EgV2F32 *p  = ecs_field(it, EgV2F32, 1);
+	gs_vec2 mouse_pos = gs_platform_mouse_positionv();
+	p[0].x = mouse_pos.x;
+	p[0].y = mouse_pos.y;
+}
 
 
 
@@ -215,6 +222,17 @@ void app_init()
         },
         .callback = Draw_Rectangle,
 		.ctx = &app->gsi
+    });
+
+    ecs_entity_t e_Update_Mouse = ecs_system(app->world, {
+        .entity = ecs_entity(app->world, {
+			.name = "Update_Mouse",
+			.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+        .query.filter.terms = {
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse) }
+        },
+        .callback = Update_Mouse
     });
 
 
@@ -308,6 +326,9 @@ gs_app_desc_t gs_main(int32_t argc, char **argv)
 	ECS_IMPORT(app->world, EgQuantities);
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
+	//ecs_add_pair(app->world, ecs_pair(ecs_id(EgV2F32), EgMousePosition), ecs_id(EgV2F32), EgMousePosition);
+	ecs_add_id(app->world, EgMouse, ecs_pair(ecs_id(EgV2F32), EgPosition));
+	//ecs_add_id(app->world, ecs_pair(ecs_id(EgV2F32), EgMousePosition), ecs_pair(ecs_id(EgV2F32), EgMousePosition));
 	ecs_plecs_from_file(app->world, "test.flecs");
 
 

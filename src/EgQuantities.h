@@ -42,6 +42,7 @@ typedef struct EgText {
 
 
 
+extern ECS_DECLARE(EgMouse);
 extern ECS_DECLARE(EgPosition);
 extern ECS_DECLARE(EgPositionRelative);
 extern ECS_DECLARE(EgRectangle);
