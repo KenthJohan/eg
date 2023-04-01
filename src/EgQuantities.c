@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 
+ECS_DECLARE(EgHover1);
 ECS_DECLARE(EgMouse);
 ECS_DECLARE(EgPosition);
 ECS_DECLARE(EgPositionRelative);
@@ -47,12 +48,37 @@ void Move(ecs_iter_t *it)
 
 
 
+void System_Hover1(ecs_iter_t* it)
+{
+    const EgV2F32 *p   = ecs_field(it, EgV2F32, 1); // position
+    const EgV2F32 *r   = ecs_field(it, EgV2F32, 2); // rectangle
+	const EgV2F32 *mp0  = ecs_field(it, EgV2F32, 3); // mouse position
+    for (int i = 0; i < it->count; i ++)
+	{
+		EgV2F32 o = {mp0->x - p[i].x, mp0->y - p[i].y};
+		int g = ((o.x > 0) && (o.x < r[i].x)) && 
+				((o.y > 0) && (o.y < r[i].y));
+		if(g){ecs_add(it->world, it->entities[i], EgHover1);}
+		else{ecs_remove(it->world, it->entities[i], EgHover1);}
+		
+    }
+}
+
+
+
+
+
+
+
+
 void EgQuantitiesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgQuantities);
 	ecs_set_name_prefix(world, "Eg");
 
 
+
+	ECS_TAG_DEFINE(world, EgHover1);
 	ECS_TAG_DEFINE(world, EgMouse);
 	ECS_TAG_DEFINE(world, EgPosition);
 	ECS_TAG_DEFINE(world, EgPositionRelative);
@@ -142,7 +168,18 @@ void EgQuantitiesImport(ecs_world_t *world)
 
 
 
-
+    ecs_entity_t e_System_Hover1 = ecs_system(world, {
+        .entity = ecs_entity(world, {
+			.name = "System_Hover1",
+			.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+        .query.filter.terms = {
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse) },
+        },
+        .callback = System_Hover1
+    });
 
 
 

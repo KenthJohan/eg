@@ -25,13 +25,13 @@ e {
 	e1 {
 	  - (V2F32, Position)
 	  - (V2F32, PositionRelative){4, 9}
-	  - (V2F32, Rectangle){$width/2, $height/2}
+	  - (V2F32, Rectangle){$width*2, $height/2}
       - (V4U8, Color){0, 255, 0, 255}
 
 		e2 {
 		  - (V2F32, Position)
 		  - (V2F32, PositionRelative){4, 9}
-	      - (V2F32, Rectangle){$width/4, $height/4}
+	      - (V2F32, Rectangle){$width*4, $height/4}
 	      - (V4U8, Color){0, 0, 255, 255}
 		}
 

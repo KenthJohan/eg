@@ -167,7 +167,6 @@ void Draw_Rectangle(ecs_iter_t* it)
     const EgV2F32 *p  = ecs_field(it, EgV2F32, 1);
     const EgV2F32 *r  = ecs_field(it, EgV2F32, 2);
     const EgV4U8 *c  = ecs_field(it, EgV4U8, 3);
-
     for (int i = 0; i < it->count; i ++)
 	{
 		gs_vec2 xy = {p[i].x, p[i].y};
@@ -177,7 +176,20 @@ void Draw_Rectangle(ecs_iter_t* it)
     }
 }
 
-
+void Draw_Rectangle1(ecs_iter_t* it)
+{
+	gs_immediate_draw_t* gsi = it->ctx;
+    const EgV2F32 *p  = ecs_field(it, EgV2F32, 1);
+    const EgV2F32 *r  = ecs_field(it, EgV2F32, 2);
+    const EgV4U8 *c  = ecs_field(it, EgV4U8, 3);
+    for (int i = 0; i < it->count; i ++)
+	{
+		gs_vec2 xy = {p[i].x, p[i].y};
+		gs_vec2 wh = {r[i].x, r[i].y};
+		gs_color_t color = {255, 255, 255, 255};
+        gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
+    }
+}
 
 
 void Update_Mouse(ecs_iter_t* it)
@@ -219,10 +231,27 @@ void app_init()
             { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
             { .id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn },
             { .id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn },
+            { .id = EgHover1, .oper = EcsNot },
         },
         .callback = Draw_Rectangle,
 		.ctx = &app->gsi
     });
+
+    ecs_entity_t e_Draw_Rectangle1 = ecs_system(app->world, {
+        .entity = ecs_entity(app->world, {
+			.name = "Draw_Rectangle1",
+			.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+        .query.filter.terms = {
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn },
+            { .id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn },
+            { .id = EgHover1 },
+        },
+        .callback = Draw_Rectangle1,
+		.ctx = &app->gsi
+    });
+
 
     ecs_entity_t e_Update_Mouse = ecs_system(app->world, {
         .entity = ecs_entity(app->world, {
