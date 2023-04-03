@@ -181,7 +181,7 @@ void Draw_Rectangle1(ecs_iter_t* it)
 	gs_immediate_draw_t* gsi = it->ctx;
     const EgV2F32 *p  = ecs_field(it, EgV2F32, 1);
     const EgV2F32 *r  = ecs_field(it, EgV2F32, 2);
-    const EgV4U8 *c  = ecs_field(it, EgV4U8, 3);
+    const EgV4U8 *c  = ecs_field(it, EgV4U8, 3); 
     for (int i = 0; i < it->count; i ++)
 	{
 		gs_vec2 xy = {p[i].x, p[i].y};
@@ -190,6 +190,28 @@ void Draw_Rectangle1(ecs_iter_t* it)
         gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
     }
 }
+
+void Draw_Text(ecs_iter_t* it)
+{
+	gs_immediate_draw_t* gsi = it->ctx;
+    const EgV2F32 *p  = ecs_field(it, EgV2F32, 1);
+    const EgV4U8 *c  = ecs_field(it, EgV4U8, 2); 
+    const EgText *text  = ecs_field(it, EgText, 3); 
+	ecs_assert(gsi != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(c != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(text != NULL, ECS_INVALID_PARAMETER, NULL);
+    for (int i = 0; i < it->count; i ++)
+	{
+		gsi_text(gsi, p[i].x, p[i].y, text[i].value, NULL, false, c[i].x, c[i].y, c[i].z, c[i].w);
+    }
+}
+
+
+
+
+
+
 
 
 void Update_Mouse(ecs_iter_t* it)
@@ -252,6 +274,19 @@ void app_init()
 		.ctx = &app->gsi
     });
 
+    ecs_entity_t e_Draw_Text = ecs_system(app->world, {
+        .entity = ecs_entity(app->world, {
+			.name = "Draw_Text",
+			.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+        .query.filter.terms = {
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
+            { .id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn },
+            { .id = ecs_id(EgText), .inout = EcsIn }
+        },
+        .callback = Draw_Text,
+		.ctx = &app->gsi
+    });
 
     ecs_entity_t e_Update_Mouse = ecs_system(app->world, {
         .entity = ecs_entity(app->world, {
@@ -353,11 +388,14 @@ gs_app_desc_t gs_main(int32_t argc, char **argv)
 	app_t *app = gs_malloc_init(app_t);
 	app->world = ecs_init();
 	ECS_IMPORT(app->world, EgQuantities);
+
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
-	//ecs_add_pair(app->world, ecs_pair(ecs_id(EgV2F32), EgMousePosition), ecs_id(EgV2F32), EgMousePosition);
+
+	// Setup a singleton for mouse position:
 	ecs_add_id(app->world, EgMouse, ecs_pair(ecs_id(EgV2F32), EgPosition));
-	//ecs_add_id(app->world, ecs_pair(ecs_id(EgV2F32), EgMousePosition), ecs_pair(ecs_id(EgV2F32), EgMousePosition));
+
+	
 	ecs_plecs_from_file(app->world, "test.flecs");
 
 

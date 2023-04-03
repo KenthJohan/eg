@@ -17,22 +17,29 @@ const height = 100
 
 
 
-e {
+e0 {
   - (V2F32, Position){10, 10}
   - (V2F32, Rectangle){$width, $height}
   - (V4U8, Color){255, 0, 0, 255}
 
-	e1 {
+	e00 {
 	  - (V2F32, Position)
 	  - (V2F32, PositionRelative){4, 9}
 	  - (V2F32, Rectangle){$width*2, $height/2}
       - (V4U8, Color){0, 255, 0, 255}
 
-		e2 {
+		e000 {
 		  - (V2F32, Position)
 		  - (V2F32, PositionRelative){4, 9}
 	      - (V2F32, Rectangle){$width*4, $height/4}
 	      - (V4U8, Color){0, 0, 255, 255}
+		}
+
+		e001 {
+		  - (V2F32, Position)
+		  - (V2F32, PositionRelative){4, 9}
+	      - Text{"Hello World!\nBanana Phone!"}
+	      - (V4U8, Color){60, 100, 255, 255}
 		}
 
 	}
