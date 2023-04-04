@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 ECS_DECLARE(EgHover1);
+ECS_DECLARE(EgUserinput);
 ECS_DECLARE(EgMouse);
 ECS_DECLARE(EgPosition);
 ECS_DECLARE(EgPositionRelative);
@@ -15,6 +16,7 @@ ECS_COMPONENT_DECLARE(EgV3F32);
 ECS_COMPONENT_DECLARE(EgV4F32);
 ECS_COMPONENT_DECLARE(EgV4U8);
 ECS_COMPONENT_DECLARE(EgText);
+ECS_COMPONENT_DECLARE(EgKeyboard);
 
 static ECS_COPY(EgText, dst, src, {
 ecs_os_strset((char**)&dst->value, src->value);
@@ -79,6 +81,7 @@ void EgQuantitiesImport(ecs_world_t *world)
 
 
 	ECS_TAG_DEFINE(world, EgHover1);
+	ECS_TAG_DEFINE(world, EgUserinput);
 	ECS_TAG_DEFINE(world, EgMouse);
 	ECS_TAG_DEFINE(world, EgPosition);
 	ECS_TAG_DEFINE(world, EgPositionRelative);
@@ -90,6 +93,7 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgV4F32);
 	ECS_COMPONENT_DEFINE(world, EgV4U8);
 	ECS_COMPONENT_DEFINE(world, EgText);
+	ECS_COMPONENT_DEFINE(world, EgKeyboard);
 
 	ecs_struct(world, {
 	.entity = ecs_id(EgV1F32),
@@ -134,7 +138,22 @@ void EgQuantitiesImport(ecs_world_t *world)
 	{ .name = "w", .type = ecs_id(ecs_u8_t) }
 	}
 	});
-	
+
+	ecs_struct(world, {
+	.entity = ecs_id(EgText),
+	.members = {
+	{ .name = "value", .type = ecs_id(ecs_string_t) }
+	}
+	});
+
+	ecs_struct(world, {
+	.entity = ecs_id(EgKeyboard),
+	.members = {
+	{ .name = "keys", .type = ecs_id(ecs_u8_t), .count = EG_KEYBOARD_SIZE }
+	}
+	});
+
+
 	ecs_set_hooks(world, EgText, {
 	.ctor = ecs_default_ctor,
 	.move = ecs_move(EgText),

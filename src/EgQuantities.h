@@ -36,14 +36,18 @@ typedef struct
 	ecs_u8_t w;
 } EgV4U8;
 
-typedef struct EgText {
+typedef struct {
 	ecs_string_t value;
 } EgText;
 
-
+#define EG_KEYBOARD_SIZE 128
+typedef struct {
+	ecs_u8_t keys[EG_KEYBOARD_SIZE];
+} EgKeyboard;
 
 
 extern ECS_DECLARE(EgHover1);
+extern ECS_DECLARE(EgUserinput);
 extern ECS_DECLARE(EgMouse);
 extern ECS_DECLARE(EgPosition);
 extern ECS_DECLARE(EgPositionRelative);
@@ -55,6 +59,7 @@ extern ECS_COMPONENT_DECLARE(EgV3F32);
 extern ECS_COMPONENT_DECLARE(EgV4F32);
 extern ECS_COMPONENT_DECLARE(EgV4U8);
 extern ECS_COMPONENT_DECLARE(EgText);
+extern ECS_COMPONENT_DECLARE(EgKeyboard);
 
 
 
