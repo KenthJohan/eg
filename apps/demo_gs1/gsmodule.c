@@ -62,19 +62,23 @@ void Draw_Text(ecs_iter_t *it)
 	}
 }
 
-void Update_Mouse(ecs_iter_t *it)
-{
-	EgV2F32 *p = ecs_field(it, EgV2F32, 1);
-	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
-	gs_vec2 mouse_pos = gs_platform_mouse_positionv();
-	p[0].x = mouse_pos.x;
-	p[0].y = mouse_pos.y;
-}
+
 
 void Update_Keyboard(ecs_iter_t *it)
 {
-	EgKeyboard *state = ecs_field(it, EgKeyboard, 1);
+	EgV2F32 *p = ecs_field(it, EgV2F32, 1);
+	EgV2F32 *v = ecs_field(it, EgV2F32, 2);
+	EgMouse *m = ecs_field(it, EgMouse, 3);
+	EgKeyboard *state = ecs_field(it, EgKeyboard, 4);
+
+	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(m != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(state != NULL, ECS_INVALID_PARAMETER, NULL);
+
+	gs_platform_mouse_delta(&v[0].x, &v[0].y);
+	gs_vec2 mouse_pos = gs_platform_mouse_positionv();
+	p[0].x = mouse_pos.x;
+	p[0].y = mouse_pos.y;
 
 	gs_platform_event_t evt = gs_default_val();
 	while (gs_platform_poll_events(&evt, false))
@@ -100,6 +104,8 @@ void Update_Keyboard(ecs_iter_t *it)
 			case GS_PLATFORM_MOUSE_BUTTON_DOWN:
 			case GS_PLATFORM_MOUSE_BUTTON_PRESSED:
 			{
+				m->left = (1 << evt.mouse.button) & GS_GUI_MOUSE_LEFT;
+				m->right = (1 << evt.mouse.button) & GS_GUI_MOUSE_RIGHT;
 				// int32_t code = 1 << evt.mouse.button;
 				// gs_gui_input_mousedown(ctx, (int32_t)mouse_pos.x, (int32_t)mouse_pos.y, code);
 			}
@@ -107,6 +113,8 @@ void Update_Keyboard(ecs_iter_t *it)
 
 			case GS_PLATFORM_MOUSE_BUTTON_RELEASED:
 			{
+				m->left = 0;
+				m->right = 0;
 				// int32_t code = 1 << evt.mouse.button;
 				// gs_gui_input_mouseup(ctx, (int32_t)mouse_pos.x, (int32_t)mouse_pos.y, code);
 			}
@@ -223,16 +231,16 @@ void GsmoduleImport(ecs_world_t *world)
 		.callback = Draw_Text,
 		});
 
-	ecs_entity_t e_Update_Mouse = ecs_system(world, {.entity = ecs_entity(world, {.name = "Update_Mouse",
-		.add = {ecs_dependson(EcsOnUpdate)}}),
-		.query.filter.terms = {
-		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse)}},
-		.callback = Update_Mouse});
+
 
 	ecs_entity_t e_Update_Keyboard = ecs_system(world, {.entity = ecs_entity(world, {.name = "Update_Keyboard",
 		.add = {ecs_dependson(EcsOnUpdate)}}),
 		.query.filter.terms = {
-		{.id = ecs_id(EgKeyboard), .src.id = ecs_id(EgKeyboard)}},
+		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse)},
+		{.id = ecs_pair(ecs_id(EgV2F32), EgVelocity), .src.id = ecs_id(EgMouse)},
+		{.id = ecs_id(EgMouse), .src.id = ecs_id(EgMouse)},
+		{.id = ecs_id(EgKeyboard), .src.id = ecs_id(EgKeyboard)}
+		},
 		.callback = Update_Keyboard});
-		
+
 }

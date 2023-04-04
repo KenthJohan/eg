@@ -46,10 +46,16 @@ typedef struct {
 } EgKeyboard;
 
 
+typedef struct {
+	ecs_u8_t left;
+	ecs_u8_t right;
+} EgMouse;
+
+
 extern ECS_DECLARE(EgHover1);
 extern ECS_DECLARE(EgUserinput);
-extern ECS_DECLARE(EgMouse);
 extern ECS_DECLARE(EgPosition);
+extern ECS_DECLARE(EgVelocity);
 extern ECS_DECLARE(EgPositionRelative);
 extern ECS_DECLARE(EgRectangle);
 extern ECS_DECLARE(EgColor);
@@ -59,6 +65,7 @@ extern ECS_COMPONENT_DECLARE(EgV3F32);
 extern ECS_COMPONENT_DECLARE(EgV4F32);
 extern ECS_COMPONENT_DECLARE(EgV4U8);
 extern ECS_COMPONENT_DECLARE(EgText);
+extern ECS_COMPONENT_DECLARE(EgMouse);
 extern ECS_COMPONENT_DECLARE(EgKeyboard);
 
 

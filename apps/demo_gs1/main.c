@@ -190,7 +190,9 @@ void app_init()
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
 
 	// Setup a singleton for mouse position:
-	ecs_add_id(app->world, EgMouse, ecs_pair(ecs_id(EgV2F32), EgPosition));
+	ecs_add_id(app->world, ecs_id(EgMouse), ecs_pair(ecs_id(EgV2F32), EgPosition));
+	ecs_add_id(app->world, ecs_id(EgMouse), ecs_pair(ecs_id(EgV2F32), EgVelocity));
+	ecs_add_id(app->world, ecs_id(EgMouse), ecs_id(EgMouse));
 	ecs_add_id(app->world, ecs_id(EgKeyboard), ecs_id(EgKeyboard));
 	ecs_plecs_from_file(app->world, "test.flecs");
 

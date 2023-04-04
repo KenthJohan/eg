@@ -5,8 +5,8 @@
 
 ECS_DECLARE(EgHover1);
 ECS_DECLARE(EgUserinput);
-ECS_DECLARE(EgMouse);
 ECS_DECLARE(EgPosition);
+ECS_DECLARE(EgVelocity);
 ECS_DECLARE(EgPositionRelative);
 ECS_DECLARE(EgRectangle);
 ECS_DECLARE(EgColor);
@@ -16,6 +16,7 @@ ECS_COMPONENT_DECLARE(EgV3F32);
 ECS_COMPONENT_DECLARE(EgV4F32);
 ECS_COMPONENT_DECLARE(EgV4U8);
 ECS_COMPONENT_DECLARE(EgText);
+ECS_COMPONENT_DECLARE(EgMouse);
 ECS_COMPONENT_DECLARE(EgKeyboard);
 
 static ECS_COPY(EgText, dst, src, {
@@ -67,6 +68,20 @@ void System_Hover1(ecs_iter_t* it)
 }
 
 
+void System_Follow_Mouse(ecs_iter_t* it)
+{
+    EgV2F32 *p   = ecs_field(it, EgV2F32, 1); // position
+	const EgV2F32 *mp0  = ecs_field(it, EgV2F32, 2); // mouse velocity
+	const EgMouse *ms0  = ecs_field(it, EgMouse, 3); // mouse state
+    for (int i = 0; i < it->count; i ++)
+	{
+		if(ms0->left)
+		{
+			p[i].x += mp0->x;
+			p[i].y += mp0->y;
+		}
+    }
+}
 
 
 
@@ -82,8 +97,8 @@ void EgQuantitiesImport(ecs_world_t *world)
 
 	ECS_TAG_DEFINE(world, EgHover1);
 	ECS_TAG_DEFINE(world, EgUserinput);
-	ECS_TAG_DEFINE(world, EgMouse);
 	ECS_TAG_DEFINE(world, EgPosition);
+	ECS_TAG_DEFINE(world, EgVelocity);
 	ECS_TAG_DEFINE(world, EgPositionRelative);
 	ECS_TAG_DEFINE(world, EgRectangle);
 	ECS_TAG_DEFINE(world, EgColor);
@@ -93,6 +108,7 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgV4F32);
 	ECS_COMPONENT_DEFINE(world, EgV4U8);
 	ECS_COMPONENT_DEFINE(world, EgText);
+	ECS_COMPONENT_DEFINE(world, EgMouse);
 	ECS_COMPONENT_DEFINE(world, EgKeyboard);
 
 	ecs_struct(world, {
@@ -153,6 +169,13 @@ void EgQuantitiesImport(ecs_world_t *world)
 	}
 	});
 
+	ecs_struct(world, {
+	.entity = ecs_id(EgMouse),
+	.members = {
+	{ .name = "left", .type = ecs_id(ecs_u8_t) },
+	{ .name = "right", .type = ecs_id(ecs_u8_t) }
+	}
+	});
 
 	ecs_set_hooks(world, EgText, {
 	.ctor = ecs_default_ctor,
@@ -200,7 +223,19 @@ void EgQuantitiesImport(ecs_world_t *world)
         .callback = System_Hover1
     });
 
-
+    ecs_entity_t e_System_Follow_Mouse = ecs_system(world, {
+        .entity = ecs_entity(world, {
+			.name = "System_Follow_Mouse",
+			.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+        .query.filter.terms = {
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgVelocity), .src.id = ecs_id(EgMouse) },
+            { .id = ecs_id(EgMouse), .src.id = ecs_id(EgMouse) },
+            { .id = ecs_id(EgHover1) },
+        },
+        .callback = System_Follow_Mouse
+    });
 
 
 
