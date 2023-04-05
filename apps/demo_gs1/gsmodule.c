@@ -203,6 +203,14 @@ void GsmoduleImport(ecs_world_t *world)
 		{.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
 		{.id = EgHover1, .oper = EcsNot},
+        {
+            .id = ecs_pair(ecs_id(EgV2F32), EgPosition), 
+            .inout = EcsIn,
+            // Get from the parent, in breadth-first order (cascade)
+            .src.flags = EcsParent | EcsCascade,
+            // Make parent term optional so we also match the root (sun)
+            .oper = EcsOptional
+        },
 		},
 		.callback = Draw_Rectangle,
 		});
@@ -216,6 +224,14 @@ void GsmoduleImport(ecs_world_t *world)
 		{.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
 		{.id = EgHover1},
+        {
+            .id = ecs_pair(ecs_id(EgV2F32), EgPosition), 
+            .inout = EcsIn,
+            // Get from the parent, in breadth-first order (cascade)
+            .src.flags = EcsParent | EcsCascade,
+            // Make parent term optional so we also match the root (sun)
+            .oper = EcsOptional
+        },
 		},
 		.callback = Draw_Rectangle1,
 		});
