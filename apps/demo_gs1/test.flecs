@@ -15,51 +15,38 @@ const width = 200
 const height = 100
 
 
-Draw {
+Prefab Draw {
 // Inherit this drawing entity to draw shapes and text
 }
 
 
 e0 : Draw {
+	- ZIndex{0}
 	- (V2F32, Position){10, 10}
 	- (V2F32, Rectangle){$width, $height}
 	- (V4U8, Color){255, 0, 0, 255}
 
-	e00 : Draw {
+	e0 : Draw {
+		- ZIndex
 		- (V2F32, Position)
 		- (V2F32, PositionRelative){5, 5}
 		- Text{"This is the red box"}
 		- (V4U8, Color){60, 100, 255, 255}
 	}
 
-	e01 : Draw {
+	e1 : Draw {
+		- ZIndex
 		- (V2F32, Position)
-		- (V2F32, PositionRelative){20, 20}
-		- (V2F32, Rectangle){$width*2, $height/2}
-		- (V4U8, Color){0, 255, 0, 255}
-
-		e010 : Draw {
+		- (V2F32, Rectangle)
+		- Margin4{25,25,25,25}
+		- (V4U8, Color){0, 0, 255, 255}
+		
+		e0 : Draw {
+			- ZIndex
 			- (V2F32, Position)
 			- (V2F32, PositionRelative){5, 5}
-			- Text{"This is the green box"}
+			- Text{"This is the blue box"}
 			- (V4U8, Color){60, 100, 255, 255}
 		}
-
-		e011 : Draw {
-			- (V2F32, Position)
-			- Margin4{5,10,15,20}
-			- (V2F32, Rectangle){$width*4, $height/4}
-			- (V4U8, Color){0, 0, 255, 255}
-
-			e0110 : Draw {
-				- (V2F32, Position)
-				- (V2F32, PositionRelative){5, 5}
-				- Text{"This is the blue box"}
-				- (V4U8, Color){60, 100, 255, 255}
-			}
-
-		}
-
 	}
-
 }

@@ -193,11 +193,13 @@ void app_init()
 	ecs_add_id(app->world, ecs_id(EgMouse), ecs_pair(ecs_id(EgV2F32), EgPosition));
 	ecs_add_id(app->world, ecs_id(EgMouse), ecs_pair(ecs_id(EgV2F32), EgVelocity));
 	ecs_add_id(app->world, ecs_id(EgMouse), ecs_id(EgMouse));
+	ecs_add_id(app->world, ecs_id(EgMouse), ecs_id(EgHover));
 	ecs_add_id(app->world, ecs_id(EgKeyboard), ecs_id(EgKeyboard));
 	ecs_plecs_from_file(app->world, "test.flecs");
 
 	ecs_entity_t e_draw = ecs_lookup(app->world, "Draw");
 	ecs_set(app->world, e_draw, GsmoduleDraw, {&app->gsi});
+    //ecs_override(app->world, e_draw, EgZIndex);
 
 }
 

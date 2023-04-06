@@ -8,12 +8,21 @@
 
 ECS_COMPONENT_DECLARE(GsmoduleDraw);
 
+
+
+
+
+
+
+
+
 void Draw_Rectangle(ecs_iter_t *it)
 {
 	gs_immediate_draw_t *gsi = ecs_field(it, GsmoduleDraw, 1)->ptr;
 	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
 	const EgV2F32 *r = ecs_field(it, EgV2F32, 3);
 	const EgV4U8 *c = ecs_field(it, EgV4U8, 4);
+	const EgHover *h = ecs_field(it, EgHover, 5);
 	ecs_assert(gsi != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(r != NULL, ECS_INVALID_PARAMETER, NULL);
@@ -22,29 +31,19 @@ void Draw_Rectangle(ecs_iter_t *it)
 	{
 		gs_vec2 xy = {p[i].x, p[i].y};
 		gs_vec2 wh = {r[i].x, r[i].y};
-		gs_color_t color = {c[i].x, c[i].y, c[i].z, c[i].w};
+		gs_color_t color;
+		if(h->entity == it->entities[i])
+		{
+			color = (gs_color_t){255,255,255,255};
+		}
+		else
+		{
+			color = (gs_color_t){c[i].x, c[i].y, c[i].z, c[i].w};
+		}
 		gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
 	}
 }
 
-void Draw_Rectangle1(ecs_iter_t *it)
-{
-	gs_immediate_draw_t *gsi = ecs_field(it, GsmoduleDraw, 1)->ptr;
-	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
-	const EgV2F32 *r = ecs_field(it, EgV2F32, 3);
-	const EgV4U8 *c = ecs_field(it, EgV4U8, 4);
-	ecs_assert(gsi != NULL, ECS_INVALID_PARAMETER, NULL);
-	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
-	ecs_assert(r != NULL, ECS_INVALID_PARAMETER, NULL);
-	ecs_assert(c != NULL, ECS_INVALID_PARAMETER, NULL);
-	for (int i = 0; i < it->count; i++)
-	{
-		gs_vec2 xy = {p[i].x, p[i].y};
-		gs_vec2 wh = {r[i].x, r[i].y};
-		gs_color_t color = {255, 255, 255, 255};
-		gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
-	}
-}
 
 void Draw_Text(ecs_iter_t *it)
 {
@@ -202,39 +201,13 @@ void GsmoduleImport(ecs_world_t *world)
 		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
-		{.id = EgHover1, .oper = EcsNot},
-        {
-            .id = ecs_pair(ecs_id(EgV2F32), EgPosition), 
-            .inout = EcsIn,
-            // Get from the parent, in breadth-first order (cascade)
-            .src.flags = EcsParent | EcsCascade,
-            // Make parent term optional so we also match the root (sun)
-            .oper = EcsOptional
-        },
+		{.id = ecs_id(EgHover), .inout = EcsIn, .src.id = ecs_id(EgMouse)},
+		//Not used. Order by breadth-first order (cascade):
+        {.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
 		},
 		.callback = Draw_Rectangle,
 		});
 
-	ecs_entity_t e_Draw_Rectangle1 = ecs_system(world, {
-		.entity = ecs_entity(world, {.name = "Draw_Rectangle1",
-		.add = {ecs_dependson(EcsOnUpdate)}}),
-		.query.filter.terms = {
-		{.id = ecs_id(GsmoduleDraw), .inout = EcsIn, .src.flags = EcsUp},
-		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn},
-		{.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn},
-		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
-		{.id = EgHover1},
-        {
-            .id = ecs_pair(ecs_id(EgV2F32), EgPosition), 
-            .inout = EcsIn,
-            // Get from the parent, in breadth-first order (cascade)
-            .src.flags = EcsParent | EcsCascade,
-            // Make parent term optional so we also match the root (sun)
-            .oper = EcsOptional
-        },
-		},
-		.callback = Draw_Rectangle1,
-		});
 
 	ecs_entity_t e_Draw_Text = ecs_system(world, {
 		.entity = ecs_entity(world, {.name = "Draw_Text",
@@ -243,7 +216,8 @@ void GsmoduleImport(ecs_world_t *world)
 		{.id = ecs_id(GsmoduleDraw), .inout = EcsIn, .src.flags = EcsUp},
 		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
-		{.id = ecs_id(EgText), .inout = EcsIn}},
+		{.id = ecs_id(EgText), .inout = EcsIn},
+		},
 		.callback = Draw_Text,
 		});
 
