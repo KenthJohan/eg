@@ -26,6 +26,7 @@ SRCS += gs_gui.c
 SRCS += gs_ddt.c
 SRCS += ../../src/EgQuantities.c
 SRCS += gsmodule.c
+SRCS += GsInput.c
 
 
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)

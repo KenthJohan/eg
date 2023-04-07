@@ -5,6 +5,7 @@
 #include <flecs.h>
 #include "EgQuantities.h"
 #include "Gsmodule.h"
+#include "GsInput.h"
 
 typedef struct app_t
 {
@@ -183,6 +184,7 @@ void app_init()
 
 	ECS_IMPORT(app->world, EgQuantities);
 	ECS_IMPORT(app->world, Gsmodule);
+	ECS_IMPORT(app->world, GsInput);
 
 
 
