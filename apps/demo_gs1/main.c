@@ -5,6 +5,7 @@
 #include <flecs.h>
 #include "EgQuantities.h"
 #include "EgGui.h"
+#include "EgUserinput.h"
 #include "Gsmodule.h"
 #include "GsInput.h"
 
@@ -185,6 +186,7 @@ void app_init()
 
 	ECS_IMPORT(app->world, EgQuantities);
 	ECS_IMPORT(app->world, EgGui);
+	ECS_IMPORT(app->world, EgUserinput);
 	ECS_IMPORT(app->world, Gsmodule);
 	ECS_IMPORT(app->world, GsInput);
 

@@ -5,6 +5,7 @@
 #include <gs_ddt/gs_ddt.h>
 #include <flecs.h>
 #include "EgQuantities.h"
+#include "EgUserinput.h"
 
 
 
@@ -137,6 +138,7 @@ void GsInputImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, GsInput);
 	ECS_IMPORT(world, EgQuantities);
+	ECS_IMPORT(world, EgUserinput);
 
 	ecs_entity_t e_Update_Keyboard = ecs_system(world, {.entity = ecs_entity(world, {.name = "Update_Keyboard",
 		.add = {ecs_dependson(EcsOnUpdate)}}),

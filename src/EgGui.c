@@ -1,5 +1,6 @@
 #include "EgGui.h"
 #include "EgQuantities.h"
+#include "EgUserinput.h"
 #include "eg_basics.h"
 #include <math.h>
 #include <stdio.h>
@@ -92,6 +93,7 @@ void EgGuiImport(ecs_world_t *world)
 	ECS_MODULE(world, EgGui);
 	ecs_set_name_prefix(world, "Eg");
 	ECS_IMPORT(world, EgQuantities);
+	ECS_IMPORT(world, EgUserinput);
 
 	ECS_TAG_DEFINE(world, EgHover1);
 	ECS_COMPONENT_DEFINE(world, EgMargin4);

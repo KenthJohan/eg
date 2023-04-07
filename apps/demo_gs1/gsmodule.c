@@ -5,6 +5,7 @@
 #include <gs_ddt/gs_ddt.h>
 #include <flecs.h>
 #include "EgQuantities.h"
+#include "EgUserinput.h"
 #include "EgGui.h"
 
 ECS_COMPONENT_DECLARE(GsmoduleDraw);
@@ -65,6 +66,8 @@ void GsmoduleImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Gsmodule);
 	ECS_IMPORT(world, EgQuantities);
+	ECS_IMPORT(world, EgUserinput);
+
 
 	ECS_COMPONENT_DEFINE(world, GsmoduleDraw);
 
