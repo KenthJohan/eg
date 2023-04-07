@@ -27,6 +27,9 @@ void Update_Keyboard(ecs_iter_t *it)
 	p[0].x = mouse_pos.x;
 	p[0].y = mouse_pos.y;
 
+	m->scroll_x = 0;
+	m->scroll_y = 0;
+
 	gs_platform_event_t evt = gs_default_val();
 	while (gs_platform_poll_events(&evt, false))
 	{
@@ -44,7 +47,9 @@ void Update_Keyboard(ecs_iter_t *it)
 
 			case GS_PLATFORM_MOUSE_WHEEL:
 			{
-				// gs_gui_input_scroll(ctx, (int32_t)(-evt.mouse.wheel.x * 30.f), (int32_t)(-evt.mouse.wheel.y * 30.f));
+				m->scroll_x += evt.mouse.wheel.x;
+				m->scroll_y += evt.mouse.wheel.y;
+				//gs_gui_input_scroll(ctx, (int32_t)(-evt.mouse.wheel.x * 30.f), (int32_t)(-evt.mouse.wheel.y * 30.f));
 			}
 			break;
 
@@ -141,7 +146,7 @@ void GsUserinputImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgUserinput);
 
 	ecs_entity_t e_Update_Keyboard = ecs_system(world, {.entity = ecs_entity(world, {.name = "Update_Keyboard",
-		.add = {ecs_dependson(EcsOnUpdate)}}),
+		.add = {ecs_dependson(EcsPreUpdate)}}),
 		.query.filter.terms = {
 		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse)},
 		{.id = ecs_pair(ecs_id(EgV2F32), EgVelocity), .src.id = ecs_id(EgMouse)},

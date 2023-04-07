@@ -29,7 +29,9 @@ void EgUserinputImport(ecs_world_t *world)
 	.entity = ecs_id(EgMouse),
 	.members = {
 	{ .name = "left", .type = ecs_id(ecs_u8_t) },
-	{ .name = "right", .type = ecs_id(ecs_u8_t) }
+	{ .name = "right", .type = ecs_id(ecs_u8_t) },
+	{ .name = "scroll_x", .type = ecs_id(ecs_f32_t) },
+	{ .name = "scroll_y", .type = ecs_id(ecs_f32_t) }
 	}
 	});
 

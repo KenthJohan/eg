@@ -20,11 +20,17 @@ typedef struct {
 	ecs_u32_t zindex;
 } EgHover;
 
+typedef struct {
+	ecs_entity_t entity;
+} EgGuiDrag;
 
+extern ECS_DECLARE(EgOnMouseOver);
+extern ECS_DECLARE(EgOnMouseDrag);
 extern ECS_DECLARE(EgHover1);
 extern ECS_COMPONENT_DECLARE(EgMargin4);
 extern ECS_COMPONENT_DECLARE(EgZIndex);
 extern ECS_COMPONENT_DECLARE(EgHover);
+extern ECS_COMPONENT_DECLARE(EgGuiDrag);
 
 
 

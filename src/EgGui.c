@@ -9,26 +9,30 @@ ECS_DECLARE(EgHover1);
 ECS_COMPONENT_DECLARE(EgMargin4);
 ECS_COMPONENT_DECLARE(EgZIndex);
 ECS_COMPONENT_DECLARE(EgHover);
-
+ECS_COMPONENT_DECLARE(EgGuiDrag);
 
 void System_Hover1(ecs_iter_t* it)
 {
-    const EgZIndex *z  = ecs_field(it, EgZIndex, 1); // zindex
-    const EgV2F32 *p   = ecs_field(it, EgV2F32, 2); // position
-    const EgV2F32 *r   = ecs_field(it, EgV2F32, 3); // rectangle
-	const EgV2F32 *mp0 = ecs_field(it, EgV2F32, 4); // mouse position
-	EgHover *h0 = ecs_field(it, EgHover, 5); // mouse
+    const EgZIndex *z  = ecs_field(it, EgZIndex, 1); // GUI Element Zindex
+    const EgV2F32 *p   = ecs_field(it, EgV2F32,  2); // GUI Element Position
+    const EgV2F32 *r   = ecs_field(it, EgV2F32,  3); // GUI Element Rectangle
+	const EgV2F32 *mp0 = ecs_field(it, EgV2F32,  4); // Userinput Mouse Position
+	EgHover *h0 = ecs_field(it, EgHover, 5);
+	EgV2F32 *hp0 = ecs_field(it, EgV2F32, 6);
 	//ecs_entity_t e_mp0 = ecs_field_src(it, 3);
     for (int i = 0; i < it->count; i ++)
 	{
+		// Check if mouse position is inside the rectangle:
 		EgV2F32 o = {mp0->x - p[i].x, mp0->y - p[i].y};
-		int g = ((o.x > 0) && (o.x < r[i].x)) && ((o.y > 0) && (o.y < r[i].y));
-		if(g)
+		int hit = ((o.x > 0) && (o.x < r[i].x)) && ((o.y > 0) && (o.y < r[i].y));
+		if(hit)
 		{
 			if(z[i].z >= h0->zindex)
 			{
 				h0->entity = it->entities[i];
 				h0->zindex = z[i].z;
+				hp0->x = mp0->x - p[i].x;
+				hp0->y = mp0->y - p[i].y;
 			}
 		}
 		else
@@ -44,28 +48,29 @@ void System_Hover1(ecs_iter_t* it)
 
 void System_Follow_Mouse(ecs_iter_t* it)
 {
-    EgV2F32 *p   = ecs_field(it, EgV2F32, 1); // position
-	const EgV2F32 *mp0  = ecs_field(it, EgV2F32, 2); // mouse velocity
-	const EgMouse *ms0  = ecs_field(it, EgMouse, 3); // mouse state
-	const EgHover *h0  = ecs_field(it, EgHover, 4); // mouse state
+          EgV2F32 *p   = ecs_field(it, EgV2F32, 1); // GUI Element Position
+	const EgV2F32 *mp0 = ecs_field(it, EgV2F32, 2); // Userinput Mouse Position
+	const EgMouse *ms0 = ecs_field(it, EgMouse, 3); // Userinput Mouse State
+	const EgHover *h0  = ecs_field(it, EgHover, 4); //
+	const EgV2F32 *hp0 = ecs_field(it, EgV2F32, 2); //
 	if(ms0->left == 0) {return;}
     for (int i = 0; i < it->count; i ++)
 	{
 		if(h0->entity == it->entities[i])
 		{
-			p[i].x += mp0->x;
-			p[i].y += mp0->y;
+			p[i].x = mp0->x - 10;
+			p[i].y = mp0->y - 10;
 		}
     }
 }
 
 void System_Margin(ecs_iter_t *it)
 {
-    EgV2F32 *p  = ecs_field(it, EgV2F32, 1);
-    EgV2F32 *r  = ecs_field(it, EgV2F32, 2);
+    EgV2F32   *p  = ecs_field(it, EgV2F32,   1); // GUI Element Position
+    EgV2F32   *r  = ecs_field(it, EgV2F32,   2); // GUI Element Rectangle
     EgMargin4 *m  = ecs_field(it, EgMargin4, 3);
-    EgV2F32 *p0 = ecs_field(it, EgV2F32, 4);
-    EgV2F32 *r0 = ecs_field(it, EgV2F32, 5);
+    EgV2F32   *p0 = ecs_field(it, EgV2F32,   4); // GUI Element Position Parent
+    EgV2F32   *r0 = ecs_field(it, EgV2F32,   5); // GUI Element Rectangle Parent
     for (int i = 0; i < it->count; i ++)
 	{
         p[i].x = p0->x + m->left;
@@ -99,6 +104,7 @@ void EgGuiImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgMargin4);
 	ECS_COMPONENT_DEFINE(world, EgZIndex);
 	ECS_COMPONENT_DEFINE(world, EgHover);
+	ECS_COMPONENT_DEFINE(world, EgGuiDrag);
 
 	ecs_struct(world, {
 	.entity = ecs_id(EgZIndex),
@@ -125,7 +131,12 @@ void EgGuiImport(ecs_world_t *world)
 	}
 	});
 
-
+	ecs_struct(world, {
+	.entity = ecs_id(EgGuiDrag),
+	.members = {
+	{ .name = "entity", .type = ecs_id(ecs_entity_t) }
+	}
+	});
 
 
 
@@ -140,7 +151,8 @@ void EgGuiImport(ecs_world_t *world)
             { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
             { .id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn },
             { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse) },
-            { .id = ecs_id(EgHover), .src.id = ecs_id(EgMouse) },
+            { .id = ecs_id(EgHover), .src.id = ecs_id(EgHover) },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPositionRelative), .src.id = ecs_id(EgHover) },
         },
         .callback = System_Hover1
     });
@@ -152,9 +164,10 @@ void EgGuiImport(ecs_world_t *world)
 		}),
         .query.filter.terms = {
             { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
-            { .id = ecs_pair(ecs_id(EgV2F32), EgVelocity), .src.id = ecs_id(EgMouse) },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse) },
             { .id = ecs_id(EgMouse), .src.id = ecs_id(EgMouse) },
-            { .id = ecs_id(EgHover), .src.id = ecs_id(EgMouse) },
+            { .id = ecs_id(EgHover), .src.id = ecs_id(EgHover) },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPositionRelative), .src.id = ecs_id(EgHover) },
         },
         .callback = System_Follow_Mouse
     });

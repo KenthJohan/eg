@@ -79,7 +79,7 @@ void GsDrawImport(ecs_world_t *world)
 		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
-		{.id = ecs_id(EgHover), .inout = EcsIn, .src.id = ecs_id(EgMouse)},
+		{.id = ecs_id(EgHover), .inout = EcsIn, .src.id = ecs_id(EgHover)},
 		//Not used. Order by breadth-first order (cascade):
         {.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
 		},

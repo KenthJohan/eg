@@ -11,6 +11,8 @@ typedef struct {
 typedef struct {
 	ecs_u8_t left;
 	ecs_u8_t right;
+	ecs_f32_t scroll_x;
+	ecs_f32_t scroll_y;
 } EgMouse;
 
 
