@@ -5,6 +5,7 @@
 #include <gs_ddt/gs_ddt.h>
 #include <flecs.h>
 #include "EgQuantities.h"
+#include "EgGui.h"
 
 ECS_COMPONENT_DECLARE(GsmoduleDraw);
 

@@ -4,6 +4,7 @@
 // To load this file yourself, call ecs_plecs_from_file("expressions.flecs");
 
 using eg.quantities
+using eg.gui
 
 
 // Plecs files can contain variables that can be referenced later on when 

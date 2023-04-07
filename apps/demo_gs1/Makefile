@@ -25,6 +25,7 @@ SRCS += gs_idraw.c
 SRCS += gs_gui.c
 SRCS += gs_ddt.c
 SRCS += ../../src/EgQuantities.c
+SRCS += ../../src/EgGui.c
 SRCS += gsmodule.c
 SRCS += GsInput.c
 

@@ -4,6 +4,7 @@
 #include <gs_ddt/gs_ddt.h>
 #include <flecs.h>
 #include "EgQuantities.h"
+#include "EgGui.h"
 #include "Gsmodule.h"
 #include "GsInput.h"
 
@@ -183,6 +184,7 @@ void app_init()
 	gs_gui_init(&app->gui, gs_platform_main_window());
 
 	ECS_IMPORT(app->world, EgQuantities);
+	ECS_IMPORT(app->world, EgGui);
 	ECS_IMPORT(app->world, Gsmodule);
 	ECS_IMPORT(app->world, GsInput);
 
