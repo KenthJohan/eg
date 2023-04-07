@@ -6,8 +6,8 @@
 #include "EgQuantities.h"
 #include "EgGui.h"
 #include "EgUserinput.h"
-#include "Gsmodule.h"
-#include "GsInput.h"
+#include "GsDraw.h"
+#include "GsUserinput.h"
 
 typedef struct app_t
 {
@@ -187,8 +187,8 @@ void app_init()
 	ECS_IMPORT(app->world, EgQuantities);
 	ECS_IMPORT(app->world, EgGui);
 	ECS_IMPORT(app->world, EgUserinput);
-	ECS_IMPORT(app->world, Gsmodule);
-	ECS_IMPORT(app->world, GsInput);
+	ECS_IMPORT(app->world, GsDraw);
+	ECS_IMPORT(app->world, GsUserinput);
 
 
 
@@ -204,7 +204,7 @@ void app_init()
 	ecs_plecs_from_file(app->world, "test.flecs");
 
 	ecs_entity_t e_draw = ecs_lookup(app->world, "Draw");
-	ecs_set(app->world, e_draw, GsmoduleDraw, {&app->gsi});
+	ecs_set(app->world, e_draw, GsImmediateDraw, {&app->gsi});
     //ecs_override(app->world, e_draw, EgZIndex);
 
 }

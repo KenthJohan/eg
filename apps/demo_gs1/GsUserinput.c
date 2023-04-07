@@ -1,4 +1,4 @@
-#include "GsInput.h"
+#include "GsUserinput.h"
 #include <gs/gs.h>
 #include <gs/util/gs_idraw.h>
 #include <gs/util/gs_gui.h>
@@ -134,9 +134,9 @@ void Update_Keyboard(ecs_iter_t *it)
 	}
 }
 
-void GsInputImport(ecs_world_t *world)
+void GsUserinputImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, GsInput);
+	ECS_MODULE(world, GsUserinput);
 	ECS_IMPORT(world, EgQuantities);
 	ECS_IMPORT(world, EgUserinput);
 

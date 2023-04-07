@@ -1,4 +1,4 @@
-#include "gsmodule.h"
+#include "GsDraw.h"
 #include <gs/gs.h>
 #include <gs/util/gs_idraw.h>
 #include <gs/util/gs_gui.h>
@@ -8,14 +8,14 @@
 #include "EgUserinput.h"
 #include "EgGui.h"
 
-ECS_COMPONENT_DECLARE(GsmoduleDraw);
+ECS_COMPONENT_DECLARE(GsImmediateDraw);
 
 
 
 
 void Draw_Rectangle(ecs_iter_t *it)
 {
-	gs_immediate_draw_t *gsi = ecs_field(it, GsmoduleDraw, 1)->ptr;
+	gs_immediate_draw_t *gsi = ecs_field(it, GsImmediateDraw, 1)->ptr;
 	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
 	const EgV2F32 *r = ecs_field(it, EgV2F32, 3);
 	const EgV4U8 *c = ecs_field(it, EgV4U8, 4);
@@ -44,7 +44,7 @@ void Draw_Rectangle(ecs_iter_t *it)
 
 void Draw_Text(ecs_iter_t *it)
 {
-	gs_immediate_draw_t *gsi = ecs_field(it, GsmoduleDraw, 1)->ptr;
+	gs_immediate_draw_t *gsi = ecs_field(it, GsImmediateDraw, 1)->ptr;
 	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
 	const EgV4U8 *c = ecs_field(it, EgV4U8, 3);
 	const EgText *text = ecs_field(it, EgText, 4);
@@ -62,20 +62,20 @@ void Draw_Text(ecs_iter_t *it)
 
 
 
-void GsmoduleImport(ecs_world_t *world)
+void GsDrawImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, Gsmodule);
+	ECS_MODULE(world, GsDraw);
 	ECS_IMPORT(world, EgQuantities);
 	ECS_IMPORT(world, EgUserinput);
 
 
-	ECS_COMPONENT_DEFINE(world, GsmoduleDraw);
+	ECS_COMPONENT_DEFINE(world, GsImmediateDraw);
 
 	ecs_entity_t e_Draw_Rectangle = ecs_system(world, {
 		.entity = ecs_entity(world, {.name = "Draw_Rectangle",
 		.add = {ecs_dependson(EcsOnUpdate)}}),
 		.query.filter.terms = {
-		{.id = ecs_id(GsmoduleDraw), .inout = EcsIn, .src.flags = EcsUp},
+		{.id = ecs_id(GsImmediateDraw), .inout = EcsIn, .src.flags = EcsUp},
 		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
@@ -91,7 +91,7 @@ void GsmoduleImport(ecs_world_t *world)
 		.entity = ecs_entity(world, {.name = "Draw_Text",
 		.add = {ecs_dependson(EcsOnUpdate)}}),
 		.query.filter.terms = {
-		{.id = ecs_id(GsmoduleDraw), .inout = EcsIn, .src.flags = EcsUp},
+		{.id = ecs_id(GsImmediateDraw), .inout = EcsIn, .src.flags = EcsUp},
 		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
 		{.id = ecs_id(EgText), .inout = EcsIn},
