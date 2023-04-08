@@ -9,11 +9,11 @@ using eg.gui
 
 // Plecs files can contain variables that can be referenced later on when 
 // assigning values to components
-const width = 200
+const width = 300
 
 // Variables and components can be assigned using expressions. Most arithmetic
 // and conditional operators are supported.
-const height = 100
+const height = 200
 
 
 Prefab Draw {
@@ -50,4 +50,21 @@ _ : Draw {
 			- (V4U8, Color){60, 100, 255, 255}
 		}
 	}
+}
+
+
+_ : Draw {
+	- ZIndex{0}
+	- (V2F32, Position){400, 10}
+	- (V2F32, Rectangle){$width, $height}
+	- (V4U8, Color){255, 155, 40, 255}
+
+	_ : Draw {
+		- ZIndex
+		- (V2F32, Position)
+		- (V2F32, Rectangle)
+		- Margin4{25,25,25,25}
+		- (V4U8, Color){50, 0, 60, 255}
+	}
+
 }
