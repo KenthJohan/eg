@@ -21,13 +21,13 @@ Prefab Draw {
 }
 
 
-e0 : Draw {
+_ : Draw {
 	- ZIndex{0}
 	- (V2F32, Position){10, 10}
 	- (V2F32, Rectangle){$width, $height}
 	- (V4U8, Color){255, 0, 0, 255}
 
-	e0 : Draw {
+	_ : Draw {
 		- ZIndex
 		- (V2F32, Position)
 		- (V2F32, PositionRelative){5, 5}
@@ -35,14 +35,14 @@ e0 : Draw {
 		- (V4U8, Color){60, 100, 255, 255}
 	}
 
-	e1 : Draw {
+	_ : Draw {
 		- ZIndex
 		- (V2F32, Position)
 		- (V2F32, Rectangle)
 		- Margin4{25,25,25,25}
 		- (V4U8, Color){0, 0, 255, 255}
 		
-		e0 : Draw {
+		_ : Draw {
 			- ZIndex
 			- (V2F32, Position)
 			- (V2F32, PositionRelative){5, 5}

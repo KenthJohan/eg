@@ -29,6 +29,8 @@ void Update_Keyboard(ecs_iter_t *it)
 
 	m->scroll_x = 0;
 	m->scroll_y = 0;
+	m->left = 0;
+	m->right = 0;
 
 	gs_platform_event_t evt = gs_default_val();
 	while (gs_platform_poll_events(&evt, false))
@@ -53,11 +55,17 @@ void Update_Keyboard(ecs_iter_t *it)
 			}
 			break;
 
-			case GS_PLATFORM_MOUSE_BUTTON_DOWN:
+			//case GS_PLATFORM_MOUSE_BUTTON_DOWN:
 			case GS_PLATFORM_MOUSE_BUTTON_PRESSED:
 			{
-				m->left = (1 << evt.mouse.button) & GS_GUI_MOUSE_LEFT;
-				m->right = (1 << evt.mouse.button) & GS_GUI_MOUSE_RIGHT;
+				if ( (1 << evt.mouse.button) & GS_GUI_MOUSE_LEFT )
+				{
+					m->left = EG_EDGE_RISING;
+				}
+				if ( (1 << evt.mouse.button) & GS_GUI_MOUSE_RIGHT )
+				{
+					m->right = EG_EDGE_RISING;
+				}
 				// int32_t code = 1 << evt.mouse.button;
 				// gs_gui_input_mousedown(ctx, (int32_t)mouse_pos.x, (int32_t)mouse_pos.y, code);
 			}
@@ -65,8 +73,14 @@ void Update_Keyboard(ecs_iter_t *it)
 
 			case GS_PLATFORM_MOUSE_BUTTON_RELEASED:
 			{
-				m->left = 0;
-				m->right = 0;
+				if ( (1 << evt.mouse.button) & GS_GUI_MOUSE_LEFT )
+				{
+					m->left = EG_EDGE_FALLING;
+				}
+				if ( (1 << evt.mouse.button) & GS_GUI_MOUSE_RIGHT )
+				{
+					m->right = EG_EDGE_FALLING;
+				}
 				// int32_t code = 1 << evt.mouse.button;
 				// gs_gui_input_mouseup(ctx, (int32_t)mouse_pos.x, (int32_t)mouse_pos.y, code);
 			}

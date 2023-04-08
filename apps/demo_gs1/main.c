@@ -201,6 +201,8 @@ void app_init()
 	ecs_add_id(app->world, ecs_id(EgMouse), ecs_id(EgMouse));
 	ecs_add_id(app->world, ecs_id(EgHover), ecs_id(EgHover));
 	ecs_add_id(app->world, ecs_id(EgHover), ecs_pair(ecs_id(EgV2F32), EgPositionRelative));
+	ecs_add_id(app->world, ecs_id(EgGuiDrag), ecs_id(EgGuiDrag));
+	ecs_add_id(app->world, ecs_id(EgGuiDrag), ecs_pair(ecs_id(EgV2F32), EgPositionRelative));
 	ecs_add_id(app->world, ecs_id(EgKeyboard), ecs_id(EgKeyboard));
 	ecs_plecs_from_file(app->world, "test.flecs");
 
