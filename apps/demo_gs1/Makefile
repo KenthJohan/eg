@@ -20,10 +20,10 @@ endif
 
 SRCS := main.c
 SRCS += ../../vendor/flecs.c
-SRCS += gs.c
-SRCS += gs_idraw.c
-SRCS += gs_gui.c
-SRCS += gs_ddt.c
+SRCS += ../../vendor/gs.c
+SRCS += ../../vendor/gs_idraw.c
+SRCS += ../../vendor/gs_gui.c
+SRCS += ../../vendor/gs_ddt.c
 SRCS += ../../src/EgQuantities.c
 SRCS += ../../src/EgGui.c
 SRCS += ../../src/EgUserinput.c

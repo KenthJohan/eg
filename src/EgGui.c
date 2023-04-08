@@ -13,9 +13,9 @@ ECS_COMPONENT_DECLARE(EgGuiDrag);
 
 void System_Hover1(ecs_iter_t* it)
 {
-    const EgZIndex *z  = ecs_field(it, EgZIndex, 1); // GUI Element Zindex
-    const EgV2F32 *p   = ecs_field(it, EgV2F32,  2); // GUI Element Position
-    const EgV2F32 *r   = ecs_field(it, EgV2F32,  3); // GUI Element Rectangle
+	const EgZIndex *z  = ecs_field(it, EgZIndex, 1); // GUI Element Zindex
+	const EgV2F32 *p   = ecs_field(it, EgV2F32,  2); // GUI Element Position
+	const EgV2F32 *r   = ecs_field(it, EgV2F32,  3); // GUI Element Rectangle
 	const EgV2F32 *mp0 = ecs_field(it, EgV2F32,  4); // Userinput Mouse Position
 	EgHover *h0 = ecs_field(it, EgHover, 5);
 	EgV2F32 *hp0 = ecs_field(it, EgV2F32, 6);
@@ -46,22 +46,46 @@ void System_Hover1(ecs_iter_t* it)
     }
 }
 
-void System_Follow_Mouse(ecs_iter_t* it)
+void System_Drag1(ecs_iter_t* it)
 {
-          EgV2F32 *p   = ecs_field(it, EgV2F32, 1); // GUI Element Position
-	const EgV2F32 *mp0 = ecs_field(it, EgV2F32, 2); // Userinput Mouse Position
-	const EgMouse *ms0 = ecs_field(it, EgMouse, 3); // Userinput Mouse State
-	const EgHover *h0  = ecs_field(it, EgHover, 4); //
-	const EgV2F32 *hp0 = ecs_field(it, EgV2F32, 2); //
-	if(ms0->left == 0) {return;}
-    for (int i = 0; i < it->count; i ++)
+	const EgV2F32   *mp0  = ecs_field(it, EgV2F32, 1); // Userinput Mouse Position
+	const EgMouse   *ms0  = ecs_field(it, EgMouse, 2); // Userinput Mouse State
+	const EgHover   *h0   = ecs_field(it, EgHover, 3); // Hover entity
+	const EgV2F32   *hp0  = ecs_field(it, EgV2F32, 4); // Hover position relative
+	      EgGuiDrag *drag = ecs_field(it, EgGuiDrag, 5); //
+	      EgV2F32   *dp0  = ecs_field(it, EgV2F32, 6); //
+
+	
+	ecs_assert(mp0 != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(ms0 != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(h0 != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(hp0 != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(drag != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(dp0 != NULL, ECS_INVALID_PARAMETER, NULL);
+
+	if (ms0->left == EG_EDGE_RISING && h0->entity)
 	{
-		if(h0->entity == it->entities[i])
+		printf("Drag start: %i\n", h0->entity);
+		drag->entity = h0->entity;
+		ecs_remove_pair(it->world, drag->entity, EcsChildOf, EcsWildcard);
+		(*dp0) = (*hp0);
+	}
+	if (ms0->left == EG_EDGE_FALLING && drag->entity)
+	{
+		printf("Drag end: %i %i\n", drag->entity, h0->entity);
+		if(h0->entity && (drag->entity != h0->entity))
 		{
-			p[i].x = mp0->x - 10;
-			p[i].y = mp0->y - 10;
+			// Don't add it self as child:
+			ecs_add_pair(it->world, drag->entity, EcsChildOf, h0->entity);
 		}
-    }
+		drag->entity = 0;
+		(*dp0) = (EgV2F32){0,0};
+	}
+	if(drag->entity)
+	{
+		ecs_set_pair(it->world, drag->entity, EgV2F32, EgPosition, {mp0->x+10, mp0->y+10});
+	}
+
 }
 
 void System_Margin(ecs_iter_t *it)
@@ -71,13 +95,15 @@ void System_Margin(ecs_iter_t *it)
     EgMargin4 *m  = ecs_field(it, EgMargin4, 3);
     EgV2F32   *p0 = ecs_field(it, EgV2F32,   4); // GUI Element Position Parent
     EgV2F32   *r0 = ecs_field(it, EgV2F32,   5); // GUI Element Rectangle Parent
+	if(p0 == NULL){return;}
+	if(r0 == NULL){return;}
     for (int i = 0; i < it->count; i ++)
 	{
-        p[i].x = p0->x + m->left;
-        p[i].y = p0->y + m->top;
+		p[i].x = p0->x + m->left;
+		p[i].y = p0->y + m->top;
 		r[i].x = r0[0].x - (m->left + m->right);
 		r[i].y = r0[0].y - (m->botton + m->top);
-    }
+	}
 }
 
 void System_ZIndex(ecs_iter_t *it)
@@ -88,10 +114,12 @@ void System_ZIndex(ecs_iter_t *it)
 	if(z0 == NULL){return;}
     for (int i = 0; i < it->count; i ++)
 	{
-        //printf("%s:%i, %s:%i\n", ecs_get_name(it->world, e_z0), z0->z, ecs_get_name(it->world, it->entities[i]), z[i].z);
+		//printf("%s:%i, %s:%i\n", ecs_get_name(it->world, e_z0), z0->z, ecs_get_name(it->world, it->entities[i]), z[i].z);
 		z[i].z = z0->z + 1;
-    }
+	}
 }
+
+
 
 void EgGuiImport(ecs_world_t *world)
 {
@@ -131,13 +159,13 @@ void EgGuiImport(ecs_world_t *world)
 	}
 	});
 
+
 	ecs_struct(world, {
 	.entity = ecs_id(EgGuiDrag),
 	.members = {
 	{ .name = "entity", .type = ecs_id(ecs_entity_t) }
 	}
 	});
-
 
 
 
@@ -157,19 +185,20 @@ void EgGuiImport(ecs_world_t *world)
         .callback = System_Hover1
     });
 
-    ecs_entity_t e_System_Follow_Mouse = ecs_system(world, {
+    ecs_entity_t e_System_Drag1 = ecs_system(world, {
         .entity = ecs_entity(world, {
-			.name = "System_Follow_Mouse",
+			.name = "System_Drag1",
 			.add = { ecs_dependson(EcsOnUpdate) }
 		}),
         .query.filter.terms = {
-            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
-            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse) },
-            { .id = ecs_id(EgMouse), .src.id = ecs_id(EgMouse) },
-            { .id = ecs_id(EgHover), .src.id = ecs_id(EgHover) },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition),         .src.id = ecs_id(EgMouse) },
+            { .id = ecs_id(EgMouse),                               .src.id = ecs_id(EgMouse) },
+            { .id = ecs_id(EgHover),                               .src.id = ecs_id(EgHover) },
             { .id = ecs_pair(ecs_id(EgV2F32), EgPositionRelative), .src.id = ecs_id(EgHover) },
+            { .id = ecs_id(EgGuiDrag),                             .src.id = ecs_id(EgGuiDrag) },
+            { .id = ecs_pair(ecs_id(EgV2F32), EgPositionRelative), .src.id = ecs_id(EgGuiDrag) },
         },
-        .callback = System_Follow_Mouse
+        .callback = System_Drag1
     });
 
 

@@ -1,8 +1,10 @@
 #pragma once
 #include "flecs.h"
 
-
+#define EG_EDGE_RISING 0x01
+#define EG_EDGE_FALLING 0x02
 #define EG_KEYBOARD_SIZE 128
+
 typedef struct {
 	ecs_u8_t keys[EG_KEYBOARD_SIZE];
 } EgKeyboard;

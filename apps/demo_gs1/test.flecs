@@ -25,13 +25,14 @@ _ : Draw {
 	- ZIndex{0}
 	- (V2F32, Position){10, 10}
 	- (V2F32, Rectangle){$width, $height}
+	- Margin4{25,25,25,25}
 	- (V4U8, Color){255, 0, 0, 255}
 
 	_ : Draw {
+		- Text{"This is the red box"}
 		- ZIndex
 		- (V2F32, Position)
 		- (V2F32, PositionRelative){5, 5}
-		- Text{"This is the red box"}
 		- (V4U8, Color){60, 100, 255, 255}
 	}
 
@@ -43,10 +44,10 @@ _ : Draw {
 		- (V4U8, Color){0, 0, 255, 255}
 		
 		_ : Draw {
+			- Text{"This is the blue box"}
 			- ZIndex
 			- (V2F32, Position)
 			- (V2F32, PositionRelative){5, 5}
-			- Text{"This is the blue box"}
 			- (V4U8, Color){60, 100, 255, 255}
 		}
 	}
@@ -57,6 +58,7 @@ _ : Draw {
 	- ZIndex{0}
 	- (V2F32, Position){400, 10}
 	- (V2F32, Rectangle){$width, $height}
+	- Margin4{25,25,25,25}
 	- (V4U8, Color){255, 155, 40, 255}
 
 	_ : Draw {

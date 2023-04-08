@@ -35,6 +35,7 @@ void Move(ecs_iter_t *it)
     const EgV2F32 *r  = ecs_field(it, EgV2F32, 1);
           EgV2F32 *p  = ecs_field(it, EgV2F32, 2);
     const EgV2F32 *p0 = ecs_field(it, EgV2F32, 3);
+	if(p0 == NULL){return;}
 
     for (int i = 0; i < it->count; i ++)
 	{
