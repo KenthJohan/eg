@@ -5,38 +5,45 @@
 #include <math.h>
 #include <stdio.h>
 
-ECS_DECLARE(EgHover1);
+ECS_DECLARE(EgGuiMouseOver);
+ECS_DECLARE(EgGuiMouseOver1);
 ECS_COMPONENT_DECLARE(EgMargin4);
 ECS_COMPONENT_DECLARE(EgZIndex);
 ECS_COMPONENT_DECLARE(EgHover);
 ECS_COMPONENT_DECLARE(EgGuiDrag);
 
+
+
+
 void System_Hover1(ecs_iter_t* it)
 {
-	const EgZIndex *z  = ecs_field(it, EgZIndex, 1); // GUI Element Zindex
-	const EgV2F32 *p   = ecs_field(it, EgV2F32,  2); // GUI Element Position
-	const EgV2F32 *r   = ecs_field(it, EgV2F32,  3); // GUI Element Rectangle
-	const EgV2F32 *mp0 = ecs_field(it, EgV2F32,  4); // Userinput Mouse Position
-	EgHover *h0 = ecs_field(it, EgHover, 5);
-	EgV2F32 *hp0 = ecs_field(it, EgV2F32, 6);
+	const EgZIndex *z   = ecs_field(it, EgZIndex, 1); // [in] GUI Element Zindex
+	const EgV2F32  *p   = ecs_field(it, EgV2F32,  2); // [in] GUI Element Position
+	const EgV2F32  *r   = ecs_field(it, EgV2F32,  3); // [in] GUI Element Rectangle
+	const EgV2F32  *mp0 = ecs_field(it, EgV2F32,  4); // [in] Userinput Mouse Position
+	      EgHover  *h0  = ecs_field(it, EgHover,  5); // [inout] Hover entity 
+	      EgV2F32  *hp0 = ecs_field(it, EgV2F32,  6); // [out] Hover relative mouse position 
 	//ecs_entity_t e_mp0 = ecs_field_src(it, 3);
     for (int i = 0; i < it->count; i ++)
 	{
+		ecs_remove(it->world, it->entities[i], EgGuiMouseOver);
+		ecs_remove(it->world, it->entities[i], EgGuiMouseOver1);
 		// Check if mouse position is inside the rectangle:
-		EgV2F32 o = {mp0->x - p[i].x, mp0->y - p[i].y};
-		int hit = ((o.x > 0) && (o.x < r[i].x)) && ((o.y > 0) && (o.y < r[i].y));
+		hp0->x = mp0->x - p[i].x;
+		hp0->y = mp0->y - p[i].y;
+		int hit = ((hp0->x > 0) && (hp0->x < r[i].x)) && ((hp0->y > 0) && (hp0->y < r[i].y));
 		if(hit)
 		{
+			ecs_add(it->world, it->entities[i], EgGuiMouseOver);
 			if(z[i].z >= h0->zindex)
 			{
+				ecs_add(it->world, it->entities[i], EgGuiMouseOver1);
 				h0->entity = it->entities[i];
 				h0->zindex = z[i].z;
-				hp0->x = mp0->x - p[i].x;
-				hp0->y = mp0->y - p[i].y;
 			}
 		}
 		else
-		{
+		{ 
 			if(h0->entity == it->entities[i])
 			{
 				h0->entity = 0;
@@ -48,14 +55,13 @@ void System_Hover1(ecs_iter_t* it)
 
 void System_Drag1(ecs_iter_t* it)
 {
-	const EgV2F32   *mp0  = ecs_field(it, EgV2F32, 1); // Userinput Mouse Position
-	const EgMouse   *ms0  = ecs_field(it, EgMouse, 2); // Userinput Mouse State
-	const EgHover   *h0   = ecs_field(it, EgHover, 3); // Hover entity
-	const EgV2F32   *hp0  = ecs_field(it, EgV2F32, 4); // Hover position relative
+	const EgV2F32   *mp0  = ecs_field(it, EgV2F32,   1); // [in] Userinput Mouse Position
+	const EgMouse   *ms0  = ecs_field(it, EgMouse,   2); // [in] Userinput Mouse State
+	const EgHover   *h0   = ecs_field(it, EgHover,   3); // [in] Hover entity
+	const EgV2F32   *hp0  = ecs_field(it, EgV2F32,   4); // [in] Hover position relative
 	      EgGuiDrag *drag = ecs_field(it, EgGuiDrag, 5); //
-	      EgV2F32   *dp0  = ecs_field(it, EgV2F32, 6); //
+	      EgV2F32   *dp0  = ecs_field(it, EgV2F32,   6); //
 
-	
 	ecs_assert(mp0 != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(ms0 != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(h0 != NULL, ECS_INVALID_PARAMETER, NULL);
@@ -108,8 +114,8 @@ void System_Margin(ecs_iter_t *it)
 
 void System_ZIndex(ecs_iter_t *it)
 {
-    EgZIndex *z  = ecs_field(it, EgZIndex, 1);
-    EgZIndex *z0  = ecs_field(it, EgZIndex, 2);
+    EgZIndex *z = ecs_field(it, EgZIndex, 1);
+    EgZIndex *z0 = ecs_field(it, EgZIndex, 2);
 	ecs_entity_t e_z0 = ecs_field_src(it, 2);
 	if(z0 == NULL){return;}
     for (int i = 0; i < it->count; i ++)
@@ -128,7 +134,8 @@ void EgGuiImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgQuantities);
 	ECS_IMPORT(world, EgUserinput);
 
-	ECS_TAG_DEFINE(world, EgHover1);
+	ECS_TAG_DEFINE(world, EgGuiMouseOver);
+	ECS_TAG_DEFINE(world, EgGuiMouseOver1);
 	ECS_COMPONENT_DEFINE(world, EgMargin4);
 	ECS_COMPONENT_DEFINE(world, EgZIndex);
 	ECS_COMPONENT_DEFINE(world, EgHover);

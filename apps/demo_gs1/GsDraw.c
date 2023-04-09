@@ -67,6 +67,7 @@ void GsDrawImport(ecs_world_t *world)
 	ECS_MODULE(world, GsDraw);
 	ECS_IMPORT(world, EgQuantities);
 	ECS_IMPORT(world, EgUserinput);
+	ECS_IMPORT(world, EgGui);
 
 
 	ECS_COMPONENT_DEFINE(world, GsImmediateDraw);

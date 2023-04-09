@@ -24,9 +24,8 @@ typedef struct {
 	ecs_entity_t entity;
 } EgGuiDrag;
 
-extern ECS_DECLARE(EgOnMouseOver);
-extern ECS_DECLARE(EgOnMouseDrag);
-extern ECS_DECLARE(EgHover1);
+extern ECS_DECLARE(EgGuiMouseOver);
+extern ECS_DECLARE(EgGuiMouseOver1);
 extern ECS_COMPONENT_DECLARE(EgMargin4);
 extern ECS_COMPONENT_DECLARE(EgZIndex);
 extern ECS_COMPONENT_DECLARE(EgHover);

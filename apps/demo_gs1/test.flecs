@@ -33,7 +33,7 @@ _ : Draw {
 		- ZIndex
 		- (V2F32, Position)
 		- (V2F32, PositionRelative){5, 5}
-		- (V4U8, Color){60, 100, 255, 255}
+		- (V4U8, Color){255, 255, 255, 255}
 	}
 
 	_ : Draw {
@@ -48,7 +48,7 @@ _ : Draw {
 			- ZIndex
 			- (V2F32, Position)
 			- (V2F32, PositionRelative){5, 5}
-			- (V4U8, Color){60, 100, 255, 255}
+			- (V4U8, Color){255, 255, 255, 255}
 		}
 	}
 }
