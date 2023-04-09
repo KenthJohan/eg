@@ -7,6 +7,7 @@
 
 ECS_DECLARE(EgGuiMouseOver);
 ECS_DECLARE(EgGuiMouseOver1);
+ECS_DECLARE(EgGuiDragging);
 ECS_COMPONENT_DECLARE(EgMargin4);
 ECS_COMPONENT_DECLARE(EgZIndex);
 ECS_COMPONENT_DECLARE(EgHover);
@@ -34,6 +35,7 @@ void System_Hover1(ecs_iter_t* it)
 		int hit = ((hp0->x > 0) && (hp0->x < r[i].x)) && ((hp0->y > 0) && (hp0->y < r[i].y));
 		if(hit)
 		{
+			printf("Hover: %i\n", it->entities[i]);
 			ecs_add(it->world, it->entities[i], EgGuiMouseOver);
 			if(z[i].z >= h0->zindex)
 			{
@@ -57,7 +59,7 @@ void System_Drag1(ecs_iter_t* it)
 {
 	const EgV2F32   *mp0  = ecs_field(it, EgV2F32,   1); // [in] Userinput Mouse Position
 	const EgMouse   *ms0  = ecs_field(it, EgMouse,   2); // [in] Userinput Mouse State
-	const EgHover   *h0   = ecs_field(it, EgHover,   3); // [in] Hover entity
+	      EgHover   *h0   = ecs_field(it, EgHover,   3); // [inout] Hover entity
 	const EgV2F32   *hp0  = ecs_field(it, EgV2F32,   4); // [in] Hover position relative
 	      EgGuiDrag *drag = ecs_field(it, EgGuiDrag, 5); //
 	      EgV2F32   *dp0  = ecs_field(it, EgV2F32,   6); //
@@ -72,13 +74,16 @@ void System_Drag1(ecs_iter_t* it)
 	if (ms0->left == EG_EDGE_RISING && h0->entity)
 	{
 		printf("Drag start: %i\n", h0->entity);
+		h0->zindex = 0;
 		drag->entity = h0->entity;
 		ecs_remove_pair(it->world, drag->entity, EcsChildOf, EcsWildcard);
+		ecs_add(it->world, drag->entity, EgGuiDragging);
 		(*dp0) = (*hp0);
 	}
 	if (ms0->left == EG_EDGE_FALLING && drag->entity)
 	{
 		printf("Drag end: %i %i\n", drag->entity, h0->entity);
+		ecs_remove(it->world, drag->entity, EgGuiDragging);
 		if(h0->entity && (drag->entity != h0->entity))
 		{
 			// Don't add it self as child:
@@ -89,10 +94,11 @@ void System_Drag1(ecs_iter_t* it)
 	}
 	if(drag->entity)
 	{
-		ecs_set_pair(it->world, drag->entity, EgV2F32, EgPosition, {mp0->x+10, mp0->y+10});
+		ecs_set_pair(it->world, drag->entity, EgV2F32, EgPosition, {mp0->x-10, mp0->y-10});
 	}
 
 }
+
 
 void System_Margin(ecs_iter_t *it)
 {
@@ -136,6 +142,7 @@ void EgGuiImport(ecs_world_t *world)
 
 	ECS_TAG_DEFINE(world, EgGuiMouseOver);
 	ECS_TAG_DEFINE(world, EgGuiMouseOver1);
+	ECS_TAG_DEFINE(world, EgGuiDragging);
 	ECS_COMPONENT_DEFINE(world, EgMargin4);
 	ECS_COMPONENT_DEFINE(world, EgZIndex);
 	ECS_COMPONENT_DEFINE(world, EgHover);
@@ -188,6 +195,7 @@ void EgGuiImport(ecs_world_t *world)
             { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse) },
             { .id = ecs_id(EgHover), .src.id = ecs_id(EgHover) },
             { .id = ecs_pair(ecs_id(EgV2F32), EgPositionRelative), .src.id = ecs_id(EgHover) },
+            { .id = ecs_id(EgGuiDragging), .oper = EcsNot },
         },
         .callback = System_Hover1
     });
