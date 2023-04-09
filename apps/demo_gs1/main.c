@@ -46,6 +46,11 @@ void app_init()
 
 	ecs_entity_t e_draw = ecs_lookup(app->world, "Draw");
 	ecs_set(app->world, e_draw, GsImmediateDraw, {&app->gsi});
+
+
+	ecs_entity_t e_tree = ecs_lookup_fullpath(app->world, "RectangleBorder");
+	ecs_set(app->world, ecs_id(EgHover), EgHover, {0,0,e_tree});
+
     //ecs_override(app->world, e_draw, EgZIndex);
 
 }

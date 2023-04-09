@@ -19,7 +19,6 @@ void Draw_Rectangle(ecs_iter_t *it)
 	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
 	const EgV2F32 *r = ecs_field(it, EgV2F32, 3);
 	const EgV4U8 *c = ecs_field(it, EgV4U8, 4);
-	const EgHover *h = ecs_field(it, EgHover, 5);
 	ecs_assert(gsi != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(r != NULL, ECS_INVALID_PARAMETER, NULL);
@@ -28,18 +27,40 @@ void Draw_Rectangle(ecs_iter_t *it)
 	{
 		gs_vec2 xy = {p[i].x, p[i].y};
 		gs_vec2 wh = {r[i].x, r[i].y};
-		gs_color_t color;
-		if(h->entity == it->entities[i])
-		{
-			color = (gs_color_t){255,255,255,255};
-		}
-		else
-		{
-			color = (gs_color_t){c[i].x, c[i].y, c[i].z, c[i].w};
-		}
+		gs_color_t color = (gs_color_t){c[i].x, c[i].y, c[i].z, c[i].w};
 		gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
 	}
 }
+
+
+void Draw_Rectangle_Border(ecs_iter_t *it)
+{
+	gs_immediate_draw_t *gsi = ecs_field(it, GsImmediateDraw, 1)->ptr;
+	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
+	const EgV2F32 *r = ecs_field(it, EgV2F32, 3);
+	const EgGuiBorder4 *b = ecs_field(it, EgGuiBorder4, 4);
+	ecs_assert(gsi != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
+	ecs_assert(r != NULL, ECS_INVALID_PARAMETER, NULL);
+	for (int i = 0; i < it->count; i++)
+	{
+		gs_vec2 xy = {p[i].x, p[i].y};
+		gs_vec2 wh = {r[i].x, r[i].y};
+		gs_color_t color;
+		gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
+		gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
+	}
+}
+
+
+
+
+
+
+
+
+
+
 
 
 void Draw_Text(ecs_iter_t *it)
@@ -80,13 +101,11 @@ void GsDrawImport(ecs_world_t *world)
 		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn},
 		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
-		{.id = ecs_id(EgHover), .inout = EcsIn, .src.id = ecs_id(EgHover)},
 		//Not used. Order by breadth-first order (cascade):
         {.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
 		},
 		.callback = Draw_Rectangle,
 		});
-
 
 	ecs_entity_t e_Draw_Text = ecs_system(world, {
 		.entity = ecs_entity(world, {.name = "Draw_Text",

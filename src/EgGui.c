@@ -12,6 +12,7 @@ ECS_COMPONENT_DECLARE(EgMargin4);
 ECS_COMPONENT_DECLARE(EgZIndex);
 ECS_COMPONENT_DECLARE(EgHover);
 ECS_COMPONENT_DECLARE(EgGuiDrag);
+ECS_COMPONENT_DECLARE(EgGuiBorder4);
 
 
 
@@ -29,14 +30,16 @@ void System_Hover1(ecs_iter_t* it)
 	{
 		ecs_remove(it->world, it->entities[i], EgGuiMouseOver);
 		ecs_remove(it->world, it->entities[i], EgGuiMouseOver1);
+		ecs_remove_id(it->world, it->entities[i], h0->entity1);
 		// Check if mouse position is inside the rectangle:
 		hp0->x = mp0->x - p[i].x;
 		hp0->y = mp0->y - p[i].y;
 		int hit = ((hp0->x > 0) && (hp0->x < r[i].x)) && ((hp0->y > 0) && (hp0->y < r[i].y));
 		if(hit)
 		{
-			printf("Hover: %i\n", it->entities[i]);
+			//printf("Hover: %i\n", it->entities[i]);
 			ecs_add(it->world, it->entities[i], EgGuiMouseOver);
+			ecs_add_id(it->world, it->entities[i], h0->entity1); // Does not add assembly proberly
 			if(z[i].z >= h0->zindex)
 			{
 				ecs_add(it->world, it->entities[i], EgGuiMouseOver1);
@@ -120,17 +123,29 @@ void System_Margin(ecs_iter_t *it)
 
 void System_ZIndex(ecs_iter_t *it)
 {
-    EgZIndex *z = ecs_field(it, EgZIndex, 1);
-    EgZIndex *z0 = ecs_field(it, EgZIndex, 2);
+	EgZIndex *z = ecs_field(it, EgZIndex, 1);
+	EgZIndex *z0 = ecs_field(it, EgZIndex, 2);
 	ecs_entity_t e_z0 = ecs_field_src(it, 2);
 	if(z0 == NULL){return;}
-    for (int i = 0; i < it->count; i ++)
+	for (int i = 0; i < it->count; i ++)
 	{
 		//printf("%s:%i, %s:%i\n", ecs_get_name(it->world, e_z0), z0->z, ecs_get_name(it->world, it->entities[i]), z[i].z);
 		z[i].z = z0->z + 1;
 	}
 }
 
+void System_Border(ecs_iter_t *it)
+{
+	EgZIndex *z = ecs_field(it, EgZIndex, 1);
+	EgZIndex *z0 = ecs_field(it, EgZIndex, 2);
+	ecs_entity_t e_z0 = ecs_field_src(it, 2);
+	if(z0 == NULL){return;}
+	for (int i = 0; i < it->count; i ++)
+	{
+		//printf("%s:%i, %s:%i\n", ecs_get_name(it->world, e_z0), z0->z, ecs_get_name(it->world, it->entities[i]), z[i].z);
+		z[i].z = z0->z + 1;
+	}
+}
 
 
 void EgGuiImport(ecs_world_t *world)
@@ -147,6 +162,7 @@ void EgGuiImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgZIndex);
 	ECS_COMPONENT_DEFINE(world, EgHover);
 	ECS_COMPONENT_DEFINE(world, EgGuiDrag);
+	ECS_COMPONENT_DEFINE(world, EgGuiBorder4);
 
 	ecs_struct(world, {
 	.entity = ecs_id(EgZIndex),
@@ -166,10 +182,21 @@ void EgGuiImport(ecs_world_t *world)
 	});
 
 	ecs_struct(world, {
+	.entity = ecs_id(EgGuiBorder4),
+	.members = {
+	{ .name = "left", .type = ecs_id(ecs_f32_t) },
+	{ .name = "right", .type = ecs_id(ecs_f32_t) },
+	{ .name = "botton", .type = ecs_id(ecs_f32_t) },
+	{ .name = "top", .type = ecs_id(ecs_f32_t) }
+	}
+	});
+
+	ecs_struct(world, {
 	.entity = ecs_id(EgHover),
 	.members = {
 	{ .name = "entity", .type = ecs_id(ecs_entity_t) },
-	{ .name = "zindex", .type = ecs_id(ecs_u32_t) }
+	{ .name = "zindex", .type = ecs_id(ecs_u32_t) },
+	{ .name = "entity1", .type = ecs_id(ecs_entity_t) }
 	}
 	});
 
@@ -232,17 +259,17 @@ void EgGuiImport(ecs_world_t *world)
         .callback = System_Margin
     });
 
-    ecs_entity_t e_System_ZIndex = ecs_system(world, {
-        .entity = ecs_entity(world, {
+	ecs_entity_t e_System_ZIndex = ecs_system(world, {
+		.entity = ecs_entity(world, {
 			.name = "System_ZIndex",
 			.add = { ecs_dependson(EcsOnUpdate) }
 		}),
-        .query.filter.terms = {
-            {.id = ecs_id(EgZIndex), .inout = EcsOut },
-            {.id = ecs_id(EgZIndex), .inout = EcsIn, .src.flags = EcsParent | EcsCascade},
-        },
-        .callback = System_ZIndex
-    });
+		.query.filter.terms = {
+			{.id = ecs_id(EgZIndex), .inout = EcsOut },
+			{.id = ecs_id(EgZIndex), .inout = EcsIn, .src.flags = EcsParent | EcsCascade},
+		},
+		.callback = System_ZIndex
+	});
 
 
 }

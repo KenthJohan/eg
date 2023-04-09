@@ -5,26 +5,53 @@
 
 using eg.quantities
 using eg.gui
-
-
-// Plecs files can contain variables that can be referenced later on when 
-// assigning values to components
-const width = 300
-
-// Variables and components can be assigned using expressions. Most arithmetic
-// and conditional operators are supported.
-const height = 200
+using flecs.meta
 
 
 Prefab Draw {
 // Inherit this drawing entity to draw shapes and text
 }
 
+assembly RectangleBorder {
+	prop width: f32 = 100
+	prop height: f32 = 100
+	prop thickness: f32 = 5
+
+	left : Draw {
+		- ZIndex
+		- (V2F32, Position)
+		- (V2F32, PositionRelative){0, 0}
+		- (V2F32, Rectangle){$thickness, $height}
+		- (V4U8, Color){255, 255, 255, 255}
+	}
+	right : Draw {
+		- ZIndex
+		- (V2F32, Position)
+		- (V2F32, PositionRelative){$width-$thickness, 0}
+		- (V2F32, Rectangle){$thickness, $height}
+		- (V4U8, Color){255, 255, 255, 255}
+	}
+	top : Draw {
+		- ZIndex
+		- (V2F32, Position)
+		- (V2F32, PositionRelative){0, 0}
+		- (V2F32, Rectangle){$width, $thickness}
+		- (V4U8, Color){255, 255, 255, 255}
+	}
+	bottom : Draw {
+		- ZIndex
+		- (V2F32, Position)
+		- (V2F32, PositionRelative){0, $height-$thickness}
+		- (V2F32, Rectangle){$width, $thickness}
+		- (V4U8, Color){255, 255, 255, 255}
+	}
+}
+
 
 _ : Draw {
 	- ZIndex{0}
 	- (V2F32, Position){10, 10}
-	- (V2F32, Rectangle){$width, $height}
+	- (V2F32, Rectangle){200, 200}
 	- Margin4{25,25,25,25}
 	- (V4U8, Color){255, 0, 0, 255}
 
@@ -57,16 +84,13 @@ _ : Draw {
 _ : Draw {
 	- ZIndex{0}
 	- (V2F32, Position){400, 10}
-	- (V2F32, Rectangle){$width, $height}
+	- (V2F32, Rectangle){200, 200}
 	- Margin4{25,25,25,25}
 	- (V4U8, Color){255, 155, 40, 255}
+	- RectangleBorder{}
+}
 
-	_ : Draw {
-		- ZIndex
-		- (V2F32, Position)
-		- (V2F32, Rectangle)
-		- Margin4{25,25,25,25}
-		- (V4U8, Color){50, 0, 60, 255}
-	}
 
+_ {
+	- RectangleBorder{}
 }
