@@ -5,6 +5,7 @@
 #include <math.h>
 #include <stdio.h>
 
+ECS_DECLARE(EgGuiMouseOverCheck);
 ECS_DECLARE(EgGuiMouseOver);
 ECS_DECLARE(EgGuiMouseOver1);
 ECS_DECLARE(EgGuiDragging);
@@ -170,6 +171,7 @@ void EgGuiImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgQuantities);
 	ECS_IMPORT(world, EgUserinput);
 
+	ECS_TAG_DEFINE(world, EgGuiMouseOverCheck);
 	ECS_TAG_DEFINE(world, EgGuiMouseOver);
 	ECS_TAG_DEFINE(world, EgGuiMouseOver1);
 	ECS_TAG_DEFINE(world, EgGuiDragging);
@@ -238,6 +240,8 @@ void EgGuiImport(ecs_world_t *world)
             { .id = ecs_id(EgHover),          .src.id = ecs_id(EgHover) },
             { .id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgHover) },
             { .id = ecs_id(EgGuiDragging), .oper = EcsNot },
+            { .id = ecs_id(EgGuiMouseOverCheck) },
+			
         },
         .callback = System_Hover1
     });
