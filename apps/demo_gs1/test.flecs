@@ -14,6 +14,10 @@ Prefab Draw {
 // Inherit this drawing entity to draw shapes and text
 }
 
+Prefab HoverStyle {
+	- (ColorRGBA_V4U8, GuiMouseOver1){200,255,0,255}
+}
+
 assembly RectangleBorder {
 	prop width: f32 = 100
 	prop height: f32 = 100
@@ -44,22 +48,21 @@ assembly RectangleBorder {
 
 
 with ZIndex, ColorRGBA_V4U8, Position_V2F32, PositionGlobal_V2F32 {
-	yrdy : Draw {
+	yrdy : Draw, HoverStyle {
 		- Position_V2F32{100,300}
 		- Rectangle_V2F32{200, 200}
 		- RectangleBorder{}
 	}
-	_ : Draw {
+	_ : Draw, HoverStyle {
 		- Rectangle_V2F32{200, 200}
-			- Margin4{15,15,15,15}
+		- Margin4{15,15,15,15}
 
 		//_ : Draw {
 		//	- Text{"This is the red box"}
 		//	- Position_V2F32{5, 5}
 		//}
 
-		_ : Draw {
-			- ZIndex
+		_ : Draw, HoverStyle {
 			- Rectangle_V2F32{200, 200}
 			- Margin4{15,15,15,15}
 			

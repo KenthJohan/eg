@@ -9,6 +9,7 @@ typedef struct
 	ecs_f32_t top;
 } EgMargin4;
 
+
 typedef struct
 {
 	ecs_f32_t left;

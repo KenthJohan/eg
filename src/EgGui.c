@@ -161,6 +161,8 @@ void System_Fllow(ecs_iter_t *it)
 }
 
 
+
+
 void EgGuiImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgGui);
@@ -223,7 +225,7 @@ void EgGuiImport(ecs_world_t *world)
 
 
 
-    ecs_entity_t e_System_Hover1 = ecs_system(world, {
+   	ecs_system(world, {
         .entity = ecs_entity(world, {
 			.name = "System_Hover1",
 			.add = { ecs_dependson(EcsOnUpdate) }
@@ -240,7 +242,7 @@ void EgGuiImport(ecs_world_t *world)
         .callback = System_Hover1
     });
 
-    ecs_entity_t e_System_Drag1 = ecs_system(world, {
+    ecs_system(world, {
         .entity = ecs_entity(world, {
 			.name = "System_Drag1",
 			.add = { ecs_dependson(EcsOnUpdate) }
@@ -257,7 +259,7 @@ void EgGuiImport(ecs_world_t *world)
     });
 
 
-    ecs_entity_t e_System_Margin = ecs_system(world, {
+   	ecs_system(world, {
         .entity = ecs_entity(world, {
 			.name = "System_Margin",
 			.add = { ecs_dependson(EcsOnUpdate) }
@@ -271,7 +273,7 @@ void EgGuiImport(ecs_world_t *world)
         .callback = System_Margin
     });
 
-	ecs_entity_t e_System_ZIndex = ecs_system(world, {
+	ecs_system(world, {
 		.entity = ecs_entity(world, {
 			.name = "System_ZIndex",
 			.add = { ecs_dependson(EcsOnUpdate) }

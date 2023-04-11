@@ -19,6 +19,7 @@ void Draw_Rectangle(ecs_iter_t *it)
 	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
 	const EgV2F32 *r = ecs_field(it, EgV2F32, 3);
 	const EgColorRGBA_V4U8 *c = ecs_field(it, EgColorRGBA_V4U8, 4);
+	int c_self = ecs_field_is_self(it, 4);
 	ecs_assert(gsi != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(r != NULL, ECS_INVALID_PARAMETER, NULL);
@@ -27,14 +28,11 @@ void Draw_Rectangle(ecs_iter_t *it)
 	{
 		gs_vec2 xy = {p[i].x, p[i].y};
 		gs_vec2 wh = {r[i].x, r[i].y};
-		gs_color_t color = (gs_color_t){c[i].r, c[i].g, c[i].b, c[i].a};
+		EgColorRGBA_V4U8 * cc = c + (i * c_self);
+		gs_color_t color = (gs_color_t){cc->r, cc->g, cc->b, cc->a};
 		gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
 	}
 }
-
-
-
-
 
 
 void Draw_Text(ecs_iter_t *it)
@@ -54,9 +52,6 @@ void Draw_Text(ecs_iter_t *it)
 }
 
 
-
-
-
 void GsDrawImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, GsDraw);
@@ -67,7 +62,24 @@ void GsDrawImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, GsImmediateDraw);
 
-	ecs_entity_t e_Draw_Rectangle = ecs_system(world, {
+		
+
+	ecs_system(world, {
+		.entity = ecs_entity(world, {.name = "Draw_Rectangle1",
+		.add = {ecs_dependson(EcsOnUpdate)}}),
+		.query.filter.terms = {
+		{.id = ecs_id(GsImmediateDraw), .inout = EcsIn, .src.flags = EcsUp},
+		{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn},
+		{.id = ecs_id(EgRectangle_V2F32), .inout = EcsIn},
+		{.id = ecs_pair(ecs_id(EgColorRGBA_V4U8), EgGuiMouseOver1), .inout = EcsIn},
+		{.id = ecs_id(EgGuiMouseOver1)},
+		//Not used. Order by breadth-first order (cascade):
+		//{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
+		},
+		.callback = Draw_Rectangle,
+		});
+		
+	ecs_system(world, {
 		.entity = ecs_entity(world, {.name = "Draw_Rectangle",
 		.add = {ecs_dependson(EcsOnUpdate)}}),
 		.query.filter.terms = {
@@ -75,13 +87,15 @@ void GsDrawImport(ecs_world_t *world)
 		{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn},
 		{.id = ecs_id(EgRectangle_V2F32), .inout = EcsIn},
 		{.id = ecs_id(EgColorRGBA_V4U8), .inout = EcsIn},
+		{.id = ecs_id(EgGuiMouseOver1), .oper = EcsNot},
 		//Not used. Order by breadth-first order (cascade):
-        {.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
+		{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
 		},
 		.callback = Draw_Rectangle,
 		});
 
-	ecs_entity_t e_Draw_Text = ecs_system(world, {
+
+	ecs_system(world, {
 		.entity = ecs_entity(world, {.name = "Draw_Text",
 		.add = {ecs_dependson(EcsOnUpdate)}}),
 		.query.filter.terms = {
