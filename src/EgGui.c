@@ -95,7 +95,7 @@ void System_Drag1(ecs_iter_t* it)
 			ecs_add_pair(it->world, drag->entity, EcsChildOf, h0->entity);
 		}
 		drag->entity = 0;
-		(*dp0) = (EgV2F32){0,0};
+		//(*dp0) = (EgV2F32){0,0};
 	}
 	if(drag->entity)
 	{
@@ -152,10 +152,11 @@ void System_Fllow(ecs_iter_t *it)
 {
 	EgV2F32 *p = ecs_field(it, EgV2F32, 1);
 	EgV2F32 *m0 = ecs_field(it, EgV2F32, 2);
+	EgV2F32 *d0 = ecs_field(it, EgV2F32, 3);
 	for (int i = 0; i < it->count; i ++)
 	{
-		p[i].x = m0->x + 10;
-		p[i].y = m0->y + 10;
+		p[i].x = m0->x - d0->x;
+		p[i].y = m0->y - d0->y;
 	}
 }
 
@@ -291,6 +292,7 @@ void EgGuiImport(ecs_world_t *world)
 	.query.filter.terms = {
 	{ .id = ecs_id(EgPositionGlobal_V2F32), },
 	{ .id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgMouse) },
+    { .id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgGuiDrag) },
 	{ .id = ecs_id(EgGuiDragging),},
 	},
 	.callback = System_Fllow
