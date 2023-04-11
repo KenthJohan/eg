@@ -18,7 +18,7 @@ void Draw_Rectangle(ecs_iter_t *it)
 	gs_immediate_draw_t *gsi = ecs_field(it, GsImmediateDraw, 1)->ptr;
 	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
 	const EgV2F32 *r = ecs_field(it, EgV2F32, 3);
-	const EgV4U8 *c = ecs_field(it, EgV4U8, 4);
+	const EgColorRGBA_V4U8 *c = ecs_field(it, EgColorRGBA_V4U8, 4);
 	ecs_assert(gsi != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(r != NULL, ECS_INVALID_PARAMETER, NULL);
@@ -27,36 +27,10 @@ void Draw_Rectangle(ecs_iter_t *it)
 	{
 		gs_vec2 xy = {p[i].x, p[i].y};
 		gs_vec2 wh = {r[i].x, r[i].y};
-		gs_color_t color = (gs_color_t){c[i].x, c[i].y, c[i].z, c[i].w};
+		gs_color_t color = (gs_color_t){c[i].r, c[i].g, c[i].b, c[i].a};
 		gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
 	}
 }
-
-
-void Draw_Rectangle_Border(ecs_iter_t *it)
-{
-	gs_immediate_draw_t *gsi = ecs_field(it, GsImmediateDraw, 1)->ptr;
-	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
-	const EgV2F32 *r = ecs_field(it, EgV2F32, 3);
-	const EgGuiBorder4 *b = ecs_field(it, EgGuiBorder4, 4);
-	ecs_assert(gsi != NULL, ECS_INVALID_PARAMETER, NULL);
-	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
-	ecs_assert(r != NULL, ECS_INVALID_PARAMETER, NULL);
-	for (int i = 0; i < it->count; i++)
-	{
-		gs_vec2 xy = {p[i].x, p[i].y};
-		gs_vec2 wh = {r[i].x, r[i].y};
-		gs_color_t color;
-		gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
-		gsi_rectvd(gsi, xy, wh, gs_v2(0.f, 0.f), gs_v2(1.f, 1.f), color, GS_GRAPHICS_PRIMITIVE_TRIANGLES);
-	}
-}
-
-
-
-
-
-
 
 
 
@@ -67,7 +41,7 @@ void Draw_Text(ecs_iter_t *it)
 {
 	gs_immediate_draw_t *gsi = ecs_field(it, GsImmediateDraw, 1)->ptr;
 	const EgV2F32 *p = ecs_field(it, EgV2F32, 2);
-	const EgV4U8 *c = ecs_field(it, EgV4U8, 3);
+	const EgColorRGBA_V4U8 *c = ecs_field(it, EgColorRGBA_V4U8, 3);
 	const EgText *text = ecs_field(it, EgText, 4);
 	ecs_assert(gsi != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(p != NULL, ECS_INVALID_PARAMETER, NULL);
@@ -75,7 +49,7 @@ void Draw_Text(ecs_iter_t *it)
 	ecs_assert(text != NULL, ECS_INVALID_PARAMETER, NULL);
 	for (int i = 0; i < it->count; i++)
 	{
-		gsi_text(gsi, p[i].x, p[i].y, text[i].value, NULL, false, c[i].x, c[i].y, c[i].z, c[i].w);
+		gsi_text(gsi, p[i].x, p[i].y, text[i].value, NULL, false, c[i].r, c[i].g, c[i].b, c[i].a);
 	}
 }
 
@@ -98,11 +72,11 @@ void GsDrawImport(ecs_world_t *world)
 		.add = {ecs_dependson(EcsOnUpdate)}}),
 		.query.filter.terms = {
 		{.id = ecs_id(GsImmediateDraw), .inout = EcsIn, .src.flags = EcsUp},
-		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn},
-		{.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn},
-		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
+		{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn},
+		{.id = ecs_id(EgRectangle_V2F32), .inout = EcsIn},
+		{.id = ecs_id(EgColorRGBA_V4U8), .inout = EcsIn},
 		//Not used. Order by breadth-first order (cascade):
-        {.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
+        {.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
 		},
 		.callback = Draw_Rectangle,
 		});
@@ -112,8 +86,8 @@ void GsDrawImport(ecs_world_t *world)
 		.add = {ecs_dependson(EcsOnUpdate)}}),
 		.query.filter.terms = {
 		{.id = ecs_id(GsImmediateDraw), .inout = EcsIn, .src.flags = EcsUp},
-		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn},
-		{.id = ecs_pair(ecs_id(EgV4U8), EgColor), .inout = EcsIn},
+		{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn},
+		{.id = ecs_id(EgColorRGBA_V4U8), .inout = EcsIn},
 		{.id = ecs_id(EgText), .inout = EcsIn},
 		},
 		.callback = Draw_Text,

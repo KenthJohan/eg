@@ -8,6 +8,8 @@ using eg.gui
 using flecs.meta
 
 
+
+
 Prefab Draw {
 // Inherit this drawing entity to draw shapes and text
 }
@@ -16,81 +18,61 @@ assembly RectangleBorder {
 	prop width: f32 = 100
 	prop height: f32 = 100
 	prop thickness: f32 = 5
+	const color : ColorRGBA_V4U8 = {255, 255, 255, 255}
+	with $color, ZIndex, Position_V2F32, PositionGlobal_V2F32 {
+		_ : Draw {
+			- Position_V2F32{0, 0}
+			- Rectangle_V2F32{$thickness, $height}
+		}
+		_ : Draw {
+			- Position_V2F32{$width-$thickness, 0}
+			- Rectangle_V2F32{$thickness, $height}
+		}
+		_ : Draw {
+			- Position_V2F32{0, 0}
+			- Rectangle_V2F32{$width, $thickness}
+		}
+		_ : Draw {
+			- Position_V2F32{0, $height-$thickness}
+			- Rectangle_V2F32{$width, $thickness}
+		}
+	}
 
-	left : Draw {
-		- ZIndex
-		- (V2F32, Position)
-		- (V2F32, PositionRelative){0, 0}
-		- (V2F32, Rectangle){$thickness, $height}
-		- (V4U8, Color){255, 255, 255, 255}
-	}
-	right : Draw {
-		- ZIndex
-		- (V2F32, Position)
-		- (V2F32, PositionRelative){$width-$thickness, 0}
-		- (V2F32, Rectangle){$thickness, $height}
-		- (V4U8, Color){255, 255, 255, 255}
-	}
-	top : Draw {
-		- ZIndex
-		- (V2F32, Position)
-		- (V2F32, PositionRelative){0, 0}
-		- (V2F32, Rectangle){$width, $thickness}
-		- (V4U8, Color){255, 255, 255, 255}
-	}
-	bottom : Draw {
-		- ZIndex
-		- (V2F32, Position)
-		- (V2F32, PositionRelative){0, $height-$thickness}
-		- (V2F32, Rectangle){$width, $thickness}
-		- (V4U8, Color){255, 255, 255, 255}
-	}
 }
 
 
-_ : Draw {
-	- ZIndex{0}
-	- (V2F32, Position){10, 10}
-	- (V2F32, Rectangle){200, 200}
-	- Margin4{25,25,25,25}
-	- (V4U8, Color){255, 0, 0, 255}
 
-	_ : Draw {
-		- Text{"This is the red box"}
-		- ZIndex
-		- (V2F32, Position)
-		- (V2F32, PositionRelative){5, 5}
-		- (V4U8, Color){255, 255, 255, 255}
+
+with ZIndex, ColorRGBA_V4U8, Position_V2F32, PositionGlobal_V2F32 {
+	yrdy : Draw {
+		- Position_V2F32{100,300}
+		- Rectangle_V2F32{200, 200}
+		- RectangleBorder{}
 	}
-
 	_ : Draw {
-		- ZIndex
-		- (V2F32, Position)
-		- (V2F32, Rectangle)
-		- Margin4{25,25,25,25}
-		- (V4U8, Color){0, 0, 255, 255}
-		
+		- Rectangle_V2F32{200, 200}
+			- Margin4{15,15,15,15}
+
+		//_ : Draw {
+		//	- Text{"This is the red box"}
+		//	- Position_V2F32{5, 5}
+		//}
+
 		_ : Draw {
-			- Text{"This is the blue box"}
 			- ZIndex
-			- (V2F32, Position)
-			- (V2F32, PositionRelative){5, 5}
-			- (V4U8, Color){255, 255, 255, 255}
+			- Rectangle_V2F32{200, 200}
+			- Margin4{15,15,15,15}
+			
+			//_ : Draw {
+			//	- Text{"This is the blue box"}
+			//	- Position_V2F32{5, 5}
+			//}
 		}
 	}
 }
 
 
-_ : Draw {
-	- ZIndex{0}
-	- (V2F32, Position){400, 10}
-	- (V2F32, Rectangle){200, 200}
-	- Margin4{25,25,25,25}
-	- (V4U8, Color){255, 155, 40, 255}
-	- RectangleBorder{}
-}
 
-
-_ {
-	- RectangleBorder{}
-}
+//_ {
+//	- RectangleBorder{}
+//}

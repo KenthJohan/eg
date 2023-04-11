@@ -30,7 +30,7 @@ void System_Hover1(ecs_iter_t* it)
 	{
 		ecs_remove(it->world, it->entities[i], EgGuiMouseOver);
 		ecs_remove(it->world, it->entities[i], EgGuiMouseOver1);
-		ecs_remove_id(it->world, it->entities[i], h0->entity1);
+		//ecs_remove_id(it->world, it->entities[i], h0->entity1);
 		// Check if mouse position is inside the rectangle:
 		hp0->x = mp0->x - p[i].x;
 		hp0->y = mp0->y - p[i].y;
@@ -39,7 +39,7 @@ void System_Hover1(ecs_iter_t* it)
 		{
 			//printf("Hover: %i\n", it->entities[i]);
 			ecs_add(it->world, it->entities[i], EgGuiMouseOver);
-			ecs_add_id(it->world, it->entities[i], h0->entity1); // Does not add assembly proberly
+			//ecs_add_id(it->world, it->entities[i], h0->entity1); // Does not add assembly proberly
 			if(z[i].z >= h0->zindex)
 			{
 				ecs_add(it->world, it->entities[i], EgGuiMouseOver1);
@@ -79,6 +79,7 @@ void System_Drag1(ecs_iter_t* it)
 		printf("Drag start: %i\n", h0->entity);
 		h0->zindex = 0;
 		drag->entity = h0->entity;
+		ecs_remove(it->world, drag->entity, EgPosition_V2F32);
 		ecs_remove_pair(it->world, drag->entity, EcsChildOf, EcsWildcard);
 		ecs_add(it->world, drag->entity, EgGuiDragging);
 		(*dp0) = (*hp0);
@@ -89,6 +90,7 @@ void System_Drag1(ecs_iter_t* it)
 		ecs_remove(it->world, drag->entity, EgGuiDragging);
 		if(h0->entity && (drag->entity != h0->entity))
 		{
+			ecs_set(it->world, drag->entity, EgPosition_V2F32, {5,5});
 			// Don't add it self as child:
 			ecs_add_pair(it->world, drag->entity, EcsChildOf, h0->entity);
 		}
@@ -97,7 +99,7 @@ void System_Drag1(ecs_iter_t* it)
 	}
 	if(drag->entity)
 	{
-		ecs_set_pair(it->world, drag->entity, EgV2F32, EgPosition, {mp0->x-10, mp0->y-10});
+		//ecs_set(it->world, drag->entity, EgPosition_V2F32, {mp0->x-10, mp0->y-10});
 	}
 
 }
@@ -108,14 +110,12 @@ void System_Margin(ecs_iter_t *it)
     EgV2F32   *p  = ecs_field(it, EgV2F32,   1); // GUI Element Position
     EgV2F32   *r  = ecs_field(it, EgV2F32,   2); // GUI Element Rectangle
     EgMargin4 *m  = ecs_field(it, EgMargin4, 3);
-    EgV2F32   *p0 = ecs_field(it, EgV2F32,   4); // GUI Element Position Parent
-    EgV2F32   *r0 = ecs_field(it, EgV2F32,   5); // GUI Element Rectangle Parent
-	if(p0 == NULL){return;}
+    EgV2F32   *r0 = ecs_field(it, EgV2F32,   4); // GUI Element Rectangle Parent
 	if(r0 == NULL){return;}
     for (int i = 0; i < it->count; i ++)
 	{
-		p[i].x = p0->x + m->left;
-		p[i].y = p0->y + m->top;
+		p[i].x = m->left;
+		p[i].y = m->top;
 		r[i].x = r0[0].x - (m->left + m->right);
 		r[i].y = r0[0].y - (m->botton + m->top);
 	}
@@ -144,6 +144,18 @@ void System_Border(ecs_iter_t *it)
 	{
 		//printf("%s:%i, %s:%i\n", ecs_get_name(it->world, e_z0), z0->z, ecs_get_name(it->world, it->entities[i]), z[i].z);
 		z[i].z = z0->z + 1;
+	}
+}
+
+
+void System_Fllow(ecs_iter_t *it)
+{
+	EgV2F32 *p = ecs_field(it, EgV2F32, 1);
+	EgV2F32 *m0 = ecs_field(it, EgV2F32, 2);
+	for (int i = 0; i < it->count; i ++)
+	{
+		p[i].x = m0->x + 10;
+		p[i].y = m0->y + 10;
 	}
 }
 
@@ -216,12 +228,12 @@ void EgGuiImport(ecs_world_t *world)
 			.add = { ecs_dependson(EcsOnUpdate) }
 		}),
         .query.filter.terms = {
-            { .id = ecs_id(EgZIndex), .inout = EcsIn },
-            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn },
-            { .id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn },
-            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse) },
-            { .id = ecs_id(EgHover), .src.id = ecs_id(EgHover) },
-            { .id = ecs_pair(ecs_id(EgV2F32), EgPositionRelative), .src.id = ecs_id(EgHover) },
+            { .id = ecs_id(EgZIndex),               .inout = EcsIn },
+            { .id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn },
+            { .id = ecs_id(EgRectangle_V2F32),      .inout = EcsIn },
+            { .id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgMouse) },
+            { .id = ecs_id(EgHover),          .src.id = ecs_id(EgHover) },
+            { .id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgHover) },
             { .id = ecs_id(EgGuiDragging), .oper = EcsNot },
         },
         .callback = System_Hover1
@@ -233,12 +245,12 @@ void EgGuiImport(ecs_world_t *world)
 			.add = { ecs_dependson(EcsOnUpdate) }
 		}),
         .query.filter.terms = {
-            { .id = ecs_pair(ecs_id(EgV2F32), EgPosition),         .src.id = ecs_id(EgMouse) },
-            { .id = ecs_id(EgMouse),                               .src.id = ecs_id(EgMouse) },
-            { .id = ecs_id(EgHover),                               .src.id = ecs_id(EgHover) },
-            { .id = ecs_pair(ecs_id(EgV2F32), EgPositionRelative), .src.id = ecs_id(EgHover) },
-            { .id = ecs_id(EgGuiDrag),                             .src.id = ecs_id(EgGuiDrag) },
-            { .id = ecs_pair(ecs_id(EgV2F32), EgPositionRelative), .src.id = ecs_id(EgGuiDrag) },
+            { .id = ecs_id(EgPosition_V2F32),       .src.id = ecs_id(EgMouse) },
+            { .id = ecs_id(EgMouse),                .src.id = ecs_id(EgMouse) },
+            { .id = ecs_id(EgHover),                .src.id = ecs_id(EgHover) },
+            { .id = ecs_id(EgPosition_V2F32),       .src.id = ecs_id(EgHover) },
+            { .id = ecs_id(EgGuiDrag),              .src.id = ecs_id(EgGuiDrag) },
+            { .id = ecs_id(EgPosition_V2F32),       .src.id = ecs_id(EgGuiDrag) },
         },
         .callback = System_Drag1
     });
@@ -250,11 +262,10 @@ void EgGuiImport(ecs_world_t *world)
 			.add = { ecs_dependson(EcsOnUpdate) }
 		}),
         .query.filter.terms = {
-            {.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsOut },
-            {.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsOut },
+            {.id = ecs_id(EgPosition_V2F32), .inout = EcsOut },
+            {.id = ecs_id(EgRectangle_V2F32), .inout = EcsOut },
             {.id = ecs_id(EgMargin4), .inout = EcsIn },
-            {.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
-            {.id = ecs_pair(ecs_id(EgV2F32), EgRectangle), .inout = EcsIn,.src.flags = EcsParent,.oper = EcsOptional}
+            {.id = ecs_id(EgRectangle_V2F32), .inout = EcsIn, .src.flags = EcsParent, .oper = EcsOptional}
         },
         .callback = System_Margin
     });
@@ -270,6 +281,22 @@ void EgGuiImport(ecs_world_t *world)
 		},
 		.callback = System_ZIndex
 	});
+
+
+	ecs_system(world, {
+	.entity = ecs_entity(world, {
+	.name = "System_Fllow",
+	.add = { ecs_dependson(EcsOnUpdate) }
+	}),
+	.query.filter.terms = {
+	{ .id = ecs_id(EgPositionGlobal_V2F32), },
+	{ .id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgMouse) },
+	{ .id = ecs_id(EgGuiDragging),},
+	},
+	.callback = System_Fllow
+	});
+
+
 
 
 }

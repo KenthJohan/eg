@@ -162,8 +162,8 @@ void GsUserinputImport(ecs_world_t *world)
 	ecs_entity_t e_Update_Keyboard = ecs_system(world, {.entity = ecs_entity(world, {.name = "Update_Keyboard",
 		.add = {ecs_dependson(EcsPreUpdate)}}),
 		.query.filter.terms = {
-		{.id = ecs_pair(ecs_id(EgV2F32), EgPosition), .src.id = ecs_id(EgMouse)},
-		{.id = ecs_pair(ecs_id(EgV2F32), EgVelocity), .src.id = ecs_id(EgMouse)},
+		{.id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgMouse)},
+		{.id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgMouse)},
 		{.id = ecs_id(EgMouse), .src.id = ecs_id(EgMouse)},
 		{.id = ecs_id(EgKeyboard), .src.id = ecs_id(EgKeyboard)}
 		},

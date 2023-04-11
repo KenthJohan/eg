@@ -22,6 +22,7 @@ void app_init()
 	app->cb = gs_command_buffer_new();
 	app->gsi = gs_immediate_draw_new(gs_platform_main_window());
 
+	ECS_IMPORT(app->world, FlecsUnits);
 	ECS_IMPORT(app->world, EgQuantities);
 	ECS_IMPORT(app->world, EgGui);
 	ECS_IMPORT(app->world, EgUserinput);
@@ -34,13 +35,13 @@ void app_init()
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
 
 	// Setup a singleton for mouse position:
-	ecs_add_id(app->world, ecs_id(EgMouse), ecs_pair(ecs_id(EgV2F32), EgPosition));
-	ecs_add_id(app->world, ecs_id(EgMouse), ecs_pair(ecs_id(EgV2F32), EgVelocity));
+	ecs_add_id(app->world, ecs_id(EgMouse), ecs_id(EgPosition_V2F32));
+	ecs_add_id(app->world, ecs_id(EgMouse), ecs_id(EgVelocity_V2F32));
 	ecs_add_id(app->world, ecs_id(EgMouse), ecs_id(EgMouse));
 	ecs_add_id(app->world, ecs_id(EgHover), ecs_id(EgHover));
-	ecs_add_id(app->world, ecs_id(EgHover), ecs_pair(ecs_id(EgV2F32), EgPositionRelative));
+	ecs_add_id(app->world, ecs_id(EgHover), ecs_id(EgPosition_V2F32));
 	ecs_add_id(app->world, ecs_id(EgGuiDrag), ecs_id(EgGuiDrag));
-	ecs_add_id(app->world, ecs_id(EgGuiDrag), ecs_pair(ecs_id(EgV2F32), EgPositionRelative));
+	ecs_add_id(app->world, ecs_id(EgGuiDrag), ecs_id(EgPosition_V2F32));
 	ecs_add_id(app->world, ecs_id(EgKeyboard), ecs_id(EgKeyboard));
 	ecs_plecs_from_file(app->world, "test.flecs");
 

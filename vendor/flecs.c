@@ -448,8 +448,6 @@ struct ecs_data_t {
     ecs_vec_t entities;          /* Entity identifiers */
     ecs_vec_t records;           /* Ptrs to records in main entity index */
     ecs_vec_t *columns;          /* Component columns */
-    ecs_switch_t *sw_columns;    /* Switch columns */
-    ecs_bitset_t *bs_columns;    /* Bitset columns */
 };
 
 /** Cache of added/removed components for non-trivial edges between tables */
@@ -499,6 +497,17 @@ typedef struct ecs_graph_node_t {
     ecs_graph_edge_hdr_t refs;
 } ecs_graph_node_t;
 
+/** Optional data for unions, bitsets and flattened relationships */
+typedef struct ecs_table_ext_t {
+    ecs_switch_t *sw_columns;    /* Switch columns */
+    ecs_bitset_t *bs_columns;    /* Bitset columns */
+    int16_t sw_count;
+    int16_t sw_offset;
+    int16_t bs_count;
+    int16_t bs_offset;
+    int16_t ft_offset;
+} ecs_table_ext_t;
+
 /** A table is the Flecs equivalent of an archetype. Tables store all entities
  * with a specific set of components. Tables are automatically created when an
  * entity has a set of components not previously observed before. When a new
@@ -523,12 +532,7 @@ struct ecs_table_t {
     ecs_type_info_t **type_info;     /* Cached type info */
 
     int32_t *dirty_state;            /* Keep track of changes in columns */
-
-    int16_t sw_count;
-    int16_t sw_offset;
-    int16_t bs_count;
-    int16_t bs_offset;
-    int16_t ft_offset;
+    ecs_table_ext_t *ext;            /* Optional extended data structures */
 
     uint16_t record_count;           /* Table record count including wildcards */
     int32_t refcount;                /* Increased when used as storage table */
@@ -2511,10 +2515,10 @@ void flecs_table_check_sanity(ecs_table_t *table) {
         ECS_INTERNAL_ERROR, NULL);
 
     int32_t i;
-    int32_t sw_offset = table->sw_offset;
-    int32_t sw_count = table->sw_count;
-    int32_t bs_offset = table->bs_offset;
-    int32_t bs_count = table->bs_count;
+    int32_t sw_offset = table->ext ? table->ext->sw_offset : 0;
+    int32_t sw_count = table->ext ? table->ext->sw_count : 0;
+    int32_t bs_offset = table->ext ? table->ext->bs_offset : 0;
+    int32_t bs_count = table->ext ? table->ext->bs_count : 0;
     int32_t type_count = table->type.count;
     ecs_id_t *ids = table->type.array;
 
@@ -2560,10 +2564,10 @@ void flecs_table_check_sanity(ecs_table_t *table) {
     }
 
     if (sw_count) {
-        ecs_assert(table->data.sw_columns != NULL, 
+        ecs_assert(table->ext->sw_columns != NULL, 
             ECS_INTERNAL_ERROR, NULL);
         for (i = 0; i < sw_count; i ++) {
-            ecs_switch_t *sw = &table->data.sw_columns[i];
+            ecs_switch_t *sw = &table->ext->sw_columns[i];
             ecs_assert(ecs_vec_count(&sw->values) == count, 
                 ECS_INTERNAL_ERROR, NULL);
             ecs_assert(ECS_PAIR_FIRST(ids[i + sw_offset]) == EcsUnion,
@@ -2572,10 +2576,10 @@ void flecs_table_check_sanity(ecs_table_t *table) {
     }
 
     if (bs_count) {
-        ecs_assert(table->data.bs_columns != NULL, 
+        ecs_assert(table->ext->bs_columns != NULL, 
             ECS_INTERNAL_ERROR, NULL);
         for (i = 0; i < bs_count; i ++) {
-            ecs_bitset_t *bs = &table->data.bs_columns[i];
+            ecs_bitset_t *bs = &table->ext->bs_columns[i];
             ecs_assert(flecs_bitset_count(bs) == count,
                 ECS_INTERNAL_ERROR, NULL);
             ecs_assert(ECS_HAS_ID_FLAG(ids[i + bs_offset], TOGGLE),
@@ -2753,20 +2757,23 @@ void flecs_table_init_storage_table(
     }
 }
 
+static
+ecs_table_ext_t* flecs_table_ensure_ext(
+    ecs_world_t *world,
+    ecs_table_t *table)
+{
+    if (!table->ext) {
+        table->ext = flecs_calloc_t(&world->allocator, ecs_table_ext_t);
+    }
+    return table->ext;
+}
+
 void flecs_table_init_data(
     ecs_world_t *world,
     ecs_table_t *table)
 {
-    int32_t sw_count = table->sw_count;
-    int32_t bs_count = table->bs_count;
-
     ecs_data_t *storage = &table->data;
     int32_t i, count = table->storage_count;
-
-    /* Root tables don't have columns */
-    if (!count && !sw_count && !bs_count) {
-        storage->columns = NULL;
-    }
 
     ecs_vec_init_t(NULL, &storage->entities, ecs_entity_t, 0);
     ecs_vec_init_t(NULL, &storage->records, ecs_record_t*, 0);
@@ -2782,18 +2789,24 @@ void flecs_table_init_data(
 #endif
     }
 
-    if (sw_count) {
-        storage->sw_columns = flecs_wcalloc_n(world, ecs_switch_t, sw_count);
-        for (i = 0; i < sw_count; i ++) {
-            flecs_switch_init(&storage->sw_columns[i], 
-                &world->allocator, 0);
-        }
-    }
+    ecs_table_ext_t *ext = table->ext;
+    if (ext) {
+        int32_t sw_count = ext->sw_count;
+        int32_t bs_count = ext->bs_count;
 
-    if (bs_count) {
-        storage->bs_columns = flecs_wcalloc_n(world, ecs_bitset_t, bs_count);
-        for (i = 0; i < bs_count; i ++) {
-            flecs_bitset_init(&storage->bs_columns[i]);
+        if (sw_count) {
+            ext->sw_columns = flecs_wcalloc_n(world, ecs_switch_t, sw_count);
+            for (i = 0; i < sw_count; i ++) {
+                flecs_switch_init(&ext->sw_columns[i], 
+                    &world->allocator, 0);
+            }
+        }
+
+        if (bs_count) {
+            ext->bs_columns = flecs_wcalloc_n(world, ecs_bitset_t, bs_count);
+            for (i = 0; i < bs_count; i ++) {
+                flecs_bitset_init(&ext->bs_columns[i]);
+            }
         }
     }
 }
@@ -2848,26 +2861,29 @@ void flecs_table_init_flags(
                         table->flags |= EcsTableHasModule;
                     }
                 } else if (r == EcsUnion) {
+                    ecs_table_ext_t *ext = flecs_table_ensure_ext(world, table);
                     table->flags |= EcsTableHasUnion;
 
-                    if (!table->sw_count) {
-                        table->sw_offset = flecs_ito(int16_t, i);
+                    if (!ext->sw_count) {
+                        ext->sw_offset = flecs_ito(int16_t, i);
                     }
-                    table->sw_count ++;
+                    ext->sw_count ++;
                 } else if (r == ecs_id(EcsTarget)) {
+                    ecs_table_ext_t *ext = flecs_table_ensure_ext(world, table);
                     table->flags |= EcsTableHasTarget;
-                    table->ft_offset = flecs_ito(int16_t, i);
+                    ext->ft_offset = flecs_ito(int16_t, i);
                 } else if (r == ecs_id(EcsPoly)) {
                     table->flags |= EcsTableHasBuiltins;
                 }
             } else {
                 if (ECS_HAS_ID_FLAG(id, TOGGLE)) {
+                    ecs_table_ext_t *ext = flecs_table_ensure_ext(world, table);
                     table->flags |= EcsTableHasToggle;
 
-                    if (!table->bs_count) {
-                        table->bs_offset = flecs_ito(int16_t, i);
+                    if (!ext->bs_count) {
+                        ext->bs_offset = flecs_ito(int16_t, i);
                     }
-                    table->bs_count ++;
+                    ext->bs_count ++;
                 }
                 if (ECS_HAS_ID_FLAG(id, OVERRIDE)) {
                     table->flags |= EcsTableHasOverrides;
@@ -3444,24 +3460,27 @@ void flecs_table_fini_data(
         data->columns = NULL;
     }
 
-    ecs_switch_t *sw_columns = data->sw_columns;
-    if (sw_columns) {
-        int32_t c, column_count = table->sw_count;
-        for (c = 0; c < column_count; c ++) {
-            flecs_switch_fini(&sw_columns[c]);
+    ecs_table_ext_t *ext = table->ext;
+    if (ext) {
+        ecs_switch_t *sw_columns = ext->sw_columns;
+        if (sw_columns) {
+            int32_t c, column_count = ext->sw_count;
+            for (c = 0; c < column_count; c ++) {
+                flecs_switch_fini(&sw_columns[c]);
+            }
+            flecs_wfree_n(world, ecs_switch_t, column_count, sw_columns);
+            ext->sw_columns = NULL;
         }
-        flecs_wfree_n(world, ecs_switch_t, column_count, sw_columns);
-        data->sw_columns = NULL;
-    }
 
-    ecs_bitset_t *bs_columns = data->bs_columns;
-    if (bs_columns) {
-        int32_t c, column_count = table->bs_count;
-        for (c = 0; c < column_count; c ++) {
-            flecs_bitset_fini(&bs_columns[c]);
+        ecs_bitset_t *bs_columns = ext->bs_columns;
+        if (bs_columns) {
+            int32_t c, column_count = ext->bs_count;
+            for (c = 0; c < column_count; c ++) {
+                flecs_bitset_fini(&bs_columns[c]);
+            }
+            flecs_wfree_n(world, ecs_bitset_t, column_count, bs_columns);
+            ext->bs_columns = NULL;
         }
-        flecs_wfree_n(world, ecs_bitset_t, column_count, bs_columns);
-        data->bs_columns = NULL;
     }
 
     ecs_vec_fini_t(&world->allocator, &data->entities, ecs_entity_t);
@@ -3555,7 +3574,6 @@ void flecs_table_free(
 
     /* Cleanup data, no OnRemove, delete from entity index, don't deactivate */
     flecs_table_fini_data(world, table, &table->data, false, true, true, false);
-
     flecs_table_clear_edges(world, table);
 
     if (!is_root) {
@@ -3571,6 +3589,7 @@ void flecs_table_free(
     flecs_wfree_n(world, int32_t, table->storage_count + table->type.count, 
         table->storage_map);
     flecs_table_records_unregister(world, table);
+    flecs_free_t(&world->allocator, ecs_table_ext_t, table->ext);
 
     ecs_table_t *storage_table = table->storage_table;
     if (storage_table == table) {
@@ -3697,21 +3716,26 @@ void flecs_table_move_switch_columns(
     int32_t count,
     bool clear)
 {
-    int32_t i_old = 0, src_column_count = src_table->sw_count;
-    int32_t i_new = 0, dst_column_count = dst_table->sw_count;
+    ecs_table_ext_t *dst_ext = dst_table->ext;
+    ecs_table_ext_t *src_ext = src_table->ext;
+    if (!dst_ext && !src_ext) {
+        return;
+    }
 
+    int32_t i_old = 0, src_column_count = src_ext ? src_ext->sw_count : 0;
+    int32_t i_new = 0, dst_column_count = dst_ext ? dst_ext->sw_count : 0;
     if (!src_column_count && !dst_column_count) {
         return;
     }
 
-    ecs_switch_t *src_columns = src_table->data.sw_columns;
-    ecs_switch_t *dst_columns = dst_table->data.sw_columns;
+    ecs_switch_t *src_columns = src_ext ? src_ext->sw_columns : NULL;
+    ecs_switch_t *dst_columns = dst_ext ? dst_ext->sw_columns : NULL;
 
     ecs_type_t dst_type = dst_table->type;
     ecs_type_t src_type = src_table->type;
 
-    int32_t offset_new = dst_table->sw_offset;
-    int32_t offset_old = src_table->sw_offset;
+    int32_t offset_new = dst_ext ? dst_ext->sw_offset : 0;
+    int32_t offset_old = src_ext ? src_ext->sw_offset : 0;
 
     ecs_id_t *dst_ids = dst_type.array;
     ecs_id_t *src_ids = src_type.array;
@@ -3766,21 +3790,27 @@ void flecs_table_move_bitset_columns(
     int32_t count,
     bool clear)
 {
-    int32_t i_old = 0, src_column_count = src_table->bs_count;
-    int32_t i_new = 0, dst_column_count = dst_table->bs_count;
+    ecs_table_ext_t *dst_ext = dst_table->ext;
+    ecs_table_ext_t *src_ext = src_table->ext;
+    if (!dst_ext && !src_ext) {
+        return;
+    }
+
+    int32_t i_old = 0, src_column_count = src_ext ? src_ext->bs_count : 0;
+    int32_t i_new = 0, dst_column_count = dst_ext ? dst_ext->bs_count : 0;
 
     if (!src_column_count && !dst_column_count) {
         return;
     }
 
-    ecs_bitset_t *src_columns = src_table->data.bs_columns;
-    ecs_bitset_t *dst_columns = dst_table->data.bs_columns;
+    ecs_bitset_t *src_columns = src_ext ? src_ext->bs_columns : NULL;
+    ecs_bitset_t *dst_columns = dst_ext ? dst_ext->bs_columns : NULL;
 
     ecs_type_t dst_type = dst_table->type;
     ecs_type_t src_type = src_table->type;
 
-    int32_t offset_new = dst_table->bs_offset;
-    int32_t offset_old = src_table->bs_offset;
+    int32_t offset_new = dst_ext ? dst_ext->bs_offset : 0;
+    int32_t offset_old = src_ext ? src_ext->bs_offset : 0;
 
     ecs_id_t *dst_ids = dst_type.array;
     ecs_id_t *src_ids = src_type.array;
@@ -3911,11 +3941,6 @@ int32_t flecs_table_grow_data(
 
     int32_t cur_count = flecs_table_data_count(data);
     int32_t column_count = table->storage_count;
-    int32_t sw_count = table->sw_count;
-    int32_t bs_count = table->bs_count;
-    ecs_vec_t *columns = data->columns;
-    ecs_switch_t *sw_columns = data->sw_columns;
-    ecs_bitset_t *bs_columns = data->bs_columns; 
 
     /* Add record to record ptr array */
     ecs_vec_set_size_t(&world->allocator, &data->records, ecs_record_t*, size);
@@ -3941,6 +3966,7 @@ int32_t flecs_table_grow_data(
     ecs_os_memset(r, 0, ECS_SIZEOF(ecs_record_t*) * to_add);
 
     /* Add elements to each column array */
+    ecs_vec_t *columns = data->columns;
     ecs_type_info_t **type_info = table->type_info;
     for (i = 0; i < column_count; i ++) {
         ecs_vec_t *column = &columns[i];
@@ -3951,16 +3977,24 @@ int32_t flecs_table_grow_data(
             cur_count, to_add, false);
     }
 
-    /* Add elements to each switch column */
-    for (i = 0; i < sw_count; i ++) {
-        ecs_switch_t *sw = &sw_columns[i];
-        flecs_switch_addn(sw, to_add);
-    }
+    ecs_table_ext_t *ext = table->ext;
+    if (ext) {
+        int32_t sw_count = ext->sw_count;
+        int32_t bs_count = ext->bs_count;
+        ecs_switch_t *sw_columns = ext->sw_columns;
+        ecs_bitset_t *bs_columns = ext->bs_columns; 
 
-    /* Add elements to each bitset column */
-    for (i = 0; i < bs_count; i ++) {
-        ecs_bitset_t *bs = &bs_columns[i];
-        flecs_bitset_addn(bs, to_add);
+        /* Add elements to each switch column */
+        for (i = 0; i < sw_count; i ++) {
+            ecs_switch_t *sw = &sw_columns[i];
+            flecs_switch_addn(sw, to_add);
+        }
+
+        /* Add elements to each bitset column */
+        for (i = 0; i < bs_count; i ++) {
+            ecs_bitset_t *bs = &bs_columns[i];
+            flecs_bitset_addn(bs, to_add);
+        }
     }
 
     /* If the table is monitored indicate that there has been a change */
@@ -4039,10 +4073,6 @@ int32_t flecs_table_append(
         return count;
     }
 
-    int32_t sw_count = table->sw_count;
-    int32_t bs_count = table->bs_count;
-    ecs_switch_t *sw_columns = data->sw_columns;
-    ecs_bitset_t *bs_columns = data->bs_columns;
     ecs_entity_t *entities = data->entities.array;
 
     /* Reobtain size to ensure that the columns have the same size as the 
@@ -4069,19 +4099,27 @@ int32_t flecs_table_append(
             data->entities.count, ECS_INTERNAL_ERROR, NULL);
     }
 
-    /* Add element to each switch column */
-    for (i = 0; i < sw_count; i ++) {
-        ecs_assert(sw_columns != NULL, ECS_INTERNAL_ERROR, NULL);
-        ecs_switch_t *sw = &sw_columns[i];
-        flecs_switch_add(sw);
-    }
+    ecs_table_ext_t *ext = table->ext;
+    if (ext) {
+        int32_t sw_count = ext->sw_count;
+        int32_t bs_count = ext->bs_count;
+        ecs_switch_t *sw_columns = ext->sw_columns;
+        ecs_bitset_t *bs_columns = ext->bs_columns;
 
-    /* Add element to each bitset column */
-    for (i = 0; i < bs_count; i ++) {
-        ecs_assert(bs_columns != NULL, ECS_INTERNAL_ERROR, NULL);
-        ecs_bitset_t *bs = &bs_columns[i];
-        flecs_bitset_addn(bs, 1);
-    }    
+        /* Add element to each switch column */
+        for (i = 0; i < sw_count; i ++) {
+            ecs_assert(sw_columns != NULL, ECS_INTERNAL_ERROR, NULL);
+            ecs_switch_t *sw = &sw_columns[i];
+            flecs_switch_add(sw);
+        }
+
+        /* Add element to each bitset column */
+        for (i = 0; i < bs_count; i ++) {
+            ecs_assert(bs_columns != NULL, ECS_INTERNAL_ERROR, NULL);
+            ecs_bitset_t *bs = &bs_columns[i];
+            flecs_bitset_addn(bs, 1);
+        }
+    }
 
     /* If this is the first entity in this table, signal queries so that the
      * table moves from an inactive table to an active table. */
@@ -4238,18 +4276,21 @@ void flecs_table_delete(
         }
     }
 
-    /* Remove elements from switch columns */
-    ecs_switch_t *sw_columns = data->sw_columns;
-    int32_t sw_count = table->sw_count;
-    for (i = 0; i < sw_count; i ++) {
-        flecs_switch_remove(&sw_columns[i], index);
-    }
+    ecs_table_ext_t *ext = table->ext;
+    if (ext) {
+        /* Remove elements from switch columns */
+        ecs_switch_t *sw_columns = ext->sw_columns;
+        int32_t sw_count = ext->sw_count;
+        for (i = 0; i < sw_count; i ++) {
+            flecs_switch_remove(&sw_columns[i], index);
+        }
 
-    /* Remove elements from bitset columns */
-    ecs_bitset_t *bs_columns = data->bs_columns;
-    int32_t bs_count = table->bs_count;
-    for (i = 0; i < bs_count; i ++) {
-        flecs_bitset_remove(&bs_columns[i], index);
+        /* Remove elements from bitset columns */
+        ecs_bitset_t *bs_columns = ext->bs_columns;
+        int32_t bs_count = ext->bs_count;
+        for (i = 0; i < bs_count; i ++) {
+            flecs_bitset_remove(&bs_columns[i], index);
+        }
     }
 
     flecs_table_check_sanity(table);
@@ -4484,16 +4525,15 @@ int32_t flecs_table_data_count(
 static
 void flecs_table_swap_switch_columns(
     ecs_table_t *table,
-    ecs_data_t *data,
     int32_t row_1,
     int32_t row_2)
 {
-    int32_t i = 0, column_count = table->sw_count;
+    int32_t i = 0, column_count = table->ext->sw_count;
     if (!column_count) {
         return;
     }
 
-    ecs_switch_t *columns = data->sw_columns;
+    ecs_switch_t *columns = table->ext->sw_columns;
 
     for (i = 0; i < column_count; i ++) {
         ecs_switch_t *sw = &columns[i];
@@ -4504,16 +4544,15 @@ void flecs_table_swap_switch_columns(
 static
 void flecs_table_swap_bitset_columns(
     ecs_table_t *table,
-    ecs_data_t *data,
     int32_t row_1,
     int32_t row_2)
 {
-    int32_t i = 0, column_count = table->bs_count;
+    int32_t i = 0, column_count = table->ext->bs_count;
     if (!column_count) {
         return;
     }
 
-    ecs_bitset_t *columns = data->bs_columns;
+    ecs_bitset_t *columns = table->ext->bs_columns;
 
     for (i = 0; i < column_count; i ++) {
         ecs_bitset_t *bs = &columns[i];
@@ -4565,8 +4604,10 @@ void flecs_table_swap(
     records[row_1] = record_ptr_2;
     records[row_2] = record_ptr_1;
 
-    flecs_table_swap_switch_columns(table, &table->data, row_1, row_2);
-    flecs_table_swap_bitset_columns(table, &table->data, row_1, row_2);  
+    if (table->ext) {
+        flecs_table_swap_switch_columns(table, row_1, row_2);
+        flecs_table_swap_bitset_columns(table, row_1, row_2);
+    }
 
     ecs_vec_t *columns = table->data.columns;
     if (!columns) {
@@ -5002,11 +5043,13 @@ int32_t flecs_table_column_to_union_index(
     const ecs_table_t *table,
     int32_t column)
 {
-    int32_t sw_count = table->sw_count;
-    if (sw_count) {
-        int32_t sw_offset = table->sw_offset;
-        if (column >= sw_offset && column < (sw_offset + sw_count)){
-            return column - sw_offset;
+    if (table->ext) {
+        int32_t sw_count = table->ext->sw_count;
+        if (sw_count) {
+            int32_t sw_offset = table->ext->sw_offset;
+            if (column >= sw_offset && column < (sw_offset + sw_count)){
+                return column - sw_offset;
+            }
         }
     }
     return -1;
@@ -5076,6 +5119,14 @@ int32_t ecs_table_get_index(
     return tr->column;
 error:
     return -1;
+}
+
+bool ecs_table_has_id(
+    const ecs_world_t *world,
+    const ecs_table_t *table,
+    ecs_id_t id)
+{
+    return ecs_table_get_index(world, table, id) != -1;
 }
 
 void* ecs_table_get_id(
@@ -5824,10 +5875,13 @@ void flecs_instantiate_children(
 
         /* If children have union relationships, initialize */
         if (has_union) {
-            int32_t u, u_count = child_table->sw_count;
+            ecs_table_ext_t *ext = child_table->ext;
+            ecs_assert(ext != NULL, ECS_INTERNAL_ERROR, NULL);
+            ecs_assert(i_table->ext != NULL, ECS_INTERNAL_ERROR, NULL);
+            int32_t u, u_count = ext->sw_count;
             for (u = 0; u < u_count; u ++) {
-                ecs_switch_t *src_sw = &child_table->data.sw_columns[i];
-                ecs_switch_t *dst_sw = &i_table->data.sw_columns[i];
+                ecs_switch_t *src_sw = &ext->sw_columns[i];
+                ecs_switch_t *dst_sw = &i_table->ext->sw_columns[i];
                 ecs_vec_t *v_src_values = flecs_switch_values(src_sw);
                 ecs_vec_t *v_dst_values = flecs_switch_values(dst_sw);
                 uint64_t *src_values = ecs_vec_first(v_src_values);
@@ -5906,8 +5960,9 @@ void flecs_set_union(
             const ecs_table_record_t *tr = flecs_id_record_get_table(
                 idr, table);
             ecs_assert(tr != NULL, ECS_INTERNAL_ERROR, NULL);
-            int32_t column = tr->column - table->sw_offset;
-            ecs_switch_t *sw = &table->data.sw_columns[column];
+            ecs_assert(table->ext != NULL, ECS_INTERNAL_ERROR, NULL);
+            int32_t column = tr->column - table->ext->sw_offset;
+            ecs_switch_t *sw = &table->ext->sw_columns[column];
             ecs_entity_t union_case = 0;
             union_case = ECS_PAIR_SECOND(id);
 
@@ -7747,33 +7802,47 @@ bool flecs_on_delete_clear_ids(
 {
     int32_t i, count = ecs_vec_count(&world->store.marked_ids);
     ecs_marked_id_t *ids = ecs_vec_first(&world->store.marked_ids);
-    for (i = 0; i < count; i ++) {
-        ecs_id_record_t *idr = ids[i].idr;
-        bool delete_id = ids[i].delete_id;
-
-        flecs_id_record_release_tables(world, idr);
-
-        /* Release the claim taken by flecs_marked_id_push. This may delete the
-         * id record as all other claims may have been released. */
-        int32_t rc = flecs_id_record_release(world, idr);
-        ecs_assert(rc >= 0, ECS_INTERNAL_ERROR, NULL);
-        (void)rc;
-
-        /* If rc is 0, the id was likely deleted by a nested delete_with call
-         * made by an on_remove handler/OnRemove observer */
-        if (rc) {
-            if (delete_id) {
-                /* If id should be deleted, release initial claim. This happens when
-                * a component, tag, or part of a pair is deleted. */
-                flecs_id_record_release(world, idr);
+    int twice = 2;
+    do {
+        for (i = 0; i < count; i ++) {
+            /* Release normal ids before wildcard ids */
+            if (ecs_id_is_wildcard(ids[i].id)) {
+                if (twice == 2) {
+                    continue;
+                }
             } else {
-                /* If id should not be deleted, unmark id record for deletion. This
-                * happens when all instances *of* an id are deleted, for example
-                * when calling ecs_remove_all or ecs_delete_with. */
-                idr->flags &= ~EcsIdMarkedForDelete;
+                if (twice == 1) {
+                    continue;
+                }
+            }
+
+            ecs_id_record_t *idr = ids[i].idr;
+            bool delete_id = ids[i].delete_id;
+
+            flecs_id_record_release_tables(world, idr);
+
+            /* Release the claim taken by flecs_marked_id_push. This may delete the
+            * id record as all other claims may have been released. */
+            int32_t rc = flecs_id_record_release(world, idr);
+            ecs_assert(rc >= 0, ECS_INTERNAL_ERROR, NULL);
+            (void)rc;
+
+            /* If rc is 0, the id was likely deleted by a nested delete_with call
+            * made by an on_remove handler/OnRemove observer */
+            if (rc) {
+                if (delete_id) {
+                    /* If id should be deleted, release initial claim. This happens when
+                    * a component, tag, or part of a pair is deleted. */
+                    flecs_id_record_release(world, idr);
+                } else {
+                    /* If id should not be deleted, unmark id record for deletion. This
+                    * happens when all instances *of* an id are deleted, for example
+                    * when calling ecs_remove_all or ecs_delete_with. */
+                    idr->flags &= ~EcsIdMarkedForDelete;
+                }
             }
         }
-    }
+    } while (-- twice);
 
     return true;
 }
@@ -8544,12 +8613,13 @@ void ecs_enable_id(
         ecs_enable_id(world, entity, id, enable);
         return;
     }
-
-    index -= table->bs_offset;
+    
+    ecs_assert(table->ext != NULL, ECS_INTERNAL_ERROR, NULL);
+    index -= table->ext->bs_offset;
     ecs_assert(index >= 0, ECS_INTERNAL_ERROR, NULL);
 
     /* Data cannot be NULl, since entity is stored in the table */
-    ecs_bitset_t *bs = &table->data.bs_columns[index];
+    ecs_bitset_t *bs = &table->ext->bs_columns[index];
     ecs_assert(bs != NULL, ECS_INTERNAL_ERROR, NULL);
 
     flecs_bitset_set(bs, ECS_RECORD_TO_ROW(r->row), enable);
@@ -8583,9 +8653,10 @@ bool ecs_is_enabled_id(
         return ecs_has_id(world, entity, id);
     }
 
-    index -= table->bs_offset;
+    ecs_assert(table->ext != NULL, ECS_INTERNAL_ERROR, NULL);
+    index -= table->ext->bs_offset;
     ecs_assert(index >= 0, ECS_INTERNAL_ERROR, NULL);
-    ecs_bitset_t *bs = &table->data.bs_columns[index];
+    ecs_bitset_t *bs = &table->ext->bs_columns[index];
 
     return flecs_bitset_get(bs, ECS_RECORD_TO_ROW(r->row));
 error:
@@ -8635,8 +8706,9 @@ bool ecs_has_id(
         ECS_PAIR_SECOND(id) != EcsWildcard) 
     {
         if (ECS_PAIR_FIRST(table->type.array[column]) == EcsUnion) {
-            ecs_switch_t *sw = &table->data.sw_columns[
-                column - table->sw_offset];
+            ecs_assert(table->ext != NULL, ECS_INTERNAL_ERROR, NULL);
+            ecs_switch_t *sw = &table->ext->sw_columns[
+                column - table->ext->sw_offset];
             int32_t row = ECS_RECORD_TO_ROW(r->row);
             uint64_t value = flecs_switch_get(sw, row);
             return value == ECS_PAIR_SECOND(id);
@@ -8677,8 +8749,9 @@ ecs_entity_t ecs_get_target(
             wc = ecs_pair(EcsUnion, rel);
             tr = flecs_table_record_get(world, table, wc);
             if (tr) {
-                ecs_switch_t *sw = &table->data.sw_columns[
-                    tr->column - table->sw_offset];
+                ecs_assert(table->ext != NULL, ECS_INTERNAL_ERROR, NULL);
+                ecs_switch_t *sw = &table->ext->sw_columns[
+                    tr->column - table->ext->sw_offset];
                 int32_t row = ECS_RECORD_TO_ROW(r->row);
                 return flecs_switch_get(sw, row);
                 
@@ -15394,6 +15467,7 @@ int flecs_entity_filter_find_smallest_term(
     ecs_table_t *table,
     ecs_entity_filter_iter_t *iter)
 {
+    ecs_assert(table->ext != NULL, ECS_INTERNAL_ERROR, NULL);
     flecs_switch_term_t *sw_terms = ecs_vec_first(&iter->entity_filter->sw_terms);
     int32_t i, count = ecs_vec_count(&iter->entity_filter->sw_terms);
     int32_t min = INT_MAX, index = 0;
@@ -15412,13 +15486,12 @@ int flecs_entity_filter_find_smallest_term(
                 sparse_column->signature_column_index];
 
             /* Translate the table column index to switch column index */
-            table_column_index -= table->sw_offset;
+            table_column_index -= table->ext->sw_offset;
             ecs_assert(table_column_index >= 1, ECS_INTERNAL_ERROR, NULL);
 
             /* Get the sparse column */
-            ecs_data_t *data = &table->data;
             sw = sparse_column->sw_column = 
-                &data->sw_columns[table_column_index - 1];
+                &table->ext->sw_columns[table_column_index - 1];
         }
 
         /* Find the smallest column */
@@ -15568,7 +15641,7 @@ int flecs_entity_filter_bitset_next(
 
     int32_t i, count = ecs_vec_count(&iter->entity_filter->bs_terms);
     flecs_bitset_term_t *terms = ecs_vec_first(&iter->entity_filter->bs_terms);
-    int32_t bs_offset = table->bs_offset;
+    int32_t bs_offset = table->ext->bs_offset;
     int32_t first = iter->bs_offset;
     int32_t last = 0;
 
@@ -15579,7 +15652,7 @@ int flecs_entity_filter_bitset_next(
         if (!bs) {
             int32_t index = column->column_index;
             ecs_assert((index - bs_offset >= 0), ECS_INTERNAL_ERROR, NULL);
-            bs = &table->data.bs_columns[index - bs_offset];
+            bs = &table->ext->bs_columns[index - bs_offset];
             terms[i].bs_column = bs;
         }
         
@@ -15730,7 +15803,7 @@ int32_t flecs_get_flattened_target(
     }
 
     if (table->flags & EcsTableHasTarget) {
-        int32_t col = table->storage_map[table->ft_offset];
+        int32_t col = table->storage_map[table->ext->ft_offset];
         ecs_assert(col != -1, ECS_INTERNAL_ERROR, NULL);
         EcsTarget *next = table->data.columns[col].array;
         next = ECS_ELEM_T(next, EcsTarget, ECS_RECORD_TO_ROW(r->row));
@@ -47534,28 +47607,30 @@ int flecs_term_finalize(
         first_id = term->first.id;
     }
 
-    if (first_id) {
-        /* If component id is final, don't attempt component inheritance */
-        if (ecs_has_id(world, first_id, EcsFinal)) {
-            if (first_flags & EcsDown) {
-                flecs_filter_error(ctx, "final id cannot be traversed down");
-                return -1;
-            }
-        }
+    term->idr = flecs_query_id_record_get(world, term->id);
+    ecs_flags32_t id_flags = term->idr ? term->idr->flags : 0;
 
+    if (first_id) {
         ecs_entity_t first_trav = first->trav;
-        if (first_trav) {
-            if (!ecs_has_id(world, first_trav, EcsTraversable)) {
-                flecs_filter_error(ctx, "first.trav is not traversable");
-                return -1;
-            }
-        }
 
         /* If component is inherited from, set correct traversal flags */
         ecs_flags32_t first_trav_flags = first_flags & EcsTraverseFlags;
         if (!first_trav && first_trav_flags != EcsSelf) {
             /* Inheritance uses IsA by default, but can use any relationship */
             first_trav = EcsIsA;
+        }
+
+        ecs_record_t *trav_record = NULL;
+        ecs_table_t *trav_table = NULL;
+        if (first_trav) {
+            trav_record = flecs_entities_get(world, first_trav);
+            trav_table = trav_record ? trav_record->table : NULL;
+            if (first_trav != EcsIsA) {
+                if (!trav_table || !ecs_table_has_id(world, trav_table, EcsTraversable)) {
+                    flecs_filter_error(ctx, "first.trav is not traversable");
+                    return -1;
+                }
+            }
         }
 
         /* Only enable inheritance for ids which are inherited from at the time
@@ -47575,7 +47650,10 @@ int flecs_term_finalize(
                 if (!first_trav_flags) {
                     first->flags &= ~EcsTraverseFlags;
                     first->flags |= EcsDown;
-                    if (ecs_has_id(world, first_trav, EcsReflexive)) {
+                    ecs_assert(trav_table != NULL, ECS_INTERNAL_ERROR, NULL);
+                    if ((first_trav == EcsIsA) || ecs_table_has_id(
+                        world, trav_table, EcsReflexive)) 
+                    {
                         first->flags |= EcsSelf;
                     }
                 }
@@ -47583,7 +47661,7 @@ int flecs_term_finalize(
         }
 
         /* Don't traverse ids that cannot be inherited */
-        if (ecs_has_id(world, first_id, EcsDontInherit) && src->trav == EcsIsA) {
+        if ((id_flags & EcsIdDontInherit) && (src->trav == EcsIsA)) {
             if (src_flags & (EcsUp | EcsDown)) {
                 flecs_filter_error(ctx, 
                     "traversing not allowed for id that can't be inherited");
@@ -47593,21 +47671,33 @@ int flecs_term_finalize(
             src->trav = 0;
         }
 
-        /* Add traversal flags for transitive relationships */
-        if (!(second_flags & EcsTraverseFlags) && ecs_term_id_is_set(second)) {
-            if (!((src->flags & EcsIsVariable) && (src->id == EcsAny))) {
-                if (!((second->flags & EcsIsVariable) && (second->id == EcsAny))) {
-                    if (ecs_has_id(world, first_id, EcsTransitive)) {
-                        second->flags |= EcsSelf|EcsUp|EcsTraverseAll;
-                        second->trav = first_id;
-                        term->flags |= EcsTermTransitive;
+        /* If component id is final, don't attempt component inheritance */
+        ecs_record_t *first_record = flecs_entities_get(world, first_id);
+        ecs_table_t *first_table = first_record ? first_record->table : NULL;
+        if (first_table) {
+            if (ecs_table_has_id(world, first_table, EcsFinal)) {
+                if (first_flags & EcsDown) {
+                    flecs_filter_error(ctx, "final id cannot be traversed down");
+                    return -1;
+                }
+            }
+
+            /* Add traversal flags for transitive relationships */
+            if (!(second_flags & EcsTraverseFlags) && ecs_term_id_is_set(second)) {
+                if (!((src->flags & EcsIsVariable) && (src->id == EcsAny))) {
+                    if (!((second->flags & EcsIsVariable) && (second->id == EcsAny))) {
+                        if (ecs_table_has_id(world, first_table, EcsTransitive)) {
+                            second->flags |= EcsSelf|EcsUp|EcsTraverseAll;
+                            second->trav = first_id;
+                            term->flags |= EcsTermTransitive;
+                        }
                     }
                 }
             }
-        }
 
-        if (ecs_has_id(world, first_id, EcsReflexive)) {
-            term->flags |= EcsTermReflexive;
+            if (ecs_table_has_id(world, first_table, EcsReflexive)) {
+                term->flags |= EcsTermReflexive;
+            }
         }
     }
 
@@ -47634,7 +47724,6 @@ int flecs_term_finalize(
         return -1;
     }
 
-    term->idr = flecs_query_id_record_get(world, term->id);
     return 0;
 }
 
@@ -47875,6 +47964,44 @@ void ecs_term_fini(
     term->name = NULL;
 }
 
+static
+ecs_term_t* flecs_filter_or_other_type(
+    ecs_filter_t *f,
+    int32_t t)
+{
+    ecs_term_t *term = &f->terms[t];
+    ecs_term_t *first = NULL;
+    while (t--) {
+        if (f->terms[t].oper != EcsOr) {
+            break;
+        }
+        first = &f->terms[t];
+    }
+
+    if (first) {
+        ecs_world_t *world = f->world;
+        const ecs_type_info_t *first_type;
+        if (first->idr) {
+            first_type = first->idr->type_info;
+        } else {
+            first_type = ecs_get_type_info(world, first->id);
+        }
+        const ecs_type_info_t *term_type;
+        if (term->idr) {
+            term_type = term->idr->type_info;
+        } else {
+            term_type = ecs_get_type_info(world, term->id);
+        }
+
+        if (first_type == term_type) {
+            return NULL;
+        }
+        return first;
+    } else {
+        return NULL;
+    }
+}
+
 int ecs_filter_finalize(
     const ecs_world_t *world,
     ecs_filter_t *f)
@@ -47911,7 +48038,13 @@ int ecs_filter_finalize(
         }
 
         if (term->oper == EcsOr || (i && term[-1].oper == EcsOr)) {
-            filter_terms ++;
+            ecs_term_t *first = flecs_filter_or_other_type(f, i);
+            if (first) {
+                filter_terms ++;
+                if (first == &term[-1]) {
+                    filter_terms ++;
+                }
+            }
         }
 
         term->field_index = field_count - 1;
@@ -47986,15 +48119,16 @@ int ecs_filter_finalize(
     f->field_count = field_count;
 
     if (field_count) {
-        f->sizes = ecs_os_calloc_n(ecs_size_t, field_count);
         for (i = 0; i < term_count; i ++) {
             ecs_term_t *term = &terms[i];
             ecs_id_record_t *idr = term->idr;
             int32_t field = term->field_index;
 
             if (term->oper == EcsOr || (i && (term[-1].oper == EcsOr))) {
-                f->sizes[field] = 0;
-                continue;
+                if (flecs_filter_or_other_type(f, i)) {
+                    f->sizes[field] = 0;
+                    continue;
+                }
             }
 
             if (idr) {
@@ -48063,21 +48197,25 @@ void flecs_filter_fini(
         for (i = 0; i < count; i ++) {
             ecs_term_t *term = &filter->terms[i];
             if (term->idr) {
-                if (ecs_os_has_threading()) {
-                    ecs_os_adec(&term->idr->keep_alive);
-                } else {
-                    term->idr->keep_alive --;
+                if (!(filter->world->flags & EcsWorldQuit)) {
+                    if (ecs_os_has_threading()) {
+                        ecs_os_adec(&term->idr->keep_alive);
+                    } else {
+                        term->idr->keep_alive --;
+                    }
                 }
             }
             ecs_term_fini(&filter->terms[i]);
         }
 
         if (filter->terms_owned) {
+            /* Memory allocated for both terms & sizes */
             ecs_os_free(filter->terms);
+        } else {
+            ecs_os_free(filter->sizes);
         }
     }
 
-    ecs_os_free(filter->sizes);
     filter->terms = NULL;
 
     if (filter->owned) {
@@ -48127,6 +48265,7 @@ ecs_filter_t* ecs_filter_init(
     ECS_BIT_COND(f->flags, EcsFilterIsInstanced, desc->instanced);
     ECS_BIT_SET(f->flags, EcsFilterMatchAnything);
     f->flags |= desc->flags;
+    f->world = world;
 
     /* If terms_buffer was not set, count number of initialized terms in
      * static desc::terms array */
@@ -48191,14 +48330,18 @@ ecs_filter_t* ecs_filter_init(
         ECS_INVALID_PARAMETER, NULL);
 
     if (term_count || expr_count) {
-        /* If no storage is provided, create it */
+        /* Allocate storage for terms and sizes array */
         if (!storage_terms) {
-            f->terms = ecs_os_calloc_n(ecs_term_t, term_count + expr_count);
-            f->term_count = term_count + expr_count;
             ecs_assert(f->terms_owned == true, ECS_INTERNAL_ERROR, NULL);
+            f->term_count = term_count + expr_count;
+            ecs_size_t terms_size = ECS_SIZEOF(ecs_term_t) * f->term_count;
+            ecs_size_t sizes_size = ECS_SIZEOF(int32_t) * f->term_count;
+            f->terms = ecs_os_calloc(terms_size + sizes_size);
+            f->sizes = ECS_OFFSET(f->terms, terms_size);
         } else {
             f->terms = storage_terms;
             f->term_count = storage_count;
+            f->sizes = ecs_os_calloc_n(ecs_size_t, term_count);
         }
 
         /* Copy terms to filter storage */
@@ -48229,9 +48372,7 @@ ecs_filter_t* ecs_filter_init(
 
     f->variable_names[0] = NULL;
     f->iterable.init = flecs_filter_iter_init;
-
     f->dtor = (ecs_poly_dtor_t)flecs_filter_fini;
-    f->world = world;
     f->entity = entity;
 
     if (entity && f->owned) {
@@ -48258,16 +48399,15 @@ void ecs_filter_copy(
         *dst = *src;
 
         int32_t i, term_count = src->term_count;
-        dst->terms = ecs_os_malloc_n(ecs_term_t, term_count);
+        ecs_size_t terms_size = ECS_SIZEOF(ecs_term_t) * term_count;
+        ecs_size_t sizes_size = ECS_SIZEOF(int32_t) * term_count;
+        dst->terms = ecs_os_malloc(terms_size + sizes_size);
+        dst->sizes = ECS_OFFSET(dst->terms, terms_size);
         dst->terms_owned = true;
+        ecs_os_memcpy_n(dst->sizes, src->sizes, int32_t, term_count);
 
         for (i = 0; i < term_count; i ++) {
             dst->terms[i] = ecs_term_copy(&src->terms[i]);
-        }
-
-        if (src->field_count) {
-            dst->sizes = ecs_os_memdup_n(
-                src->sizes, ecs_size_t, src->field_count);
         }
     } else {
         ecs_os_memset_t(dst, 0, ecs_filter_t);
@@ -48286,6 +48426,7 @@ void ecs_filter_move(
         *dst = *src;
         if (src->terms_owned) {
             dst->terms = src->terms;
+            dst->sizes = src->sizes;
             dst->terms_owned = true;
         } else {
             ecs_filter_copy(dst, src);
@@ -48704,7 +48845,8 @@ bool flecs_term_match_table(
     }
 
     if ((column == -1) && (src->flags & EcsUp) && (table->flags & EcsTableHasTarget)) {
-        ecs_id_t rel = ECS_PAIR_SECOND(table->type.array[table->ft_offset]);
+        ecs_assert(table->ext != NULL, ECS_INTERNAL_ERROR, NULL);
+        ecs_id_t rel = ECS_PAIR_SECOND(table->type.array[table->ext->ft_offset]);
         if (rel == (uint32_t)src->trav) {
             result = true;
         }
@@ -49531,12 +49673,18 @@ bool ecs_filter_next_instanced(
                             goto done;
                         }
 
+                        it->offset = this_var->range.offset;
+                        it->count = this_var->range.count;
+
                         /* But if it does, forward it to filter matching */
                         ecs_assert(term_iter->table == this_table,
                             ECS_INTERNAL_ERROR, NULL);
 
                     /* If This variable is not constrained, iterate as usual */
                     } else {
+                        it->offset = 0;
+                        it->count = 0;
+
                         /* Find new match, starting with the leading term */
                         if (!flecs_term_iter_next(world, term_iter, 
                             ECS_BIT_IS_SET(filter->flags, 
@@ -49661,9 +49809,10 @@ error:
     return false;
 
 yield:
-    it->offset = 0;
-    flecs_iter_populate_data(world, it, table, 0, 
-        table ? ecs_table_count(table) : 0, it->ptrs);
+    if (!it->count && table) {
+        it->count = ecs_table_count(table);
+    }
+    flecs_iter_populate_data(world, it, table, it->offset, it->count, it->ptrs);
     ECS_BIT_SET(it->flags, EcsIterIsValid);
     return true;    
 }
@@ -52381,7 +52530,10 @@ void flecs_query_sync_match_monitor(
         }
                 
         flecs_query_get_dirty_state(query, match, t, &cur);
-        ecs_assert(cur.column != -1, ECS_INTERNAL_ERROR, NULL);
+        if (cur.column < 0) {
+            continue;
+        }
+
         monitor[t + 1] = cur.dirty_state[cur.column + 1];
     }
 
@@ -55957,7 +56109,8 @@ has_data:
 has_union: {
         /* Edge case: if column is a switch we should return the vector with case
          * identifiers. Will be replaced in the future with pluggable storage */
-        ecs_switch_t *sw = &table->data.sw_columns[u_index];
+        ecs_assert(table->ext != NULL, ECS_INTERNAL_ERROR, NULL);
+        ecs_switch_t *sw = &table->ext->sw_columns[u_index];
         data = ecs_vec_first(flecs_switch_values(sw));
         goto has_data;
     }
