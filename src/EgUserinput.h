@@ -5,6 +5,7 @@
 #define EG_EDGE_FALLING 0x02
 #define EG_KEYBOARD_SIZE 128
 
+
 typedef struct {
 	ecs_u8_t keys[EG_KEYBOARD_SIZE];
 } EgKeyboard;
@@ -18,6 +19,7 @@ typedef struct {
 } EgMouse;
 
 
+extern ECS_TAG_DECLARE(EgUserinput);
 extern ECS_COMPONENT_DECLARE(EgMouse);
 extern ECS_COMPONENT_DECLARE(EgKeyboard);
 

@@ -13,8 +13,8 @@
 
 void Update_Keyboard(ecs_iter_t *it)
 {
-	EgV2F32 *p = ecs_field(it, EgV2F32, 1);
-	EgV2F32 *v = ecs_field(it, EgV2F32, 2);
+	EgPosition_V2F32 *p = ecs_field(it, EgPosition_V2F32, 1);
+	EgPosition_V2F32 *v = ecs_field(it, EgPosition_V2F32, 2);
 	EgMouse *m = ecs_field(it, EgMouse, 3);
 	EgKeyboard *state = ecs_field(it, EgKeyboard, 4);
 

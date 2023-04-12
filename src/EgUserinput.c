@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 
+ECS_TAG_DECLARE(EgUserinput);
 ECS_COMPONENT_DECLARE(EgMouse);
 ECS_COMPONENT_DECLARE(EgKeyboard);
 
@@ -14,6 +15,8 @@ void EgUserinputImport(ecs_world_t *world)
 	ECS_MODULE(world, EgUserinput);
 	ecs_set_name_prefix(world, "Eg");
 	
+	
+	ECS_TAG_DEFINE(world, EgUserinput);
 	ECS_COMPONENT_DEFINE(world, EgMouse);
 	ECS_COMPONENT_DEFINE(world, EgKeyboard);
 

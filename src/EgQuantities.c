@@ -3,25 +3,23 @@
 #include <math.h>
 #include <stdio.h>
 
-ECS_DECLARE(EgUserinput);
-ECS_DECLARE(EgPosition);
-ECS_DECLARE(EgVelocity);
-ECS_DECLARE(EgPositionRelative);
-ECS_DECLARE(EgRectangle);
-ECS_DECLARE(EgColor);
-ECS_DECLARE(EgColorRandom);
-ECS_DECLARE(EgViewport);
+/*
 ECS_COMPONENT_DECLARE(EgV1F32);
 ECS_COMPONENT_DECLARE(EgV2F32);
 ECS_COMPONENT_DECLARE(EgV3F32);
 ECS_COMPONENT_DECLARE(EgV4F32);
-ECS_COMPONENT_DECLARE(EgVelocity_V2F32);
-ECS_COMPONENT_DECLARE(EgPosition_V2F32);
-ECS_COMPONENT_DECLARE(EgPositionGlobal_V2F32);
-ECS_COMPONENT_DECLARE(EgRectangle_V2F32);
 ECS_COMPONENT_DECLARE(EgV4U8);
+*/
+ECS_COMPONENT_DECLARE(EgVelocity_V2F32);
+ECS_COMPONENT_DECLARE(EgVelocity_V3F32);
+ECS_COMPONENT_DECLARE(EgPosition_V2F32);
+ECS_COMPONENT_DECLARE(EgPosition_V3F32);
+ECS_COMPONENT_DECLARE(EgPositionGlobal_V2F32);
+ECS_COMPONENT_DECLARE(EgPositionGlobal_V3F32);
+ECS_COMPONENT_DECLARE(EgRectangle_V2F32);
 ECS_COMPONENT_DECLARE(EgText);
 ECS_COMPONENT_DECLARE(EgColorRGBA_V4U8);
+ECS_COMPONENT_DECLARE(EgMassF32);
 
 static ECS_COPY(EgText, dst, src, {
 ecs_os_strset((char**)&dst->value, src->value);
@@ -39,9 +37,9 @@ ecs_os_free((char*)ptr->value);
 
 void Move(ecs_iter_t *it)
 {
-    const EgV2F32 *r  = ecs_field(it, EgV2F32, 1);
-          EgV2F32 *p  = ecs_field(it, EgV2F32, 2);
-    const EgV2F32 *p0 = ecs_field(it, EgV2F32, 3);
+	const EgPosition_V2F32       *r  = ecs_field(it, EgPosition_V2F32, 1);
+	      EgPositionGlobal_V2F32 *p  = ecs_field(it, EgPositionGlobal_V2F32, 2);
+	const EgPositionGlobal_V2F32 *p0 = ecs_field(it, EgPositionGlobal_V2F32, 3);
 	if(p0)
 	{
 		for (int i = 0; i < it->count; i ++)
@@ -78,29 +76,32 @@ void Random_Color(ecs_iter_t *it)
 
 
 
+
+
 void EgQuantitiesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgQuantities);
 	ecs_set_name_prefix(world, "Eg");
 	
-	ECS_TAG_DEFINE(world, EgUserinput);
-	ECS_TAG_DEFINE(world, EgPosition);
-	ECS_TAG_DEFINE(world, EgVelocity);
-	ECS_TAG_DEFINE(world, EgPositionRelative);
-	ECS_TAG_DEFINE(world, EgRectangle);
-	ECS_TAG_DEFINE(world, EgColor);
+	/*
 	ECS_COMPONENT_DEFINE(world, EgV1F32);
 	ECS_COMPONENT_DEFINE(world, EgV2F32);
 	ECS_COMPONENT_DEFINE(world, EgV3F32);
 	ECS_COMPONENT_DEFINE(world, EgV4F32);
-	ECS_COMPONENT_DEFINE(world, EgVelocity_V2F32);
-	ECS_COMPONENT_DEFINE(world, EgPosition_V2F32);
-	ECS_COMPONENT_DEFINE(world, EgPositionGlobal_V2F32);
-	ECS_COMPONENT_DEFINE(world, EgRectangle_V2F32);
 	ECS_COMPONENT_DEFINE(world, EgV4U8);
+	*/
+	ECS_COMPONENT_DEFINE(world, EgVelocity_V2F32);
+	ECS_COMPONENT_DEFINE(world, EgVelocity_V3F32);
+	ECS_COMPONENT_DEFINE(world, EgPosition_V2F32);
+	ECS_COMPONENT_DEFINE(world, EgPosition_V3F32);
+	ECS_COMPONENT_DEFINE(world, EgPositionGlobal_V2F32);
+	ECS_COMPONENT_DEFINE(world, EgPositionGlobal_V3F32);
+	ECS_COMPONENT_DEFINE(world, EgRectangle_V2F32);
 	ECS_COMPONENT_DEFINE(world, EgText);
 	ECS_COMPONENT_DEFINE(world, EgColorRGBA_V4U8);
+	ECS_COMPONENT_DEFINE(world, EgMassF32);
 
+	/*
 	ecs_struct(world, {
 	.entity = ecs_id(EgV1F32),
 	.members = {
@@ -144,6 +145,7 @@ void EgQuantitiesImport(ecs_world_t *world)
 	{ .name = "w", .type = ecs_id(ecs_u8_t) }
 	}
 	});
+	*/
 
 	ecs_struct(world, {
 	.entity = ecs_id(EgColorRGBA_V4U8),
@@ -202,29 +204,23 @@ void EgQuantitiesImport(ecs_world_t *world)
 	});
  
 
-    ecs_entity_t e_Move = ecs_system(world, {
-        .entity = ecs_entity(world, {
-			.name = "Move",
-			.add = { ecs_dependson(EcsOnUpdate) }
+	ecs_system(world, {
+		.entity = ecs_entity(world, {
+		.name = "Move",
+		.add = { ecs_dependson(EcsOnUpdate) }
 		}),
-        .query.filter.terms = {
-            {.id = ecs_id(EgPosition_V2F32), .inout = EcsIn },
-            {.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsOut },
-            {.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional}
-        },
-        .callback = Move
-    });
+		.query.filter.terms = {
+			{.id = ecs_id(EgPosition_V2F32), .inout = EcsIn },
+			{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsOut },
+			{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional}
+		},
+		.callback = Move
+	});
 
-
-
-    ecs_observer(world, {
-        .filter = { .terms = {{ .id = ecs_id(EgColorRGBA_V4U8) }}},
-        .events = { EcsOnAdd },
-        .callback = Random_Color
-    });
-
-
-
-
+	ecs_observer(world, {
+		.filter = { .terms = {{ .id = ecs_id(EgColorRGBA_V4U8) }}},
+		.events = { EcsOnAdd },
+		.callback = Random_Color
+	});
 
 }
