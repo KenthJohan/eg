@@ -165,6 +165,16 @@ void EgQuantitiesImport(ecs_world_t *world)
 	}
 	});
 
+/*
+    ecs_metric(world, {
+        .entity = ecs_entity(world, { .name = "metrics.position_y" }),
+        .member = ecs_lookup_fullpath(world, "eg.quantities.Position_V2F32.y"),
+        .kind = EcsGauge
+    });
+	*/
+
+
+
 	ecs_struct(world, {
 	.entity = ecs_id(EgVelocity_V2F32),
 	.members = {

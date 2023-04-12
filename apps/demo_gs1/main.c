@@ -22,6 +22,7 @@ void app_init()
 	app->cb = gs_command_buffer_new();
 	app->gsi = gs_immediate_draw_new(gs_platform_main_window());
 
+    ECS_IMPORT(app->world, FlecsMetrics);
 	ECS_IMPORT(app->world, FlecsUnits);
 	ECS_IMPORT(app->world, EgQuantities);
 	ECS_IMPORT(app->world, EgGui);

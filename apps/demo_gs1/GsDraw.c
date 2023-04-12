@@ -73,7 +73,6 @@ void GsDrawImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, GsImmediateDraw);
 
-		
 
 	ecs_system(world, {
 		.entity = ecs_entity(world, {.name = "Draw_Rectangle1",

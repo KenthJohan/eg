@@ -5,10 +5,13 @@
 #include <math.h>
 #include <stdio.h>
 
-ECS_DECLARE(EgGuiMouseOverCheck);
+ECS_DECLARE(EgGuiWatchMouseOver);
+ECS_DECLARE(EgGuiWatchDragging);
+
 ECS_DECLARE(EgGuiMouseOver);
 ECS_DECLARE(EgGuiMouseOver1);
 ECS_DECLARE(EgGuiDragging);
+
 ECS_COMPONENT_DECLARE(EgMargin4);
 ECS_COMPONENT_DECLARE(EgZIndex);
 ECS_COMPONENT_DECLARE(EgHover);
@@ -109,9 +112,9 @@ void System_Drag1(ecs_iter_t* it)
 void System_Margin(ecs_iter_t *it)
 {
     EgPosition_V2F32  *p  = ecs_field(it, EgPosition_V2F32,   1); // GUI Element Position
-    EgRectangle_V2F32 *r  = ecs_field(it, EgRectangle_V2F32,   2); // GUI Element Rectangle
-    EgMargin4         *m  = ecs_field(it, EgMargin4, 3);
-    EgRectangle_V2F32 *r0 = ecs_field(it, EgRectangle_V2F32,   4); // GUI Element Rectangle Parent
+    EgRectangle_V2F32 *r  = ecs_field(it, EgRectangle_V2F32,  2); // GUI Element Rectangle
+    EgMargin4         *m  = ecs_field(it, EgMargin4,          3);
+    EgRectangle_V2F32 *r0 = ecs_field(it, EgRectangle_V2F32,  4); // GUI Element Rectangle Parent
 	if(r0 == NULL){return;}
     for (int i = 0; i < it->count; i ++)
 	{
@@ -124,9 +127,8 @@ void System_Margin(ecs_iter_t *it)
 
 void System_ZIndex(ecs_iter_t *it)
 {
-	EgZIndex *z = ecs_field(it, EgZIndex, 1);
+	EgZIndex *z  = ecs_field(it, EgZIndex, 1);
 	EgZIndex *z0 = ecs_field(it, EgZIndex, 2);
-	ecs_entity_t e_z0 = ecs_field_src(it, 2);
 	if(z0 == NULL){return;}
 	for (int i = 0; i < it->count; i ++)
 	{
@@ -135,25 +137,13 @@ void System_ZIndex(ecs_iter_t *it)
 	}
 }
 
-void System_Border(ecs_iter_t *it)
-{
-	EgZIndex *z = ecs_field(it, EgZIndex, 1);
-	EgZIndex *z0 = ecs_field(it, EgZIndex, 2);
-	ecs_entity_t e_z0 = ecs_field_src(it, 2);
-	if(z0 == NULL){return;}
-	for (int i = 0; i < it->count; i ++)
-	{
-		//printf("%s:%i, %s:%i\n", ecs_get_name(it->world, e_z0), z0->z, ecs_get_name(it->world, it->entities[i]), z[i].z);
-		z[i].z = z0->z + 1;
-	}
-}
 
 
 void System_Fllow(ecs_iter_t *it)
 {
-	EgPositionGlobal_V2F32 *p = ecs_field(it, EgPositionGlobal_V2F32, 1);
-	EgPosition_V2F32       *m0 = ecs_field(it, EgPosition_V2F32, 2);
-	EgPosition_V2F32       *d0 = ecs_field(it, EgPosition_V2F32, 3);
+	EgPositionGlobal_V2F32 *p  = ecs_field(it, EgPositionGlobal_V2F32, 1); // [out] Object position
+	EgPosition_V2F32       *m0 = ecs_field(it, EgPosition_V2F32, 2);       // [in] Mouse position
+	EgPosition_V2F32       *d0 = ecs_field(it, EgPosition_V2F32, 3);       // [in] Mouse offset position
 	for (int i = 0; i < it->count; i ++)
 	{
 		p[i].x = m0->x - d0->x;
@@ -171,15 +161,26 @@ void EgGuiImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgQuantities);
 	ECS_IMPORT(world, EgUserinput);
 
-	ECS_TAG_DEFINE(world, EgGuiMouseOverCheck);
+	ECS_TAG_DEFINE(world, EgGuiWatchMouseOver);
+	ECS_TAG_DEFINE(world, EgGuiWatchDragging);
+
 	ECS_TAG_DEFINE(world, EgGuiMouseOver);
 	ECS_TAG_DEFINE(world, EgGuiMouseOver1);
 	ECS_TAG_DEFINE(world, EgGuiDragging);
+	
 	ECS_COMPONENT_DEFINE(world, EgMargin4);
 	ECS_COMPONENT_DEFINE(world, EgZIndex);
 	ECS_COMPONENT_DEFINE(world, EgHover);
 	ECS_COMPONENT_DEFINE(world, EgGuiDrag);
 	ECS_COMPONENT_DEFINE(world, EgGuiBorder4);
+
+	ecs_doc_set_brief(world, EgGuiWatchMouseOver, "Entity will be proccesed by mouse over check system");
+	ecs_doc_set_brief(world, EgGuiWatchDragging, "Entity will be proccesed by mouse over check system");
+
+	ecs_doc_set_brief(world, EgGuiMouseOver, "This tag is added to the object that user has mouse over");
+	ecs_doc_set_brief(world, EgGuiMouseOver1, "This tag is added to the top object that user has mouse over");
+	ecs_doc_set_brief(world, EgGuiDragging, "This tag is added to the object that user is dragging");
+
 
 	ecs_struct(world, {
 	.entity = ecs_id(EgZIndex),
@@ -240,7 +241,7 @@ void EgGuiImport(ecs_world_t *world)
 		{ .id = ecs_id(EgHover),          .src.id = ecs_id(EgHover) },
 		{ .id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgHover) },
 		{ .id = ecs_id(EgGuiDragging), .oper = EcsNot },
-		{ .id = ecs_id(EgGuiMouseOverCheck) },
+		{ .id = ecs_id(EgGuiWatchMouseOver) },
 		},
 		.callback = System_Hover1
 	});

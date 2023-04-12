@@ -17,7 +17,7 @@ Prefab Draw {
 Prefab HoverStyle {
 	// Will watch if mouse is over this entity
 	// Will add or remove GuiMouseOver and GuiMouseOver1
-	- GuiMouseOverCheck
+	- GuiWatchMouseOver
 	- (ColorRGBA_V4U8, GuiMouseOver1){200,255,0,255}
 }
 
