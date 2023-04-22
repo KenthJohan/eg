@@ -12,15 +12,9 @@ typedef struct
 
 
 
-int eg_watch();
-
 
 int eg_fs_monitor_size();
 
-
 eg_fs_monitor_t * eg_fs_monitor_init(char const * path, void * memory);
 
-
-
-
-int eg_fs_pull_changes(eg_fs_monitor_t * monitor, int32_t delay, char out_path[EG_FS_PATH_LENGTH]);
+int eg_fs_wait_event(eg_fs_monitor_t * monitor, int32_t wait_ms, char out_path[EG_FS_PATH_LENGTH]);

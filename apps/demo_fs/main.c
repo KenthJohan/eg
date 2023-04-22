@@ -28,7 +28,7 @@ int main (int argc, char * argv [])
 		printf("ecs_progress!\n");
 		ecs_progress(world, 0);
 		char path[EG_FS_PATH_LENGTH];
-		if(eg_fs_pull_changes(m, -1, path))
+		if(eg_fs_wait_event(m, 1, path))
 		{
 			printf("Filechange: %s\n", path);
 		}

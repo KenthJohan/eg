@@ -86,10 +86,8 @@ eg_fs_monitor_t * eg_fs_monitor_init(char const * path, void * memory)
 	return (eg_fs_monitor_t*)ptr;
 }
 
-//aaaa6
 
-
-int eg_fs_pull_changes(eg_fs_monitor_t * monitor, int32_t delay, char out_path[EG_FS_PATH_LENGTH])
+int eg_fs_wait_event(eg_fs_monitor_t * monitor, int32_t wait_ms, char out_path[EG_FS_PATH_LENGTH])
 {
 	assert(monitor);
 	assert(out_path);
@@ -98,7 +96,7 @@ int eg_fs_pull_changes(eg_fs_monitor_t * monitor, int32_t delay, char out_path[E
 	if(mon->event == NULL)
 	{
 		//printf("WaitForSingleObject\n");
-		DWORD dwMilliseconds = (delay == -1) ? INFINITE : (DWORD)delay;
+		DWORD dwMilliseconds = (wait_ms == -1) ? INFINITE : (DWORD)wait_ms;
 		DWORD result = WaitForSingleObject(mon->overlapped.hEvent, dwMilliseconds);
 		if (result != WAIT_OBJECT_0) {return 0;}
 		DWORD bytes_transferred;
