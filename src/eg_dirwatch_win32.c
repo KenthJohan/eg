@@ -134,6 +134,9 @@ ecs_entity_t eg_dirwatch_add(ecs_world_t * world, ecs_entity_t scope, ecs_entity
 		goto fail;
 	}
 	return e;
+	
+	ecs_set_scope(world, old_scope);
+
 fail:
 	_eg_dirwatch_fini(dirwatch);
 	return 0;
@@ -166,19 +169,24 @@ int eg_dirwatch_pull(ecs_world_t * world, ecs_entity_t e, int32_t timeout_ms, ch
 		fni = (FILE_NOTIFY_INFORMATION const*)direvent->change_buf;
 	}
 
-
+	ecs_entity_t old_scope = ecs_set_scope(world, ev);
 	while(fni)
 	{
 		// Convert WCHAR to CHAR
 		int name_len = fni->FileNameLength / sizeof(wchar_t);
-		snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(fni->Action), name_len, fni->FileName);
-		printf("%s\n", out_path);
+		//snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(fni->Action), name_len, fni->FileName);
+		//printf("%s\n", out_path);
+		//FIXME: filepath issuess
+		snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%.*ls", name_len, fni->FileName);
+		ecs_new_entity(world, out_path);
+
 		*((uint8_t **)&(fni)) += fni->NextEntryOffset;
 		if(fni->NextEntryOffset == 0)
 		{
 			fni = NULL;
 		}
 	}
+	ecs_set_scope(world, old_scope);
 
 
 	DWORD dwNotifyFilter =

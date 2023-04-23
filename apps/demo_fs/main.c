@@ -44,7 +44,7 @@ int main (int argc, char * argv [])
 		}
 		
 
-		ecs_os_sleep(1,0);
+		ecs_os_sleep(0,1000000);
 	}
 
 	//eg_dirwatch_fini(dw);
