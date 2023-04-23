@@ -24,21 +24,23 @@ https://stackoverflow.com/questions/339776/asynchronous-readdirectorychangesw
 
 #define CHANGE_BUF_SIZE 1024*3
 
-
 typedef struct
 {
 	eg_dirwatch_t public;
+// Private:
 	HANDLE file;
 	OVERLAPPED overlapped;
 	uint8_t change_buf[CHANGE_BUF_SIZE];
-	FILE_NOTIFY_INFORMATION *event;
+	FILE_NOTIFY_INFORMATION const* fni;
 } _eg_direvent_t;
 
+// Private
 typedef struct
 {
 	eg_dirwatch_t public;
 	HANDLE hIOCP;
 	ecs_vec_t v;
+	_eg_direvent_t * lastevent;
 } _eg_dirwatch_t;
 
 
@@ -121,7 +123,6 @@ void _eg_dirwatch_add(_eg_dirwatch_t * dirwatch, char const * path)
 		 FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
 		 NULL);
 	//e->overlapped.hEvent = CreateEvent(NULL, FALSE, 0, NULL);
-	e->event = NULL;
 	DWORD NumberOfConcurrentThreads = 0;
 	HANDLE hIOCP = CreateIoCompletionPort(e->file, dirwatch->hIOCP, (ULONG_PTR)e, NumberOfConcurrentThreads);
 	assert(hIOCP == dirwatch->hIOCP);
@@ -200,45 +201,48 @@ int eg_dirwatch_wait_event(eg_dirwatch_t * monitor, int32_t timeout_ms, char out
 
 // if a packet is pending, extract its events, post them in the queue and
 // re-issue its watch.
-int _eg_dirwatch_pull(_eg_dirwatch_t * dirwatch)
+int _eg_dirwatch_pull(_eg_dirwatch_t * dirwatch, int32_t timeout_ms, char out_path[EG_DIRWATCH_PATH_LENGTH])
 {
 	DWORD NumberOfBytesTransferred;
-	ULONG_PTR CompletionKey;
-	OVERLAPPED *Overlapped;
-	DWORD dwMilliseconds = 0;
-	WINBOOL got_packet = GetQueuedCompletionStatus(dirwatch->hIOCP, &NumberOfBytesTransferred, &CompletionKey, &Overlapped, dwMilliseconds);
-	if(got_packet == FALSE)
+	if(dirwatch->lastevent == NULL)
 	{
-		// no new packet - done   
-		return 0;
+		ULONG_PTR CompletionKey;
+		OVERLAPPED *Overlapped;
+		DWORD dwMilliseconds = (timeout_ms < 0) ? INFINITE : (DWORD)timeout_ms;
+		WINBOOL got_packet = GetQueuedCompletionStatus(dirwatch->hIOCP, &NumberOfBytesTransferred, &CompletionKey, &Overlapped, dwMilliseconds);
+		if(got_packet == FALSE)
+		{
+			// no new packet - done   
+			return 0;
+		}
+		//printf("Got packet! %i, %p\n", (int)NumberOfBytesTransferred, (void*)CompletionKey);
+		dirwatch->lastevent = (_eg_direvent_t*)CompletionKey;
+		dirwatch->lastevent->fni = NULL;
+		if(NumberOfBytesTransferred > 0)
+		{
+			dirwatch->lastevent->fni = (FILE_NOTIFY_INFORMATION const*)dirwatch->lastevent->change_buf;
+		}
 	}
-	printf("Got packet! %i, %p\n", (int)NumberOfBytesTransferred, (void*)CompletionKey);
-	_eg_direvent_t * e = (_eg_direvent_t*)CompletionKey;
-	queue_next_event(e);
 
+	assert(dirwatch->lastevent);
+	if(dirwatch->lastevent->fni)
+	{
+		// Convert WCHAR to CHAR
+		int name_len = dirwatch->lastevent->fni->FileNameLength / sizeof(wchar_t);
+		snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(dirwatch->lastevent->fni->Action), name_len, dirwatch->lastevent->fni->FileName);
+		//printf("%s", out_path);
+		*((uint8_t **)&(dirwatch->lastevent->fni)) += dirwatch->lastevent->fni->NextEntryOffset;
+		if(dirwatch->lastevent->fni->NextEntryOffset == 0)
+		{
+			dirwatch->lastevent->fni = NULL;
+		}
+		return 1;
+	}
 
+	queue_next_event(dirwatch->lastevent);
+	dirwatch->lastevent = NULL;
 
-	/*
-
-	// this is an actual packet, not just a kickoff for issuing the watch.
-	// extract the events and push them onto AppState's queue.
-	if(bytes_transferred != 0)
-	extract_events(w);
-
-
-	// (re-)issue change notification request.
-	// it's safe to reuse Watch.change_buf, because we copied out all events.
-	const DWORD filter = FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME |
-	FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE |
-	FILE_NOTIFY_CHANGE_CREATION;
-	const DWORD buf_size = sizeof(w->change_buf);
-	memset(&w->ovl, 0, sizeof(w->ovl));
-	BOOL watch_subtree = TRUE;
-	// much faster than watching every dir separately. see dir_add_watch.
-	BOOL ok = ReadDirectoryChangesW(w->hDir, w->change_buf, buf_size, watch_subtree, filter, &w->dummy_nbytes, &w->ovl, 0);
-	WARN_IF_FALSE(ok);
-	*/
-	return 1;
+	return 0;
 }
 
 
@@ -261,7 +265,7 @@ void eg_dirwatch_add(eg_dirwatch_t * dirwatch, char const * path)
 }
 
 
-int eg_dirwatch_pull(eg_dirwatch_t * dirwatch)
+int eg_dirwatch_pull(eg_dirwatch_t * dirwatch, int32_t timeout_ms, char out_path[EG_DIRWATCH_PATH_LENGTH])
 {
-	return _eg_dirwatch_pull((_eg_dirwatch_t*)dirwatch);
+	return _eg_dirwatch_pull((_eg_dirwatch_t*)dirwatch, timeout_ms, out_path);
 }

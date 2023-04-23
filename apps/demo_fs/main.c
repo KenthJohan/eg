@@ -29,14 +29,11 @@ int main (int argc, char * argv [])
 		printf("ecs_progress!\n");
 		ecs_progress(world, 0);
 
-		;
 
-
-		//char path[EG_FS_PATH_LENGTH];
-		if(eg_dirwatch_pull(m))
+		char path[EG_DIRWATCH_PATH_LENGTH];
+		if(eg_dirwatch_pull(m, 0, path))
 		{
-			printf("Filechange:\n");
-			//printf("Filechange: %s\n", path);
+			printf("Filechange: %s\n", path);
 		}
 
 		ecs_os_sleep(1,0);
