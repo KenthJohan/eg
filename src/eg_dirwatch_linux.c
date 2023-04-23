@@ -19,32 +19,78 @@ typedef struct
 {
 	eg_fs_monitor_t public;
 	int fd;
-	int wd;
-} eg_fs_monitor_linux_t;
+} _eg_dirwatch_t;
 
 
-
-int eg_fs_monitor_size()
+void _eg_dirwatch_free(_eg_dirwatch_t * dirwatch)
 {
-	return sizeof(eg_fs_monitor_linux_t);
+	ecs_os_free(dirwatch);
 }
 
 
 
-eg_fs_monitor_t * eg_fs_monitor_init(char const * path, void * memory)
+
+_eg_dirwatch_t * _eg_dirwatch_init(eg_dirwatch_desc_t * desc)
 {
-	eg_fs_monitor_linux_t * ptr = (eg_fs_monitor_linux_t *)memory;
-	ptr->fd = inotify_init();
-	ptr->wd = inotify_add_watch( fd, "/home/strike", IN_MODIFY | IN_CREATE | IN_DELETE );
-	return (eg_fs_monitor_t*)ptr;
+	(void)desc;
+	_eg_dirwatch_t * dirwatch = ecs_os_calloc_t(_eg_dirwatch_t);
+	dirwatch->fd = inotify_init();
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
+	{
+		exit(2);
+	}
+	return dirwatch;
 }
 
 
-int eg_fs_wait_event(eg_fs_monitor_t * monitor, int32_t wait_ms, char out_path[EG_FS_PATH_LENGTH])
+
+
+void _eg_dirwatch_add(_eg_dirwatch_t * dirwatch, char const * path)
 {
-	assert(monitor);
-	assert(out_path);
-	eg_fs_monitor_win32_t * mon = (eg_fs_monitor_win32_t *)monitor;
+	/* Step 2. Add Watch */
+	int wd = inotify_add_watch(dirwatch->fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
+
+	if(wd==-1)
+	{
+		printf("Could not watch : %s\n",path);
+	}
+	else
+	{
+		printf("Watching : %s\n",path);
+	}
+}
+
+
+
+int _eg_dirwatch_pull(_eg_dirwatch_t * dirwatch, int32_t timeout_ms, char out_path[EG_DIRWATCH_PATH_LENGTH])
+{
 	return 1;
 }
 
+
+
+
+
+
+
+
+void eg_dirwatch_fini(eg_dirwatch_t * dirwatch)
+{
+	_eg_dirwatch_fini((_eg_dirwatch_t*)dirwatch);
+}
+
+eg_dirwatch_t * eg_dirwatch_init(eg_dirwatch_desc_t * desc)
+{
+	return (eg_dirwatch_t*)_eg_dirwatch_init(desc);
+}
+
+void eg_dirwatch_add(eg_dirwatch_t * dirwatch, char const * path)
+{
+	_eg_dirwatch_add((_eg_dirwatch_t*)dirwatch, path);
+}
+
+
+int eg_dirwatch_pull(eg_dirwatch_t * dirwatch, int32_t timeout_ms, char out_path[EG_DIRWATCH_PATH_LENGTH])
+{
+	return _eg_dirwatch_pull((_eg_dirwatch_t*)dirwatch, timeout_ms, out_path);
+}
