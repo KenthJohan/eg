@@ -13,6 +13,7 @@ https://stackoverflow.com/questions/339776/asynchronous-readdirectorychangesw
 
 #include "eg_dirwatch.h"
 #include "EgFs.h"
+#include "EgQuantities.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -178,7 +179,8 @@ int eg_dirwatch_pull(ecs_world_t * world, ecs_entity_t e, int32_t timeout_ms, ch
 		//printf("%s\n", out_path);
 		//FIXME: filepath issuess
 		snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%.*ls", name_len, fni->FileName);
-		ecs_new_entity(world, out_path);
+		ecs_entity_t evv = ecs_new(world, 0);
+		ecs_set_pair(world, evv, EgText, EgFsPath, {out_path});
 
 		*((uint8_t **)&(fni)) += fni->NextEntryOffset;
 		if(fni->NextEntryOffset == 0)
