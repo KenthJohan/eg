@@ -19,7 +19,7 @@ endif
 
 
 SRCS := main.c
-SRCS += eg_fs_win32.c
+SRCS += ../../src/eg_dirwatch_win32.c
 SRCS += ../../src/EgQuantities.c
 SRCS += ../../src/EgFs.c
 SRCS += ../../vendor/flecs.c

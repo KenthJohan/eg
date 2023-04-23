@@ -1,7 +1,6 @@
 #pragma once
 #include "flecs.h"
 
-/*
 typedef struct
 {
 	ecs_f32_t x;
@@ -36,7 +35,6 @@ typedef struct
 	ecs_u8_t z;
 	ecs_u8_t w;
 } EgV4U8;
-*/
 
 typedef struct
 {

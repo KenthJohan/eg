@@ -13,7 +13,7 @@ ECS_COMPONENT_DECLARE(GsImmediateDraw);
 
 
 
-int compare_position(ecs_entity_t e1, const EgZIndex *p1, ecs_entity_t e2, const EgZIndex *p2)
+int compare_zindex(ecs_entity_t e1, const EgZIndex *p1, ecs_entity_t e2, const EgZIndex *p2)
 {
 	(void)e1;
 	(void)e2;
@@ -88,7 +88,7 @@ void GsDrawImport(ecs_world_t *world)
 				//Not used. Order by breadth-first order (cascade):
 				//{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
 			},
-			.order_by = (ecs_order_by_action_t)compare_position,
+			.order_by = (ecs_order_by_action_t)compare_zindex,
 			.order_by_component = ecs_id(EgZIndex),
 		},
 		.callback = Draw_Rectangle,
@@ -108,7 +108,7 @@ void GsDrawImport(ecs_world_t *world)
 				//Not used. Order by breadth-first order (cascade):
 				//{.id = ecs_id(EgPositionGlobal_V2F32), .inout = EcsIn,.src.flags = EcsParent | EcsCascade,.oper = EcsOptional},
 			},
-			.order_by = (ecs_order_by_action_t)compare_position,
+			.order_by = (ecs_order_by_action_t)compare_zindex,
 			.order_by_component = ecs_id(EgZIndex),
 		},
 		.callback = Draw_Rectangle,

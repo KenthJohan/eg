@@ -15,70 +15,21 @@ Prefab Draw {
 }
 
 Prefab HoverStyle {
-	// Will watch if mouse is over this entity
-	// Will add or remove GuiMouseOver and GuiMouseOver1
+	// Will watch if mouse is over this entity then add or remove GuiMouseOver
 	- GuiWatchMouseOver
 	- (ColorRGBA_V4U8, GuiMouseOver1){200,255,0,255}
 }
-
-assembly RectangleBorder {
-	prop width: f32 = 100
-	prop height: f32 = 100
-	prop thickness: f32 = 5
-	const color : ColorRGBA_V4U8 = {255, 255, 255, 255}
-	with $color, ZIndex, Position_V2F32, PositionGlobal_V2F32 {
-		_ : Draw {
-			- Position_V2F32{0, 0}
-			- Rectangle_V2F32{$thickness, $height}
-		}
-		_ : Draw {
-			- Position_V2F32{$width-$thickness, 0}
-			- Rectangle_V2F32{$thickness, $height}
-		}
-		_ : Draw {
-			- Position_V2F32{0, 0}
-			- Rectangle_V2F32{$width, $thickness}
-		}
-		_ : Draw {
-			- Position_V2F32{0, $height-$thickness}
-			- Rectangle_V2F32{$width, $thickness}
-		}
-	}
-
-}
-
 
 
 
 with ZIndex, ColorRGBA_V4U8, Position_V2F32, PositionGlobal_V2F32 {
 	yrdy : Draw, HoverStyle {
-		- Position_V2F32{100,300}
-		- Rectangle_V2F32{200, 200}
-		- RectangleBorder{}
+		- Position_V2F32{500,100}
+		- Rectangle_V2F32{50, 50}
 	}
 	_ : Draw, HoverStyle {
-		- Rectangle_V2F32{200, 200}
-		- Margin4{15,15,15,15}
-
-		//_ : Draw {
-		//	- Text{"This is the red box"}
-		//	- Position_V2F32{5, 5}
-		//}
-
-		_ : Draw, HoverStyle {
-			- Rectangle_V2F32{200, 200}
-			- Margin4{15,15,15,15}
-			
-			//_ : Draw {
-			//	- Text{"This is the blue box"}
-			//	- Position_V2F32{5, 5}
-			//}
-		}
+		- Position_V2F32{10,10}
+		- Rectangle_V2F32{400, 400}
+		- (Position_V2F32, SpatialCursor){200, 200}
 	}
 }
-
-
-
-//_ {
-//	- RectangleBorder{}
-//}

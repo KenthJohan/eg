@@ -10,6 +10,9 @@ typedef struct
 } EgMargin4;
 
 
+
+
+
 typedef struct
 {
 	ecs_f32_t left;
@@ -40,6 +43,11 @@ extern ECS_DECLARE(EgGuiWatchDragging);
 extern ECS_DECLARE(EgGuiMouseOver);
 extern ECS_DECLARE(EgGuiMouseOver1);
 extern ECS_DECLARE(EgGuiDragging);
+
+
+extern ECS_DECLARE(EgGuiSpatialCursor);
+
+
 extern ECS_COMPONENT_DECLARE(EgMargin4);
 extern ECS_COMPONENT_DECLARE(EgZIndex);
 extern ECS_COMPONENT_DECLARE(EgHover);

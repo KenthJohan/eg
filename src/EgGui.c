@@ -12,6 +12,8 @@ ECS_DECLARE(EgGuiMouseOver);
 ECS_DECLARE(EgGuiMouseOver1);
 ECS_DECLARE(EgGuiDragging);
 
+ECS_DECLARE(EgGuiSpatialCursor);
+
 ECS_COMPONENT_DECLARE(EgMargin4);
 ECS_COMPONENT_DECLARE(EgZIndex);
 ECS_COMPONENT_DECLARE(EgHover);
@@ -108,7 +110,6 @@ void System_Drag1(ecs_iter_t* it)
 
 }
 
-
 void System_Margin(ecs_iter_t *it)
 {
     EgPosition_V2F32  *p  = ecs_field(it, EgPosition_V2F32,   1); // GUI Element Position
@@ -137,8 +138,6 @@ void System_ZIndex(ecs_iter_t *it)
 	}
 }
 
-
-
 void System_Fllow(ecs_iter_t *it)
 {
 	EgPositionGlobal_V2F32 *p  = ecs_field(it, EgPositionGlobal_V2F32, 1); // [out] Object position
@@ -151,7 +150,29 @@ void System_Fllow(ecs_iter_t *it)
 	}
 }
 
+void System_SpatialCursor(ecs_iter_t *it)
+{
+	EgV2F32 *p  = ecs_field(it, EgV2F32, 1); // [out] Object position
+	EgV2F32 *r = ecs_field(it, EgV2F32, 2); // [in] Rectangle
+	EgV2F32 *c0 = ecs_field(it, EgV2F32, 3); // [inout] Parent Spatial cursor
+	for (int i = 0; i < it->count; i ++)
+	{
+		p[i].x = c0->x;
+		p[i].y = c0->y;
+		c0->x += 1;
+	}
+}
 
+/*
+void test()
+{
+	ecs_iter_t qit = ecs_query_iter(it->world, q->query);
+	while (ecs_query_next(&qit))
+	{
+		EgV2F32 *p = ecs_field(&qit, EgV2F32, 1); // [out] Object position
+	}  
+}
+*/
 
 
 void EgGuiImport(ecs_world_t *world)
@@ -167,6 +188,8 @@ void EgGuiImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgGuiMouseOver);
 	ECS_TAG_DEFINE(world, EgGuiMouseOver1);
 	ECS_TAG_DEFINE(world, EgGuiDragging);
+
+	ECS_TAG_DEFINE(world, EgGuiSpatialCursor);
 	
 	ECS_COMPONENT_DEFINE(world, EgMargin4);
 	ECS_COMPONENT_DEFINE(world, EgZIndex);
@@ -305,6 +328,18 @@ void EgGuiImport(ecs_world_t *world)
 	});
 
 
-
+	ecs_system(world, {
+	.entity = ecs_entity(world, {
+	.name = "System_SpatialCursor",
+	.add = { ecs_dependson(EcsOnUpdate) }
+	}),
+	.query.filter.terms = {
+	{ .id = ecs_id(EgPositionGlobal_V2F32), },
+	{ .id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgMouse) },
+    { .id = ecs_id(EgPosition_V2F32), .src.id = ecs_id(EgGuiDrag) },
+	{ .id = ecs_id(EgGuiDragging),},
+	},
+	.callback = System_SpatialCursor
+	});
 
 }
