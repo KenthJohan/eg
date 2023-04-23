@@ -13,15 +13,16 @@ https://stackoverflow.com/questions/339776/asynchronous-readdirectorychangesw
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include "win32error.h"
 
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "flecs.h"
 
 
 #define CHANGE_BUF_SIZE 1024*3
-
 
 
 typedef struct
@@ -31,8 +32,14 @@ typedef struct
 	OVERLAPPED overlapped;
 	uint8_t change_buf[CHANGE_BUF_SIZE];
 	FILE_NOTIFY_INFORMATION *event;
+} _eg_direvent_t;
+
+typedef struct
+{
+	eg_dirwatch_t public;
 	HANDLE hIOCP;
-} eg_dirwatch_private_t;
+	ecs_vec_t v;
+} _eg_dirwatch_t;
 
 
 
@@ -53,80 +60,15 @@ char const * action_to_string(DWORD Action)
 
 
 
-// Display error message text, given an error code.
-// Typically, the parameter passed to this function is retrieved
-// from GetLastError().
-void PrintCSBackupAPIErrorMessage(DWORD dwErr)
-{
-	LPTSTR a;
-    char   wszMsgBuff[512];  // Buffer for text.
-
-    DWORD   dwChars;  // Number of chars returned.
-
-    // Try to get the message from the system errors.
-    dwChars = FormatMessageA( FORMAT_MESSAGE_FROM_SYSTEM |
-                             FORMAT_MESSAGE_IGNORE_INSERTS,
-                             NULL,
-                             dwErr,
-                             0,
-                             wszMsgBuff,
-                             512,
-                             NULL );
-
-    if (0 == dwChars)
-    {
-        // The error code did not exist in the system errors.
-        // Try Ntdsbmsg.dll for the error code.
-
-        HINSTANCE hInst;
-
-        // Load the library.
-        hInst = LoadLibrary("Ntdsbmsg.dll");
-        if ( NULL == hInst )
-        {
-            printf("cannot load Ntdsbmsg.dll\n");
-            exit(1);  // Could 'return' instead of 'exit'.
-        }
-
-        // Try getting message text from ntdsbmsg.
-        dwChars = FormatMessageA( FORMAT_MESSAGE_FROM_HMODULE |
-                                 FORMAT_MESSAGE_IGNORE_INSERTS,
-                                 hInst,
-                                 dwErr,
-                                 0,
-                                 wszMsgBuff,
-                                 512,
-                                 NULL );
-
-        // Free the library.
-        FreeLibrary( hInst );
-
-    }
-
-    // Display the error message, or generic text if not found.
-    printf("Error value: %ld Message: %s\n",
-            dwErr,
-            dwChars ? wszMsgBuff : "Error message not found." );
-
-}
-
-
-
-
-
-
-
-
-
 
 
 int eg_dirwatch_size()
 {
-	return sizeof(eg_dirwatch_private_t);
+	return sizeof(_eg_dirwatch_t);
 }
 
 
-void queue_next_event(eg_dirwatch_private_t * mon)
+void queue_next_event(_eg_direvent_t * e)
 {
 	DWORD dwNotifyFilter =
 		FILE_NOTIFY_CHANGE_FILE_NAME |
@@ -138,59 +80,74 @@ void queue_next_event(eg_dirwatch_private_t * mon)
 		FILE_NOTIFY_CHANGE_CREATION |
 		FILE_NOTIFY_CHANGE_SECURITY |
 		0;
-	HANDLE hDirectory = mon->file;
-	LPVOID lpBuffer = mon->change_buf;
+	HANDLE hDirectory = e->file;
+	LPVOID lpBuffer = e->change_buf;
 	DWORD nBufferLength = CHANGE_BUF_SIZE;
 	WINBOOL bWatchSubtree = TRUE;
 	LPDWORD lpBytesReturned = NULL;
-	memset(&mon->overlapped, 0, sizeof(mon->overlapped));
-	LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine = NULL;
-	BOOL success = ReadDirectoryChangesW(hDirectory, lpBuffer, nBufferLength, bWatchSubtree, dwNotifyFilter, lpBytesReturned, &mon->overlapped, lpCompletionRoutine);
+	memset(&e->overlapped, 0, sizeof(e->overlapped));
+	BOOL success = ReadDirectoryChangesW(hDirectory, lpBuffer, nBufferLength, bWatchSubtree, dwNotifyFilter, lpBytesReturned, &e->overlapped, NULL);
 	assert(success); //FIXME: Handle this error
 }
 
  
 
-void eg_dirwatch_init(eg_dirwatch_t * dirwatch, char const * path)
+void _eg_dirwatch_init(_eg_dirwatch_t * dirwatch)
 {
-	eg_dirwatch_private_t * internal = (eg_dirwatch_private_t *)dirwatch;
-	memset(internal, 0, sizeof(eg_dirwatch_private_t));
-	internal->file = CreateFile(path,
+	memset(dirwatch, 0, sizeof(_eg_dirwatch_t));
+	DWORD NumberOfConcurrentThreads = 0;
+	dirwatch->hIOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, NumberOfConcurrentThreads);
+	if((dirwatch->hIOCP == 0) || (dirwatch->hIOCP == INVALID_HANDLE_VALUE))
+	{
+		fprintf(stderr, "Error: CreateIoCompletionPort\n");
+		win32_PrintCSBackupAPIErrorMessage(GetLastError());
+		return;
+	}
+	ecs_vec_init_t(NULL, &dirwatch->v, _eg_direvent_t, 10);
+}
+
+
+
+
+void _eg_dirwatch_add(_eg_dirwatch_t * dirwatch, char const * path)
+{
+	_eg_direvent_t * e = ecs_vec_append_t(NULL, &dirwatch->v, _eg_direvent_t);
+	printf("Appending new direvent %p\n", e);
+	e->file = CreateFile(path,
 		 FILE_LIST_DIRECTORY,
 		 FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
 		 NULL,
 		 OPEN_EXISTING,
 		 FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
 		 NULL);
-	//internal->overlapped.hEvent = CreateEvent(NULL, FALSE, 0, NULL);
-	internal->event = NULL;
-
-	// Test:
+	//e->overlapped.hEvent = CreateEvent(NULL, FALSE, 0, NULL);
+	e->event = NULL;
+	DWORD NumberOfConcurrentThreads = 0;
+	HANDLE hIOCP = CreateIoCompletionPort(e->file, dirwatch->hIOCP, (ULONG_PTR)e, NumberOfConcurrentThreads);
+	assert(hIOCP == dirwatch->hIOCP);
+	if((hIOCP == 0) || (hIOCP == INVALID_HANDLE_VALUE))
 	{
-		HANDLE FileHandle = internal->file;
-		HANDLE ExistingCompletionPort = 0;
-		ULONG_PTR CompletionKey = (uintptr_t)internal;
-		DWORD NumberOfConcurrentThreads = 0;
-		internal->hIOCP = CreateIoCompletionPort(FileHandle, ExistingCompletionPort, CompletionKey, NumberOfConcurrentThreads);
-		if((internal->hIOCP == 0) || (internal->hIOCP == INVALID_HANDLE_VALUE))
-		{
-			printf("CreateIoCompletionPort!\n");
-			goto fail;
-		}
-		PostQueuedCompletionStatus(internal->hIOCP, 0, CompletionKey, 0);
+		fprintf(stderr, "Error: CreateIoCompletionPort\n");
+		goto fail;
 	}
-
-	//queue_next_event(internal);
+	PostQueuedCompletionStatus(hIOCP, 0, (ULONG_PTR)e, 0);
 	return;
 fail:
-	if(internal->file)
+	if(e->file)
 	{
-		CloseHandle(internal->file);
+		CloseHandle(e->file);
 	}
-	PrintCSBackupAPIErrorMessage(GetLastError());
 }
 
 
+
+
+
+
+
+
+
+/*
 int eg_dirwatch_wait_event(eg_dirwatch_t * monitor, int32_t timeout_ms, char out_path[EG_FS_PATH_LENGTH])
 {
 	assert(monitor);
@@ -234,7 +191,7 @@ int eg_dirwatch_wait_event(eg_dirwatch_t * monitor, int32_t timeout_ms, char out
 
 	return 1;
 }
-
+*/
 
 
 
@@ -243,27 +200,22 @@ int eg_dirwatch_wait_event(eg_dirwatch_t * monitor, int32_t timeout_ms, char out
 
 // if a packet is pending, extract its events, post them in the queue and
 // re-issue its watch.
-void eg_dirwatch_get_packet(eg_dirwatch_t * dirwatch)
+int _eg_dirwatch_pull(_eg_dirwatch_t * dirwatch)
 {
-	eg_dirwatch_private_t * internal = (eg_dirwatch_private_t *)dirwatch;
-	// poll for change notifications from all pending watches
-
-	
+	DWORD NumberOfBytesTransferred;
+	ULONG_PTR CompletionKey;
+	OVERLAPPED *Overlapped;
+	DWORD dwMilliseconds = 0;
+	WINBOOL got_packet = GetQueuedCompletionStatus(dirwatch->hIOCP, &NumberOfBytesTransferred, &CompletionKey, &Overlapped, dwMilliseconds);
+	if(got_packet == FALSE)
 	{
-		HANDLE CompletionPort = internal->hIOCP;
-		DWORD NumberOfBytesTransferred;
-		ULONG_PTR CompletionKey;
-		OVERLAPPED *Overlapped;
-		DWORD dwMilliseconds = 0;
-		WINBOOL got_packet = GetQueuedCompletionStatus(CompletionPort, &NumberOfBytesTransferred, &CompletionKey, &Overlapped, dwMilliseconds);
-		if(got_packet == FALSE)
-		{
-			// no new packet - done   a
-			return;
-		}
-		printf("Got packet! %i, %p === %p\n", (int)NumberOfBytesTransferred, internal, (void*)CompletionKey);
-		queue_next_event(internal);
+		// no new packet - done   
+		return 0;
 	}
+	printf("Got packet! %i, %p\n", (int)NumberOfBytesTransferred, (void*)CompletionKey);
+	_eg_direvent_t * e = (_eg_direvent_t*)CompletionKey;
+	queue_next_event(e);
+
 
 
 	/*
@@ -286,6 +238,7 @@ void eg_dirwatch_get_packet(eg_dirwatch_t * dirwatch)
 	BOOL ok = ReadDirectoryChangesW(w->hDir, w->change_buf, buf_size, watch_subtree, filter, &w->dummy_nbytes, &w->ovl, 0);
 	WARN_IF_FALSE(ok);
 	*/
+	return 1;
 }
 
 
@@ -294,3 +247,21 @@ void eg_dirwatch_get_packet(eg_dirwatch_t * dirwatch)
 
 
 
+
+
+
+void eg_dirwatch_init(eg_dirwatch_t * dirwatch)
+{
+	_eg_dirwatch_init((_eg_dirwatch_t*)dirwatch);
+}
+
+void eg_dirwatch_add(eg_dirwatch_t * dirwatch, char const * path)
+{
+	_eg_dirwatch_add((_eg_dirwatch_t*)dirwatch, path);
+}
+
+
+int eg_dirwatch_pull(eg_dirwatch_t * dirwatch)
+{
+	return _eg_dirwatch_pull((_eg_dirwatch_t*)dirwatch);
+}

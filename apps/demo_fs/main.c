@@ -21,22 +21,24 @@ int main (int argc, char * argv [])
 	ecs_singleton_set(world, EcsRest, {0});
 
 	eg_dirwatch_t * m = ecs_os_malloc(eg_dirwatch_size());
-	eg_dirwatch_init(m, "./");
+	eg_dirwatch_init(m);
+	eg_dirwatch_add(m, "./");
 
 	while(1)
 	{
 		printf("ecs_progress!\n");
 		ecs_progress(world, 0);
 
-		eg_dirwatch_get_packet(m);
+		;
 
-		/*
-		char path[EG_FS_PATH_LENGTH];
-		if(eg_dirwatch_wait_event(m, 1000, path))
+
+		//char path[EG_FS_PATH_LENGTH];
+		if(eg_dirwatch_pull(m))
 		{
-			printf("Filechange: %s\n", path);
+			printf("Filechange:\n");
+			//printf("Filechange: %s\n", path);
 		}
-		*/
+
 		ecs_os_sleep(1,0);
 	}
 

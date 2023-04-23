@@ -14,8 +14,6 @@ typedef struct
 
 
 int eg_dirwatch_size();
-void eg_dirwatch_init(eg_dirwatch_t * dirwatch, char const * path);
-int eg_dirwatch_wait_event(eg_dirwatch_t * dirwatch, int32_t timeout_ms, char out_path[EG_FS_PATH_LENGTH]);
-
-
-void eg_dirwatch_get_packet(eg_dirwatch_t * dirwatch);
+void eg_dirwatch_init(eg_dirwatch_t * dirwatch);
+void eg_dirwatch_add(eg_dirwatch_t * dirwatch, char const * path);
+int eg_dirwatch_pull(eg_dirwatch_t * dirwatch);
