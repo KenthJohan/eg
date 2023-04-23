@@ -7,7 +7,12 @@ https://github.com/0ad/0ad/blob/master/source/lib/sysdep/os/win/wdir_watch.cpp
 https://stackoverflow.com/questions/339776/asynchronous-readdirectorychangesw
 */
 
+#include "flecs.h"
+
+#if defined(ECS_TARGET_WINDOWS)
+
 #include "eg_dirwatch.h"
+#include "EgFs.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -19,7 +24,8 @@ https://stackoverflow.com/questions/339776/asynchronous-readdirectorychangesw
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "flecs.h"
+
+
 
 
 #define CHANGE_BUF_SIZE 1024*3
@@ -34,14 +40,19 @@ typedef struct
 
 typedef struct
 {
-	eg_dirwatch_t public;
 	HANDLE hIOCP;
-	ecs_vec_t v;
-	_eg_direvent_t * lastevent;
-	FILE_NOTIFY_INFORMATION const* fni;
 } _eg_dirwatch_t;
 
 
+ECS_COMPONENT_DECLARE(_eg_direvent_t);
+ECS_COMPONENT_DECLARE(_eg_dirwatch_t);
+
+
+void eg_dirwatch_bootstrap(ecs_world_t * world)
+{
+	ECS_COMPONENT_DEFINE(world, _eg_direvent_t);
+	ECS_COMPONENT_DEFINE(world, _eg_dirwatch_t);
+}
 
 char const * action_to_string(DWORD Action)
 {
@@ -65,41 +76,42 @@ char const * action_to_string(DWORD Action)
 
 void _eg_dirwatch_fini(_eg_dirwatch_t * dirwatch)
 {
-	for (int32_t i = 0; i < dirwatch->v.count; i++)
-	{
-		_eg_direvent_t *v = ecs_vec_get_t(&dirwatch->v, _eg_direvent_t, i);
-		if(v->file){CloseHandle(v->file);}
-	}
 	if(dirwatch->hIOCP){CloseHandle(dirwatch->hIOCP);}
-	ecs_vec_fini_t(NULL, &dirwatch->v, _eg_direvent_t);
 	ecs_os_free(dirwatch);
 }
  
 
-_eg_dirwatch_t * _eg_dirwatch_init(eg_dirwatch_desc_t * desc)
+ecs_entity_t eg_dirwatch_init(ecs_world_t * world, ecs_entity_t e)
 {
-	(void)desc;
-	_eg_dirwatch_t * dirwatch = ecs_os_calloc_t(_eg_dirwatch_t);
+	if(e == 0){e = ecs_new(world, _eg_dirwatch_t);}
+	_eg_dirwatch_t * dirwatch = ecs_get_mut(world, e, _eg_dirwatch_t);
+	ecs_os_memset_t(dirwatch, 0, _eg_dirwatch_t);
 	DWORD NumberOfConcurrentThreads = 0;
 	dirwatch->hIOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, NumberOfConcurrentThreads);
 	if((dirwatch->hIOCP == 0) || (dirwatch->hIOCP == INVALID_HANDLE_VALUE))
 	{
 		fprintf(stderr, "Error: CreateIoCompletionPort\n");
 		win32_PrintCSBackupAPIErrorMessage(GetLastError());
-		return NULL;
+		return 0;
 	}
-	ecs_vec_init_t(NULL, &dirwatch->v, _eg_direvent_t, 10);
-	return dirwatch;
+	return e;
 }
 
 
 
 
-void _eg_dirwatch_add(_eg_dirwatch_t * dirwatch, char const * path)
+ecs_entity_t eg_dirwatch_add(ecs_world_t * world, ecs_entity_t scope, ecs_entity_t e, char const * path)
 {
-	_eg_direvent_t * e = ecs_vec_append_t(NULL, &dirwatch->v, _eg_direvent_t);
-	printf("Appending new direvent %p\n", e);
-	e->file = CreateFile(path,
+	ecs_entity_t old_scope = ecs_set_scope(world, scope);
+	if(e == 0){e = ecs_new(world, _eg_direvent_t);}
+
+	_eg_direvent_t * ev = ecs_get_mut(world, e, _eg_direvent_t);
+	ecs_os_memset_t(ev, 0, _eg_dirwatch_t);
+
+	_eg_dirwatch_t * dirwatch = ecs_get_mut(world, scope, _eg_dirwatch_t);
+
+	printf("Appending new direvent %jx\n", (uintmax_t)e);
+	ev->file = CreateFile(path,
 		 FILE_LIST_DIRECTORY,
 		 FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
 		 NULL,
@@ -108,7 +120,7 @@ void _eg_dirwatch_add(_eg_dirwatch_t * dirwatch, char const * path)
 		 NULL);
 	//e->overlapped.hEvent = CreateEvent(NULL, FALSE, 0, NULL);
 	DWORD NumberOfConcurrentThreads = 0;
-	HANDLE hIOCP = CreateIoCompletionPort(e->file, dirwatch->hIOCP, (ULONG_PTR)e, NumberOfConcurrentThreads);
+	HANDLE hIOCP = CreateIoCompletionPort(ev->file, dirwatch->hIOCP, (ULONG_PTR)e, NumberOfConcurrentThreads);
 	assert(hIOCP == dirwatch->hIOCP);
 	if((hIOCP == 0) || (hIOCP == INVALID_HANDLE_VALUE))
 	{
@@ -121,79 +133,73 @@ void _eg_dirwatch_add(_eg_dirwatch_t * dirwatch, char const * path)
 		fprintf(stderr, "Error: PostQueuedCompletionStatus\n");
 		goto fail;
 	}
-	return;
+	return e;
 fail:
 	_eg_dirwatch_fini(dirwatch);
+	return 0;
 }
 
 
 
 // if a packet is pending, extract its events, post them in the queue and
 // re-issue its watch.
-int _eg_dirwatch_pull(_eg_dirwatch_t * dirwatch, int32_t timeout_ms, char out_path[EG_DIRWATCH_PATH_LENGTH])
+int eg_dirwatch_pull(ecs_world_t * world, ecs_entity_t e, int32_t timeout_ms, char out_path[EG_DIRWATCH_PATH_LENGTH])
 {
+	_eg_dirwatch_t * dirwatch = ecs_get_mut(world, e, _eg_dirwatch_t);
 	DWORD NumberOfBytesTransferred;
-	if(dirwatch->lastevent == NULL)
+	ULONG_PTR CompletionKey;
+	OVERLAPPED *Overlapped;
+	DWORD dwMilliseconds = (timeout_ms < 0) ? INFINITE : (DWORD)timeout_ms;
+	WINBOOL got_packet = GetQueuedCompletionStatus(dirwatch->hIOCP, &NumberOfBytesTransferred, &CompletionKey, &Overlapped, dwMilliseconds);
+	if(got_packet == FALSE)
 	{
-		ULONG_PTR CompletionKey;
-		OVERLAPPED *Overlapped;
-		DWORD dwMilliseconds = (timeout_ms < 0) ? INFINITE : (DWORD)timeout_ms;
-		WINBOOL got_packet = GetQueuedCompletionStatus(dirwatch->hIOCP, &NumberOfBytesTransferred, &CompletionKey, &Overlapped, dwMilliseconds);
-		if(got_packet == FALSE)
-		{
-			// no new packet - done   
-			return 0;
-		}
-		//printf("Got packet! %i, %p\n", (int)NumberOfBytesTransferred, (void*)CompletionKey);
-		dirwatch->lastevent = (_eg_direvent_t*)CompletionKey;
-		dirwatch->fni = NULL;
-		if(NumberOfBytesTransferred > 0)
-		{
-			dirwatch->fni = (FILE_NOTIFY_INFORMATION const*)dirwatch->lastevent->change_buf;
-		}
+		// no new packet - done   
+		return 0;
+	}
+	//printf("Got packet! %i, %p\n", (int)NumberOfBytesTransferred, (void*)CompletionKey);
+	ecs_entity_t ev = (ecs_entity_t)CompletionKey;
+	_eg_direvent_t * direvent = ecs_get_mut(world, ev, _eg_direvent_t);
+	
+	FILE_NOTIFY_INFORMATION const * fni = NULL;
+	if(NumberOfBytesTransferred > 0)
+	{
+		fni = (FILE_NOTIFY_INFORMATION const*)direvent->change_buf;
 	}
 
-	assert(dirwatch->lastevent);
-	if(dirwatch->fni)
+
+	while(fni)
 	{
 		// Convert WCHAR to CHAR
-		int name_len = dirwatch->fni->FileNameLength / sizeof(wchar_t);
-		snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(dirwatch->fni->Action), name_len, dirwatch->fni->FileName);
-		//printf("%s", out_path);
-		*((uint8_t **)&(dirwatch->fni)) += dirwatch->fni->NextEntryOffset;
-		if(dirwatch->fni->NextEntryOffset == 0)
+		int name_len = fni->FileNameLength / sizeof(wchar_t);
+		snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(fni->Action), name_len, fni->FileName);
+		printf("%s\n", out_path);
+		*((uint8_t **)&(fni)) += fni->NextEntryOffset;
+		if(fni->NextEntryOffset == 0)
 		{
-			dirwatch->fni = NULL;
+			fni = NULL;
 		}
-		return 1;
 	}
 
+
+	DWORD dwNotifyFilter =
+		FILE_NOTIFY_CHANGE_FILE_NAME |
+		FILE_NOTIFY_CHANGE_DIR_NAME |
+		FILE_NOTIFY_CHANGE_ATTRIBUTES |
+		FILE_NOTIFY_CHANGE_SIZE |
+		FILE_NOTIFY_CHANGE_LAST_WRITE |
+		FILE_NOTIFY_CHANGE_LAST_ACCESS |
+		FILE_NOTIFY_CHANGE_CREATION |
+		FILE_NOTIFY_CHANGE_SECURITY |
+		0;
+	WINBOOL bWatchSubtree = TRUE;
+	ecs_os_memset_t(&direvent->overlapped, 0, OVERLAPPED);
+	WINBOOL success = ReadDirectoryChangesW(direvent->file, direvent->change_buf, CHANGE_BUF_SIZE, bWatchSubtree, dwNotifyFilter, NULL, &direvent->overlapped, NULL);
+	if(success == FALSE)
 	{
-		DWORD dwNotifyFilter =
-			FILE_NOTIFY_CHANGE_FILE_NAME |
-			FILE_NOTIFY_CHANGE_DIR_NAME |
-			FILE_NOTIFY_CHANGE_ATTRIBUTES |
-			FILE_NOTIFY_CHANGE_SIZE |
-			FILE_NOTIFY_CHANGE_LAST_WRITE |
-			FILE_NOTIFY_CHANGE_LAST_ACCESS |
-			FILE_NOTIFY_CHANGE_CREATION |
-			FILE_NOTIFY_CHANGE_SECURITY |
-			0;
-		WINBOOL bWatchSubtree = TRUE;
-		memset(&dirwatch->lastevent->overlapped, 0, sizeof(dirwatch->lastevent->overlapped));
-		WINBOOL success = ReadDirectoryChangesW(dirwatch->lastevent->file, dirwatch->lastevent->change_buf, CHANGE_BUF_SIZE, bWatchSubtree, dwNotifyFilter, NULL, &dirwatch->lastevent->overlapped, NULL);
-		if(success == FALSE)
-		{
-			fprintf(stderr, "Error: ReadDirectoryChangesW\n");
-			goto fail;
-		}
+		fprintf(stderr, "Error: ReadDirectoryChangesW\n");
 	}
-	dirwatch->lastevent = NULL;
+
 	return 0;
-
-fail:
-	_eg_dirwatch_fini(dirwatch);
-	return -1;
 }
 
 
@@ -204,22 +210,6 @@ fail:
 
 
 
-void eg_dirwatch_fini(eg_dirwatch_t * dirwatch)
-{
-	_eg_dirwatch_fini((_eg_dirwatch_t*)dirwatch);
-}
-eg_dirwatch_t * eg_dirwatch_init(eg_dirwatch_desc_t * desc)
-{
-	return (eg_dirwatch_t*)_eg_dirwatch_init(desc);
-}
-
-void eg_dirwatch_add(eg_dirwatch_t * dirwatch, char const * path)
-{
-	_eg_dirwatch_add((_eg_dirwatch_t*)dirwatch, path);
-}
 
 
-int eg_dirwatch_pull(eg_dirwatch_t * dirwatch, int32_t timeout_ms, char out_path[EG_DIRWATCH_PATH_LENGTH])
-{
-	return _eg_dirwatch_pull((_eg_dirwatch_t*)dirwatch, timeout_ms, out_path);
-}
+#endif

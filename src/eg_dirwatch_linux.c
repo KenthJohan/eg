@@ -1,8 +1,19 @@
+
 /*
 https://developer.ibm.com/tutorials/l-ubuntu-inotify/
+
+Not complete
+
 */
 
+#include "flecs.h"
+
+
+
+#if defined(ECS_TARGET_LINUX)
+
 #include "eg_dirwatch.h"
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -94,3 +105,6 @@ int eg_dirwatch_pull(eg_dirwatch_t * dirwatch, int32_t timeout_ms, char out_path
 {
 	return _eg_dirwatch_pull((_eg_dirwatch_t*)dirwatch, timeout_ms, out_path);
 }
+
+
+#endif

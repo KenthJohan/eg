@@ -1,24 +1,17 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
+#include "flecs.h"
 
 
 #define EG_DIRWATCH_PATH_LENGTH 1024
 
-typedef struct
-{
-	int dummy;
-} eg_dirwatch_desc_t;
-
-typedef struct
-{
-	int dummy;
-} eg_dirwatch_t;
 
 
+void eg_dirwatch_bootstrap(ecs_world_t * world);
 
-int eg_dirwatch_size();
-eg_dirwatch_t * eg_dirwatch_init(eg_dirwatch_desc_t * desc);
-void eg_dirwatch_add(eg_dirwatch_t * dirwatch, char const * path);
-int eg_dirwatch_pull(eg_dirwatch_t * dirwatch, int32_t timeout_ms, char out_path[EG_DIRWATCH_PATH_LENGTH]);
-void eg_dirwatch_fini(eg_dirwatch_t * dirwatch);
+ecs_entity_t eg_dirwatch_init(ecs_world_t * world, ecs_entity_t e);
+ecs_entity_t eg_dirwatch_add(ecs_world_t * world, ecs_entity_t scope, ecs_entity_t e, char const * path);
+
+int eg_dirwatch_pull(ecs_world_t * world, ecs_entity_t e, int32_t timeout_ms, char out_path[EG_DIRWATCH_PATH_LENGTH]);
+void eg_dirwatch_fini(ecs_world_t * world, ecs_entity_t e);

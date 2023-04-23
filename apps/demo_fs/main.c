@@ -20,26 +20,34 @@ int main (int argc, char * argv [])
 	//https://www.flecs.dev/explorer/?remote=true
 	ecs_singleton_set(world, EcsRest, {0});
 
-	eg_dirwatch_desc_t desc = {0};
-	eg_dirwatch_t * dw = eg_dirwatch_init(&desc);
-	eg_dirwatch_add(dw, "./");
+	eg_dirwatch_bootstrap(world);
+	ecs_entity_t w = eg_dirwatch_init(world, 0);
+	ecs_entity_t e1 = eg_dirwatch_add(world, w, 0, "./");
+
+	/*
+	ecs_entity_t e1 = ecs_new(world, 0);
+	ecs_set_pair(world, e1, EgText, EgFsPath, {"./"});
+	ecs_set_pair(world, e1, EgMonitor, EgFsPath, {"./"});
+	*/
+
 
 	while(1)
 	{
 		printf("ecs_progress!\n");
 		ecs_progress(world, 0);
 
-
+		
 		char path[EG_DIRWATCH_PATH_LENGTH];
-		while(eg_dirwatch_pull(dw, 0, path) > 0)
+		while(eg_dirwatch_pull(world, w, 0, path) > 0)
 		{
 			printf("Filechange: %s\n", path);
 		}
+		
 
 		ecs_os_sleep(1,0);
 	}
 
-	eg_dirwatch_fini(dw);
+	//eg_dirwatch_fini(dw);
 
 
 }
