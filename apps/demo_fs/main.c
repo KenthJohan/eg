@@ -35,15 +35,6 @@ int main (int argc, char * argv [])
 	{
 		printf("ecs_progress!\n");
 		ecs_progress(world, 0);
-
-		
-		char path[EG_DIRWATCH_PATH_LENGTH];
-		while(eg_dirwatch_pull(world, w, 0, path) > 0)
-		{
-			printf("Filechange: %s\n", path);
-		}
-		
-
 		ecs_os_sleep(0,1000000);
 	}
 
