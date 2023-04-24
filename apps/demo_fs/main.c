@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <assert.h>
 #include "flecs.h"
-#include "eg_dirwatch.h"
 #include "EgFs.h"
 #include "EgQuantities.h"
 
@@ -20,9 +19,7 @@ int main (int argc, char * argv [])
 	//https://www.flecs.dev/explorer/?remote=true
 	ecs_singleton_set(world, EcsRest, {0});
 
-	eg_dirwatch_bootstrap(world);
-	ecs_entity_t w = eg_dirwatch_init(world, 0);
-	ecs_entity_t e1 = eg_dirwatch_add(world, w, 0, "./");
+
 
 	/*
 	ecs_entity_t e1 = ecs_new(world, 0);

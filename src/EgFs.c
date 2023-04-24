@@ -1,5 +1,6 @@
 #include "EgFs.h"
 #include "EgQuantities.h"
+#include "eg_dirwatch.h"
 
 
 
@@ -44,9 +45,9 @@ void EgFsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgFsMonitor);
 
 
-	ecs_entity_t a = ecs_new_entity(world, "my_path");
-	ecs_set_pair(world, a, EgText, EgFsPath, {"./banana/hello.txt"});
-	ecs_add(world, a, EgFsMonitor);
+	eg_dirwatch_bootstrap(world);
+	ecs_entity_t w = eg_dirwatch_init(world, 0);
+	ecs_entity_t e1 = eg_dirwatch_add(world, w, 0, "./");
 
 
 	ecs_observer(world, {
