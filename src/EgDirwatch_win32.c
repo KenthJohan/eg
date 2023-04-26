@@ -154,6 +154,16 @@ void System_Direvent(ecs_iter_t *it)
 			ecs_entity_t evv = ecs_new(it->world, 0);
 			ecs_add_pair(it->world, evv, EcsChildOf, it->entities[i]);
 			ecs_set_pair(it->world, evv, EgText, EgFsPath, {path});
+
+			switch (fni->Action)
+			{
+				case FILE_ACTION_ADDED:ecs_add(it->world, evv, EgFsAdded);break;
+				case FILE_ACTION_REMOVED:ecs_add(it->world, evv, EgFsRemoved);break;
+				case FILE_ACTION_MODIFIED:ecs_add(it->world, evv, EgFsModified);break;
+				case FILE_ACTION_RENAMED_OLD_NAME:ecs_add(it->world, evv, EgFsRenamedOld);break;
+				case FILE_ACTION_RENAMED_NEW_NAME:ecs_add(it->world, evv, EgFsRenamedNew);break;
+			}
+
 			*((uint8_t **)&(fni)) += fni->NextEntryOffset;
 			if(fni->NextEntryOffset == 0)
 			{
@@ -275,15 +285,15 @@ ECS_COPY(_eg_direvent_t, dst, src, {
 
 // This callback is used for the add, remove and set hooks. Note that the
 // signature is the same as systems, triggers, observers.
-void hook_callback(ecs_iter_t *it) {
-    ecs_world_t *world = it->world;
-    ecs_entity_t event = it->event;
-
-    for (int i = 0; i < it->count; i ++) {
-        ecs_entity_t e = it->entities[i];
-        FLOG(stdout, "%s: %s\n", 
-            ecs_get_name(world, event), ecs_get_name(world, e));
-    }
+void hook_callback(ecs_iter_t *it)
+{
+	ecs_world_t *world = it->world;
+	ecs_entity_t event = it->event;
+	for (int i = 0; i < it->count; i ++)
+	{
+		ecs_entity_t e = it->entities[i];
+		FLOG(stdout, "%s: %s\n", ecs_get_name(world, event), ecs_get_name(world, e));
+	}
 }
 
 void EgDirwatchImport(ecs_world_t *world)
@@ -316,73 +326,74 @@ void EgDirwatchImport(ecs_world_t *world)
         .on_set = hook_callback
 	});
 
-
+	// Creates an I/O completion port that is not yet associated with a file handle, allowing association at a later time.
 	ecs_system(world, {
-	.entity = ecs_entity(world, {
-	.name = "System_Dirwatch_Init",
-	.add = { ecs_dependson(EcsOnUpdate) }
-	}),
-	.query.filter.terms = {
-	{ .id = ecs_id(EgFsMonitorInstance), },
-	{ .id = ecs_id(_eg_dirwatch_t), .oper=EcsNot }
-	},
-	.callback = System_Dirwatch_Init
+		.entity = ecs_entity(world, {
+		.name = "System_Dirwatch_Init",
+		.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+		.query.filter.terms = {
+		{ .id = ecs_id(EgFsMonitorInstance), },
+		{ .id = ecs_id(_eg_dirwatch_t), .oper=EcsNot }
+		},
+		.callback = System_Dirwatch_Init
 	});
 
+	// Associating an instance of an opened file handle with an I/O completion port allows 
+	// a process to receive notification of the completion of asynchronous I/O operations involving that file handle.
 	ecs_system(world, {
-	.entity = ecs_entity(world, {
-	.name = "System_Dir_Init",
-	.add = { ecs_dependson(EcsOnUpdate) }
-	}),
-	.query.filter.terms = {
-	{.id = ecs_id(_eg_dirwatch_t), .src.flags = EcsParent},
-	{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
-	{.id = EgFsMonitorDir },
-	{.id = ecs_id(_eg_direvent_t), .oper=EcsNot },
-	},
-	.callback = System_Dir_Init
+		.entity = ecs_entity(world, {
+		.name = "System_Dir_Init",
+		.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+		.query.filter.terms = {
+		{.id = ecs_id(_eg_dirwatch_t), .src.flags = EcsParent},
+		{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
+		{.id = EgFsMonitorDir },
+		{.id = ecs_id(_eg_direvent_t), .oper=EcsNot },
+		},
+		.callback = System_Dir_Init
 	});
 
-
-
-
-
-
+	// Attempts to dequeue an I/O completion packet.
+	// Retrieves information that describes the changes within the specified directory.
 	ecs_system(world, {
-	.entity = ecs_entity(world, {
-	.name = "System_Dirwatcher",
-	.add = { ecs_dependson(EcsOnUpdate) }
-	}),
-	.query.filter.terms = {
-	{ .id = ecs_id(_eg_dirwatch_t), }
-	},
-	.callback = System_Dirwatcher
+		.entity = ecs_entity(world, {
+		.name = "System_Dirwatcher",
+		.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+		.query.filter.terms = {
+		{ .id = ecs_id(_eg_dirwatch_t), }
+		},
+		.callback = System_Dirwatcher
 	});
 
-
+	// Retrieves information that describes the changes within the specified directory.
 	ecs_system(world, {
-	.entity = ecs_entity(world, {
-	.name = "System_Direvent",
-	.add = { ecs_dependson(EcsOnUpdate) }
-	}),
-	.query.filter.terms = {
-		{.id = ecs_id(_eg_dirwatch_t), .src.flags = EcsParent | EcsCascade},
-		{.id = ecs_id(_eg_direvent_t) },
-		{.id = ecs_id(EgDirRes) },
-	},
-	.callback = System_Direvent
+		.entity = ecs_entity(world, {
+		.name = "System_Direvent",
+		.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+		.query.filter.terms = {
+			{.id = ecs_id(_eg_dirwatch_t), .src.flags = EcsParent | EcsCascade},
+			{.id = ecs_id(_eg_direvent_t) },
+			{.id = ecs_id(EgDirRes) },
+		},
+		.callback = System_Direvent
 	});
 
+	// Issue reqests to retrieves information that describes the changes within the specified directory.
+	// The function does not report changes to the specified directory itself.
 	ecs_system(world, {
-	.entity = ecs_entity(world, {
-	.name = "System_DirRequest",
-	.add = { ecs_dependson(EcsOnUpdate) }
-	}),
-	.query.filter.terms = {
-		{.id = ecs_id(_eg_direvent_t) },
-		{.id = ecs_id(EgDirReq) },
-	},
-	.callback = System_DirRequest
+		.entity = ecs_entity(world, {
+		.name = "System_DirRequest",
+		.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+		.query.filter.terms = {
+			{.id = ecs_id(_eg_direvent_t) },
+			{.id = ecs_id(EgDirReq) },
+		},
+		.callback = System_DirRequest
 	});
 }
 
