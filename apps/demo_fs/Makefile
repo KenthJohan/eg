@@ -9,7 +9,7 @@ SRC_DIRS := ./
 INC_DIRS := . ../../src/ ../../vendor/
 ifeq ($(OS),Windows_NT)
 	INC_FLAGS := $(addprefix -I,$(INC_DIRS))
-	CFLAGS := $(INC_FLAGS) -g -MMD -MP -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable
+	CFLAGS := $(INC_FLAGS) -g -MMD -MP -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-error=unused-function
 	LDFLAGS := -lws2_32
 else
 	INC_FLAGS := $(addprefix -I,$(INC_DIRS))
@@ -19,6 +19,7 @@ endif
 
 
 SRCS := main.c
+SRCS += ../../src/EgWin32.c
 SRCS += ../../src/EgDirwatch_win32.c
 SRCS += ../../src/EgQuantities.c
 SRCS += ../../src/EgFs.c

@@ -1,3 +1,4 @@
+#pragma once
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -6,7 +7,7 @@
 // Display error message text, given an error code.
 // Typically, the parameter passed to this function is retrieved
 // from GetLastError().
-void win32_PrintCSBackupAPIErrorMessage(DWORD e)
+static void win32_PrintCSBackupAPIErrorMessage(DWORD e)
 {
 	char buf[512];  // Buffer for text.
 	DWORD n;  // Number of chars returned.

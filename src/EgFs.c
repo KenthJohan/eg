@@ -35,6 +35,8 @@ void EgFsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgFsPath);
 	ECS_TAG_DEFINE(world, EgFsMonitorInstance);
 	ECS_TAG_DEFINE(world, EgFsMonitorDir);
+	ECS_TAG_DEFINE(world, EgDirReq);
+	ECS_TAG_DEFINE(world, EgDirRes);
 
 }
 

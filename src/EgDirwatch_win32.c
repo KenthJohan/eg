@@ -14,6 +14,7 @@ https://stackoverflow.com/questions/339776/asynchronous-readdirectorychangesw
 #include "EgDirwatch.h"
 #include "EgFs.h"
 #include "EgQuantities.h"
+#include "EgWin32.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -40,16 +41,11 @@ typedef struct
 	int dummy;
 } _eg_direvent_t;
 
-typedef struct
-{
-	HANDLE hIOCP;
-	int32_t timeout_ms;
-} _eg_dirwatch_t;
+
 
 
 
 ECS_COMPONENT_DECLARE(_eg_direvent_t);
-ECS_COMPONENT_DECLARE(_eg_dirwatch_t);
 
 
 
@@ -71,7 +67,7 @@ char const * action_to_string(DWORD Action)
 
 void System_Dir_Init(ecs_iter_t *it)
 {
-	_eg_dirwatch_t * dirwatch = ecs_field(it, _eg_dirwatch_t, 1);
+	EgWin32IOCP * dirwatch = ecs_field(it, EgWin32IOCP, 1);
 	EgText *path = ecs_field(it, EgText, 2);
 	for (int i = 0; i < it->count; i ++)
 	{
@@ -104,40 +100,12 @@ void System_Dir_Init(ecs_iter_t *it)
 
 
 
-void System_Dirwatcher(ecs_iter_t *it)
-{
-	_eg_dirwatch_t *dw = ecs_field(it, _eg_dirwatch_t, 1);
-	for (int i = 0; i < it->count; i ++)
-	{
-		DWORD NumberOfBytesTransferred;
-		ULONG_PTR CompletionKey;
-		OVERLAPPED *Overlapped;
-		DWORD dwMilliseconds = (dw[i].timeout_ms < 0) ? INFINITE : (DWORD)dw[i].timeout_ms;
-		WINBOOL got_packet = GetQueuedCompletionStatus(dw[i].hIOCP, &NumberOfBytesTransferred, &CompletionKey, &Overlapped, dwMilliseconds);
-		if(got_packet == FALSE)
-		{
-			// no new packet - done   
-			continue;;
-		}
-		//printf("Got packet! %i, %p\n", (int)NumberOfBytesTransferred, (void*)CompletionKey);
-		ecs_entity_t ev = (ecs_entity_t)CompletionKey;
-		if(NumberOfBytesTransferred > 0)
-		{
-			_eg_direvent_t * direvent = ecs_get_mut(it->world, ev, _eg_direvent_t);
-			FILE_NOTIFY_INFORMATION const * fni = (FILE_NOTIFY_INFORMATION const *)direvent->change_buf;
-			ecs_add(it->world, ev, EgDirRes);
-		}
-		else
-		{
-			ecs_add(it->world, ev, EgDirReq);
-		}
-	}
-}
+
 
 
 void System_Direvent(ecs_iter_t *it)
 {
-	_eg_dirwatch_t *dw0 = ecs_field(it, _eg_dirwatch_t, 1);
+	EgWin32IOCP *dw0 = ecs_field(it, EgWin32IOCP, 1);
 	_eg_direvent_t *de = ecs_field(it, _eg_direvent_t, 2);
 	for (int i = 0; i < it->count; i ++)
 	{
@@ -214,43 +182,10 @@ void System_Dirwatch_Init(ecs_iter_t *it)
 {
 	for (int i = 0; i < it->count; i ++)
 	{
-		ecs_add(it->world, it->entities[i], _eg_dirwatch_t);
+		ecs_add(it->world, it->entities[i], EgWin32IOCP);
 	}
 }
 
-
-
-
-ECS_CTOR(_eg_dirwatch_t, ptr, {
-    FLOG(stdout, "_eg_dirwatch_t::Ctor\n");
-	ecs_os_memset_t(ptr, 0, _eg_dirwatch_t);
-	DWORD NumberOfConcurrentThreads = 0;
-	ptr->hIOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, (ULONG_PTR)0, NumberOfConcurrentThreads);
-	if((ptr->hIOCP == 0) || (ptr->hIOCP == INVALID_HANDLE_VALUE))
-	{
-		FLOG(stderr, "Error: CreateIoCompletionPort\n");
-		win32_PrintCSBackupAPIErrorMessage(GetLastError());
-	}
-})
-
-// The destructor should free resources.
-ECS_DTOR(_eg_dirwatch_t, ptr, {
-    FLOG(stdout, "_eg_dirwatch_t::Dtor\n");
-	if(ptr->hIOCP){CloseHandle(ptr->hIOCP);}
-})
-
-// The move hook should move resources from one location to another.
-ECS_MOVE(_eg_dirwatch_t, dst, src, {
-    FLOG(stdout, "_eg_dirwatch_t::Move\n");
-	if(dst->hIOCP){ecs_os_free(dst->hIOCP);}
-    dst->hIOCP = src->hIOCP;
-    src->hIOCP = NULL;
-})
-
-// The copy hook should copy resources from one location to another.
-ECS_COPY(_eg_dirwatch_t, dst, src, {
-    FLOG(stdout, "_eg_dirwatch_t::Copy\n");
-})
 
 
 
@@ -299,19 +234,10 @@ void hook_callback(ecs_iter_t *it)
 void EgDirwatchImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgDirwatch);
-	ECS_TAG_DEFINE(world, EgDirReq);
-	ECS_TAG_DEFINE(world, EgDirRes);
+	ECS_IMPORT(world, EgWin32);
 	ECS_COMPONENT_DEFINE(world, _eg_direvent_t);
-	ECS_COMPONENT_DEFINE(world, _eg_dirwatch_t);
 
-	ecs_set_hooks(world, _eg_dirwatch_t, {
-		/* Resource management hooks. These hooks should primarily be used for
-		* managing memory used by the component. */
-		.ctor = ecs_ctor(_eg_dirwatch_t),
-		.move = ecs_move(_eg_dirwatch_t),
-		.copy = ecs_copy(_eg_dirwatch_t),
-		.dtor = ecs_dtor(_eg_dirwatch_t),
-	});
+
 
 	ecs_set_hooks(world, _eg_direvent_t, {
 		/* Resource management hooks. These hooks should primarily be used for
@@ -334,7 +260,7 @@ void EgDirwatchImport(ecs_world_t *world)
 		}),
 		.query.filter.terms = {
 		{ .id = ecs_id(EgFsMonitorInstance), },
-		{ .id = ecs_id(_eg_dirwatch_t), .oper=EcsNot }
+		{ .id = ecs_id(EgWin32IOCP), .oper=EcsNot }
 		},
 		.callback = System_Dirwatch_Init
 	});
@@ -347,25 +273,12 @@ void EgDirwatchImport(ecs_world_t *world)
 		.add = { ecs_dependson(EcsOnUpdate) }
 		}),
 		.query.filter.terms = {
-		{.id = ecs_id(_eg_dirwatch_t), .src.flags = EcsParent},
+		{.id = ecs_id(EgWin32IOCP), .src.flags = EcsParent},
 		{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
 		{.id = EgFsMonitorDir },
 		{.id = ecs_id(_eg_direvent_t), .oper=EcsNot },
 		},
 		.callback = System_Dir_Init
-	});
-
-	// Attempts to dequeue an I/O completion packet.
-	// Retrieves information that describes the changes within the specified directory.
-	ecs_system(world, {
-		.entity = ecs_entity(world, {
-		.name = "System_Dirwatcher",
-		.add = { ecs_dependson(EcsOnUpdate) }
-		}),
-		.query.filter.terms = {
-		{ .id = ecs_id(_eg_dirwatch_t), }
-		},
-		.callback = System_Dirwatcher
 	});
 
 	// Retrieves information that describes the changes within the specified directory.
@@ -375,7 +288,7 @@ void EgDirwatchImport(ecs_world_t *world)
 		.add = { ecs_dependson(EcsOnUpdate) }
 		}),
 		.query.filter.terms = {
-			{.id = ecs_id(_eg_dirwatch_t), .src.flags = EcsParent | EcsCascade},
+			{.id = ecs_id(EgWin32IOCP), .src.flags = EcsParent | EcsCascade},
 			{.id = ecs_id(_eg_direvent_t) },
 			{.id = ecs_id(EgDirRes) },
 		},
