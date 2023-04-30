@@ -19,11 +19,12 @@ int main (int argc, char * argv [])
 	//https://www.flecs.dev/explorer/?remote=true
 	ecs_singleton_set(world, EcsRest, {0});
 
-	ecs_entity_t w = ecs_new_entity(world, "EgFsMonitorInstance");
-	ecs_add(world, w, EgFsMonitorInstance);
+	ecs_entity_t w = ecs_new_entity(world, "EgFsMonitor");
+	ecs_add(world, w, EgFsMonitor);
+
 	ecs_entity_t d0 = ecs_new(world, 0);
-	ecs_add(world, d0, EgFsMonitorDir);
 	ecs_add_pair(world, d0, EcsChildOf, w);
+	ecs_set(world, d0, EgFsMonitorDir, {false});
 	ecs_set_pair(world, d0, EgText, EgFsPath, {"./"});
 
 

@@ -12,8 +12,8 @@ ECS_TAG_DECLARE(EgFsRenamedOld);
 ECS_TAG_DECLARE(EgFsRenamedNew);
 
 ECS_TAG_DECLARE(EgFsPath);
-ECS_TAG_DECLARE(EgFsMonitorInstance);
-ECS_TAG_DECLARE(EgFsMonitorDir);
+ECS_TAG_DECLARE(EgFsMonitor);
+ECS_COMPONENT_DECLARE(EgFsMonitorDir);
 
 
 
@@ -32,8 +32,15 @@ void EgFsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgFsRenamedOld);
 	ECS_TAG_DEFINE(world, EgFsRenamedNew);
 	ECS_TAG_DEFINE(world, EgFsPath);
-	ECS_TAG_DEFINE(world, EgFsMonitorInstance);
-	ECS_TAG_DEFINE(world, EgFsMonitorDir);
+	ECS_TAG_DEFINE(world, EgFsMonitor);
+	ECS_COMPONENT_DEFINE(world, EgFsMonitorDir);
+
+	ecs_struct(world, {
+	.entity = ecs_id(EgFsMonitorDir),
+	.members = {
+	{ .name = "subtree", .type = ecs_id(ecs_bool_t) }
+	}
+	});
 
 }
 

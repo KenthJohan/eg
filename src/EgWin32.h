@@ -29,11 +29,6 @@ typedef struct
 
 typedef struct
 {
-	int32_t NumberOfBytesTransferred;
-} EgWin32DirNotification;
-
-typedef struct
-{
 	bool bWatchSubtree;
 } EgWin32ReadDirectoryChangesW;
 
@@ -41,7 +36,6 @@ typedef struct
 
 extern ECS_COMPONENT_DECLARE(EgWin32IOCP);
 extern ECS_COMPONENT_DECLARE(EgWin32Handle);
-extern ECS_COMPONENT_DECLARE(EgWin32DirNotification);
 extern ECS_COMPONENT_DECLARE(EgWin32ReadDirectoryChangesW);
 
 void EgWin32Import(ecs_world_t *world);

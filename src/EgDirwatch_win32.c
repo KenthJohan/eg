@@ -52,7 +52,7 @@ void EgDirwatchImport(ecs_world_t *world)
 		.add = { ecs_dependson(EcsOnUpdate) }
 		}),
 		.query.filter.terms = {
-		{ .id = ecs_id(EgFsMonitorInstance), },
+		{ .id = ecs_id(EgFsMonitor), },
 		{ .id = ecs_id(EgWin32IOCP), .oper=EcsNot },
 		{ .id = ecs_id(EgWin32Handle), .oper=EcsNot }
 		},

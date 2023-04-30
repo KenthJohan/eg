@@ -4,7 +4,6 @@
 
 ECS_COMPONENT_DECLARE(EgWin32IOCP);
 ECS_COMPONENT_DECLARE(EgWin32Handle);
-ECS_COMPONENT_DECLARE(EgWin32DirNotification);
 ECS_COMPONENT_DECLARE(EgWin32ReadDirectoryChangesW);
 
 
@@ -42,20 +41,49 @@ void System_Dirwatcher(ecs_iter_t *it)
 		WINBOOL got_packet = GetQueuedCompletionStatus(h[i].handle, &NumberOfBytesTransferred, &CompletionKey, &Overlapped, dwMilliseconds);
 		iocp[i].NumberOfBytesTransferred = NumberOfBytesTransferred;
 		if(got_packet == FALSE)
-		{
-			// no new packet - done   
-			continue;;
+		{ 
+			continue;
 		}
 		//printf("Got packet! %i, %p\n", (int)NumberOfBytesTransferred, (void*)CompletionKey);
 		ecs_entity_t ev = (ecs_entity_t)CompletionKey;
 		assert(ecs_has(it->world, ev, EgFsMonitorDir));
+		assert(ecs_has(it->world, ev, EgBuffer));
 		if(NumberOfBytesTransferred > 0)
 		{
-			ecs_set(it->world, ev, EgWin32DirNotification, {NumberOfBytesTransferred});
+			//ecs_set(it->world, ev, EgWin32DirNotification, {NumberOfBytesTransferred});
+			EgBuffer const * b = ecs_get(it->world, ev, EgBuffer);
+			FILE_NOTIFY_INFORMATION const * fni = (FILE_NOTIFY_INFORMATION const*)b->data;
+			while(fni)
+			{
+				//snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(fni->Action), name_len, fni->FileName);
+				//printf("%s\n", out_path);
+				//FIXME: Stop duplicates path
+				// Convert WCHAR to CHAR
+				int name_len = fni->FileNameLength / sizeof(wchar_t);
+				char path[EG_DIRWATCH_PATH_LENGTH];
+				snprintf(path, EG_DIRWATCH_PATH_LENGTH, "%.*ls", name_len, fni->FileName);
+				ecs_entity_t evv = ecs_new(it->world, 0);
+				ecs_add_pair(it->world, evv, EcsChildOf, ev);
+				ecs_set_pair(it->world, evv, EgText, EgFsPath, {path});
+				switch (fni->Action)
+				{
+					case FILE_ACTION_ADDED:ecs_add(it->world, evv, EgFsAdded);break;
+					case FILE_ACTION_REMOVED:ecs_add(it->world, evv, EgFsRemoved);break;
+					case FILE_ACTION_MODIFIED:ecs_add(it->world, evv, EgFsModified);break;
+					case FILE_ACTION_RENAMED_OLD_NAME:ecs_add(it->world, evv, EgFsRenamedOld);break;
+					case FILE_ACTION_RENAMED_NEW_NAME:ecs_add(it->world, evv, EgFsRenamedNew);break;
+				}
+				*((uint8_t **)&(fni)) += fni->NextEntryOffset;
+				if(fni->NextEntryOffset == 0)
+				{
+					fni = NULL;
+					ecs_add(it->world, ev, EgWin32ReadDirectoryChangesW);
+				}
+			}
 		}
 		else
 		{
-			ecs_add(it->world, ev, EgWin32ReadDirectoryChangesW);
+			ecs_set(it->world, ev, EgWin32ReadDirectoryChangesW, {false});
 		}
 	}
 }
@@ -95,53 +123,13 @@ void System_DirRequest(ecs_iter_t *it)
 }
 
 
-void System_Dir_Notification(ecs_iter_t *it)
-{
-	EgWin32IOCP *dw0 = ecs_field(it, EgWin32IOCP, 1);
-	EgBuffer *buf = ecs_field(it, EgBuffer, 2);
-	for (int i = 0; i < it->count; i ++)
-	{
-		FILE_NOTIFY_INFORMATION const * fni = (FILE_NOTIFY_INFORMATION const*)buf[i].data;
-		while(fni)
-		{
-			//snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(fni->Action), name_len, fni->FileName);
-			//printf("%s\n", out_path);
-			//FIXME: Stop duplicates path
-			// Convert WCHAR to CHAR
-			int name_len = fni->FileNameLength / sizeof(wchar_t);
-			char path[EG_DIRWATCH_PATH_LENGTH];
-			snprintf(path, EG_DIRWATCH_PATH_LENGTH, "%.*ls", name_len, fni->FileName);
-			ecs_entity_t evv = ecs_new(it->world, 0);
-			ecs_add_pair(it->world, evv, EcsChildOf, it->entities[i]);
-			ecs_set_pair(it->world, evv, EgText, EgFsPath, {path});
-
-			switch (fni->Action)
-			{
-				case FILE_ACTION_ADDED:ecs_add(it->world, evv, EgFsAdded);break;
-				case FILE_ACTION_REMOVED:ecs_add(it->world, evv, EgFsRemoved);break;
-				case FILE_ACTION_MODIFIED:ecs_add(it->world, evv, EgFsModified);break;
-				case FILE_ACTION_RENAMED_OLD_NAME:ecs_add(it->world, evv, EgFsRenamedOld);break;
-				case FILE_ACTION_RENAMED_NEW_NAME:ecs_add(it->world, evv, EgFsRenamedNew);break;
-			}
-
-			*((uint8_t **)&(fni)) += fni->NextEntryOffset;
-			if(fni->NextEntryOffset == 0)
-			{
-				fni = NULL;
-				ecs_remove(it->world, it->entities[i], EgWin32DirNotification);
-				ecs_add(it->world, it->entities[i], EgWin32ReadDirectoryChangesW);
-			}
-		}
-	}
-}
-
-
 
 void System_Create_Watcher(ecs_iter_t *it)
 {
 	EgWin32Handle * h0 = ecs_field(it, EgWin32Handle, 1); // Parent
 	EgWin32IOCP * iocp0 = ecs_field(it, EgWin32IOCP, 2); // Parent
 	EgText *path = ecs_field(it, EgText, 3);
+	EgFsMonitorDir *m = ecs_field(it, EgFsMonitorDir, 4);
 	for (int i = 0; i < it->count; i ++)
 	{
 		iocp0->timeout_ms = 0;
@@ -213,7 +201,6 @@ void EgWin32Import(ecs_world_t *world)
 	ECS_IMPORT(world, EgQuantities);
 	ECS_COMPONENT_DEFINE(world, EgWin32Handle);
 	ECS_COMPONENT_DEFINE(world, EgWin32IOCP);
-	ECS_COMPONENT_DEFINE(world, EgWin32DirNotification);
 	ECS_COMPONENT_DEFINE(world, EgWin32ReadDirectoryChangesW);
 
 	ecs_set_hooks(world, EgWin32Handle, {
@@ -235,13 +222,6 @@ void EgWin32Import(ecs_world_t *world)
 	.entity = ecs_id(EgWin32IOCP),
 	.members = {
 	{ .name = "timeout_ms", .type = ecs_id(ecs_i32_t) },
-	{ .name = "NumberOfBytesTransferred", .type = ecs_id(ecs_i32_t) },
-	}
-	});
-
-	ecs_struct(world, {
-	.entity = ecs_id(EgWin32DirNotification),
-	.members = {
 	{ .name = "NumberOfBytesTransferred", .type = ecs_id(ecs_i32_t) },
 	}
 	});
@@ -284,24 +264,6 @@ void EgWin32Import(ecs_world_t *world)
 		.callback = System_DirRequest
 	});
 
-
-	// Retrieves information that describes the changes within the specified directory.
-	// This system will remove EgWin32DirNotification
-	// This system will add EgWin32ReadDirectoryChangesW
-	ecs_system(world, {
-		.entity = ecs_entity(world, {
-		.name = "System_Dir_Notification",
-		.add = { ecs_dependson(EcsOnUpdate) }
-		}),
-		.query.filter.terms = {
-			{.id = ecs_id(EgWin32IOCP), .src.flags = EcsParent},
-			{.id = ecs_id(EgBuffer) },
-			{.id = ecs_id(EgWin32DirNotification) }, // Removes
-		},
-		.callback = System_Dir_Notification
-	});
-
-
 	// This system will create a EgWin32Handle
 	ecs_system(world, {
 		.entity = ecs_entity(world, {
@@ -312,7 +274,7 @@ void EgWin32Import(ecs_world_t *world)
 		{.id = ecs_id(EgWin32Handle), .src.flags = EcsParent},
 		{.id = ecs_id(EgWin32IOCP), .src.flags = EcsParent},
 		{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
-		{.id = EgFsMonitorDir },
+		{.id = ecs_id(EgFsMonitorDir) },
 		{.id = ecs_id(EgWin32Handle), .oper=EcsNot }, // Creates
 		},
 		.callback = System_Create_Watcher
