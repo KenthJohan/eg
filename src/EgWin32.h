@@ -6,7 +6,6 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
-#include "win32error.h"
 
 #include <assert.h>
 #include <stdint.h>
@@ -27,15 +26,9 @@ typedef struct
 	HANDLE handle;
 } EgWin32Handle;
 
-typedef struct
-{
-	bool bWatchSubtree;
-} EgWin32ReadDirectoryChangesW;
-
 
 
 extern ECS_COMPONENT_DECLARE(EgWin32IOCP);
 extern ECS_COMPONENT_DECLARE(EgWin32Handle);
-extern ECS_COMPONENT_DECLARE(EgWin32ReadDirectoryChangesW);
 
 void EgWin32Import(ecs_world_t *world);

@@ -1,10 +1,10 @@
 #include "EgWin32.h"
 #include "EgFs.h"
 #include "EgQuantities.h"
+#include "win32error.h"
 
 ECS_COMPONENT_DECLARE(EgWin32IOCP);
 ECS_COMPONENT_DECLARE(EgWin32Handle);
-ECS_COMPONENT_DECLARE(EgWin32ReadDirectoryChangesW);
 
 
 #define FLOG(...) fprintf(__VA_ARGS__)
@@ -26,6 +26,86 @@ char const * action_to_string(DWORD Action)
 }
 
 
+
+void request_notification(HANDLE * h, void * data)
+{
+	//EgWin32Handle const * hh = ecs_get(world, ev, EgWin32Handle);
+	//EgBuffer const * bb = ecs_get(world, ev, EgBuffer);
+	DWORD dwNotifyFilter =
+		FILE_NOTIFY_CHANGE_FILE_NAME |
+		FILE_NOTIFY_CHANGE_DIR_NAME |
+		FILE_NOTIFY_CHANGE_ATTRIBUTES |
+		FILE_NOTIFY_CHANGE_SIZE |
+		FILE_NOTIFY_CHANGE_LAST_WRITE |
+		FILE_NOTIFY_CHANGE_LAST_ACCESS |
+		FILE_NOTIFY_CHANGE_CREATION |
+		FILE_NOTIFY_CHANGE_SECURITY |
+		0;
+	WINBOOL bWatchSubtree = TRUE;
+	OVERLAPPED overlapped = {0};
+	// Issue reqests to retrieves information that describes the changes within the specified directory.
+	// The function does not report changes to the specified directory itself.
+	FLOG(stdout, "ReadDirectoryChangesW\n");
+	WINBOOL success = ReadDirectoryChangesW(h, data, CHANGE_BUF_SIZE, bWatchSubtree, dwNotifyFilter, NULL, &overlapped, NULL);
+	if(success == FALSE)
+	{
+		FLOG(stderr, "Error: ReadDirectoryChangesW\n");
+		win32_PrintCSBackupAPIErrorMessage(GetLastError());
+	}
+}
+
+void process_packet(ecs_world_t * world, ecs_entity_t ev, int32_t NumberOfBytesTransferred)
+{
+	assert(ecs_has(world, ev, EgWin32Handle));
+	assert(ecs_has(world, ev, EgFsMonitorDir));
+	assert(ecs_has(world, ev, EgBuffer)); // This contains the pointer to packet data buffer
+	EgBuffer const * bb = ecs_get(world, ev, EgBuffer);
+	EgWin32Handle const * hh = ecs_get(world, ev, EgWin32Handle);
+	assert(bb->data);
+	assert(hh->handle);
+	if(NumberOfBytesTransferred > 0)
+	{
+		//ecs_set(it->world, ev, EgWin32DirNotification, {NumberOfBytesTransferred});
+		FILE_NOTIFY_INFORMATION const * fni = (FILE_NOTIFY_INFORMATION const*)bb->data;
+		while(fni)
+		{
+			//TODO: Stop duplicates path
+			// Convert WCHAR to CHAR
+			char pathbuf[EG_DIRWATCH_PATH_LENGTH];
+			int name_len = fni->FileNameLength / sizeof(wchar_t);
+			snprintf(pathbuf, EG_DIRWATCH_PATH_LENGTH, "%.*ls", name_len, fni->FileName);
+			FLOG(stdout, "FILE_NOTIFY_INFORMATION %s %.*ls\n", action_to_string(fni->Action), name_len, fni->FileName);
+			//snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(fni->Action), name_len, fni->FileName);
+			ecs_entity_t evv = ecs_new(world, 0);
+			ecs_add_pair(world, evv, EcsChildOf, ev);
+			ecs_set_pair(world, evv, EgText, EgFsPath, {pathbuf});
+			switch (fni->Action)
+			{
+				case FILE_ACTION_ADDED:ecs_add(world, evv, EgFsAdded);break;
+				case FILE_ACTION_REMOVED:ecs_add(world, evv, EgFsRemoved);break;
+				case FILE_ACTION_MODIFIED:ecs_add(world, evv, EgFsModified);break;
+				case FILE_ACTION_RENAMED_OLD_NAME:ecs_add(world, evv, EgFsRenamedOld);break;
+				case FILE_ACTION_RENAMED_NEW_NAME:ecs_add(world, evv, EgFsRenamedNew);break;
+			}
+			*((uint8_t **)&(fni)) += fni->NextEntryOffset;
+			if(fni->NextEntryOffset == 0)
+			{
+				fni = NULL;
+			}
+		}
+	}
+	// We are only getting one dir notification if we stop making request.
+	// To get dir notification again we need to request again:
+	// TODO: Unwrapping this function here causes strange error:
+	request_notification(hh->handle, bb->data);
+}
+
+
+
+
+
+
+
 void System_Dirwatcher(ecs_iter_t *it)
 {
 	EgWin32Handle *h = ecs_field(it, EgWin32Handle, 1);
@@ -44,83 +124,14 @@ void System_Dirwatcher(ecs_iter_t *it)
 		{ 
 			continue;
 		}
-		//printf("Got packet! %i, %p\n", (int)NumberOfBytesTransferred, (void*)CompletionKey);
 		ecs_entity_t ev = (ecs_entity_t)CompletionKey;
-		assert(ecs_has(it->world, ev, EgFsMonitorDir));
-		assert(ecs_has(it->world, ev, EgBuffer));
-		if(NumberOfBytesTransferred > 0)
-		{
-			//ecs_set(it->world, ev, EgWin32DirNotification, {NumberOfBytesTransferred});
-			EgBuffer const * b = ecs_get(it->world, ev, EgBuffer);
-			FILE_NOTIFY_INFORMATION const * fni = (FILE_NOTIFY_INFORMATION const*)b->data;
-			while(fni)
-			{
-				//snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(fni->Action), name_len, fni->FileName);
-				//printf("%s\n", out_path);
-				//FIXME: Stop duplicates path
-				// Convert WCHAR to CHAR
-				int name_len = fni->FileNameLength / sizeof(wchar_t);
-				char path[EG_DIRWATCH_PATH_LENGTH];
-				snprintf(path, EG_DIRWATCH_PATH_LENGTH, "%.*ls", name_len, fni->FileName);
-				ecs_entity_t evv = ecs_new(it->world, 0);
-				ecs_add_pair(it->world, evv, EcsChildOf, ev);
-				ecs_set_pair(it->world, evv, EgText, EgFsPath, {path});
-				switch (fni->Action)
-				{
-					case FILE_ACTION_ADDED:ecs_add(it->world, evv, EgFsAdded);break;
-					case FILE_ACTION_REMOVED:ecs_add(it->world, evv, EgFsRemoved);break;
-					case FILE_ACTION_MODIFIED:ecs_add(it->world, evv, EgFsModified);break;
-					case FILE_ACTION_RENAMED_OLD_NAME:ecs_add(it->world, evv, EgFsRenamedOld);break;
-					case FILE_ACTION_RENAMED_NEW_NAME:ecs_add(it->world, evv, EgFsRenamedNew);break;
-				}
-				*((uint8_t **)&(fni)) += fni->NextEntryOffset;
-				if(fni->NextEntryOffset == 0)
-				{
-					fni = NULL;
-					ecs_add(it->world, ev, EgWin32ReadDirectoryChangesW);
-				}
-			}
-		}
-		else
-		{
-			ecs_set(it->world, ev, EgWin32ReadDirectoryChangesW, {false});
-		}
+		FLOG(stdout, "GetQueuedCompletionStatus: NumberOfBytesTransferred:%i, e:%ju\n", (int)NumberOfBytesTransferred, (uintmax_t)ev);
+		process_packet(it->world, ev, (int32_t)NumberOfBytesTransferred);
 	}
 }
 
 
 
-void System_DirRequest(ecs_iter_t *it)
-{
-	EgWin32Handle *h = ecs_field(it, EgWin32Handle, 1);
-	EgBuffer *buf = ecs_field(it, EgBuffer, 2);
-	for (int i = 0; i < it->count; i ++)
-	{
-		DWORD dwNotifyFilter =
-			FILE_NOTIFY_CHANGE_FILE_NAME |
-			FILE_NOTIFY_CHANGE_DIR_NAME |
-			FILE_NOTIFY_CHANGE_ATTRIBUTES |
-			FILE_NOTIFY_CHANGE_SIZE |
-			FILE_NOTIFY_CHANGE_LAST_WRITE |
-			FILE_NOTIFY_CHANGE_LAST_ACCESS |
-			FILE_NOTIFY_CHANGE_CREATION |
-			FILE_NOTIFY_CHANGE_SECURITY |
-			0;
-		WINBOOL bWatchSubtree = TRUE;
-		OVERLAPPED overlapped = {0};
-		HANDLE * handle = h[i].handle;
-		assert(buf[i].data);
-		// Issue reqests to retrieves information that describes the changes within the specified directory.
-		// The function does not report changes to the specified directory itself.
-		WINBOOL success = ReadDirectoryChangesW(handle, buf[i].data, CHANGE_BUF_SIZE, bWatchSubtree, dwNotifyFilter, NULL, &overlapped, NULL);
-		if(success == FALSE)
-		{
-			FLOG(stderr, "Error: ReadDirectoryChangesW\n");
-			win32_PrintCSBackupAPIErrorMessage(GetLastError());
-		}
-		ecs_remove(it->world, it->entities[i], EgWin32ReadDirectoryChangesW);
-	}
-}
 
 
 
@@ -201,7 +212,6 @@ void EgWin32Import(ecs_world_t *world)
 	ECS_IMPORT(world, EgQuantities);
 	ECS_COMPONENT_DEFINE(world, EgWin32Handle);
 	ECS_COMPONENT_DEFINE(world, EgWin32IOCP);
-	ECS_COMPONENT_DEFINE(world, EgWin32ReadDirectoryChangesW);
 
 	ecs_set_hooks(world, EgWin32Handle, {
 		.ctor = ecs_default_ctor,
@@ -226,13 +236,6 @@ void EgWin32Import(ecs_world_t *world)
 	}
 	});
 
-	ecs_struct(world, {
-	.entity = ecs_id(EgWin32ReadDirectoryChangesW),
-	.members = {
-	{ .name = "bWatchSubtree", .type = ecs_id(ecs_bool_t) },
-	}
-	});
-
 
 
 	// This system will either add EgWin32ReadDirectoryChangesW or EgWin32DirNotification to an entity
@@ -246,22 +249,6 @@ void EgWin32Import(ecs_world_t *world)
 		{ .id = ecs_id(EgWin32IOCP), }
 		},
 		.callback = System_Dirwatcher
-	});
-
-
-
-	// This system will remove EgWin32ReadDirectoryChangesW
-	ecs_system(world, {
-		.entity = ecs_entity(world, {
-		.name = "System_DirRequest",
-		.add = { ecs_dependson(EcsOnUpdate) }
-		}),
-		.query.filter.terms = {
-			{.id = ecs_id(EgWin32Handle) },
-			{.id = ecs_id(EgBuffer) },
-			{.id = ecs_id(EgWin32ReadDirectoryChangesW) }, // Removes
-		},
-		.callback = System_DirRequest
 	});
 
 	// This system will create a EgWin32Handle
