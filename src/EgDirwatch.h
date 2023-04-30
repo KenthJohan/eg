@@ -4,7 +4,7 @@
 #include "flecs.h"
 
 
-#define EG_DIRWATCH_PATH_LENGTH 1024
+
 
 
 

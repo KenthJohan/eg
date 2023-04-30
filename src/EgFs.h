@@ -9,8 +9,7 @@ extern ECS_TAG_DECLARE(EgFsRenamedNew);
 extern ECS_TAG_DECLARE(EgFsPath);
 extern ECS_TAG_DECLARE(EgFsMonitorInstance);
 extern ECS_TAG_DECLARE(EgFsMonitorDir);
-extern ECS_TAG_DECLARE(EgDirReq);
-extern ECS_TAG_DECLARE(EgDirRes);
+
 
 void EgFsImport(ecs_world_t *world);
 
