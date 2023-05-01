@@ -214,20 +214,42 @@ void System_Dirwatch_Init(ecs_iter_t *it)
 
 
 
-
+int replacechar(char *str, char orig, char rep)
+{
+	char *ix = str;
+	int n = 0;
+	while((ix = strchr(ix, orig)) != NULL)
+	{
+		*ix++ = rep;
+		n++;
+	}
+	return n;
+}
 
 void System_List_Files(ecs_iter_t *it)
 {
 	EgText *path = ecs_field(it, EgText, 1);
+	ecs_entity_t old_scope = ecs_get_scope(it->world);
 	for (int i = 0; i < it->count; i ++)
 	{
 		WIN32_FIND_DATA ffd;
 		LARGE_INTEGER filesize;
-		HANDLE hFind = FindFirstFile(path[i].value, &ffd);
+		printf("ecs_get_fullpath: %s\n", ecs_get_fullpath(it->world, it->entities[i]));
+		char buf1[128];
+		char buf2[128];
+		snprintf(buf1, 128, "%s", ecs_get_fullpath(it->world, it->entities[i]));
+		replacechar(buf1, '.', '/');
+		replacechar(buf1, ':', '.');
+		snprintf(buf2, 128, "./%s/*", buf1);
+		
+		HANDLE hFind = FindFirstFile(buf2, &ffd);
+		ecs_set_scope(it->world, it->entities[i]);
 		do
 		{
-			//ecs_entity_t ee = ecs_new_entity(it->world, ffd.cFileName);
-			ecs_entity_t ee = ecs_new(it->world, 0);
+			if(ffd.cFileName[0] == '.'){continue;}
+			replacechar(ffd.cFileName, '.', ':');
+			ecs_entity_t ee = ecs_new_entity(it->world, ffd.cFileName);
+			//ecs_entity_t ee = ecs_new(it->world, 0);
 			ecs_set_pair(it->world, ee, EgText, EgFsPath, {ffd.cFileName});
 			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
@@ -248,6 +270,7 @@ void System_List_Files(ecs_iter_t *it)
 		FindClose(hFind);
 		ecs_remove(it->world, it->entities[i], EgFsList);
 	}
+	ecs_set_scope(it->world, old_scope);
 }
 
 
