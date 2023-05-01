@@ -3,6 +3,34 @@
 #include "EgQuantities.h"
 #include "win32error.h"
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+
+#include <assert.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdbool.h>
+
+
+#define CHANGE_BUF_SIZE 1024*3
+
+typedef struct
+{
+	int32_t timeout_ms;
+	int32_t NumberOfBytesTransferred;
+} EgWin32IOCP;
+
+typedef struct
+{
+	HANDLE handle;
+} EgWin32Handle;
+
+extern ECS_COMPONENT_DECLARE(EgWin32IOCP);
+extern ECS_COMPONENT_DECLARE(EgWin32Handle);
+
+
 ECS_COMPONENT_DECLARE(EgWin32IOCP);
 ECS_COMPONENT_DECLARE(EgWin32Handle);
 
@@ -175,6 +203,66 @@ void System_Create_Watcher(ecs_iter_t *it)
 }
 
 
+void System_Dirwatch_Init(ecs_iter_t *it)
+{
+   for (int i = 0; i < it->count; i ++)
+   {
+      ecs_add(it->world, it->entities[i], EgWin32Handle);
+      ecs_add(it->world, it->entities[i], EgWin32IOCP);
+   }
+}
+
+
+
+
+
+void System_List_Files(ecs_iter_t *it)
+{
+	EgText *path = ecs_field(it, EgText, 1);
+	for (int i = 0; i < it->count; i ++)
+	{
+		WIN32_FIND_DATA ffd;
+		LARGE_INTEGER filesize;
+		HANDLE hFind = FindFirstFile(path[i].value, &ffd);
+		do
+		{
+			//ecs_entity_t ee = ecs_new_entity(it->world, ffd.cFileName);
+			ecs_entity_t ee = ecs_new(it->world, 0);
+			ecs_set_pair(it->world, ee, EgText, EgFsPath, {ffd.cFileName});
+			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{
+				printf("  %s   <DIR>\n", ffd.cFileName);
+				ecs_add(it->world, ee, EgFsDir);
+				ecs_doc_set_color(it->world, ee, "#ed930c");
+			}
+			else
+			{
+				filesize.LowPart = ffd.nFileSizeLow;
+				filesize.HighPart = ffd.nFileSizeHigh;
+				printf("  %s   %ji bytes\n", ffd.cFileName, (intmax_t)filesize.QuadPart);
+				ecs_add(it->world, ee, EgFsFile);
+				ecs_doc_set_color(it->world, ee, "#0a0eff");
+			}
+		}
+		while (FindNextFile(hFind, &ffd) != 0);
+		FindClose(hFind);
+		ecs_remove(it->world, it->entities[i], EgFsList);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -265,6 +353,31 @@ void EgWin32Import(ecs_world_t *world)
 		{.id = ecs_id(EgWin32Handle), .oper=EcsNot }, // Creates
 		},
 		.callback = System_Create_Watcher
+	});
+
+	ecs_system(world, {
+		.entity = ecs_entity(world, {
+		.name = "System_Dirwatch_Init",
+		.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+		.query.filter.terms = {
+			{ .id = ecs_id(EgFsMonitor), },
+			{ .id = ecs_id(EgWin32IOCP), .oper=EcsNot },
+			{ .id = ecs_id(EgWin32Handle), .oper=EcsNot }
+		},
+		.callback = System_Dirwatch_Init
+	});
+
+	ecs_system(world, {
+		.entity = ecs_entity(world, {
+		.name = "System_List_Files",
+		.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+		.query.filter.terms = {
+		{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
+		{.id = EgFsList },
+		},
+		.callback = System_List_Files
 	});
 
 

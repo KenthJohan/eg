@@ -5,7 +5,7 @@
 #include "flecs.h"
 #include "EgFs.h"
 #include "EgQuantities.h"
-#include "EgDirwatch.h"
+#include "EgWin32.h"
 
 
 int main (int argc, char * argv [])
@@ -14,11 +14,12 @@ int main (int argc, char * argv [])
 	ecs_world_t *world = ecs_init_w_args(argc, argv);
 	ECS_IMPORT(world, FlecsUnits);
 	ECS_IMPORT(world, EgFs);
-	ECS_IMPORT(world, EgDirwatch);
+	ECS_IMPORT(world, EgWin32);
 
 	//https://www.flecs.dev/explorer/?remote=true
 	ecs_singleton_set(world, EcsRest, {0});
 
+	/*
 	ecs_entity_t w = ecs_new_entity(world, "EgFsMonitor");
 	ecs_add(world, w, EgFsMonitor);
 
@@ -26,6 +27,12 @@ int main (int argc, char * argv [])
 	ecs_add_pair(world, d0, EcsChildOf, w);
 	ecs_set(world, d0, EgFsMonitorDir, {false});
 	ecs_set_pair(world, d0, EgText, EgFsPath, {"./"});
+	*/
+
+
+	ecs_entity_t a = ecs_new(world, 0);
+	ecs_set_pair(world, a, EgText, EgFsPath, {"./*"});
+	ecs_add(world, a, EgFsList);
 
 
 	while(1)

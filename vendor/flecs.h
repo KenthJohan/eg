@@ -166,7 +166,7 @@
 #define FLECS_OS_API_IMPL   /**< Default implementation for OS API */
 #define FLECS_HTTP          /**< Tiny HTTP server for connecting to remote UI */
 #define FLECS_REST          /**< REST API for querying application data */
-#define FLECS_JOURNAL    /**< Journaling addon (disabled by default) */
+// #define FLECS_JOURNAL    /**< Journaling addon (disabled by default) */
 #endif // ifndef FLECS_CUSTOM_BUILD
 
 /** \def FLECS_LOW_FOOTPRINT
@@ -12632,7 +12632,7 @@ typedef enum ecs_type_kind_t {
     EcsArrayType,
     EcsVectorType,
     EcsOpaqueType,
-    EcsTypeKindLast = EcsVectorType
+    EcsTypeKindLast = EcsOpaqueType
 } ecs_type_kind_t;
 
 /** Component that is automatically added to every type with the right kind. */
@@ -14661,6 +14661,9 @@ ecs_entity_t ecs_module_init(
 extern "C" {
 #endif
 
+// The functions in this file can be used from C or C++, but these macros are only relevant to C++.
+#ifdef __cplusplus
+
 #if defined(__clang__)
 #define ECS_FUNC_NAME_FRONT(type, name) ((sizeof(#type) + sizeof(" flecs::_::() [T = ") + sizeof(#name)) - 3u)
 #define ECS_FUNC_NAME_BACK (sizeof("]") - 1u)
@@ -14679,6 +14682,8 @@ extern "C" {
 
 #define ECS_FUNC_TYPE_LEN(type, name, str)\
     (flecs::string::length(str) - (ECS_FUNC_NAME_FRONT(type, name) + ECS_FUNC_NAME_BACK))
+
+#endif
 
 FLECS_API
 char* ecs_cpp_get_type_name(
