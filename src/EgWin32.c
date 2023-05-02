@@ -232,22 +232,44 @@ void System_List_Files(ecs_iter_t *it)
 	ecs_entity_t old_scope = ecs_get_scope(it->world);
 	for (int i = 0; i < it->count; i ++)
 	{
+		ecs_entity_t e = it->entities[i];
 		WIN32_FIND_DATA ffd;
 		LARGE_INTEGER filesize;
-		printf("ecs_get_fullpath: %s\n", ecs_get_fullpath(it->world, it->entities[i]));
 		char buf1[128];
-		char buf2[128];
-		snprintf(buf1, 128, "%s", ecs_get_fullpath(it->world, it->entities[i]));
-		replacechar(buf1, '.', '/');
-		replacechar(buf1, ':', '.');
-		snprintf(buf2, 128, "./%s/*", buf1);
+		if(ecs_has(it->world, e, EgFsCwd))
+		{
+			snprintf(buf1, 128, "./*");
+		}
+		else
+		{
+			char const * fullpath = ecs_get_path_w_sep(it->world, 0, e, "/", NULL);
+			//char const * fullpath = ecs_get_fullpath(it->world, it->entities[i]);
+			printf("ecs_get_fullpath: %s\n", fullpath);
+			if(ecs_os_strcmp(fullpath, "fscwd/") > 0)
+			{
+				snprintf(buf1, 128, "./%s/*", fullpath+6);
+			}
+			else
+			{
+				FLOG(stderr, "Error: TODO Implementation\n");
+				continue;
+			}
+		}
 		
-		HANDLE hFind = FindFirstFile(buf2, &ffd);
-		ecs_set_scope(it->world, it->entities[i]);
+		
+		HANDLE hFind = FindFirstFile(buf1, &ffd);
+		if(hFind == INVALID_HANDLE_VALUE)
+		{
+			win32_PrintCSBackupAPIErrorMessage(GetLastError());
+			FLOG(stderr, "Error: FindFirstFile\n");
+			ecs_remove(it->world, it->entities[i], EgFsList);
+			continue;
+		}
+		ecs_set_scope(it->world, e);
 		do
 		{
 			if(ffd.cFileName[0] == '.'){continue;}
-			replacechar(ffd.cFileName, '.', ':');
+			replacechar(ffd.cFileName, '.', ',');
 			ecs_entity_t ee = ecs_new_entity(it->world, ffd.cFileName);
 			//ecs_entity_t ee = ecs_new(it->world, 0);
 			ecs_set_pair(it->world, ee, EgText, EgFsPath, {ffd.cFileName});
@@ -268,7 +290,7 @@ void System_List_Files(ecs_iter_t *it)
 		}
 		while (FindNextFile(hFind, &ffd) != 0);
 		FindClose(hFind);
-		ecs_remove(it->world, it->entities[i], EgFsList);
+		ecs_remove(it->world, e, EgFsList);
 	}
 	ecs_set_scope(it->world, old_scope);
 }

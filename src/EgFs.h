@@ -29,6 +29,9 @@ extern ECS_TAG_DECLARE(EgFsList);
 extern ECS_TAG_DECLARE(EgFsDir);
 extern ECS_TAG_DECLARE(EgFsFile);
 
+// Current working directory:
+extern ECS_TAG_DECLARE(EgFsCwd);
+
 // Must be child of EgFsMonitor to be able to monitor a directory:
 extern ECS_COMPONENT_DECLARE(EgFsMonitorDir);
 

@@ -10,6 +10,8 @@ ECS_TAG_DECLARE(EgFsMonitor);
 ECS_TAG_DECLARE(EgFsList);
 ECS_TAG_DECLARE(EgFsDir);
 ECS_TAG_DECLARE(EgFsFile);
+ECS_TAG_DECLARE(EgFsCwd);
+
 ECS_COMPONENT_DECLARE(EgFsMonitorDir);
 
 
@@ -32,6 +34,8 @@ void EgFsImport(ecs_world_t *world)
 
 	ECS_TAG_DEFINE(world, EgFsDir);
 	ECS_TAG_DEFINE(world, EgFsFile);
+	
+	ECS_TAG_DEFINE(world, EgFsCwd);
 	
 	ECS_COMPONENT_DEFINE(world, EgFsMonitorDir);
 
