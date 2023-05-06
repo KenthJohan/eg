@@ -1,7 +1,7 @@
 #include "EgWin32.h"
 #include "EgFs.h"
 #include "EgStr.h"
-#include "win32error.h"
+#include "eg_win32.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -78,7 +78,7 @@ void request_notification(HANDLE * h, void * data)
 	if(success == FALSE)
 	{
 		FLOG(stderr, "Error: ReadDirectoryChangesW\n");
-		win32_PrintCSBackupAPIErrorMessage(GetLastError());
+		eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
 	}
 }
 
@@ -190,13 +190,13 @@ void System_Create_Watcher(ecs_iter_t *it)
 		h0[i].handle = CreateIoCompletionPort(h, h0[i].handle, (ULONG_PTR)e, NumberOfConcurrentThreads);
 		if((h0[i].handle == 0) || (h0[i].handle == INVALID_HANDLE_VALUE))
 		{
-			win32_PrintCSBackupAPIErrorMessage(GetLastError());
+			eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
 			FLOG(stderr, "Error: CreateIoCompletionPort\n");
 		}
 		WINBOOL success = PostQueuedCompletionStatus(h0[i].handle, 0, (ULONG_PTR)e, 0);
 		if(success == FALSE)
 		{
-			win32_PrintCSBackupAPIErrorMessage(GetLastError());
+			eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
 			FLOG(stderr, "Error: PostQueuedCompletionStatus\n");
 		}
 	}
@@ -242,7 +242,7 @@ void System_List_Files(ecs_iter_t *it)
 		HANDLE hFind = FindFirstFile(buf1, &ffd);
 		if(hFind == INVALID_HANDLE_VALUE)
 		{
-			win32_PrintCSBackupAPIErrorMessage(GetLastError());
+			eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
 			FLOG(stderr, "Error: FindFirstFile\n"); 
 			continue;
 		}
