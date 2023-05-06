@@ -5,9 +5,15 @@
 
 typedef struct
 {
+	// Enable subtree monitoring:
 	ecs_bool_t subtree;
 } EgFsMonitorDir;
 
+typedef struct
+{
+	// Enable subtree monitoring:
+	int64_t size;
+} EgFsSize;
 
 // Filesystem events for files being added, removed, modified:
 extern ECS_TAG_DECLARE(EgFsAdded);
@@ -32,8 +38,19 @@ extern ECS_TAG_DECLARE(EgFsFile);
 // Current working directory:
 extern ECS_TAG_DECLARE(EgFsCwd);
 
+// File type:
+extern ECS_TAG_DECLARE(EgFsType);
+extern ECS_TAG_DECLARE(EgFsTypeDir);
+extern ECS_TAG_DECLARE(EgFsTypeExe);
+extern ECS_TAG_DECLARE(EgFsTypeC);
+
+
+
 // Must be child of EgFsMonitor to be able to monitor a directory:
 extern ECS_COMPONENT_DECLARE(EgFsMonitorDir);
+
+extern ECS_COMPONENT_DECLARE(EgFsSize);
+
 
 
 

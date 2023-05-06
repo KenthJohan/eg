@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "flecs.h"
 #include "EgFs.h"
-#include "EgQuantities.h"
+#include "EgStr.h"
 #include "EgWin32.h"
 
 
@@ -31,7 +31,8 @@ int main (int argc, char * argv [])
 
 
 	ecs_entity_t a = ecs_new_entity(world, "fscwd");
-	ecs_set_pair(world, a, EgText, EgFsPath, {"./*"});
+	ecs_set_pair(world, a, EgText, EgFsPath, {"."});
+	ecs_add(world, a, EgFsDir);
 	ecs_add(world, a, EgFsList);
 	ecs_add(world, a, EgFsCwd);
 

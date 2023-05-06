@@ -1,6 +1,6 @@
 #include "EgWin32.h"
 #include "EgFs.h"
-#include "EgQuantities.h"
+#include "EgStr.h"
 #include "win32error.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -236,43 +236,30 @@ void System_List_Files(ecs_iter_t *it)
 		WIN32_FIND_DATA ffd;
 		LARGE_INTEGER filesize;
 		char buf1[128];
-		if(ecs_has(it->world, e, EgFsCwd))
-		{
-			snprintf(buf1, 128, "./*");
-		}
-		else
-		{
-			char const * fullpath = ecs_get_path_w_sep(it->world, 0, e, "/", NULL);
-			//char const * fullpath = ecs_get_fullpath(it->world, it->entities[i]);
-			printf("ecs_get_fullpath: %s\n", fullpath);
-			if(ecs_os_strcmp(fullpath, "fscwd/") > 0)
-			{
-				snprintf(buf1, 128, "./%s/*", fullpath+6);
-			}
-			else
-			{
-				FLOG(stderr, "Error: TODO Implementation\n");
-				continue;
-			}
-		}
-		
-		
+
+		// Find files by adding a wildcard after the dir path:
+		snprintf(buf1, 128, "%s/*", path[i].value);
 		HANDLE hFind = FindFirstFile(buf1, &ffd);
 		if(hFind == INVALID_HANDLE_VALUE)
 		{
 			win32_PrintCSBackupAPIErrorMessage(GetLastError());
-			FLOG(stderr, "Error: FindFirstFile\n");
-			ecs_remove(it->world, it->entities[i], EgFsList);
+			FLOG(stderr, "Error: FindFirstFile\n"); 
 			continue;
 		}
+
+		// Add new files under this entity later on:
 		ecs_set_scope(it->world, e);
 		do
 		{
+			// Ignore "." and ".." dirs:
 			if(ffd.cFileName[0] == '.'){continue;}
+
+			// Set full path in in EgFsPath and relative path in entity name:
+			snprintf(buf1, 128, "%s/%s", path[i].value, ffd.cFileName);
 			replacechar(ffd.cFileName, '.', ',');
 			ecs_entity_t ee = ecs_new_entity(it->world, ffd.cFileName);
-			//ecs_entity_t ee = ecs_new(it->world, 0);
-			ecs_set_pair(it->world, ee, EgText, EgFsPath, {ffd.cFileName});
+			ecs_set_pair(it->world, ee, EgText, EgFsPath, {buf1});
+
 			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				printf("  %s   <DIR>\n", ffd.cFileName);
@@ -284,14 +271,27 @@ void System_List_Files(ecs_iter_t *it)
 				filesize.LowPart = ffd.nFileSizeLow;
 				filesize.HighPart = ffd.nFileSizeHigh;
 				printf("  %s   %ji bytes\n", ffd.cFileName, (intmax_t)filesize.QuadPart);
+				assert(filesize.QuadPart <= INTMAX_MAX);
+				assert(filesize.QuadPart >= INTMAX_MIN);
+				assert(filesize.QuadPart <= INT64_MAX);
+				assert(filesize.QuadPart >= INT64_MIN);
+				ecs_set(it->world, ee, EgFsSize, {(int64_t)filesize.QuadPart});
 				ecs_add(it->world, ee, EgFsFile);
 				ecs_doc_set_color(it->world, ee, "#0a0eff");
 			}
 		}
 		while (FindNextFile(hFind, &ffd) != 0);
 		FindClose(hFind);
+	}
+
+	// Remove EgFsList command so this system is only ran once:
+	for (int i = 0; i < it->count; i ++)
+	{
+		ecs_entity_t e = it->entities[i];
 		ecs_remove(it->world, e, EgFsList);
 	}
+
+	// Restore scope:
 	ecs_set_scope(it->world, old_scope);
 }
 
@@ -341,8 +341,9 @@ ECS_COPY(EgWin32Handle, dst, src, {
 void EgWin32Import(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgWin32);
+	ECS_IMPORT(world, FlecsUnits);
 	ECS_IMPORT(world, EgFs);
-	ECS_IMPORT(world, EgQuantities);
+	ECS_IMPORT(world, EgStr);
 	ECS_COMPONENT_DEFINE(world, EgWin32Handle);
 	ECS_COMPONENT_DEFINE(world, EgWin32IOCP);
 
@@ -420,6 +421,7 @@ void EgWin32Import(ecs_world_t *world)
 		}),
 		.query.filter.terms = {
 		{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
+		{.id = EgFsDir },
 		{.id = EgFsList },
 		},
 		.callback = System_List_Files

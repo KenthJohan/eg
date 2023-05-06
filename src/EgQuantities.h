@@ -98,17 +98,6 @@ typedef struct
 
 
 
-
-
-typedef struct {
-	ecs_string_t value;
-} EgText;
-
-typedef struct {
-	uint8_t * data;
-} EgBuffer;
-
-
 /*
 extern ECS_COMPONENT_DECLARE(EgV1F32);
 extern ECS_COMPONENT_DECLARE(EgV2F32);
@@ -131,10 +120,6 @@ extern ECS_COMPONENT_DECLARE(EgRectangle_V2F32);
 extern ECS_COMPONENT_DECLARE(EgColorRGBA_V4U8);
 
 extern ECS_COMPONENT_DECLARE(EgMassF32);
-
-extern ECS_COMPONENT_DECLARE(EgText);
-extern ECS_COMPONENT_DECLARE(EgBuffer);
-
 
 
 void EgQuantitiesImport(ecs_world_t *world);
