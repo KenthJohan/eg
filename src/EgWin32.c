@@ -215,7 +215,6 @@ void System_Dirwatch_Init(ecs_iter_t *it)
 }
 
 
-
 int replacechar(char *str, char orig, char rep)
 {
 	char *ix = str;
@@ -229,45 +228,26 @@ int replacechar(char *str, char orig, char rep)
 }
 
 
-BOOL GetLastWriteTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize)
-{
-    FILETIME ftCreate, ftAccess, ftWrite;
-    SYSTEMTIME stUTC, stLocal;
-    DWORD dwRet;
-
-    // Retrieve the file times for the file.
-    if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite))
-        return FALSE;
-
-    // Convert the last-write time to local time.
-    FileTimeToSystemTime(&ftWrite, &stUTC);
-    SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
-
-    // Build a string showing the date and time.
-    dwRet = snprintf(lpszString, dwSize, 
-        TEXT("%02d/%02d/%d  %02d:%02d"),
-        stLocal.wMonth, stLocal.wDay, stLocal.wYear,
-        stLocal.wHour, stLocal.wMinute);
-
-    if( S_OK == dwRet )
-        return TRUE;
-    else return FALSE;
-}
-
-
-
-
-void add_time2(ecs_world_t * world, ecs_entity_t e, ecs_entity_t tag, FILETIME * time)
+void add_time(ecs_world_t * world, ecs_entity_t e, ecs_entity_t tag, FILETIME * time)
 {
 	SYSTEMTIME stUTC, stLocal;
-	FileTimeToSystemTime(time, &stUTC);
-	SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+	if(!FileTimeToSystemTime(time, &stUTC))
+	{
+		eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
+		FLOG(stderr, "Error: FileTimeToSystemTime\n");
+	}
+	if(!SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal))
+	{
+		eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
+		FLOG(stderr, "Error: SystemTimeToTzSpecificLocalTime\n");
+	}
 	char buf[128];
 	snprintf(buf, 128, "%02d-%02d-%02d  %02d:%02d:%02d", stLocal.wYear, stLocal.wMonth, stLocal.wDay, stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
 	ecs_set_pair(world, e, EgText, tag, {buf});
 }
 
-void add_time(ecs_world_t * world, ecs_entity_t e, char const * filename)
+
+void add_times(ecs_world_t * world, ecs_entity_t e, char const * filename)
 {
 	HANDLE hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 	if((hFile == 0) || (hFile == INVALID_HANDLE_VALUE))
@@ -283,9 +263,9 @@ void add_time(ecs_world_t * world, ecs_entity_t e, char const * filename)
 		FLOG(stderr, "Error: GetFileTime\n");
 		return;
 	}
-	add_time2(world, e, EgFsCreated, &ftCreate);
-	add_time2(world, e, EgFsAccessed, &ftAccess);
-	add_time2(world, e, EgFsModified, &ftWrite);
+	add_time(world, e, EgFsCreated, &ftCreate);
+	add_time(world, e, EgFsAccessed, &ftAccess);
+	add_time(world, e, EgFsModified, &ftWrite);
 	CloseHandle(hFile);
 }
 
@@ -322,13 +302,10 @@ void System_List_Files(ecs_iter_t *it)
 			// Set full path in in EgFsPath and relative path in entity name:
 			snprintf(buf1, 128, "%s/%s", path[i].value, ffd.cFileName);
 
-
-
 			// flecs uses dot for scoping so replace it with comma:
 			replacechar(ffd.cFileName, '.', ',');
 			ecs_entity_t ee = ecs_new_entity(it->world, ffd.cFileName);
 			ecs_set_pair(it->world, ee, EgText, EgFsPath, {buf1});
-
 
 			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
@@ -350,7 +327,7 @@ void System_List_Files(ecs_iter_t *it)
 				ecs_doc_set_color(it->world, ee, "#0a0eff");
 			}
 
-			add_time(it->world, ee, buf1);
+			add_times(it->world, ee, buf1);
 
 		}
 		while (FindNextFile(hFind, &ffd) != 0);

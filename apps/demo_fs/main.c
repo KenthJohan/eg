@@ -30,7 +30,7 @@ int main (int argc, char * argv [])
 	*/
 
 
-	ecs_entity_t a = ecs_new_entity(world, "fscwd");
+	ecs_entity_t a = ecs_new_entity(world, "cwd");
 	ecs_set_pair(world, a, EgText, EgFsPath, {"."});
 	ecs_add(world, a, EgFsDir);
 	ecs_add(world, a, EgFsList);
