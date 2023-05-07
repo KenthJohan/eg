@@ -30,21 +30,16 @@ ECS_DTOR(EgText, ptr, {
 	ecs_os_free((char*)ptr->value);
 })
 
-
-
-
 ECS_CTOR(EgBuffer, ptr, {
 	FLOG(stdout, "EgBuffer::Ctor\n");
 	ptr->data = NULL;
 })
-
 
 ECS_DTOR(EgBuffer, ptr, {
 	FLOG(stdout, "EgBuffer::Dtor\n");
 	if(ptr->data){ecs_os_free(ptr->data);}
 })
 
-// The move hook should move resources from one location to another.
 ECS_MOVE(EgBuffer, dst, src, {
 	FLOG(stdout, "EgBuffer::Move\n");
 	ecs_os_free((char*)dst->data);
@@ -52,7 +47,6 @@ ECS_MOVE(EgBuffer, dst, src, {
 	src->data = NULL;
 })
 
-// The copy hook should copy resources from one location to another.
 ECS_COPY(EgBuffer, dst, src, {
 	FLOG(stdout, "EgBuffer::Copy\n");
 })

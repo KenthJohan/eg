@@ -12,6 +12,9 @@ ECS_TAG_DECLARE(EgFsList);
 ECS_TAG_DECLARE(EgFsDir);
 ECS_TAG_DECLARE(EgFsFile);
 ECS_TAG_DECLARE(EgFsCwd);
+ECS_TAG_DECLARE(EgFsCreated);
+ECS_TAG_DECLARE(EgFsModified);
+ECS_TAG_DECLARE(EgFsAccessed);
 
 ECS_TAG_DECLARE(EgFsOwner);
 ECS_TAG_DECLARE(EgFsDomain);
@@ -82,6 +85,9 @@ void EgFsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgFsFile);
 	
 	ECS_TAG_DEFINE(world, EgFsCwd);
+	ECS_TAG_DEFINE(world, EgFsCreated);
+	ECS_TAG_DEFINE(world, EgFsModified);
+	ECS_TAG_DEFINE(world, EgFsAccessed);
 
 	ECS_TAG_DEFINE(world, EgFsOwner);
 	ECS_TAG_DEFINE(world, EgFsDomain);
@@ -109,20 +115,6 @@ void EgFsImport(ecs_world_t *world)
 	}
 	});
 
-	/*
-	ecs_observer(world, {
-		.entity = ecs_entity(world, {
-		.name = "System_File_Tagging",
-		}),
-		.filter.terms = {
-		{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
-		{.id = EgFsFile },
-		},
-		.events = { EcsOnSet },
-		.callback = System_File_Tagging
-	});
-	*/
-
 	ecs_system(world, {
 		.entity = ecs_entity(world, {
 		.name = "System_File_Tagging",
@@ -131,7 +123,7 @@ void EgFsImport(ecs_world_t *world)
 		.query.filter.terms = {
 			{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
 			{.id = EgFsFile },
-			{.id = ecs_pair(EgFsType, EcsWildcard), .oper=EcsNot },
+			{.id = ecs_pair(EgFsType, EcsWildcard), .oper=EcsNot }, // Adds this
 		},
 		.callback = System_File_Tagging
 	});

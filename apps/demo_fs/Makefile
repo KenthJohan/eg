@@ -22,7 +22,6 @@ SRCS := main.c
 SRCS += ../../src/EgWin32.c
 SRCS += ../../src/EgStr.c
 SRCS += ../../src/EgFs.c
-SRCS += ../../src/eg_assert.c
 SRCS += ../../src/eg_basics.c
 SRCS += ../../src/eg_term.c
 SRCS += ../../src/eg_flecs.c

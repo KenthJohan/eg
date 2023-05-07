@@ -38,6 +38,10 @@ extern ECS_TAG_DECLARE(EgFsFile);
 // Current working directory:
 extern ECS_TAG_DECLARE(EgFsCwd);
 
+extern ECS_TAG_DECLARE(EgFsCreated);
+extern ECS_TAG_DECLARE(EgFsModified);
+extern ECS_TAG_DECLARE(EgFsAccessed);
+
 extern ECS_TAG_DECLARE(EgFsOwner);
 extern ECS_TAG_DECLARE(EgFsDomain);
 

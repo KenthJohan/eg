@@ -38,7 +38,7 @@ ECS_COMPONENT_DECLARE(EgWin32Handle);
 
 
 #define FLOG(...) fprintf(__VA_ARGS__)
-#define EG_DIRWATCH_PATH_LENGTH 1024
+
 
 
 
@@ -101,9 +101,9 @@ void process_packet(ecs_world_t * world, ecs_entity_t ev, int32_t NumberOfBytesT
 		{
 			//TODO: Stop duplicates path
 			// Convert WCHAR to CHAR
-			char pathbuf[EG_DIRWATCH_PATH_LENGTH];
+			char pathbuf[MAX_PATH];
 			int name_len = fni->FileNameLength / sizeof(wchar_t);
-			snprintf(pathbuf, EG_DIRWATCH_PATH_LENGTH, "%.*ls", name_len, fni->FileName);
+			snprintf(pathbuf, MAX_PATH, "%.*ls", name_len, fni->FileName);
 			FLOG(stdout, "FILE_NOTIFY_INFORMATION %s %.*ls\n", action_to_string(fni->Action), name_len, fni->FileName);
 			//snprintf(out_path, EG_DIRWATCH_PATH_LENGTH, "%s %.*ls", action_to_string(fni->Action), name_len, fni->FileName);
 			ecs_entity_t evv = ecs_new(world, 0);
@@ -228,6 +228,69 @@ int replacechar(char *str, char orig, char rep)
 	return n;
 }
 
+
+BOOL GetLastWriteTime(HANDLE hFile, LPTSTR lpszString, DWORD dwSize)
+{
+    FILETIME ftCreate, ftAccess, ftWrite;
+    SYSTEMTIME stUTC, stLocal;
+    DWORD dwRet;
+
+    // Retrieve the file times for the file.
+    if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite))
+        return FALSE;
+
+    // Convert the last-write time to local time.
+    FileTimeToSystemTime(&ftWrite, &stUTC);
+    SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+
+    // Build a string showing the date and time.
+    dwRet = snprintf(lpszString, dwSize, 
+        TEXT("%02d/%02d/%d  %02d:%02d"),
+        stLocal.wMonth, stLocal.wDay, stLocal.wYear,
+        stLocal.wHour, stLocal.wMinute);
+
+    if( S_OK == dwRet )
+        return TRUE;
+    else return FALSE;
+}
+
+
+
+
+void add_time2(ecs_world_t * world, ecs_entity_t e, ecs_entity_t tag, FILETIME * time)
+{
+	SYSTEMTIME stUTC, stLocal;
+	FileTimeToSystemTime(time, &stUTC);
+	SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
+	char buf[128];
+	snprintf(buf, 128, "%02d-%02d-%02d  %02d:%02d:%02d", stLocal.wYear, stLocal.wMonth, stLocal.wDay, stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
+	ecs_set_pair(world, e, EgText, tag, {buf});
+}
+
+void add_time(ecs_world_t * world, ecs_entity_t e, char const * filename)
+{
+	HANDLE hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	if((hFile == 0) || (hFile == INVALID_HANDLE_VALUE))
+	{
+		eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
+		FLOG(stderr, "Error: CreateFile\n");
+		return;
+	}
+	FILETIME ftCreate, ftAccess, ftWrite;
+	if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite))
+	{
+		eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
+		FLOG(stderr, "Error: GetFileTime\n");
+		return;
+	}
+	add_time2(world, e, EgFsCreated, &ftCreate);
+	add_time2(world, e, EgFsAccessed, &ftAccess);
+	add_time2(world, e, EgFsModified, &ftWrite);
+	CloseHandle(hFile);
+}
+
+
+
 void System_List_Files(ecs_iter_t *it)
 {
 	EgText *path = ecs_field(it, EgText, 1);
@@ -258,6 +321,10 @@ void System_List_Files(ecs_iter_t *it)
 
 			// Set full path in in EgFsPath and relative path in entity name:
 			snprintf(buf1, 128, "%s/%s", path[i].value, ffd.cFileName);
+
+
+
+			// flecs uses dot for scoping so replace it with comma:
 			replacechar(ffd.cFileName, '.', ',');
 			ecs_entity_t ee = ecs_new_entity(it->world, ffd.cFileName);
 			ecs_set_pair(it->world, ee, EgText, EgFsPath, {buf1});
@@ -282,6 +349,9 @@ void System_List_Files(ecs_iter_t *it)
 				ecs_add(it->world, ee, EgFsFile);
 				ecs_doc_set_color(it->world, ee, "#0a0eff");
 			}
+
+			add_time(it->world, ee, buf1);
+
 		}
 		while (FindNextFile(hFind, &ffd) != 0);
 		FindClose(hFind);
@@ -308,7 +378,7 @@ void System_Seq_Info(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i ++)
 	{
 		ecs_entity_t e = it->entities[i];
-		// Make sure that we add (EgText, EgFsOwner) so this system only run once:
+		// Make sure that (EgText, EgFsOwner) is added so this system only runs once:
 		EgText * text_owner = ecs_get_mut_pair(it->world, e, EgText, EgFsOwner);
 		EgText * text_domain = ecs_get_mut_pair(it->world, e, EgText, EgFsDomain);
 		text_owner->value = NULL;
