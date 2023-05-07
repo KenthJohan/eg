@@ -43,9 +43,10 @@ extern ECS_TAG_DECLARE(EgFsDomain);
 
 // File type:
 extern ECS_TAG_DECLARE(EgFsType);
+extern ECS_TAG_DECLARE(EgFsTypeUnknown);
 extern ECS_TAG_DECLARE(EgFsTypeDir);
 extern ECS_TAG_DECLARE(EgFsTypeExe);
-extern ECS_TAG_DECLARE(EgFsTypeC);
+extern ECS_TAG_DECLARE(EgFsTypeLangC);
 
 
 
