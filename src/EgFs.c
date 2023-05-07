@@ -12,6 +12,9 @@ ECS_TAG_DECLARE(EgFsDir);
 ECS_TAG_DECLARE(EgFsFile);
 ECS_TAG_DECLARE(EgFsCwd);
 
+ECS_TAG_DECLARE(EgFsOwner);
+ECS_TAG_DECLARE(EgFsDomain);
+
 ECS_TAG_DECLARE(EgFsType);
 ECS_TAG_DECLARE(EgFsTypeDir);
 ECS_TAG_DECLARE(EgFsTypeExe);
@@ -41,6 +44,9 @@ void EgFsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgFsFile);
 	
 	ECS_TAG_DEFINE(world, EgFsCwd);
+	
+	ECS_TAG_DEFINE(world, EgFsOwner);
+	ECS_TAG_DEFINE(world, EgFsDomain);
 
 	ECS_ENTITY_DEFINE(world, EgFsType, EcsUnion);
 	ECS_TAG_DEFINE(world, EgFsTypeDir);

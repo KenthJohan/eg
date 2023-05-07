@@ -4,6 +4,8 @@
 #endif
 #include <windows.h>
 #include <stdio.h>
+
+
 // Display error message text, given an error code.
 // Typically, the parameter passed to this function is retrieved
 // from GetLastError().
@@ -33,3 +35,5 @@ static void eg_win32_PrintCSBackupAPIErrorMessage(DWORD e)
 	// Display the error message, or generic text if not found.
 	fprintf(stderr, "Error value: %ld Message: %s\n",e, n ? buf : "Error message not found." );
 }
+
+

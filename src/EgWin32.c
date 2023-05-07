@@ -7,6 +7,8 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
+#include <accctrl.h>
+#include <aclapi.h>
 
 #include <assert.h>
 #include <stdint.h>
@@ -260,6 +262,7 @@ void System_List_Files(ecs_iter_t *it)
 			ecs_entity_t ee = ecs_new_entity(it->world, ffd.cFileName);
 			ecs_set_pair(it->world, ee, EgText, EgFsPath, {buf1});
 
+
 			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				printf("  %s   <DIR>\n", ffd.cFileName);
@@ -296,7 +299,56 @@ void System_List_Files(ecs_iter_t *it)
 }
 
 
+//https://stackoverflow.com/questions/46024914/how-to-parse-exe-file-and-get-data-from-image-dos-header-structure-using-c-and
+//eg_win32_get_sid(buf1);
+//PIMAGE_DOS_HEADER a;
+void System_Seq_Info(ecs_iter_t *it)
+{
+	EgText *path = ecs_field(it, EgText, 1);
+	for (int i = 0; i < it->count; i ++)
+	{
+		ecs_entity_t e = it->entities[i];
+		// Make sure that we add (EgText, EgFsOwner) so this system only run once:
+		EgText * text_owner = ecs_get_mut_pair(it->world, e, EgText, EgFsOwner);
+		EgText * text_domain = ecs_get_mut_pair(it->world, e, EgText, EgFsDomain);
+		text_owner->value = NULL;
+		text_domain->value = NULL;
+		HANDLE h = CreateFile(path[i].value, GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+		if (h == INVALID_HANDLE_VALUE)
+		{
+			eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
+			continue;
+		}
+		PSID pSidOwner = NULL;
+		PSECURITY_DESCRIPTOR pSD = NULL;
+		{
+			DWORD rv = GetSecurityInfo(h,SE_FILE_OBJECT,OWNER_SECURITY_INFORMATION,&pSidOwner,NULL,NULL,NULL,&pSD);
+			CloseHandle(h);
+			if (rv != ERROR_SUCCESS)
+			{
+				eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
+				continue;
+			}
+		}
+		{
+			SID_NAME_USE eUse = SidTypeUnknown;
+			DWORD dwAcctName = 0;
+			DWORD dwDomainName = 0;
+			BOOL rv;
+			rv = LookupAccountSid(NULL,pSidOwner, NULL, (LPDWORD)&dwAcctName, NULL, (LPDWORD)&dwDomainName, &eUse);
+			text_owner->value = ecs_os_calloc(dwAcctName);
+			text_domain->value = ecs_os_calloc(dwDomainName);
+			rv = LookupAccountSid(NULL,pSidOwner, text_owner->value, (LPDWORD)&dwAcctName, text_domain->value, (LPDWORD)&dwDomainName, &eUse);
+			if (rv == FALSE)
+			{
+				eg_win32_PrintCSBackupAPIErrorMessage(GetLastError());
+				continue;
+			}
+			continue;
+		}
 
+	}
+}
 
 
 
@@ -427,6 +479,18 @@ void EgWin32Import(ecs_world_t *world)
 		.callback = System_List_Files
 	});
 
+	ecs_system(world, {
+		.entity = ecs_entity(world, {
+		.name = "System_Seq_Info",
+		.add = { ecs_dependson(EcsOnUpdate) }
+		}),
+		.query.filter.terms = {
+		{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
+		{.id = EgFsFile },
+		{.id = ecs_pair(ecs_id(EgText), EgFsOwner), .oper=EcsNot },
+		},
+		.callback = System_Seq_Info
+	});
 
 
 }
