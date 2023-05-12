@@ -25,6 +25,8 @@ SRCS += ../../vendor/flecs.c
 SRCS += ../../vendor/sokol_app.c
 SRCS += ../../vendor/sokol_gfx.c
 SRCS += ../../vendor/sokol_glue.c
+SRCS += ../../vendor/sokol_gl.c
+SRCS += ../../vendor/sokol_log.c
 
 
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)

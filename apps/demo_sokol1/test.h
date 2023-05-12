@@ -4,7 +4,7 @@
 
 void frame(ecs_world_t *world);
 
-void init(void);
+void init(ecs_world_t *world);
 
-void cleanup(void);
+void cleanup(ecs_world_t *world);
 
