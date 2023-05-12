@@ -1,9 +1,11 @@
 #pragma once
 #include "flecs.h"
 
-#define EG_EDGE_RISING 0x01
-#define EG_EDGE_FALLING 0x02
-#define EG_KEYBOARD_SIZE 128
+#define EG_EDGE_UP      0x01
+#define EG_EDGE_DOWN    0x02
+#define EG_EDGE_RISING  0x10
+#define EG_EDGE_FALLING 0x20
+#define EG_KEYBOARD_SIZE 512
 
 
 typedef struct {
