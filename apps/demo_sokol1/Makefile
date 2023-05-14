@@ -33,6 +33,7 @@ SRCS += ../../vendor/stb_image.c
 SRCS += ../../src/EgUserinput.c
 SRCS += ../../src/EgQuantities.c
 SRCS += ../../src/EgSokolUserinput.c
+SRCS += ../../src/EgVerts.c
 
 
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)

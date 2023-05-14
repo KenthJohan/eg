@@ -1,4 +1,3 @@
-
 #define SOKOL_GLCORE33
 #include "sokol_app.h"
 #include "sokol_gfx.h"
@@ -20,6 +19,7 @@ const char* fileutil_get_path(const char* filename, char* buf, size_t buf_size) 
 	return buf;
 }
 
+
 static struct {
 	float rx, ry;
 	sg_pass_action pass_action;
@@ -28,10 +28,12 @@ static struct {
 	uint8_t file_buffer[256 * 1024];
 } state;
 
+
 typedef struct {
 	float x, y, z;
 	int16_t u, v;
 } vertex_t;
+
 
 static void fetch_callback(const sfetch_response_t* response) {
 	if (response->fetched) {
@@ -97,6 +99,7 @@ void frame(ecs_world_t *world)
 	sg_end_pass();
 	sg_commit();
 }
+
 
 void init(ecs_world_t *world)
 {
@@ -210,7 +213,6 @@ void init(ecs_world_t *world)
 		.buffer = SFETCH_RANGE(state.file_buffer)
 	});
 }
-
 
 
 void cleanup(ecs_world_t *world)
