@@ -4,112 +4,96 @@
 #include "sokol_gfx.h"
 #include "sokol_gp.h"
 #include "sokol_glue.h"
-#include "sokol_gl.h"
 #include "sokol_log.h"
+#include "sokol_fetch.h"
 #include "flecs.h"
+#include "HandmadeMath.h"
+#include "stb_image.h"
+#include "loadpng-sapp.glsl.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
+const char* fileutil_get_path(const char* filename, char* buf, size_t buf_size) {
+	snprintf(buf, buf_size, "%s", filename);
+	return buf;
+}
 
 static struct {
-	double angle_deg;
-	struct {
-		sg_pass_action pass_action;
-		sg_pass pass;
-		sg_image img;
-		sgl_context sgl_ctx;
-	} offscreen;
-	struct {
-		sg_pass_action pass_action;
-		sgl_pipeline sgl_pip;
-	} display;
+	float rx, ry;
+	sg_pass_action pass_action;
+	sg_pipeline pip;
+	sg_bindings bind;
+	uint8_t file_buffer[256 * 1024];
 } state;
 
-#define OFFSCREEN_PIXELFORMAT (SG_PIXELFORMAT_RGBA8)
-#define OFFSCREEN_SAMPLECOUNT (1)
-#define OFFSCREEN_WIDTH (32)
-#define OFFSCREEN_HEIGHT (32)
+typedef struct {
+	float x, y, z;
+	int16_t u, v;
+} vertex_t;
 
-
-// helper function to draw a colored quad with sokol-gl
-static void draw_quad(void) {
-	sgl_begin_quads();
-	sgl_v2f_c3b( 0.0f, -1.0f, 255, 0, 0);
-	sgl_v2f_c3b( 1.0f,  0.0f, 0, 0, 255);
-	sgl_v2f_c3b( 0.0f,  1.0f, 0, 255, 255);
-	sgl_v2f_c3b(-1.0f,  0.0f, 0, 255, 0);
-	sgl_end();
+static void fetch_callback(const sfetch_response_t* response) {
+	if (response->fetched) {
+		/* the file data has been fetched, since we provided a big-enough
+		   buffer we can be sure that all data has been loaded here
+		*/
+		int png_width, png_height, num_channels;
+		const int desired_channels = 4;
+		stbi_uc* pixels = stbi_load_from_memory(
+			response->data.ptr,
+			(int)response->data.size,
+			&png_width, &png_height,
+			&num_channels, desired_channels);
+		if (pixels) {
+			/* ok, time to actually initialize the sokol-gfx texture */
+			sg_init_image(state.bind.fs_images[SLOT_tex], &(sg_image_desc){
+				.width = png_width,
+				.height = png_height,
+				.pixel_format = SG_PIXELFORMAT_RGBA8,
+				.min_filter = SG_FILTER_LINEAR,
+				.mag_filter = SG_FILTER_LINEAR,
+				.data.subimage[0][0] = {
+					.ptr = pixels,
+					.size = (size_t)(png_width * png_height * 4),
+				}
+			});
+			stbi_image_free(pixels);
+		}
+	}
+	else if (response->failed) {
+		// if loading the file failed, set clear color to red
+		state.pass_action = (sg_pass_action) {
+			.colors[0] = { .action = SG_ACTION_CLEAR, .value = { 1.0f, 0.0f, 0.0f, 1.0f } }
+		};
+	}
 }
-
-// helper function to draw a textured cube with sokol-gl
-static void draw_cube(void) {
-	sgl_begin_quads();
-	sgl_v3f_t2f(-1.0f,  1.0f, -1.0f, 0.0f, 1.0f);
-	sgl_v3f_t2f( 1.0f,  1.0f, -1.0f, 1.0f, 1.0f);
-	sgl_v3f_t2f( 1.0f, -1.0f, -1.0f, 1.0f, 0.0f);
-	sgl_v3f_t2f(-1.0f, -1.0f, -1.0f, 0.0f, 0.0f);
-	sgl_v3f_t2f(-1.0f, -1.0f,  1.0f, 0.0f, 1.0f);
-	sgl_v3f_t2f( 1.0f, -1.0f,  1.0f, 1.0f, 1.0f);
-	sgl_v3f_t2f( 1.0f,  1.0f,  1.0f, 1.0f, 0.0f);
-	sgl_v3f_t2f(-1.0f,  1.0f,  1.0f, 0.0f, 0.0f);
-	sgl_v3f_t2f(-1.0f, -1.0f,  1.0f, 0.0f, 1.0f);
-	sgl_v3f_t2f(-1.0f,  1.0f,  1.0f, 1.0f, 1.0f);
-	sgl_v3f_t2f(-1.0f,  1.0f, -1.0f, 1.0f, 0.0f);
-	sgl_v3f_t2f(-1.0f, -1.0f, -1.0f, 0.0f, 0.0f);
-	sgl_v3f_t2f( 1.0f, -1.0f,  1.0f, 0.0f, 1.0f);
-	sgl_v3f_t2f( 1.0f, -1.0f, -1.0f, 1.0f, 1.0f);
-	sgl_v3f_t2f( 1.0f,  1.0f, -1.0f, 1.0f, 0.0f);
-	sgl_v3f_t2f( 1.0f,  1.0f,  1.0f, 0.0f, 0.0f);
-	sgl_v3f_t2f( 1.0f, -1.0f, -1.0f, 0.0f, 1.0f);
-	sgl_v3f_t2f( 1.0f, -1.0f,  1.0f, 1.0f, 1.0f);
-	sgl_v3f_t2f(-1.0f, -1.0f,  1.0f, 1.0f, 0.0f);
-	sgl_v3f_t2f(-1.0f, -1.0f, -1.0f, 0.0f, 0.0f);
-	sgl_v3f_t2f(-1.0f,  1.0f, -1.0f, 0.0f, 1.0f);
-	sgl_v3f_t2f(-1.0f,  1.0f,  1.0f, 1.0f, 1.0f);
-	sgl_v3f_t2f( 1.0f,  1.0f,  1.0f, 1.0f, 0.0f);
-	sgl_v3f_t2f( 1.0f,  1.0f, -1.0f, 0.0f, 0.0f);
-	sgl_end();
-}
-
-
 
 
 void frame(ecs_world_t *world)
 {
 	assert(world);
 	ecs_progress(world, 0);
-	// begin draw commands queue
-	state.angle_deg += sapp_frame_duration() * 60.0;
-	const float a = sgl_rad((float)state.angle_deg);
+	/* pump the sokol-fetch message queues, and invoke response callbacks */
+	sfetch_dowork();
 
-	// draw a rotating quad into the offscreen render target texture
-	sgl_set_context(state.offscreen.sgl_ctx);
-	sgl_defaults();
-	sgl_matrix_mode_modelview();
-	sgl_rotate(a, 0.0f, 0.0f, 1.0f);
-	draw_quad();
+	/* compute model-view-projection matrix for vertex shader */
+	const float t = (float)(sapp_frame_duration() * 60.0);
+	hmm_mat4 proj = HMM_Perspective(60.0f, sapp_widthf()/sapp_heightf(), 0.01f, 10.0f);
+	hmm_mat4 view = HMM_LookAt(HMM_Vec3(0.0f, 1.5f, 6.0f), HMM_Vec3(0.0f, 0.0f, 0.0f), HMM_Vec3(0.0f, 1.0f, 0.0f));
+	hmm_mat4 view_proj = HMM_MultiplyMat4(proj, view);
+	vs_params_t vs_params;
+	state.rx += 1.0f * t; state.ry += 2.0f * t;
+	hmm_mat4 rxm = HMM_Rotate(state.rx, HMM_Vec3(1.0f, 0.0f, 0.0f));
+	hmm_mat4 rym = HMM_Rotate(state.ry, HMM_Vec3(0.0f, 1.0f, 0.0f));
+	hmm_mat4 model = HMM_MultiplyMat4(rxm, rym);
+	vs_params.mvp = HMM_MultiplyMat4(view_proj, model);
 
-	// draw a rotating 3D cube, using the offscreen render target as texture
-	sgl_set_context(SGL_DEFAULT_CONTEXT);
-	sgl_defaults();
-	sgl_enable_texture();
-	sgl_texture(state.offscreen.img);
-	sgl_load_pipeline(state.display.sgl_pip);
-	sgl_matrix_mode_projection();
-	sgl_perspective(sgl_rad(45.0f), sapp_widthf()/sapp_heightf(), 0.1f, 100.0f);
-	const float eye[3] = { sinf(a) * 6.0f, sinf(a) * 3.0f, cosf(a) * 6.0f };
-	sgl_matrix_mode_modelview();
-	sgl_lookat(eye[0], eye[1], eye[2], 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	draw_cube();
-
-	// do the actual offscreen and display rendering in sokol-gfx passes
-	sg_begin_pass(state.offscreen.pass, &state.offscreen.pass_action);
-	sgl_context_draw(state.offscreen.sgl_ctx);
-	sg_end_pass();
-	sg_begin_default_pass(&state.display.pass_action, sapp_width(), sapp_height());
-	sgl_context_draw(SGL_DEFAULT_CONTEXT);
+	sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
+	sg_apply_pipeline(state.pip);
+	sg_apply_bindings(&state.bind);
+	sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &SG_RANGE(vs_params));
+	sg_draw(0, 36, 1);
 	sg_end_pass();
 	sg_commit();
 }
@@ -117,58 +101,114 @@ void frame(ecs_world_t *world)
 void init(ecs_world_t *world)
 {
 	assert(world);
+   /* setup sokol-gfx and the optional debug-ui*/
 	sg_setup(&(sg_desc){
 		.context = sapp_sgcontext(),
 		.logger.func = slog_func,
 	});
-
-	// setup sokol-gl with the default context compatible with the default render pass
-	sgl_setup(&(sgl_desc_t){
-		.max_vertices = 64,
-		.max_commands = 16,
+	/* setup sokol-fetch with the minimal "resource limits" */
+	sfetch_setup(&(sfetch_desc_t){
+		.max_requests = 1,
+		.num_channels = 1,
+		.num_lanes = 1,
 		.logger.func = slog_func,
 	});
 
-	// pass action and pipeline for the default render pass
-	state.display.pass_action = (sg_pass_action) {
-		.colors[0] = { .action = SG_ACTION_CLEAR, .value = { 0.5f, 0.7f, 1.0f, 1.0f } }
+	/* pass action for clearing the framebuffer to some color */
+	state.pass_action = (sg_pass_action) {
+		.colors[0] = { .action = SG_ACTION_CLEAR, .value = { 0.125f, 0.25f, 0.35f, 1.0f } }
 	};
-	state.display.sgl_pip = sgl_context_make_pipeline(sgl_default_context(), &(sg_pipeline_desc){
+
+	/* Allocate an image handle, but don't actually initialize the image yet,
+	   this happens later when the asynchronous file load has finished.
+	   Any draw calls containing such an "incomplete" image handle
+	   will be silently dropped.
+	*/
+	state.bind.fs_images[SLOT_tex] = sg_alloc_image();
+
+	/* cube vertex buffer with packed texcoords */
+	const vertex_t vertices[] = {
+		/* pos                  uvs */
+		{ -1.0f, -1.0f, -1.0f,      0,     0 },
+		{  1.0f, -1.0f, -1.0f,  32767,     0 },
+		{  1.0f,  1.0f, -1.0f,  32767, 32767 },
+		{ -1.0f,  1.0f, -1.0f,      0, 32767 },
+
+		{ -1.0f, -1.0f,  1.0f,      0,     0 },
+		{  1.0f, -1.0f,  1.0f,  32767,     0 },
+		{  1.0f,  1.0f,  1.0f,  32767, 32767 },
+		{ -1.0f,  1.0f,  1.0f,      0, 32767 },
+
+		{ -1.0f, -1.0f, -1.0f,      0,     0 },
+		{ -1.0f,  1.0f, -1.0f,  32767,     0 },
+		{ -1.0f,  1.0f,  1.0f,  32767, 32767 },
+		{ -1.0f, -1.0f,  1.0f,      0, 32767 },
+
+		{  1.0f, -1.0f, -1.0f,      0,     0 },
+		{  1.0f,  1.0f, -1.0f,  32767,     0 },
+		{  1.0f,  1.0f,  1.0f,  32767, 32767 },
+		{  1.0f, -1.0f,  1.0f,      0, 32767 },
+
+		{ -1.0f, -1.0f, -1.0f,      0,     0 },
+		{ -1.0f, -1.0f,  1.0f,  32767,     0 },
+		{  1.0f, -1.0f,  1.0f,  32767, 32767 },
+		{  1.0f, -1.0f, -1.0f,      0, 32767 },
+
+		{ -1.0f,  1.0f, -1.0f,      0,     0 },
+		{ -1.0f,  1.0f,  1.0f,  32767,     0 },
+		{  1.0f,  1.0f,  1.0f,  32767, 32767 },
+		{  1.0f,  1.0f, -1.0f,      0, 32767 },
+	};
+	state.bind.vertex_buffers[0] = sg_make_buffer(&(sg_buffer_desc){
+		.data = SG_RANGE(vertices),
+		.label = "cube-vertices"
+	});
+
+	/* create an index buffer for the cube */
+	const uint16_t indices[] = {
+		0, 1, 2,  0, 2, 3,
+		6, 5, 4,  7, 6, 4,
+		8, 9, 10,  8, 10, 11,
+		14, 13, 12,  15, 14, 12,
+		16, 17, 18,  16, 18, 19,
+		22, 21, 20,  23, 22, 20
+	};
+	state.bind.index_buffer = sg_make_buffer(&(sg_buffer_desc){
+		.type = SG_BUFFERTYPE_INDEXBUFFER,
+		.data = SG_RANGE(indices),
+		.label = "cube-indices"
+	});
+	
+	/* a pipeline state object */
+	state.pip = sg_make_pipeline(&(sg_pipeline_desc){
+		.shader = sg_make_shader(loadpng_shader_desc(sg_query_backend())),
+		.layout = {
+			.attrs = {
+				[ATTR_vs_pos].format = SG_VERTEXFORMAT_FLOAT3,
+				[ATTR_vs_texcoord0].format = SG_VERTEXFORMAT_SHORT2N
+			}
+		},
+		.index_type = SG_INDEXTYPE_UINT16,
 		.cull_mode = SG_CULLMODE_BACK,
 		.depth = {
-			.write_enabled = true,
-			.compare = SG_COMPAREFUNC_LESS_EQUAL
-		}
+			.compare = SG_COMPAREFUNC_LESS_EQUAL,
+			.write_enabled = true
+		},
+		.label = "cube-pipeline"
 	});
 
-	// create a sokol-gl context compatible with the offscreen render pass
-	// (specific color pixel format, no depth-stencil-surface, no MSAA)
-	state.offscreen.sgl_ctx = sgl_make_context(&(sgl_context_desc_t){
-		.max_vertices = 8,
-		.max_commands = 4,
-		.color_format = OFFSCREEN_PIXELFORMAT,
-		.depth_format = SG_PIXELFORMAT_NONE,
-		.sample_count = OFFSCREEN_SAMPLECOUNT,
+	/* start loading the PNG file, we don't need the returned handle since
+	   we can also get that inside the fetch-callback from the response
+	   structure.
+		- NOTE that we're not using the user_data member, since all required
+		  state is in a global variable anyway
+	*/
+	char path_buf[512];
+	sfetch_send(&(sfetch_request_t){
+		.path = fileutil_get_path("../../content/baboon.png", path_buf, sizeof(path_buf)),
+		.callback = fetch_callback,
+		.buffer = SFETCH_RANGE(state.file_buffer)
 	});
-
-	// create an offscreen render target texture, pass, and pass_action
-	state.offscreen.img = sg_make_image(&(sg_image_desc){
-		.render_target = true,
-		.width = OFFSCREEN_WIDTH,
-		.height = OFFSCREEN_HEIGHT,
-		.pixel_format = OFFSCREEN_PIXELFORMAT,
-		.sample_count = OFFSCREEN_SAMPLECOUNT,
-		.wrap_u = SG_WRAP_CLAMP_TO_EDGE,
-		.wrap_v = SG_WRAP_CLAMP_TO_EDGE,
-		.min_filter = SG_FILTER_NEAREST,
-		.mag_filter = SG_FILTER_NEAREST
-	});
-	state.offscreen.pass = sg_make_pass(&(sg_pass_desc){
-		.color_attachments[0].image = state.offscreen.img
-	});
-	state.offscreen.pass_action = (sg_pass_action){
-		.colors[0] = { .action = SG_ACTION_CLEAR, .value = { 0.0f, 0.0f, 0.0f, 1.0f } },
-	};
 }
 
 
@@ -176,7 +216,7 @@ void init(ecs_world_t *world)
 void cleanup(ecs_world_t *world)
 {
 	assert(world);
-	sgl_shutdown();
+	sfetch_shutdown();
 	sg_shutdown();
 }
 
