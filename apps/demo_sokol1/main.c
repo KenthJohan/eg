@@ -2,6 +2,10 @@
 #include "sokol_app.h"
 #include "sokol_log.h"
 #include "EgSokolUserinput.h"
+#include "EgFs.h"
+#include "EgStr.h"
+#include "EgTexture.h"
+#include "EgSokolFetch.h"
 #include "test.h"
 
 
@@ -12,8 +16,13 @@ sapp_desc sokol_main(int argc, char* argv[])
 	(void)argv;
 	ecs_world_t *world = ecs_init();
 	ECS_IMPORT(world, EgSokolUserinput);
+	ECS_IMPORT(world, EgFs);
+	ECS_IMPORT(world, EgStr);
+	ECS_IMPORT(world, EgTexture);
+	ECS_IMPORT(world, EgSokolFetch);
 	//https://www.flecs.dev/explorer/?remote=true
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
+	ecs_plecs_from_file(world, "test.flecs");
 	return (sapp_desc) {
 		.user_data = world,
 		.init_userdata_cb = (void(*)(void*))init,

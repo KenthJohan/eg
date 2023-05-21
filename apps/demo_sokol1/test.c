@@ -111,7 +111,7 @@ void init(ecs_world_t *world)
 	});
 	/* setup sokol-fetch with the minimal "resource limits" */
 	sfetch_setup(&(sfetch_desc_t){
-		.max_requests = 1,
+		.max_requests = 2,
 		.num_channels = 1,
 		.num_lanes = 1,
 		.logger.func = slog_func,

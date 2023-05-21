@@ -30,10 +30,15 @@ SRCS += ../../vendor/sokol_log.c
 SRCS += ../../vendor/sokol_fetch.c
 SRCS += ../../vendor/HandmadeMath.c
 SRCS += ../../vendor/stb_image.c
+SRCS += ../../src/EgFs.c
 SRCS += ../../src/EgUserinput.c
 SRCS += ../../src/EgQuantities.c
 SRCS += ../../src/EgSokolUserinput.c
 SRCS += ../../src/EgVerts.c
+SRCS += ../../src/EgSokolFetch.c
+SRCS += ../../src/EgTexture.c
+SRCS += ../../src/EgGeometries.c
+SRCS += ../../src/EgStr.c
 
 
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
