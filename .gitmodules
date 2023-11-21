@@ -1,6 +1,0 @@
-[submodule "vendor/gs"]
-	path = vendor/gs
-	url = https://github.com/MrFrenik/gunslinger
-[submodule "vendor/gs_ddt"]
-	path = vendor/gs_ddt
-	url = https://github.com/Samdal/gs_ddt
