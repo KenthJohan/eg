@@ -1,4 +1,4 @@
-#include "Components.h"
+#include "eg/Components.h"
 
 ECS_COMPONENT_DECLARE(Window);
 ECS_COMPONENT_DECLARE(Pass);

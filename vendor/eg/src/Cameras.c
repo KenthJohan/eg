@@ -1,12 +1,11 @@
-#include "Cameras.h"
-#include "Graphics.h"
+#include "eg/Cameras.h"
+#include "eg/Components.h"
 
 #include "sokol/sokol_app.h"
 #include "sokol/sokol_gfx.h"
 #include "sokol/sokol_debugtext.h"
 
-#include "gmath.h"
-#include "gcamera.h"
+#include "eg/gmath.h"
 #include <assert.h>
 
 void CameraUpdate(ecs_iter_t *it)

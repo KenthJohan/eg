@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gmath.h"
+#include <eg/gmath.h>
 
 typedef struct
 {

@@ -1,11 +1,10 @@
-#include "sokol/sokol_app.h"
-#include "sokol/sokol_gfx.h"
-#include "sokol/sokol_log.h"
-#include "sokol/sokol_debugtext.h"
-#include "sokol/sokol_glue.h"
-#include "gcamera.h"
-#include "draw_points.h"
-#include "draw_shapes.h"
+#include <sokol/sokol_app.h>
+#include <sokol/sokol_gfx.h>
+#include <sokol/sokol_log.h>
+#include <sokol/sokol_debugtext.h>
+#include <sokol/sokol_glue.h>
+
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,9 +15,15 @@
 #include <pthread.h>
 #include <stdio.h>
 
-#include "flecs.h"
+#include <flecs.h>
+#include <eg/Cameras.h>
+#include <eg/Components.h>
+
+
+
+#include "draw_points.h"
+#include "draw_shapes.h"
 #include "Graphics.h"
-#include "Cameras.h"
 
 typedef struct {
 	ecs_world_t *world;

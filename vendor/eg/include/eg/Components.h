@@ -1,6 +1,6 @@
 #pragma once
-#include "flecs.h"
-#include "gmath.h"
+#include <flecs.h>
+#include <eg/gmath.h>
 
 typedef struct {
 	uint8_t keys[512];

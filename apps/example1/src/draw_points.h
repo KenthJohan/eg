@@ -1,7 +1,7 @@
 #pragma once
 
-#include "sokol/sokol_gfx.h"
-#include "gmath.h"
+#include <sokol/sokol_gfx.h>
+#include <eg/gmath.h>
 
 
 

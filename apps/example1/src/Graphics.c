@@ -1,13 +1,13 @@
 #include "Graphics.h"
 
-#include "sokol/sokol_app.h"
-#include "sokol/sokol_gfx.h"
-#include "sokol/sokol_log.h"
-#include "sokol/sokol_debugtext.h"
-#include "sokol/sokol_glue.h"
-#include "sokol/sokol_shape.h"
-#include "gcamera.h"
-#include "eg/eg_fs.h"
+#include <sokol/sokol_app.h>
+#include <sokol/sokol_gfx.h>
+#include <sokol/sokol_log.h>
+#include <sokol/sokol_debugtext.h>
+#include <sokol/sokol_glue.h>
+#include <sokol/sokol_shape.h>
+#include <eg/eg_fs.h>
+#include <eg/Components.h>
 
 void DrawText(ecs_iter_t *it)
 {
