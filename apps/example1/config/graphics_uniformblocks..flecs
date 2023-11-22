@@ -1,0 +1,13 @@
+module graphics.uniformblocks
+
+standard {
+	- sg.UniformBlocks
+	ub0 {
+		- sg.UniformBlock{index:0, size:80}
+		vs_params {
+			- sg.Uniform{index:0, array_count:5}
+			- (sg.UniformType, sg.Float4)
+		}
+	}
+}
+

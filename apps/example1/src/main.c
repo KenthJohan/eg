@@ -18,6 +18,7 @@
 #include <flecs.h>
 #include <eg/Cameras.h>
 #include <eg/Components.h>
+#include <egsokol/Sg.h>
 
 
 #include "Graphics.h"
@@ -92,6 +93,14 @@ static void init_cb(app_t *app)
 	ECS_IMPORT(world, Components);
 	ECS_IMPORT(world, Graphics);
 	ECS_IMPORT(world, Cameras);
+	ECS_IMPORT(world, Sg);
+
+	ecs_plecs_from_file(app->world, "config/graphics_attributes.flecs");
+	ecs_plecs_from_file(app->world, "config/graphics_pipes.flecs");
+	ecs_plecs_from_file(app->world, "config/graphics_shaders.flecs");
+
+	// https://www.flecs.dev/explorer/?remote=true
+	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
 
 	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, Camera, Rotate3, Window($));
 	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, Camera, Velocity3, Window($));

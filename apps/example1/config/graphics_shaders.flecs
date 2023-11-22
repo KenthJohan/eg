@@ -1,0 +1,17 @@
+module graphics.shaders
+
+
+points : attributes.points, ubs.standard {
+	- sg.ShaderCreate{filename_fs:"./shaders/points.fs.glsl", filename_vs:"./shaders/points.vs.glsl"}
+	- sg.shaders.Entry//{"main"}
+}
+
+instances : attributes.instances, ubs.standard {
+	- sg.ShaderCreate{filename_fs:"./shaders/instance.fs.glsl", filename_vs:"./shaders/instance.vs.glsl"}
+	- sg.shaders.Entry//{"main"}
+}
+
+shapes : attributes.shapes, ubs.standard {
+	- sg.ShaderCreate{filename_fs:"./shaders/shapes.fs.glsl", filename_vs:"./shaders/shapes.vs.glsl"}
+	- sg.shaders.Entry//{"main"}
+}

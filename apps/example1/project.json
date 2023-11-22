@@ -7,7 +7,8 @@
 		"use": [
 			"flecs",
 			"sokol",
-			"eg"
+			"eg",
+			"egsokol"
 		]
 	},
 	"lang.c": {
@@ -19,6 +20,7 @@
 			"flecs",
 			"sokol",
 			"eg",
+			"egsokol",
 			"m",
 			"GL",
 			"X11",

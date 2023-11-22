@@ -1,0 +1,68 @@
+module graphics.attributes
+
+
+points {
+	- sg.Attributes
+	position {
+		- sg.Location{0}
+		- sg.Attribute{offset: 0, buffer_index: 0}
+		- (sg.VertexFormat, sg.Float4)
+	}
+	color0 {
+		- sg.Location{1}
+		- sg.Attribute{offset: 0, buffer_index: 0}
+		- (sg.VertexFormat, sg.Ubyte4n)
+	}
+}
+
+
+instances {
+	- sg.Attributes
+	position {
+		- sg.Location{0}
+		- sg.AttributeShapePosition
+	}
+	normal {
+		- sg.Location{1}
+		- sg.AttributeShapeNormal
+	}
+	texcoord {
+		- sg.Location{2}
+		- sg.AttributeShapeTextcoord
+	}
+	color0 {
+		- sg.Location{3}
+		- sg.AttributeShapeColor
+	}
+	inst_pos {
+		- sg.Location{4}
+		- sg.Attribute{offset: 0, buffer_index: 1}
+		- (sg.VertexFormat, sg.Float3)
+	}
+}
+
+
+shapes {
+	- sg.Attributes
+	position {
+		- sg.Location{0}
+		- sg.AttributeShapePosition
+	}
+	normal {
+		- sg.Location{1}
+		- sg.AttributeShapeNormal
+	}
+	texcoord {
+		- sg.Location{2}
+		- sg.AttributeShapeTextcoord
+	}
+	color0 {
+		- sg.Location{3}
+		- sg.AttributeShapeColor
+	}
+}
+
+
+
+
+
