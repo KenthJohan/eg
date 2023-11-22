@@ -1,0 +1,36 @@
+{
+	"id": "example1",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"flecs",
+			"sokol",
+			"eg"
+		]
+	},
+	"lang.c": {
+		"c-standard": "c11",
+		"defines": [
+			"SOKOL_GLCORE33"
+		],
+		"lib": [
+			"flecs",
+			"sokol",
+			"eg",
+			"m",
+			"GL",
+			"X11",
+			"Xi",
+			"Xcursor"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}
