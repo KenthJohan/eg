@@ -237,6 +237,11 @@ static void m4f32_print(m4f32 const *x)
 	printf("\n");
 }
 
+static void v3f32_print(float const x[3])
+{
+	printf("%f %f %f\n", x[0], x[1], x[2]);
+}
+
 static void v4f32_print(float const x[4])
 {
 	printf("%f %f %f %f\n", x[0], x[1], x[2], x[3]);

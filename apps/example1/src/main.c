@@ -20,14 +20,60 @@
 #include <eg/Components.h>
 
 
-
-#include "draw_points.h"
-#include "draw_shapes.h"
 #include "Graphics.h"
+
+
+
+void ControllerRotate(ecs_iter_t *it)
+{
+	// Camera *camera = ecs_field(it, Camera, 1);
+	Rotate3 *rotate = ecs_field(it, Rotate3, 2);
+	Window *window = ecs_field(it, Window, 3);
+	uint8_t *keys = window->keys;
+	float k = 0.8f * it->delta_time;
+	for (int i = 0; i < it->count; i++) {
+		rotate->dx = keys[SAPP_KEYCODE_UP] - keys[SAPP_KEYCODE_DOWN];
+		rotate->dy = keys[SAPP_KEYCODE_RIGHT] - keys[SAPP_KEYCODE_LEFT];
+		rotate->dz = keys[SAPP_KEYCODE_E] - keys[SAPP_KEYCODE_Q];
+		v3f32_mul((float *)rotate, (float *)rotate, k);
+	}
+}
+
+void ControllerMove(ecs_iter_t *it)
+{
+	// Camera *camera = ecs_field(it, Camera, 1);
+	Velocity3 *vel = ecs_field(it, Velocity3, 2);
+	Window *window = ecs_field(it, Window, 3);
+	uint8_t *keys = window->keys;
+	float moving_speed = 100.1f;
+	float k = it->delta_time * moving_speed;
+	for (int i = 0; i < it->count; i++) {
+		vel->x = keys[SAPP_KEYCODE_A] - keys[SAPP_KEYCODE_D];
+		vel->y = keys[SAPP_KEYCODE_LEFT_CONTROL] - keys[SAPP_KEYCODE_SPACE];
+		vel->z = keys[SAPP_KEYCODE_W] - keys[SAPP_KEYCODE_S];
+		v3f32_mul((float *)vel, (float *)vel, k);
+	}
+}
+
+void ControllerPerspective(ecs_iter_t *it)
+{
+	Camera *camera = ecs_field(it, Camera, 1);
+	Window *window = ecs_field(it, Window, 2);
+	uint8_t *keys = window->keys;
+	for (int i = 0; i < it->count; i++) {
+		camera->fov = keys[SAPP_KEYCODE_KP_0] ? 45 : camera->fov;
+		camera->fov -= keys[SAPP_KEYCODE_KP_1];
+		camera->fov += keys[SAPP_KEYCODE_KP_2];
+		//sdtx_printf("FOV: %f", camera->fov);
+	}
+}
+
+
 
 typedef struct {
 	ecs_world_t *world;
 } app_t;
+
 
 static void init_cb(app_t *app)
 {
@@ -46,6 +92,10 @@ static void init_cb(app_t *app)
 	ECS_IMPORT(world, Components);
 	ECS_IMPORT(world, Graphics);
 	ECS_IMPORT(world, Cameras);
+
+	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, Camera, Rotate3, Window($));
+	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, Camera, Velocity3, Window($));
+	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, Camera, Window($));
 
 	ecs_singleton_set(app->world, Window, {.w = 0, .h = 0});
 

@@ -1,10 +1,6 @@
 #include "eg/Cameras.h"
 #include "eg/Components.h"
 
-#include "sokol/sokol_app.h"
-#include "sokol/sokol_gfx.h"
-#include "sokol/sokol_debugtext.h"
-
 #include "eg/gmath.h"
 #include <assert.h>
 
@@ -31,12 +27,15 @@ void CameraUpdate(ecs_iter_t *it)
 		m4f32 v = M4_IDENTITY;
 		qf32_unit_to_m4(o->q, &v);
 
+		//printf("Camera:\n");
+		//m4f32_print(&v);
 		m4f32_mul(&v, &v, &t);
+		//m4f32_print(&v);
+
 		m4f32_mul(&cam->vp, &p, &v);
 
 		// printf("Camera:\n");
-		// v4f32_print(o->q);
-		// m4f32_print(&cam->vp);
+		//v4f32_print(o->q);
 	}
 }
 
@@ -55,6 +54,7 @@ void Move(ecs_iter_t *it)
 		dir[0] = V3_DOT(r.c0, (float *)v);
 		dir[1] = V3_DOT(r.c1, (float *)v);
 		dir[2] = V3_DOT(r.c2, (float *)v);
+		//v3f32_print((float*)dir);
 		v3f32_add((float *)p, (float *)p, dir);
 	}
 }
@@ -80,49 +80,7 @@ void RotateQuaternion(ecs_iter_t *it)
 	}
 }
 
-void ControllerRotate(ecs_iter_t *it)
-{
-	// Camera *camera = ecs_field(it, Camera, 1);
-	Rotate3 *rotate = ecs_field(it, Rotate3, 2);
-	Window *window = ecs_field(it, Window, 3);
-	uint8_t *keys = window->keys;
-	float k = 0.8f * it->delta_time;
-	for (int i = 0; i < it->count; i++) {
-		rotate->dx = keys[SAPP_KEYCODE_UP] - keys[SAPP_KEYCODE_DOWN];
-		rotate->dy = keys[SAPP_KEYCODE_RIGHT] - keys[SAPP_KEYCODE_LEFT];
-		rotate->dz = keys[SAPP_KEYCODE_E] - keys[SAPP_KEYCODE_Q];
-		v3f32_mul((float *)rotate, (float *)rotate, k);
-	}
-}
 
-void ControllerMove(ecs_iter_t *it)
-{
-	// Camera *camera = ecs_field(it, Camera, 1);
-	Velocity3 *vel = ecs_field(it, Velocity3, 2);
-	Window *window = ecs_field(it, Window, 3);
-	uint8_t *keys = window->keys;
-	float moving_speed = 100.1f;
-	float k = it->delta_time * moving_speed;
-	for (int i = 0; i < it->count; i++) {
-		vel->x = keys[SAPP_KEYCODE_A] - keys[SAPP_KEYCODE_D];
-		vel->y = keys[SAPP_KEYCODE_LEFT_CONTROL] - keys[SAPP_KEYCODE_SPACE];
-		vel->z = keys[SAPP_KEYCODE_W] - keys[SAPP_KEYCODE_S];
-		v3f32_mul((float *)vel, (float *)vel, k);
-	}
-}
-
-void ControllerPerspective(ecs_iter_t *it)
-{
-	Camera *camera = ecs_field(it, Camera, 1);
-	Window *window = ecs_field(it, Window, 2);
-	uint8_t *keys = window->keys;
-	for (int i = 0; i < it->count; i++) {
-		camera->fov = keys[SAPP_KEYCODE_KP_0] ? 45 : camera->fov;
-		camera->fov -= keys[SAPP_KEYCODE_KP_1];
-		camera->fov += keys[SAPP_KEYCODE_KP_2];
-		//sdtx_printf("FOV: %f", camera->fov);
-	}
-}
 
 void TransformationPosition(ecs_iter_t *it)
 {
@@ -145,9 +103,7 @@ void CamerasImport(ecs_world_t *world)
 	ECS_SYSTEM(world, Move, EcsOnUpdate, Position3, Velocity3, Orientation);
 	ECS_SYSTEM(world, RotateQuaternion, EcsOnUpdate, Rotate3, Orientation);
 
-	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, Camera, Rotate3, Window($));
-	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, Camera, Velocity3, Window($));
-	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, Camera, Window($));
+
 
 	ECS_SYSTEM(world, TransformationPosition, EcsOnUpdate, Transformation, Position3);
 }
