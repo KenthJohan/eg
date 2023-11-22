@@ -1,4 +1,4 @@
-module graphics.uniformblocks
+module graphics.ubs
 
 standard {
 	- sg.UniformBlocks

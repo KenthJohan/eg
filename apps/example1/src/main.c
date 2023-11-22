@@ -98,6 +98,7 @@ static void init_cb(app_t *app)
 	ecs_plecs_from_file(app->world, "config/graphics_attributes.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_pipes.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_shaders.flecs");
+	ecs_plecs_from_file(app->world, "config/graphics_ubs.flecs");
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
