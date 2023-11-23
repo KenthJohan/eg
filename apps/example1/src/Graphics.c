@@ -206,7 +206,7 @@ void DrawShape(ecs_iter_t *it)
 		vs_params_t params;
 		m4f32 t;
 		m4f32_mul(&t, &cam->vp, &transformation->matrix);
-		//m4f32_print(&t);
+		// m4f32_print(&t);
 		memcpy(params.mvp, &t, sizeof(m4f32));
 		sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(params));
 		sg_draw(element->base_element, element->num_elements, 1);
@@ -226,9 +226,28 @@ void GraphicsImport(ecs_world_t *world)
 	init_pipeline();
 
 	ECS_SYSTEM(world, DrawText, EcsOnUpdate, Window($), Position2, Color, String);
+	
+	ecs_system_init(world, &(ecs_system_desc_t){
+	                           .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	                           .callback = AddShape,
+	                           .query.filter.terms =
+	                               {
+	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
+	                                   {.id = ecs_id(Torus), .src.flags = EcsSelf},
+	                                   {.id = ecs_id(ShapeElement), .oper = EcsNot}, // Adds this
+	                               }});
 
-	ECS_SYSTEM(world, AddShape, EcsOnUpdate, ShapeBuffer(parent), Torus, !ShapeElement);
-	ECS_SYSTEM(world, DrawShape, EcsOnUpdate, ShapeBuffer(parent), ShapeElement, Transformation, Camera(up(components.Use)), !UpdateBuffer(parent));
+	ecs_system_init(world, &(ecs_system_desc_t){
+	                           .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	                           .callback = DrawShape,
+	                           .query.filter.terms =
+	                               {
+	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
+	                                   {.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
+	                                   {.id = ecs_id(Transformation), .src.flags = EcsSelf},
+	                                   {.id = ecs_id(Camera), .src.trav = Use, .src.flags = EcsUp},
+	                                   {.id = ecs_id(UpdateBuffer), .src.trav = EcsIsA, .src.flags = EcsUp, .oper = EcsNot},
+	                               }});
 
 	ECS_SYSTEM(world, Update_GPU_Buffer, EcsOnUpdate, ShapeBuffer, UpdateBuffer);
 
