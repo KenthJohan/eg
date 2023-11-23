@@ -49,8 +49,8 @@ static sg_pipeline global_pip;
 
 void init_pipeline()
 {
-	char const *vs = eg_fs_readfile("shapes.vs.glsl");
-	char const *fs = eg_fs_readfile("shapes.fs.glsl");
+	char const *vs = eg_fs_readfile("shaders/shapes.vs.glsl");
+	char const *fs = eg_fs_readfile("shaders/shapes.fs.glsl");
 	assert(vs);
 	assert(fs);
 

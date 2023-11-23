@@ -99,6 +99,7 @@ static void init_cb(app_t *app)
 	ecs_plecs_from_file(app->world, "config/graphics_pipes.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_shaders.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_ubs.flecs");
+	ecs_plecs_from_file(app->world, "config/app.flecs");
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
@@ -108,31 +109,6 @@ static void init_cb(app_t *app)
 	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, Camera, Window($));
 
 	ecs_singleton_set(app->world, Window, {.w = 0, .h = 0});
-
-	ecs_entity_t cam = ecs_new_entity(world, "Camera");
-	ecs_set(world, cam, Camera, {.fov = 45.0f});
-	ecs_set(world, cam, Position3, {0});
-	ecs_set(world, cam, Orientation, {QF32_IDENTITY});
-	ecs_set(world, cam, Velocity3, {0});
-	ecs_set(world, cam, Rotate3, {0});
-
-	ecs_entity_t e0 = ecs_new_entity(world, "ShapeBuffer");
-	ecs_set(world, e0, ShapeBuffer, {0});
-
-	ecs_entity_t e1 = ecs_new_entity(world, "Torus1");
-	ecs_set(world, e1, Torus, {.radius = 10, .ring_radius = 1, .rings = 52, .sides = 25, .random_colors = 1});
-	ecs_set(world, e1, Position3, {.x = 0.0f, .y = 0.0f, .z = 0.0f});
-	ecs_add(world, e1, Transformation);
-	ecs_add_pair(world, e1, EcsChildOf, e0);
-	ecs_add_pair(world, e1, Use, cam);
-
-	ecs_entity_t e2 = ecs_new_entity(world, "Torus2");
-	ecs_set(world, e2, Torus, {.radius = 60, .ring_radius = 10, .rings = 52, .sides = 25, .random_colors = 1});
-	ecs_add(world, e2, Transformation);
-	ecs_set(world, e2, Position3, {.x = 00.0f, .y = 0.0f, .z = 100.0f});
-	ecs_add_pair(world, e2, EcsChildOf, e0);
-	ecs_add_pair(world, e2, Use, cam);
-
 
 }
 

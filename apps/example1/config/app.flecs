@@ -1,0 +1,31 @@
+using components
+
+module app
+
+
+cam {
+	- components.Camera
+	- components.Position3
+	- components.Orientation
+	- components.Velocity3
+	- components.Rotate3
+}
+
+
+shape_buffer {
+	- components.ShapeBuffer
+	torus1 {
+		- components.Torus{radius: 10, ring_radius: 1, rings: 52, sides: 25, random_colors: 1}
+		- components.Position3{x: 0, y: 0, z: 0}
+		- components.Transformation
+		- (components.Use, cam)
+	}
+
+	torus2 {
+		- components.Torus{radius: 60, ring_radius: 10, rings: 52, sides: 25, random_colors: 1}
+		- components.Position3{x: 0, y: 0, z: 100.0}
+		- components.Transformation
+		- (components.Use, cam)
+	}
+}
+

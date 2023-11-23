@@ -25,7 +25,7 @@ void CameraUpdate(ecs_iter_t *it)
 		m4f32_translation3(&t, (float *)pos);
 
 		m4f32 v = M4_IDENTITY;
-		qf32_unit_to_m4(o->q, &v);
+		qf32_unit_to_m4((float*)o, &v);
 
 		//printf("Camera:\n");
 		//m4f32_print(&v);
@@ -48,7 +48,7 @@ void Move(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i++) {
 		// Convert unit quaternion to rotation matrix (r)
 		m4f32 r = M4_IDENTITY;
-		qf32_unit_to_m4(o->q, &r);
+		qf32_unit_to_m4((float*)o, &r);
 		// Translate postion (pos) relative to direction of camera rotation
 		float dir[3];
 		dir[0] = V3_DOT(r.c0, (float *)v);
@@ -65,7 +65,7 @@ void RotateQuaternion(ecs_iter_t *it)
 	Orientation *orientation = ecs_field(it, Orientation, 2);
 	for (int i = 0; i < it->count; i++) {
 		float *look = (float *)rotate;
-		float *q = orientation->q;
+		float *q = orientation;
 		assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
 		float dq_pitch[4];                                 // Quaternion delta pitch rotation
 		float dq_yaw[4];                                   // Quaternion delta yaw rotation

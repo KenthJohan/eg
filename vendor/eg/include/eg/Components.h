@@ -91,7 +91,10 @@ typedef struct {
 } Transformation;
 
 typedef struct {
-	float q[4];
+	float x;
+	float y;
+	float z;
+	float w;
 } Orientation;
 
 typedef struct {

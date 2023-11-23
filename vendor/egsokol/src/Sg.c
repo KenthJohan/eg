@@ -55,26 +55,25 @@ static void const *ecsx_get_target_data(ecs_world_t *world, ecs_entity_t e, ecs_
 	return p;
 }
 
-static void print_entity(ecs_world_t * world, ecs_entity_t e)
+static void print_entity(ecs_world_t *world, ecs_entity_t e)
 {
 	ecs_entity_t scope = ecs_get_scope(world);
-	char const * scope_name = scope ? ecs_get_name(world, scope) : "";
+	char const *scope_name = scope ? ecs_get_name(world, scope) : "";
 	char *path_str = ecs_get_fullpath(world, e);
 	char *type_str = ecs_type_str(world, ecs_get_type(world, e));
-	eg_log(ECS_GREY"%s"ECS_NORMAL" %s [%s]\n", scope_name, path_str, type_str);
+	eg_log(ECS_GREY "%s" ECS_NORMAL " %s [%s]\n", scope_name, path_str, type_str);
 	ecs_os_free(type_str);
 	ecs_os_free(path_str);
 }
 
-
-static void print_entity_from_it(ecs_iter_t * it, int i)
+static void print_entity_from_it(ecs_iter_t *it, int i)
 {
 	ecs_entity_t s = it->system ? ecs_get_parent(it->world, it->system) : 0;
 	ecs_entity_t parent = s ? ecs_get_parent(it->world, s) : ecs_get_scope(it->world);
-	char const * scope_name = parent ? ecs_get_name(it->world, parent) : "";
+	char const *scope_name = parent ? ecs_get_name(it->world, parent) : "";
 	char *path_str = ecs_get_fullpath(it->world, it->entities[i]);
 	char *type_str = ecs_type_str(it->world, ecs_get_type(it->world, it->entities[i]));
-	eg_log(ECS_MAGENTA"%s"ECS_NORMAL" %s [%s]\n", scope_name, path_str, type_str);
+	eg_log(ECS_MAGENTA "%s" ECS_NORMAL " %s [%s]\n", scope_name, path_str, type_str);
 	ecs_os_free(type_str);
 	ecs_os_free(path_str);
 }
@@ -288,12 +287,16 @@ void Shader_Create(ecs_iter_t *it)
 		print_entity_from_it(it, i);
 		ecs_doc_set_color(world, e, "#003366");
 		sg_shader_desc desc = {0};
+		
+		eg_log("Readfile %s\n", create->filename_vs);
 		desc.vs.source = eg_fs_readfile(create->filename_vs);
-		desc.fs.source = eg_fs_readfile(create->filename_fs);
 		if (desc.vs.source == NULL) {
 			ecs_enable(world, e, false);
 			break;
 		}
+
+		eg_log("Readfile %s\n", create->filename_fs);
+		desc.fs.source = eg_fs_readfile(create->filename_fs);
 		if (desc.fs.source == NULL) {
 			ecs_enable(world, e, false);
 			break;

@@ -1,13 +1,13 @@
 module graphics.pipes
 
-points : shaders.points {
+points : graphics.shaders.points {
 	- sg.PipelineCreate
 	- (sg.PrimitiveType, sg.Points)
 	- (sg.CullMode, sg.None)
 	- (sg.IndexType, sg.None)
 }
 
-instances : shaders.instances {
+instances : graphics.shaders.instances {
 	- sg.PipelineCreate
 	- (sg.PrimitiveType, sg.Lines)
 	- (sg.CullMode, sg.Back)
@@ -22,7 +22,7 @@ instances : shaders.instances {
 	}
 }
 
-shapes : shaders.shapes {
+shapes : graphics.shaders.shapes {
 	- sg.PipelineCreate
 	- (sg.PrimitiveType, sg.Lines)
 	- (sg.CullMode, sg.Back)
