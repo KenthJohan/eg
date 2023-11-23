@@ -210,7 +210,7 @@ void GraphicsImport(ecs_world_t *world)
 	                           .query.filter.terms =
 	                               {
 	                                   {.id = ecs_id(Torus), .src.flags = EcsSelf},
-	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
+	                                   {.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
 	                                   {.id = ecs_id(ShapeElement), .oper = EcsNot}, // Adds this
 	                               }});
 
@@ -220,7 +220,7 @@ void GraphicsImport(ecs_world_t *world)
 	                           .query.filter.terms =
 	                               {
 	                                   {.id = ecs_id(Cylinder), .src.flags = EcsSelf},
-	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
+	                                   {.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
 	                                   {.id = ecs_id(ShapeElement), .oper = EcsNot}, // Adds this
 	                               }});
 
@@ -231,10 +231,10 @@ void GraphicsImport(ecs_world_t *world)
 	                               {
 	                                   {.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
 	                                   {.id = ecs_id(Transformation), .src.flags = EcsSelf},
-	                                   {.id = ecs_id(SgPipeline), .src.trav = EcsIsA, .src.flags = EcsUp},
-	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
+	                                   {.id = ecs_id(SgPipeline), .src.trav = Use, .src.flags = EcsUp},
+	                                   {.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
 	                                   {.id = ecs_id(Camera), .src.trav = Use, .src.flags = EcsUp},
-	                                   {.id = ecs_id(UpdateBuffer), .src.trav = EcsIsA, .src.flags = EcsUp, .oper = EcsNot},
+	                                   {.id = ecs_id(UpdateBuffer), .src.trav = Use, .src.flags = EcsUp, .oper = EcsNot},
 	                               }});
 
 	ECS_SYSTEM(world, Update_GPU_Buffer, EcsOnUpdate, ShapeBuffer, UpdateBuffer);

@@ -68,6 +68,11 @@ ECS_CTOR(Camera, ptr, {
 })
 
 
+ECS_CTOR(Transformation, ptr, {
+	ptr->matrix = (m4f32)M4_IDENTITY;
+})
+
+
 void ComponentsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Components);
@@ -97,6 +102,7 @@ void ComponentsImport(ecs_world_t *world)
 	ecs_set_hooks(world, Orientation, {.ctor = ecs_ctor(Orientation)});
 	ecs_set_hooks(world, ShapeBuffer, {.ctor = ecs_ctor(ShapeBuffer)});
 	ecs_set_hooks(world, Camera, {.ctor = ecs_ctor(Camera)});
+	ecs_set_hooks(world, Transformation, {.ctor = ecs_ctor(Transformation)});
 
 
 	ecs_struct(world, {.entity = ecs_id(Position2),
@@ -177,5 +183,10 @@ void ComponentsImport(ecs_world_t *world)
 	                   .members = {
 	                       {.name = "fov", .type = ecs_id(ecs_f32_t)},
 	                       {.name = "vp", .type = ecs_id(ecs_f32_t), .count = 16},
+	                   }});
+
+	ecs_struct(world, {.entity = ecs_id(Transformation),
+	                   .members = {
+	                       {.name = "matrix", .type = ecs_id(ecs_f32_t), .count = 16},
 	                   }});
 }
