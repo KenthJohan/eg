@@ -18,9 +18,9 @@
 		],
 		"lib": [
 			"flecs",
-			"sokol",
-			"eg",
 			"egsokol",
+			"eg",
+			"sokol",
 			"m",
 			"GL",
 			"X11",

@@ -8,6 +8,7 @@
 #include <sokol/sokol_shape.h>
 #include <eg/eg_fs.h>
 #include <eg/Components.h>
+#include <egsokol/Sg.h>
 
 void DrawText(ecs_iter_t *it)
 {
@@ -45,51 +46,10 @@ void Memory_grow(Memory *m, int32_t inc)
 	}
 }
 
-static sg_pipeline global_pip;
-
-void init_pipeline()
-{
-	char const *vs = eg_fs_readfile("shaders/shapes.vs.glsl");
-	char const *fs = eg_fs_readfile("shaders/shapes.fs.glsl");
-	assert(vs);
-	assert(fs);
-
-	static sg_shader_desc desc;
-	desc.attrs[0].name = "position";
-	desc.attrs[1].name = "normal";
-	desc.attrs[2].name = "texcoord";
-	desc.attrs[3].name = "color0";
-	desc.vs.source = vs;
-	desc.vs.entry = "main";
-	desc.vs.uniform_blocks[0].size = 80;
-	desc.vs.uniform_blocks[0].layout = SG_UNIFORMLAYOUT_STD140;
-	desc.vs.uniform_blocks[0].uniforms[0].name = "vs_params";
-	desc.vs.uniform_blocks[0].uniforms[0].type = SG_UNIFORMTYPE_FLOAT4;
-	desc.vs.uniform_blocks[0].uniforms[0].array_count = 5;
-	desc.fs.source = fs;
-	desc.fs.entry = "main";
-	desc.label = "shapes_shader1";
-	sg_shader shd = sg_make_shader(&desc);
-
-	// shader and pipeline object
-	global_pip = sg_make_pipeline(&(sg_pipeline_desc){
-	    .shader = shd,
-	    .layout = {
-	        .buffers[0] = sshape_vertex_buffer_layout_state(),
-	        .attrs = {
-	            [0] = sshape_position_vertex_attr_state(),
-	            [1] = sshape_normal_vertex_attr_state(),
-	            [2] = sshape_texcoord_vertex_attr_state(),
-	            [3] = sshape_color_vertex_attr_state()}},
-	    .index_type = SG_INDEXTYPE_UINT16,
-	    .cull_mode = SG_CULLMODE_NONE,
-	    .depth = {.compare = SG_COMPAREFUNC_LESS_EQUAL, .write_enabled = true},
-	});
-}
-
 typedef enum {
 	SSHAPE_TORUS,
 	SSHAPE_BOX,
+	SSHAPE_CYLINDER,
 	SSHAPE_COUNT,
 } sshape_t;
 
@@ -130,6 +90,23 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 		break;
 	}
 
+	case SSHAPE_CYLINDER: {
+		Cylinder *cylinder = data;
+		sshape_cylinder_t info = {
+		    .radius = cylinder->radius,
+		    .height = cylinder->height,
+		    .slices = cylinder->slices,
+		    .stacks = cylinder->stacks,
+		    .random_colors = true,
+		};
+		sshape_sizes_t sizes = sshape_cylinder_sizes(cylinder->slices, cylinder->stacks);
+		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
+		Memory_grow(&b->indices.buffer, sizes.indices.size);
+		buf = ShapeBuffer_convert(b);
+		buf = sshape_build_cylinder(&buf, &info);
+		break;
+	}
+
 	default:
 		break;
 	}
@@ -144,15 +121,27 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 	el->num_elements = element.num_elements;
 }
 
-void AddShape(ecs_iter_t *it)
+void AddShapeTorus(ecs_iter_t *it)
 {
-	ecs_entity_t parent = ecs_field_src(it, 1);
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 1); // shared
-	Torus *torus = ecs_field(it, Torus, 2);
-
+	Torus *torus = ecs_field(it, Torus, 1);         // self
+	ecs_entity_t parent = ecs_field_src(it, 2);     // shared
+	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 2); // shared
 	for (int i = 0; i < it->count; ++i) {
 		ShapeElement el;
 		ShapeBuffer_append(b, &el, SSHAPE_TORUS, torus);
+		ecs_set(it->world, it->entities[i], ShapeElement, {.base_element = el.base_element, .num_elements = el.num_elements});
+	}
+	ecs_add(it->world, parent, UpdateBuffer);
+}
+
+void AddShapeCylinder(ecs_iter_t *it)
+{
+	Cylinder *cylinder = ecs_field(it, Cylinder, 1); // self
+	ecs_entity_t parent = ecs_field_src(it, 2);      // shared
+	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 2);  // shared
+	for (int i = 0; i < it->count; ++i) {
+		ShapeElement el;
+		ShapeBuffer_append(b, &el, SSHAPE_CYLINDER, cylinder);
 		ecs_set(it->world, it->entities[i], ShapeElement, {.base_element = el.base_element, .num_elements = el.num_elements});
 	}
 	ecs_add(it->world, parent, UpdateBuffer);
@@ -181,59 +170,57 @@ void Update_GPU_Buffer(ecs_iter_t *it)
 }
 
 typedef struct {
-	float draw_mode;
-	uint8_t _pad_4[12];
-	float mvp[4 * 4];
+	float mvp[16];
+	float extra[4];
 } vs_params_t;
 
 void DrawShape(ecs_iter_t *it)
 {
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 1); // shared
-	ShapeElement *element = ecs_field(it, ShapeElement, 2);
-	Transformation *transformation = ecs_field(it, Transformation, 3);
-	Camera *cam = ecs_field(it, Camera, 4);
+	ShapeElement *element = ecs_field(it, ShapeElement, 1);            // self
+	Transformation *transformation = ecs_field(it, Transformation, 2); // self
+	SgPipeline *pipeline = ecs_field(it, SgPipeline, 3);               // shared
+	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                    // shared
+	Camera *cam = ecs_field(it, Camera, 5);                            // shared
 
-	sg_apply_pipeline(global_pip);
+	sg_apply_pipeline(pipeline->id);
 	sg_apply_bindings(&(sg_bindings){
 	    .vertex_buffers[0] = (sg_buffer){b->vbuf_id},
 	    .index_buffer = (sg_buffer){b->ibuf_id}});
 
 	for (int i = 0; i < it->count; i++) {
-		// memcpy(state->vs_params.mvp, vp, sizeof(m4f32));
-		// m4f32 model = M4_IDENTITY;
-		// m4f32_translation3(&model, (float *)(state->positions + i));
-		// m4f32_mul((m4f32 *)state->vs_params.mvp, vp, &model);
-		vs_params_t params;
-		m4f32 t;
-		m4f32_mul(&t, &cam->vp, &transformation->matrix);
+		vs_params_t params = {0};
+		m4f32_mul((m4f32 *)params.mvp, &cam->vp, &transformation->matrix);
 		// m4f32_print(&t);
-		memcpy(params.mvp, &t, sizeof(m4f32));
 		sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(params));
 		sg_draw(element->base_element, element->num_elements, 1);
 	}
-}
-
-void DrawStuff(ecs_iter_t *it)
-{
-	Window *window = ecs_field(it, Window, 1);
 }
 
 void GraphicsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Graphics);
 	ECS_IMPORT(world, Components);
-
-	init_pipeline();
+	ECS_IMPORT(world, Sg);
 
 	ECS_SYSTEM(world, DrawText, EcsOnUpdate, Window($), Position2, Color, String);
-	
+
 	ecs_system_init(world, &(ecs_system_desc_t){
 	                           .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	                           .callback = AddShape,
+	                           .callback = AddShapeTorus,
 	                           .query.filter.terms =
 	                               {
-	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
 	                                   {.id = ecs_id(Torus), .src.flags = EcsSelf},
+	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
+	                                   {.id = ecs_id(ShapeElement), .oper = EcsNot}, // Adds this
+	                               }});
+
+	ecs_system_init(world, &(ecs_system_desc_t){
+	                           .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	                           .callback = AddShapeCylinder,
+	                           .query.filter.terms =
+	                               {
+	                                   {.id = ecs_id(Cylinder), .src.flags = EcsSelf},
+	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
 	                                   {.id = ecs_id(ShapeElement), .oper = EcsNot}, // Adds this
 	                               }});
 
@@ -242,14 +229,13 @@ void GraphicsImport(ecs_world_t *world)
 	                           .callback = DrawShape,
 	                           .query.filter.terms =
 	                               {
-	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
 	                                   {.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
 	                                   {.id = ecs_id(Transformation), .src.flags = EcsSelf},
+	                                   {.id = ecs_id(SgPipeline), .src.trav = EcsIsA, .src.flags = EcsUp},
+	                                   {.id = ecs_id(ShapeBuffer), .src.trav = EcsIsA, .src.flags = EcsUp},
 	                                   {.id = ecs_id(Camera), .src.trav = Use, .src.flags = EcsUp},
 	                                   {.id = ecs_id(UpdateBuffer), .src.trav = EcsIsA, .src.flags = EcsUp, .oper = EcsNot},
 	                               }});
 
 	ECS_SYSTEM(world, Update_GPU_Buffer, EcsOnUpdate, ShapeBuffer, UpdateBuffer);
-
-	ECS_SYSTEM(world, DrawStuff, EcsOnUpdate, Window);
 }

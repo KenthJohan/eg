@@ -16,16 +16,23 @@ shape_buffer {
 	- components.ShapeBuffer
 }
 
-torus1 : shape_buffer {
+torus1 : shape_buffer, graphics.pipes.shapes {
 	- components.Torus{radius: 10, ring_radius: 1, rings: 52, sides: 25, random_colors: 1}
 	- components.Position3{x: 0, y: 0, z: 0}
 	- components.Transformation
 	- (components.Use, cam)
 }
 
-torus2 : shape_buffer {
+torus2 : shape_buffer, graphics.pipes.shapes {
 	- components.Torus{radius: 60, ring_radius: 10, rings: 52, sides: 25, random_colors: 1}
 	- components.Position3{x: 0, y: 0, z: 100.0}
+	- components.Transformation
+	- (components.Use, cam)
+}
+
+cylinder1 : shape_buffer, graphics.pipes.shapes {
+	- components.Cylinder{radius: 60, height: 10, slices: 100, stacks: 2, random_colors: 1}
+	- components.Position3{x: 0, y: 100, z: 100.0}
 	- components.Transformation
 	- (components.Use, cam)
 }

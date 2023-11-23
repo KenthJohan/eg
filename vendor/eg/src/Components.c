@@ -9,6 +9,7 @@ ECS_COMPONENT_DECLARE(Velocity3);
 ECS_COMPONENT_DECLARE(Color);
 ECS_COMPONENT_DECLARE(String);
 ECS_COMPONENT_DECLARE(Torus);
+ECS_COMPONENT_DECLARE(Cylinder);
 ECS_COMPONENT_DECLARE(ShapeBuffer);
 ECS_COMPONENT_DECLARE(ShapeElement);
 ECS_COMPONENT_DECLARE(UpdateBuffer);
@@ -81,6 +82,7 @@ void ComponentsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Color);
 	ECS_COMPONENT_DEFINE(world, String);
 	ECS_COMPONENT_DEFINE(world, Torus);
+	ECS_COMPONENT_DEFINE(world, Cylinder);
 	ECS_COMPONENT_DEFINE(world, ShapeBuffer);
 	ECS_COMPONENT_DEFINE(world, ShapeElement);
 	ECS_COMPONENT_DEFINE(world, UpdateBuffer);
@@ -153,6 +155,15 @@ void ComponentsImport(ecs_world_t *world)
 	                       {.name = "ring_radius", .type = ecs_id(ecs_f32_t)},
 	                       {.name = "rings", .type = ecs_id(ecs_i32_t)},
 	                       {.name = "sides", .type = ecs_id(ecs_i32_t)},
+	                       {.name = "random_colors", .type = ecs_id(ecs_i32_t)},
+	                   }});
+
+	ecs_struct(world, {.entity = ecs_id(Cylinder),
+	                   .members = {
+	                       {.name = "radius", .type = ecs_id(ecs_f32_t)},
+	                       {.name = "height", .type = ecs_id(ecs_f32_t)},
+	                       {.name = "slices", .type = ecs_id(ecs_i32_t)},
+	                       {.name = "stacks", .type = ecs_id(ecs_i32_t)},
 	                       {.name = "random_colors", .type = ecs_id(ecs_i32_t)},
 	                   }});
 
