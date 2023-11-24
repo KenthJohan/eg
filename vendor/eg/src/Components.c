@@ -49,10 +49,9 @@ void hook_callback(ecs_iter_t *it)
 	}
 }
 
-
 ECS_CTOR(Orientation, ptr, {
-	//QF32_IDENTITY;
-	//printf("Orientation::ECS_CTOR\n");
+	// QF32_IDENTITY;
+	// printf("Orientation::ECS_CTOR\n");
 	ptr->x = 0.0f;
 	ptr->y = 0.0f;
 	ptr->z = 0.0f;
@@ -67,11 +66,9 @@ ECS_CTOR(Camera, ptr, {
 	ptr->fov = 45;
 })
 
-
 ECS_CTOR(Transformation, ptr, {
 	ptr->matrix = (m4f32)M4_IDENTITY;
 })
-
 
 void ComponentsImport(ecs_world_t *world)
 {
@@ -104,89 +101,100 @@ void ComponentsImport(ecs_world_t *world)
 	ecs_set_hooks(world, Camera, {.ctor = ecs_ctor(Camera)});
 	ecs_set_hooks(world, Transformation, {.ctor = ecs_ctor(Transformation)});
 
+	ecs_struct(world,
+	{.entity = ecs_id(Position2),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Position2),
-	                   .members = {
-	                       {.name = "x", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "y", .type = ecs_id(ecs_f32_t)},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Position3),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	{.name = "z", .type = ecs_id(ecs_f32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Position3),
-	                   .members = {
-	                       {.name = "x", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "y", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "z", .type = ecs_id(ecs_f32_t)},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Velocity2),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Velocity2),
-	                   .members = {
-	                       {.name = "x", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "y", .type = ecs_id(ecs_f32_t)},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Velocity3),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	{.name = "z", .type = ecs_id(ecs_f32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Velocity3),
-	                   .members = {
-	                       {.name = "x", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "y", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "z", .type = ecs_id(ecs_f32_t)},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Orientation),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	{.name = "z", .type = ecs_id(ecs_f32_t)},
+	{.name = "w", .type = ecs_id(ecs_f32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Orientation),
-	                   .members = {
-	                       {.name = "x", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "y", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "z", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "w", .type = ecs_id(ecs_f32_t)},
-	                   }});
-					
-	ecs_struct(world, {.entity = ecs_id(Rotate3),
-	                   .members = {
-	                       {.name = "dx", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "dy", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "dz", .type = ecs_id(ecs_f32_t)},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Rotate3),
+	.members = {
+	{.name = "dx", .type = ecs_id(ecs_f32_t)},
+	{.name = "dy", .type = ecs_id(ecs_f32_t)},
+	{.name = "dz", .type = ecs_id(ecs_f32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Torus),
-	                   .members = {
-	                       {.name = "radius", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "ring_radius", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "rings", .type = ecs_id(ecs_i32_t)},
-	                       {.name = "sides", .type = ecs_id(ecs_i32_t)},
-	                       {.name = "random_colors", .type = ecs_id(ecs_i32_t)},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Torus),
+	.members = {
+	{.name = "radius", .type = ecs_id(ecs_f32_t)},
+	{.name = "ring_radius", .type = ecs_id(ecs_f32_t)},
+	{.name = "rings", .type = ecs_id(ecs_i32_t)},
+	{.name = "sides", .type = ecs_id(ecs_i32_t)},
+	{.name = "random_colors", .type = ecs_id(ecs_i32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Torus),
-	                   .members = {
-	                       {.name = "radius", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "ring_radius", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "rings", .type = ecs_id(ecs_i32_t)},
-	                       {.name = "sides", .type = ecs_id(ecs_i32_t)},
-	                       {.name = "random_colors", .type = ecs_id(ecs_i32_t)},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Torus),
+	.members = {
+	{.name = "radius", .type = ecs_id(ecs_f32_t)},
+	{.name = "ring_radius", .type = ecs_id(ecs_f32_t)},
+	{.name = "rings", .type = ecs_id(ecs_i32_t)},
+	{.name = "sides", .type = ecs_id(ecs_i32_t)},
+	{.name = "random_colors", .type = ecs_id(ecs_i32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Cylinder),
-	                   .members = {
-	                       {.name = "radius", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "height", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "slices", .type = ecs_id(ecs_i32_t)},
-	                       {.name = "stacks", .type = ecs_id(ecs_i32_t)},
-	                       {.name = "random_colors", .type = ecs_id(ecs_i32_t)},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Cylinder),
+	.members = {
+	{.name = "radius", .type = ecs_id(ecs_f32_t)},
+	{.name = "height", .type = ecs_id(ecs_f32_t)},
+	{.name = "slices", .type = ecs_id(ecs_i32_t)},
+	{.name = "stacks", .type = ecs_id(ecs_i32_t)},
+	{.name = "random_colors", .type = ecs_id(ecs_i32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(ShapeElement),
-	                   .members = {
-	                       {.name = "x", .type = ecs_id(ecs_i32_t)},
-	                       {.name = "y", .type = ecs_id(ecs_i32_t)},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(ShapeElement),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_i32_t)},
+	{.name = "y", .type = ecs_id(ecs_i32_t)},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Camera),
-	                   .members = {
-	                       {.name = "fov", .type = ecs_id(ecs_f32_t)},
-	                       {.name = "vp", .type = ecs_id(ecs_f32_t), .count = 16},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Camera),
+	.members = {
+	{.name = "fov", .type = ecs_id(ecs_f32_t)},
+	{.name = "vp", .type = ecs_id(ecs_f32_t), .count = 16},
+	}});
 
-	ecs_struct(world, {.entity = ecs_id(Transformation),
-	                   .members = {
-	                       {.name = "matrix", .type = ecs_id(ecs_f32_t), .count = 16},
-	                   }});
+	ecs_struct(world,
+	{.entity = ecs_id(Transformation),
+	.members = {
+	{.name = "matrix", .type = ecs_id(ecs_f32_t), .count = 16},
+	}});
 }
