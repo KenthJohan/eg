@@ -69,6 +69,64 @@ void ControllerPerspective(ecs_iter_t *it)
 	}
 }
 
+void PrintMousePos(ecs_iter_t *it)
+{
+	Window *win = ecs_field(it, Window, 1);
+	Camera *cam = ecs_field(it, Camera, 2);
+
+	/*
+	sdtx_canvas(win->w, win->h);
+	sdtx_origin(1.0f, 2.0f);
+	sdtx_color3f(1.0f, 1.0f, 1.0f);
+	sdtx_printf("FPS: %f", 1.0f / it->delta_time);
+	*/
+
+	sdtx_canvas(win->w/2.0f, win->h/2.0f);
+	sdtx_origin(win->mouse_x/16.0f, win->mouse_y/16.0f);
+	sdtx_color3f(1.0f, 1.0f, 1.0f);
+
+	float r[4];
+	r[0] = 2.0f * (win->mouse_x / win->w) - 1.0f;
+	r[1] = 2.0f * (win->mouse_y / win->h) - 1.0f;
+	r[2] = -1.0;
+	r[3] = 1.0;
+
+
+    // Eye/Camera
+    //vec4 ray_eye = mat4_mul_vec4(mat4_inverse(projection), ray_clip);
+
+	float ray_eye[4];
+	m4f32 pinv;
+	m4f32_inverse((float*)&cam->projection, (float*)&pinv);
+	m4f32_mulv(&pinv, r, ray_eye);
+	ray_eye[2] = -1.0f;
+	ray_eye[3] = 0.0f;
+
+    // Convert to world coordinates;
+    //r.direction = vec3_from_vec4(mat4_mul_vec4(view, ray_eye));
+    //vec3_normalize(&r.direction);
+
+	m4f32 vinv;
+	float ray_world[4];
+	m4f32_inverse((float*)&cam->view, (float*)&vinv);
+	m4f32_mulv(&vinv, ray_eye, ray_world);
+
+
+
+	sdtx_pos(3, 0);
+	sdtx_printf("%f %f", win->mouse_x, win->mouse_y);
+	sdtx_pos(3, 1);
+	sdtx_printf("%f %f", r[0], r[1]);
+	sdtx_pos(3, 2);
+	sdtx_printf("%f %f %f %f", ray_eye[0], ray_eye[1], ray_eye[2], ray_eye[3]);
+	sdtx_pos(3, 3);
+	sdtx_printf("%f %f %f %f", ray_world[0], ray_world[1], ray_world[2], ray_world[3]);
+	v3f32_normalize(ray_world, ray_world);
+	sdtx_pos(3, 4);
+	sdtx_printf("%f %f %f %f", ray_world[0], ray_world[1], ray_world[2], ray_world[3]);
+}
+
+
 
 
 typedef struct {
@@ -107,6 +165,7 @@ static void init_cb(app_t *app)
 	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, Camera, Rotate3, Window($));
 	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, Camera, Velocity3, Window($));
 	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, Camera, Window($));
+	ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera);
 
 	ecs_singleton_set(app->world, Window, {.w = 0, .h = 0});
 
@@ -126,10 +185,7 @@ static void frame_cb(app_t *app)
 	        .load_action = SG_LOADACTION_CLEAR,
 	        .clear_value = {0.0f, 0.2f, 0.4f, 1.0f}}};
 
-	sdtx_canvas(w * 0.5f, h * 0.5f);
-	sdtx_origin(1.0f, 2.0f);
-	sdtx_color3f(1.0f, 1.0f, 1.0f);
-	sdtx_printf("FPS: %f", 1.0f / dt);
+
 
 	sg_begin_default_passf(&action1, w, h);
 	{
@@ -140,6 +196,9 @@ static void frame_cb(app_t *app)
 
 	sg_commit();
 }
+
+
+// https://github.com/floooh/sokol/blob/fa3d7cbe9ca85b8b87824ac366c724cb0e33a6af/util/sokol_nuklear.h#L2567
 
 static void event_cb(const sapp_event *evt, app_t *app)
 {
@@ -162,6 +221,12 @@ static void event_cb(const sapp_event *evt, app_t *app)
 		}
 		break;
 	case SAPP_EVENTTYPE_MOUSE_SCROLL:
+		break;
+	case SAPP_EVENTTYPE_MOUSE_MOVE:
+		window->mouse_x = evt->mouse_x;
+		window->mouse_y = evt->mouse_y;
+		window->mouse_dx = evt->mouse_dx;
+		window->mouse_dy = evt->mouse_dy;
 		break;
 	case SAPP_EVENTTYPE_KEY_UP:
 		assert(evt->key_code < 512);

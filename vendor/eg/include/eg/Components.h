@@ -3,9 +3,13 @@
 #include <eg/gmath.h>
 
 typedef struct {
-	uint8_t keys[512];
 	float w;
 	float h;
+	float mouse_x;
+	float mouse_y;
+	float mouse_dx;
+	float mouse_dy;
+	uint8_t keys[512];
 } Window;
 
 typedef struct {
@@ -91,6 +95,8 @@ typedef struct {
 
 typedef struct {
 	float fov;
+	m4f32 view;
+	m4f32 projection;
 	m4f32 vp;
 } Camera;
 

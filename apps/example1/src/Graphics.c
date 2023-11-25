@@ -56,15 +56,15 @@ typedef enum {
 sshape_buffer_t ShapeBuffer_convert(ShapeBuffer *b)
 {
 	sshape_buffer_t buf = {
-	    .vertices.buffer.ptr = b->vertices.buffer.ptr,
-	    .vertices.buffer.size = b->vertices.buffer.size,
-	    .vertices.data_size = b->vertices.data_size,
-	    .vertices.shape_offset = b->vertices.shape_offset,
+	.vertices.buffer.ptr = b->vertices.buffer.ptr,
+	.vertices.buffer.size = b->vertices.buffer.size,
+	.vertices.data_size = b->vertices.data_size,
+	.vertices.shape_offset = b->vertices.shape_offset,
 
-	    .indices.buffer.ptr = b->indices.buffer.ptr,
-	    .indices.buffer.size = b->indices.buffer.size,
-	    .indices.data_size = b->indices.data_size,
-	    .indices.shape_offset = b->indices.shape_offset,
+	.indices.buffer.ptr = b->indices.buffer.ptr,
+	.indices.buffer.size = b->indices.buffer.size,
+	.indices.data_size = b->indices.data_size,
+	.indices.shape_offset = b->indices.shape_offset,
 	};
 	return buf;
 }
@@ -76,11 +76,11 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 	case SSHAPE_TORUS: {
 		Torus *torus = data;
 		sshape_torus_t info = {
-		    .radius = torus->radius,
-		    .ring_radius = torus->ring_radius,
-		    .rings = torus->rings,
-		    .sides = torus->sides,
-		    .random_colors = true,
+		.radius = torus->radius,
+		.ring_radius = torus->ring_radius,
+		.rings = torus->rings,
+		.sides = torus->sides,
+		.random_colors = true,
 		};
 		sshape_sizes_t sizes = sshape_torus_sizes(torus->sides, torus->rings);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
@@ -93,11 +93,11 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 	case SSHAPE_CYLINDER: {
 		Cylinder *cylinder = data;
 		sshape_cylinder_t info = {
-		    .radius = cylinder->radius,
-		    .height = cylinder->height,
-		    .slices = cylinder->slices,
-		    .stacks = cylinder->stacks,
-		    .random_colors = true,
+		.radius = cylinder->radius,
+		.height = cylinder->height,
+		.slices = cylinder->slices,
+		.stacks = cylinder->stacks,
+		.random_colors = true,
 		};
 		sshape_sizes_t sizes = sshape_cylinder_sizes(cylinder->slices, cylinder->stacks);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
@@ -154,15 +154,15 @@ void Update_GPU_Buffer(ecs_iter_t *it)
 		sg_destroy_buffer((sg_buffer){b->vbuf_id});
 		sg_destroy_buffer((sg_buffer){b->ibuf_id});
 		const sg_buffer_desc vbuf_desc = {
-		    .type = SG_BUFFERTYPE_VERTEXBUFFER,
-		    .usage = SG_USAGE_IMMUTABLE,
-		    .data.ptr = b->vertices.buffer.ptr,
-		    .data.size = b->vertices.data_size};
+		.type = SG_BUFFERTYPE_VERTEXBUFFER,
+		.usage = SG_USAGE_IMMUTABLE,
+		.data.ptr = b->vertices.buffer.ptr,
+		.data.size = b->vertices.data_size};
 		const sg_buffer_desc ibuf_desc = {
-		    .type = SG_BUFFERTYPE_INDEXBUFFER,
-		    .usage = SG_USAGE_IMMUTABLE,
-		    .data.ptr = b->indices.buffer.ptr,
-		    .data.size = b->indices.data_size};
+		.type = SG_BUFFERTYPE_INDEXBUFFER,
+		.usage = SG_USAGE_IMMUTABLE,
+		.data.ptr = b->indices.buffer.ptr,
+		.data.size = b->indices.data_size};
 		b->vbuf_id = sg_make_buffer(&vbuf_desc).id;
 		b->ibuf_id = sg_make_buffer(&ibuf_desc).id;
 		ecs_remove(it->world, it->entities[i], UpdateBuffer);
@@ -178,14 +178,14 @@ void DrawShape(ecs_iter_t *it)
 {
 	ShapeElement *element = ecs_field(it, ShapeElement, 1);            // self
 	Transformation *transformation = ecs_field(it, Transformation, 2); // self
-	SgPipeline *pipeline = ecs_field(it, SgPipeline, 3);               // shared
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                    // shared
-	Camera *cam = ecs_field(it, Camera, 5);                            // shared
+	SgPipeline *pipeline = ecs_field(it, SgPipeline, 3);               // up, shared
+	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                    // up, shared
+	Camera *cam = ecs_field(it, Camera, 5);                            // up, shared
 
 	sg_apply_pipeline(pipeline->id);
 	sg_apply_bindings(&(sg_bindings){
-	    .vertex_buffers[0] = (sg_buffer){b->vbuf_id},
-	    .index_buffer = (sg_buffer){b->ibuf_id}});
+	.vertex_buffers[0] = (sg_buffer){b->vbuf_id},
+	.index_buffer = (sg_buffer){b->ibuf_id}});
 
 	for (int i = 0; i < it->count; i++) {
 		vs_params_t params = {0};
@@ -204,38 +204,49 @@ void GraphicsImport(ecs_world_t *world)
 
 	ECS_SYSTEM(world, DrawText, EcsOnUpdate, Window($), Position2, Color, String);
 
-	ecs_system_init(world, &(ecs_system_desc_t){
-	                           .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	                           .callback = AddShapeTorus,
-	                           .query.filter.terms =
-	                               {
-	                                   {.id = ecs_id(Torus), .src.flags = EcsSelf},
-	                                   {.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
-	                                   {.id = ecs_id(ShapeElement), .oper = EcsNot}, // Adds this
-	                               }});
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = AddShapeTorus,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(Torus), .src.flags = EcsSelf},
+	{.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(ShapeElement), .oper = EcsNot}, // Adds this
+	}});
 
-	ecs_system_init(world, &(ecs_system_desc_t){
-	                           .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	                           .callback = AddShapeCylinder,
-	                           .query.filter.terms =
-	                               {
-	                                   {.id = ecs_id(Cylinder), .src.flags = EcsSelf},
-	                                   {.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
-	                                   {.id = ecs_id(ShapeElement), .oper = EcsNot}, // Adds this
-	                               }});
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = AddShapeCylinder,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(Cylinder), .src.flags = EcsSelf},
+	{.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(ShapeElement), .oper = EcsNot}, // Adds this
+	}});
 
-	ecs_system_init(world, &(ecs_system_desc_t){
-	                           .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	                           .callback = DrawShape,
-	                           .query.filter.terms =
-	                               {
-	                                   {.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
-	                                   {.id = ecs_id(Transformation), .src.flags = EcsSelf},
-	                                   {.id = ecs_id(SgPipeline), .src.trav = Use, .src.flags = EcsUp},
-	                                   {.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
-	                                   {.id = ecs_id(Camera), .src.trav = Use, .src.flags = EcsUp},
-	                                   {.id = ecs_id(UpdateBuffer), .src.trav = Use, .src.flags = EcsUp, .oper = EcsNot},
-	                               }});
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = DrawShape,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
+	{.id = ecs_id(Transformation), .src.flags = EcsSelf},
+	{.id = ecs_id(SgPipeline), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(Camera), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(UpdateBuffer), .src.trav = Use, .src.flags = EcsUp, .oper = EcsNot},
+	}});
 
-	ECS_SYSTEM(world, Update_GPU_Buffer, EcsOnUpdate, ShapeBuffer, UpdateBuffer);
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = Update_GPU_Buffer,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(ShapeBuffer), .src.flags = EcsSelf},
+	{.id = ecs_id(UpdateBuffer), .src.flags = EcsSelf},
+	}});
 }

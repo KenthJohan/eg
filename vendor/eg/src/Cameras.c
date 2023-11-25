@@ -15,8 +15,7 @@ void CameraUpdate(ecs_iter_t *it)
 
 		float rad2deg = (2.0f * M_PI) / 360.0f;
 		float aspect = win->w / win->h;
-		m4f32 p; // Projection matrix
-		m4f32_perspective1(&p, cam->fov * rad2deg, aspect, 0.01f, 10000.0f);
+		m4f32_perspective1(&cam->projection, cam->fov * rad2deg, aspect, 0.01f, 10000.0f);
 
 		// Apply translation (t), rotation (r), projection - which creates the view-projection-matrix (vp).
 		// The view-projection-matrix can then be later used in shaders.
@@ -24,15 +23,15 @@ void CameraUpdate(ecs_iter_t *it)
 		m4f32 t = M4_IDENTITY;
 		m4f32_translation3(&t, (float *)pos);
 
-		m4f32 v = M4_IDENTITY;
-		qf32_unit_to_m4((float *)o, &v);
+		m4f32 r = M4_IDENTITY;
+		qf32_unit_to_m4((float *)o, &r);
 
 		// printf("Camera:\n");
 		// m4f32_print(&v);
-		m4f32_mul(&v, &v, &t);
+		m4f32_mul(&cam->view, &r, &t);
 		// m4f32_print(&v);
 
-		m4f32_mul(&cam->vp, &p, &v);
+		m4f32_mul(&cam->vp, &cam->projection, &cam->view);
 
 		// printf("Camera:\n");
 		// v4f32_print(o->q);
@@ -98,46 +97,42 @@ void CamerasImport(ecs_world_t *world)
 	ECS_IMPORT(world, Components);
 
 	ecs_system_init(world,
-	    &(ecs_system_desc_t){
-	        .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	        .callback = CameraUpdate,
-	        .query.filter.terms = {
-	            {.id = ecs_id(Camera), .src.flags = EcsSelf},
-	            {.id = ecs_id(Position3), .src.flags = EcsSelf},
-	            {.id = ecs_id(Orientation), .src.flags = EcsSelf},
-	            {.id = ecs_id(Window), .src.id = ecs_id(Window)},
-	        }});
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = CameraUpdate,
+	.query.filter.terms = {
+	{.id = ecs_id(Camera), .src.flags = EcsSelf},
+	{.id = ecs_id(Position3), .src.flags = EcsSelf},
+	{.id = ecs_id(Orientation), .src.flags = EcsSelf},
+	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
+	}});
 
 	ecs_system_init(world,
-	    &(ecs_system_desc_t){
-	        .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	        .callback = Move,
-	        .query.filter.terms = {
-	            {.id = ecs_id(Position3), .src.flags = EcsSelf},
-	            {.id = ecs_id(Velocity3), .src.flags = EcsSelf},
-	            {.id = ecs_id(Orientation), .src.flags = EcsSelf}}});
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = Move,
+	.query.filter.terms = {
+	{.id = ecs_id(Position3), .src.flags = EcsSelf},
+	{.id = ecs_id(Velocity3), .src.flags = EcsSelf},
+	{.id = ecs_id(Orientation), .src.flags = EcsSelf}}});
 
 	ecs_system_init(world,
-	    &(ecs_system_desc_t){
-	        .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	        .callback = RotateQuaternion,
-	        .query.filter.terms = {
-	            {.id = ecs_id(Rotate3), .src.flags = EcsSelf},
-	            {.id = ecs_id(Orientation), .src.flags = EcsSelf},
-	        }});
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = RotateQuaternion,
+	.query.filter.terms = {
+	{.id = ecs_id(Rotate3), .src.flags = EcsSelf},
+	{.id = ecs_id(Orientation), .src.flags = EcsSelf},
+	}});
 
 	ecs_system_init(world,
-	    &(ecs_system_desc_t){
-	        .entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	        .callback = TransformationPosition,
-	        .query.filter.terms = {
-	            {.id = ecs_id(Transformation), .src.flags = EcsSelf},
-	            {.id = ecs_id(Position3), .src.flags = EcsSelf},
-	            {.id = ecs_id(Orientation), .src.flags = EcsSelf},
-	        }});
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = TransformationPosition,
+	.query.filter.terms = {
+	{.id = ecs_id(Transformation), .src.flags = EcsSelf},
+	{.id = ecs_id(Position3), .src.flags = EcsSelf},
+	{.id = ecs_id(Orientation), .src.flags = EcsSelf},
+	}});
 
-	// ECS_SYSTEM(world, CameraUpdate, EcsOnUpdate, Camera, Position3, Orientation, Window($));
-	// ECS_SYSTEM(world, Move, EcsOnUpdate, Position3, Velocity3, Orientation);
-	// ECS_SYSTEM(world, RotateQuaternion, EcsOnUpdate, Rotate3, Orientation);
-	// ECS_SYSTEM(world, TransformationPosition, EcsOnUpdate, Transformation, Position3, Orientation);
 }

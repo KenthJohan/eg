@@ -102,6 +102,18 @@ void ComponentsImport(ecs_world_t *world)
 	ecs_set_hooks(world, Transformation, {.ctor = ecs_ctor(Transformation)});
 
 	ecs_struct(world,
+	{.entity = ecs_id(Window),
+	.members = {
+	{.name = "w", .type = ecs_id(ecs_f32_t)},
+	{.name = "h", .type = ecs_id(ecs_f32_t)},
+	{.name = "mouse_x", .type = ecs_id(ecs_f32_t)},
+	{.name = "mouse_y", .type = ecs_id(ecs_f32_t)},
+	{.name = "mouse_dx", .type = ecs_id(ecs_f32_t)},
+	{.name = "mouse_dy", .type = ecs_id(ecs_f32_t)},
+	{.name = "keys", .type = ecs_id(ecs_u8_t), .count = 512},
+	}});
+
+	ecs_struct(world,
 	{.entity = ecs_id(Position2),
 	.members = {
 	{.name = "x", .type = ecs_id(ecs_f32_t)},
@@ -189,6 +201,8 @@ void ComponentsImport(ecs_world_t *world)
 	{.entity = ecs_id(Camera),
 	.members = {
 	{.name = "fov", .type = ecs_id(ecs_f32_t)},
+	{.name = "view", .type = ecs_id(ecs_f32_t), .count = 16},
+	{.name = "projection", .type = ecs_id(ecs_f32_t), .count = 16},
 	{.name = "vp", .type = ecs_id(ecs_f32_t), .count = 16},
 	}});
 
