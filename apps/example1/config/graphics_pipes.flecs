@@ -31,3 +31,15 @@ shapes : graphics.shaders.shapes {
 		- sg.VertexBufferLayoutShape
 	}
 }
+
+
+lines : graphics.shaders.lines {
+	- sg.PipelineCreate
+	- (sg.PrimitiveType, sg.Lines)
+	- (sg.CullMode, sg.Back)
+	- (sg.IndexType, sg.U16)
+	
+	buf0 {
+		- sg.VertexBufferLayoutShape
+	}
+}

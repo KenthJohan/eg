@@ -15,3 +15,8 @@ shapes : graphics.attributes.shapes, graphics.ubs.standard {
 	- sg.ShaderCreate{filename_fs:"./shaders/shapes.fs.glsl", filename_vs:"./shaders/shapes.vs.glsl"}
 	- sg.shaders.Entry//{"main"}
 }
+
+lines : graphics.attributes.shapes, graphics.ubs.standard {
+	- sg.ShaderCreate{filename_fs:"./shaders/lines.fs.glsl", filename_vs:"./shaders/lines.vs.glsl"}
+	- sg.shaders.Entry//{"main"}
+}

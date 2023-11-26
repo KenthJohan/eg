@@ -269,7 +269,7 @@ static void v4f32_print(float const x[4])
 
 
 //https://github.com/travisvroman/kohi/blob/main/engine/src/math/kmath.h#L1203
-void m4f32_inverse(float const m[16], float o[16])
+static void m4f32_inverse(float const m[16], float o[16])
 {
 	float t0 = m[10] * m[15];
 	float t1 = m[14] * m[11];

@@ -62,6 +62,17 @@ shapes {
 	}
 }
 
+lines {
+	- sg.Attributes
+	position {
+		- sg.Location{0}
+		- sg.AttributeShapePosition
+	}
+	color0 {
+		- sg.Location{1}
+		- sg.AttributeShapeColor
+	}
+}
 
 
 
