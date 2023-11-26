@@ -36,10 +36,6 @@ shapes : graphics.shaders.shapes {
 lines : graphics.shaders.lines {
 	- sg.PipelineCreate
 	- (sg.PrimitiveType, sg.Lines)
-	- (sg.CullMode, sg.Back)
-	- (sg.IndexType, sg.U16)
-	
-	buf0 {
-		- sg.VertexBufferLayoutShape
-	}
+	- (sg.CullMode, sg.None)
+	- (sg.IndexType, sg.None)
 }

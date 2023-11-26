@@ -47,3 +47,17 @@ cylinder1 {
 	- (components.Use, cam)
 	- (components.Use, graphics.pipes.shapes)
 }
+
+
+
+
+
+
+
+
+
+lines_buffer {
+	- misc.lines.LinesBuffer
+	- (components.Use, cam)
+	- (components.Use, graphics.pipes.lines)
+}

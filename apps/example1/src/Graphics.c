@@ -12,6 +12,10 @@
 
 #include "shapes.h"
 
+
+
+ECS_COMPONENT_DECLARE(LinesBuffer);
+
 void DrawText(ecs_iter_t *it)
 {
 	Window *win = ecs_field(it, Window, 1);
@@ -104,11 +108,26 @@ void DrawShape(ecs_iter_t *it)
 	}
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void GraphicsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Graphics);
 	ECS_IMPORT(world, Components);
 	ECS_IMPORT(world, Sg);
+
 
 	ECS_SYSTEM(world, DrawText, EcsOnUpdate, Window($), Position2, Color, String);
 

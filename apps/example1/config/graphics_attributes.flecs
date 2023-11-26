@@ -66,11 +66,13 @@ lines {
 	- sg.Attributes
 	position {
 		- sg.Location{0}
-		- sg.AttributeShapePosition
+		- sg.Attribute{offset: 0, buffer_index: 0}
+		- (sg.VertexFormat, sg.Float4)
 	}
 	color0 {
 		- sg.Location{1}
-		- sg.AttributeShapeColor
+		- sg.Attribute{offset: 0, buffer_index: 0}
+		- (sg.VertexFormat, sg.Ubyte4n)
 	}
 }
 

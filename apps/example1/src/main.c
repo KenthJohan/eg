@@ -22,6 +22,7 @@
 
 
 #include "Graphics.h"
+#include "MiscLines.h"
 
 
 
@@ -150,6 +151,7 @@ static void init_cb(app_t *app)
 
 	ECS_IMPORT(world, Components);
 	ECS_IMPORT(world, Graphics);
+	ECS_IMPORT(world, MiscLines);
 	ECS_IMPORT(world, Cameras);
 	ECS_IMPORT(world, Sg);
 
