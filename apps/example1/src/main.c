@@ -4,11 +4,9 @@
 #include <sokol/sokol_debugtext.h>
 #include <sokol/sokol_glue.h>
 
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 
 #include <float.h>
 #include <math.h>
@@ -20,11 +18,8 @@
 #include <eg/Components.h>
 #include <egsokol/Sg.h>
 
-
 #include "Graphics.h"
 #include "MiscLines.h"
-
-
 
 void ControllerRotate(ecs_iter_t *it)
 {
@@ -66,7 +61,7 @@ void ControllerPerspective(ecs_iter_t *it)
 		camera->fov = keys[SAPP_KEYCODE_KP_0] ? 45 : camera->fov;
 		camera->fov -= keys[SAPP_KEYCODE_KP_1];
 		camera->fov += keys[SAPP_KEYCODE_KP_2];
-		//sdtx_printf("FOV: %f", camera->fov);
+		// sdtx_printf("FOV: %f", camera->fov);
 	}
 }
 
@@ -74,16 +69,21 @@ void PrintMousePos(ecs_iter_t *it)
 {
 	Window *win = ecs_field(it, Window, 1);
 	Camera *cam = ecs_field(it, Camera, 2);
+	Position3 *pos = ecs_field(it, Position3, 3);
 
-	/*
+	
 	sdtx_canvas(win->w, win->h);
-	sdtx_origin(1.0f, 2.0f);
+	sdtx_origin(1.0f, 1.0f);
 	sdtx_color3f(1.0f, 1.0f, 1.0f);
-	sdtx_printf("FPS: %f", 1.0f / it->delta_time);
-	*/
 
-	sdtx_canvas(win->w/2.0f, win->h/2.0f);
-	sdtx_origin(win->mouse_x/16.0f, win->mouse_y/16.0f);
+	sdtx_pos(0, 0);
+	sdtx_printf("FPS: %f", 1.0f / it->delta_time);
+	sdtx_pos(0, 1);
+	sdtx_printf("Pos: %f %f %f", pos->x, pos->y, pos->z);
+	
+
+	sdtx_canvas(win->w / 2.0f, win->h / 2.0f);
+	sdtx_origin(win->mouse_x / 16.0f, win->mouse_y / 16.0f);
 	sdtx_color3f(1.0f, 1.0f, 1.0f);
 
 	float r[4];
@@ -92,27 +92,24 @@ void PrintMousePos(ecs_iter_t *it)
 	r[2] = -1.0;
 	r[3] = 1.0;
 
-
-    // Eye/Camera
-    //vec4 ray_eye = mat4_mul_vec4(mat4_inverse(projection), ray_clip);
+	// Eye/Camera
+	// vec4 ray_eye = mat4_mul_vec4(mat4_inverse(projection), ray_clip);
 
 	float ray_eye[4];
 	m4f32 pinv;
-	m4f32_inverse((float*)&cam->projection, (float*)&pinv);
+	m4f32_inverse((float *)&cam->projection, (float *)&pinv);
 	m4f32_mulv(&pinv, r, ray_eye);
 	ray_eye[2] = -1.0f;
 	ray_eye[3] = 0.0f;
 
-    // Convert to world coordinates;
-    //r.direction = vec3_from_vec4(mat4_mul_vec4(view, ray_eye));
-    //vec3_normalize(&r.direction);
+	// Convert to world coordinates;
+	// r.direction = vec3_from_vec4(mat4_mul_vec4(view, ray_eye));
+	// vec3_normalize(&r.direction);
 
 	m4f32 vinv;
 	float ray_world[4];
-	m4f32_inverse((float*)&cam->view, (float*)&vinv);
+	m4f32_inverse((float *)&cam->view, (float *)&vinv);
 	m4f32_mulv(&vinv, ray_eye, ray_world);
-
-
 
 	sdtx_pos(3, 0);
 	sdtx_printf("%f %f", win->mouse_x, win->mouse_y);
@@ -125,28 +122,44 @@ void PrintMousePos(ecs_iter_t *it)
 	v3f32_normalize(ray_world, ray_world);
 	sdtx_pos(3, 4);
 	sdtx_printf("%f %f %f %f", ray_world[0], ray_world[1], ray_world[2], ray_world[3]);
+
+
+	if(win->mouse_left_edge)
+	{
+		ecs_entity_t e = ecs_lookup_fullpath(it->world, "app.line1");
+		Line line = {
+			.a = {-pos->x, -pos->y, -pos->z},
+			.b = {-pos->x+ ray_world[0]*100.0f, -pos->y+ ray_world[1]*100.0f, -pos->z+ ray_world[2]*100.0f}
+		};
+		ecs_set_ptr(it->world, e, Line, &line);
+		printf("mouse_left_edge\n");
+	}
 }
 
 
+void WindowLastFrame(ecs_iter_t *it)
+{
+	Window *window = ecs_field(it, Window, 1);
+	window->mouse_left_edge = 0;
+}
 
 
 typedef struct {
 	ecs_world_t *world;
 } app_t;
 
-
 static void init_cb(app_t *app)
 {
 	ecs_world_t *world = app->world;
 
 	sg_setup(&(sg_desc){
-	    .context = sapp_sgcontext(),
-	    .logger.func = slog_func,
+	.context = sapp_sgcontext(),
+	.logger.func = slog_func,
 	});
 	// setup sokol-debugtext
 	sdtx_setup(&(sdtx_desc_t){
-	    .fonts[0] = sdtx_font_z1013(),
-	    .logger.func = slog_func,
+	.fonts[0] = sdtx_font_z1013(),
+	.logger.func = slog_func,
 	});
 
 	ECS_IMPORT(world, Components);
@@ -167,10 +180,10 @@ static void init_cb(app_t *app)
 	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, Camera, Rotate3, Window($));
 	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, Camera, Velocity3, Window($));
 	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, Camera, Window($));
-	ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera);
+	ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera, Position3);
+	ECS_SYSTEM(world, WindowLastFrame, EcsPostUpdate, Window($));
 
 	ecs_singleton_set(app->world, Window, {.w = 0, .h = 0});
-
 }
 
 static void frame_cb(app_t *app)
@@ -183,11 +196,9 @@ static void frame_cb(app_t *app)
 	window->h = h;
 
 	sg_pass_action action1 = (sg_pass_action){
-	    .colors[0] = {
-	        .load_action = SG_LOADACTION_CLEAR,
-	        .clear_value = {0.0f, 0.2f, 0.4f, 1.0f}}};
-
-
+	.colors[0] = {
+	.load_action = SG_LOADACTION_CLEAR,
+	.clear_value = {0.0f, 0.2f, 0.4f, 1.0f}}};
 
 	sg_begin_default_passf(&action1, w, h);
 	{
@@ -199,7 +210,6 @@ static void frame_cb(app_t *app)
 	sg_commit();
 }
 
-
 // https://github.com/floooh/sokol/blob/fa3d7cbe9ca85b8b87824ac366c724cb0e33a6af/util/sokol_nuklear.h#L2567
 
 static void event_cb(const sapp_event *evt, app_t *app)
@@ -210,13 +220,19 @@ static void event_cb(const sapp_event *evt, app_t *app)
 	switch (evt->type) {
 	case SAPP_EVENTTYPE_MOUSE_DOWN:
 		if (evt->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+			if (window->mouse_left == 0) {
+				window->mouse_left_edge = 1;
+			}
+			window->mouse_left = 1;
 		}
 
 		if (evt->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
+
 		}
 		break;
 	case SAPP_EVENTTYPE_MOUSE_UP:
 		if (evt->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+			window->mouse_left = 0;
 		}
 
 		if (evt->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
@@ -257,8 +273,6 @@ static void cleanup_cb(app_t *app)
 	free(app);
 }
 
-
-
 sapp_desc sokol_main(int argc, char *argv[])
 {
 
@@ -267,16 +281,16 @@ sapp_desc sokol_main(int argc, char *argv[])
 	app->world = ecs_init();
 
 	return (sapp_desc){
-	    .user_data = app,
-	    .init_userdata_cb = (void (*)(void *))init_cb,
-	    .frame_userdata_cb = (void (*)(void *))frame_cb,
-	    .cleanup_userdata_cb = (void (*)(void *))cleanup_cb,
-	    .event_userdata_cb = (void (*)(const sapp_event *, void *))event_cb,
-	    .width = 800,
-	    .height = 600,
-	    .sample_count = 4,
-	    .window_title = "Primitive Types",
-	    .icon.sokol_default = true,
-	    .logger.func = slog_func,
+	.user_data = app,
+	.init_userdata_cb = (void (*)(void *))init_cb,
+	.frame_userdata_cb = (void (*)(void *))frame_cb,
+	.cleanup_userdata_cb = (void (*)(void *))cleanup_cb,
+	.event_userdata_cb = (void (*)(const sapp_event *, void *))event_cb,
+	.width = 800,
+	.height = 600,
+	.sample_count = 4,
+	.window_title = "Primitive Types",
+	.icon.sokol_default = true,
+	.logger.func = slog_func,
 	};
 }

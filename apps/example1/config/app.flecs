@@ -61,3 +61,8 @@ lines_buffer {
 	- (components.Use, cam)
 	- (components.Use, graphics.pipes.lines)
 }
+
+line1 {
+	- components.Line{a:[1,2,3], b:[20,20,20]}
+	- (components.Use, lines_buffer)
+}

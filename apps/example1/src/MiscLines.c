@@ -32,7 +32,7 @@ void DrawLines(ecs_iter_t *it)
 	}
 }
 
-void UpdateLines(ecs_iter_t *it)
+void AppendExampleLines(ecs_iter_t *it)
 {
 	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // self
 
@@ -42,6 +42,20 @@ void UpdateLines(ecs_iter_t *it)
 		.a = {.color = 0xFFFFFFFF, .pos = {0, 0, 0, 0}},
 		.b = {.color = 0xFFFFFFFF, .pos = {sin(i/10.0f)*100.0f, 100, 300, 0}}};
 		lines_append(&lines->storage, &line);
+	}
+}
+
+void AppendLines(ecs_iter_t *it)
+{
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // up, shared
+	Line *line = ecs_field(it, Line, 2); // self
+
+	for (int i = 0; i < it->count; ++i, ++line) {
+		line_t l =
+		{
+		.a = {.color = 0xFFFFFFFF, .pos = {line->a[0], line->a[1], line->a[2], 0.0f}},
+		.b = {.color = 0xFFFFFFFF, .pos = {line->b[0], line->b[1], line->b[2], 0.0f}}};
+		lines_append(&lines->storage, &l);
 	}
 }
 
@@ -62,10 +76,20 @@ void MiscLinesImport(ecs_world_t *world)
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = UpdateLines,
+	.callback = AppendExampleLines,
 	.query.filter.terms =
 	{
 	{.id = ecs_id(LinesBuffer), .src.flags = EcsSelf},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = AppendLines,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(LinesBuffer), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(Line), .src.flags = EcsSelf},
 	}});
 
 	ecs_system_init(world,

@@ -9,6 +9,10 @@ typedef struct {
 	float mouse_y;
 	float mouse_dx;
 	float mouse_dy;
+	uint8_t mouse_left;
+	uint8_t mouse_right;
+	uint8_t mouse_left_edge;
+	uint8_t mouse_right_edge;
 	uint8_t keys[512];
 } Window;
 
@@ -64,6 +68,11 @@ typedef struct {
 	int32_t stacks;
 	int32_t random_colors;
 } Cylinder;
+
+typedef struct {
+	float a[3];
+	float b[3];
+} Line;
 
 typedef struct {
 	int32_t base_element;
@@ -127,6 +136,7 @@ extern ECS_COMPONENT_DECLARE(Color);
 extern ECS_COMPONENT_DECLARE(String);
 extern ECS_COMPONENT_DECLARE(Torus);
 extern ECS_COMPONENT_DECLARE(Cylinder);
+extern ECS_COMPONENT_DECLARE(Line);
 extern ECS_COMPONENT_DECLARE(ShapeElement);
 extern ECS_COMPONENT_DECLARE(ShapeBuffer);
 extern ECS_COMPONENT_DECLARE(UpdateBuffer);

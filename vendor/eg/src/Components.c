@@ -10,6 +10,7 @@ ECS_COMPONENT_DECLARE(Color);
 ECS_COMPONENT_DECLARE(String);
 ECS_COMPONENT_DECLARE(Torus);
 ECS_COMPONENT_DECLARE(Cylinder);
+ECS_COMPONENT_DECLARE(Line);
 ECS_COMPONENT_DECLARE(ShapeBuffer);
 ECS_COMPONENT_DECLARE(ShapeElement);
 ECS_COMPONENT_DECLARE(UpdateBuffer);
@@ -85,6 +86,7 @@ void ComponentsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, String);
 	ECS_COMPONENT_DEFINE(world, Torus);
 	ECS_COMPONENT_DEFINE(world, Cylinder);
+	ECS_COMPONENT_DEFINE(world, Line);
 	ECS_COMPONENT_DEFINE(world, ShapeBuffer);
 	ECS_COMPONENT_DEFINE(world, ShapeElement);
 	ECS_COMPONENT_DEFINE(world, UpdateBuffer);
@@ -110,6 +112,10 @@ void ComponentsImport(ecs_world_t *world)
 	{.name = "mouse_y", .type = ecs_id(ecs_f32_t)},
 	{.name = "mouse_dx", .type = ecs_id(ecs_f32_t)},
 	{.name = "mouse_dy", .type = ecs_id(ecs_f32_t)},
+	{.name = "mouse_left", .type = ecs_id(ecs_u8_t)},
+	{.name = "mouse_right", .type = ecs_id(ecs_u8_t)},
+	{.name = "mouse_left_edge", .type = ecs_id(ecs_u8_t)},
+	{.name = "mouse_right_edge", .type = ecs_id(ecs_u8_t)},
 	{.name = "keys", .type = ecs_id(ecs_u8_t), .count = 512},
 	}});
 
@@ -188,6 +194,13 @@ void ComponentsImport(ecs_world_t *world)
 	{.name = "slices", .type = ecs_id(ecs_i32_t)},
 	{.name = "stacks", .type = ecs_id(ecs_i32_t)},
 	{.name = "random_colors", .type = ecs_id(ecs_i32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(Line),
+	.members = {
+	{.name = "a", .type = ecs_id(ecs_f32_t), .count = 3},
+	{.name = "b", .type = ecs_id(ecs_f32_t), .count = 3},
 	}});
 
 	ecs_struct(world,
