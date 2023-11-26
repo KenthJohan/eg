@@ -89,6 +89,7 @@ void PrintMousePos(ecs_iter_t *it)
 	float r[4];
 	r[0] = 2.0f * (win->mouse_x / win->w) - 1.0f;
 	r[1] = 2.0f * (win->mouse_y / win->h) - 1.0f;
+	r[1] *= -1.0f; //Why flip, hmm?
 	r[2] = -1.0;
 	r[3] = 1.0;
 
@@ -111,6 +112,7 @@ void PrintMousePos(ecs_iter_t *it)
 	m4f32_inverse((float *)&cam->view, (float *)&vinv);
 	m4f32_mulv(&vinv, ray_eye, ray_world);
 
+	/*
 	sdtx_pos(3, 0);
 	sdtx_printf("%f %f", win->mouse_x, win->mouse_y);
 	sdtx_pos(3, 1);
@@ -122,14 +124,17 @@ void PrintMousePos(ecs_iter_t *it)
 	v3f32_normalize(ray_world, ray_world);
 	sdtx_pos(3, 4);
 	sdtx_printf("%f %f %f %f", ray_world[0], ray_world[1], ray_world[2], ray_world[3]);
+	*/
 
 
 	if(win->mouse_left_edge)
 	{
+		float length = 1000.0f;
 		ecs_entity_t e = ecs_lookup_fullpath(it->world, "app.line1");
 		Line line = {
+			// Camera position flipped, hmm?
 			.a = {-pos->x, -pos->y, -pos->z},
-			.b = {-pos->x+ ray_world[0]*100.0f, -pos->y+ ray_world[1]*100.0f, -pos->z+ ray_world[2]*100.0f}
+			.b = {-pos->x+ ray_world[0]*length, -pos->y+ ray_world[1]*length, -pos->z+ ray_world[2]*length}
 		};
 		ecs_set_ptr(it->world, e, Line, &line);
 		printf("mouse_left_edge\n");

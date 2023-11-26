@@ -41,7 +41,7 @@ void AppendExampleLines(ecs_iter_t *it)
 		{
 		.a = {.color = 0xFFFFFFFF, .pos = {0, 0, 0, 0}},
 		.b = {.color = 0xFFFFFFFF, .pos = {sin(i/10.0f)*100.0f, 100, 300, 0}}};
-		lines_append(&lines->storage, &line);
+		//lines_append(&lines->storage, &line);
 	}
 }
 
