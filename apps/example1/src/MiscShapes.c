@@ -1,4 +1,4 @@
-#include "Graphics.h"
+#include "MiscShapes.h"
 
 #include <sokol/sokol_app.h>
 #include <sokol/sokol_gfx.h>
@@ -11,26 +11,6 @@
 #include <egsokol/Sg.h>
 
 #include "shapes.h"
-
-
-
-ECS_COMPONENT_DECLARE(LinesBuffer);
-
-void DrawText(ecs_iter_t *it)
-{
-	Window *win = ecs_field(it, Window, 1);
-	Position2 *p = ecs_field(it, Position2, 2);
-	Color *c = ecs_field(it, Color, 3);
-	String *s = ecs_field(it, String, 4);
-
-	sdtx_canvas(win->w * 0.5f, win->h * 0.5f);
-	for (int i = 0; i < it->count; i++) {
-		sdtx_origin(p->x, p->y);
-		sdtx_color3f(c->r, c->g, c->b);
-		sdtx_puts(s->value);
-	}
-}
-
 
 
 void AddShapeTorus(ecs_iter_t *it)
@@ -122,14 +102,11 @@ void DrawShape(ecs_iter_t *it)
 
 
 
-void GraphicsImport(ecs_world_t *world)
+void MiscShapesImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, Graphics);
+	ECS_MODULE(world, MiscShapes);
 	ECS_IMPORT(world, Components);
 	ECS_IMPORT(world, Sg);
-
-
-	ECS_SYSTEM(world, DrawText, EcsOnUpdate, Window($), Position2, Color, String);
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){

@@ -4,4 +4,4 @@
 #include "lines.h"
 
 
-void GraphicsImport(ecs_world_t *world);
+void MiscShapesImport(ecs_world_t *world);

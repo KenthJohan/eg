@@ -18,7 +18,7 @@
 #include <eg/Components.h>
 #include <egsokol/Sg.h>
 
-#include "Graphics.h"
+#include "MiscShapes.h"
 #include "MiscLines.h"
 #include "MyController.h"
 
@@ -51,7 +51,7 @@ static void init_cb(app_t *app)
 	});
 
 	ECS_IMPORT(world, Components);
-	ECS_IMPORT(world, Graphics);
+	ECS_IMPORT(world, MiscShapes);
 	ECS_IMPORT(world, MiscLines);
 	ECS_IMPORT(world, Cameras);
 	ECS_IMPORT(world, Sg);

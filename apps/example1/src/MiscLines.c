@@ -9,6 +9,9 @@
 #include <sokol/sokol_shape.h>
 #include <eg/Components.h>
 
+
+ECS_COMPONENT_DECLARE(LinesBuffer);
+
 typedef struct {
 	m4f32 mvp;
 	float extra[4];
