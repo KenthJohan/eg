@@ -1,14 +1,6 @@
 #pragma once
 
-#include <flecs.h>
-
-#include <sokol/sokol_app.h>
 #include <sokol/sokol_gfx.h>
-#include <sokol/sokol_log.h>
-#include <sokol/sokol_debugtext.h>
-#include <sokol/sokol_glue.h>
-#include <sokol/sokol_shape.h>
-
 
 typedef struct
 {
@@ -24,7 +16,7 @@ typedef struct
 
 typedef struct
 {
-	line_t * lines;
+	line_t *lines;
 	int32_t count;
 	int32_t capacity;
 
@@ -32,10 +24,7 @@ typedef struct
 	sg_buffer gpu_buffer;
 } lines_storage_t;
 
-
-void lines_init(lines_storage_t * storage);
-
-void lines_append(lines_storage_t * storage, line_t const * line);
-
+void lines_init(lines_storage_t *storage);
+void lines_append(lines_storage_t *storage, line_t const *line);
 void lines_upload(lines_storage_t *storage);
 void lines_draw(lines_storage_t *storage);

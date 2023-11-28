@@ -21,6 +21,7 @@ torus1 {
 	- components.Position3{x: 0, y: 0, z: 0}
 	- components.Orientation
 	- components.Transformation
+	- components.ShapeElement
 	- (components.Use, shape_buffer)
 	- (components.Use, cam)
 	- (components.Use, graphics.pipes.shapes)
@@ -31,6 +32,7 @@ torus2 {
 	- components.Position3{x: 0, y: 0, z: 100.0}
 	- components.Orientation
 	- components.Transformation
+	- components.ShapeElement
 	- (components.Use, shape_buffer)
 	- (components.Use, cam)
 	- (components.Use, graphics.pipes.shapes)
@@ -41,6 +43,7 @@ cylinder1 {
 	- components.Position3{x: 0, y: 100, z: 100.0}
 	- components.Orientation
 	- components.Transformation
+	- components.ShapeElement
 	- components.Rotate3{0,0.01,0}
 	- components.Velocity3{0,0,0}
 	- (components.Use, shape_buffer)

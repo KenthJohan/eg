@@ -53,6 +53,7 @@ void PrintMousePos(ecs_iter_t *it)
 	Window *win = ecs_field(it, Window, 1);
 	Camera *cam = ecs_field(it, Camera, 2);
 	Position3 *pos = ecs_field(it, Position3, 3);
+	Orientation *rot = ecs_field(it, Orientation, 4);
 
 	
 	sdtx_canvas(win->w/ 2.0f, win->h/ 2.0f);
@@ -63,6 +64,8 @@ void PrintMousePos(ecs_iter_t *it)
 	sdtx_printf("FPS: %f", 1.0f / it->delta_time);
 	sdtx_pos(0, 1);
 	sdtx_printf("Pos: %f %f %f", pos->x, pos->y, pos->z);
+	sdtx_pos(0, 2);
+	sdtx_printf("Rot: %f %f %f %f", rot->x, rot->y, rot->z, rot->w);
 	
 
 	sdtx_canvas(win->w / 2.0f, win->h / 2.0f);
@@ -133,5 +136,5 @@ void MyControllerImport(ecs_world_t *world)
 	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, Camera, Rotate3, Window($));
 	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, Camera, Velocity3, Window($));
 	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, Camera, Window($));
-	ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera, Position3);
+	ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera, Position3, Orientation);
 }

@@ -25,8 +25,6 @@ void Memory_grow(Memory *m, int32_t inc)
 	}
 }
 
-
-
 sshape_buffer_t ShapeBuffer_convert(ShapeBuffer *b)
 {
 	sshape_buffer_t buf = {
@@ -93,4 +91,36 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 	sshape_element_range_t element = sshape_element_range(&buf);
 	el->base_element = element.base_element;
 	el->num_elements = element.num_elements;
+}
+
+static void upload(Memory *mem, MemoryGPU *gpu, sg_buffer_type type)
+{
+	if (mem->cap > gpu->cap) {
+		sg_destroy_buffer((sg_buffer){gpu->id});
+		const sg_buffer_desc desc = {
+		.type = type,
+		.usage = SG_USAGE_STREAM,
+		.data.ptr = NULL,
+		.data.size = mem->cap};
+		gpu->id = sg_make_buffer(&desc).id;
+		gpu->cap = mem->cap;
+	}
+	sg_update_buffer((sg_buffer){gpu->id}, &(sg_range const){.ptr = mem->ptr, .size = mem->size});
+}
+
+void ShapeBuffer_upload(ShapeBuffer *storage)
+{
+	upload(&storage->vertices.buffer, &storage->vbuf, SG_BUFFERTYPE_VERTEXBUFFER);
+	upload(&storage->indices.buffer, &storage->ibuf, SG_BUFFERTYPE_INDEXBUFFER);
+}
+
+
+void ShapeBuffer_reset(ShapeBuffer *storage)
+{
+	storage->indices.data_size = 0;
+	storage->indices.shape_offset = 0;
+	storage->vertices.data_size = 0;
+	storage->vertices.shape_offset = 0;
+	storage->indices.buffer.size = 0;
+	storage->vertices.buffer.size = 0;
 }

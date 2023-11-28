@@ -93,6 +93,11 @@ typedef struct {
 } Memory;
 
 typedef struct {
+	int32_t id;
+	int32_t cap;
+} MemoryGPU;
+
+typedef struct {
 	Memory buffer;        // pointer/size pair of output buffer
 	int32_t data_size;    // size in bytes of valid data in buffer
 	int32_t shape_offset; // data offset of the most recent shape
@@ -101,13 +106,9 @@ typedef struct {
 typedef struct {
 	ShapeBufferItem vertices;
 	ShapeBufferItem indices;
-	int32_t vbuf_id;
-	int32_t ibuf_id;
+	MemoryGPU vbuf;
+	MemoryGPU ibuf;
 } ShapeBuffer;
-
-typedef struct {
-	int dummy;
-} UpdateBuffer;
 
 typedef struct {
 	float fov;
@@ -147,7 +148,6 @@ extern ECS_COMPONENT_DECLARE(Cylinder);
 extern ECS_COMPONENT_DECLARE(Line);
 extern ECS_COMPONENT_DECLARE(ShapeElement);
 extern ECS_COMPONENT_DECLARE(ShapeBuffer);
-extern ECS_COMPONENT_DECLARE(UpdateBuffer);
 extern ECS_COMPONENT_DECLARE(Camera);
 extern ECS_COMPONENT_DECLARE(Orientation);
 extern ECS_COMPONENT_DECLARE(Rotate3);

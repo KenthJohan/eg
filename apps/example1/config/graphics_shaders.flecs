@@ -2,7 +2,7 @@ module graphics.shaders
 
 
 points : graphics.attributes.points, graphics.ubs.standard {
-	- sg.ShaderCreate{filename_fs:"./shaders/points.fs.glsl", filename_vs:"./shaders/points.vs.glsl"}
+	- sg.ShaderCreate{filename_fs:"./shaders/points1.fs.glsl", filename_vs:"./shaders/points1.vs.glsl"}
 	- sg.shaders.Entry//{"main"}
 }
 

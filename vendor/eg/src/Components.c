@@ -14,7 +14,6 @@ ECS_COMPONENT_DECLARE(Cylinder);
 ECS_COMPONENT_DECLARE(Line);
 ECS_COMPONENT_DECLARE(ShapeBuffer);
 ECS_COMPONENT_DECLARE(ShapeElement);
-ECS_COMPONENT_DECLARE(UpdateBuffer);
 ECS_COMPONENT_DECLARE(Camera);
 ECS_COMPONENT_DECLARE(Orientation);
 ECS_COMPONENT_DECLARE(Rotate3);
@@ -91,7 +90,6 @@ void ComponentsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Line);
 	ECS_COMPONENT_DEFINE(world, ShapeBuffer);
 	ECS_COMPONENT_DEFINE(world, ShapeElement);
-	ECS_COMPONENT_DEFINE(world, UpdateBuffer);
 	ECS_COMPONENT_DEFINE(world, Camera);
 	ECS_COMPONENT_DEFINE(world, Orientation);
 	ECS_COMPONENT_DEFINE(world, Rotate3);
