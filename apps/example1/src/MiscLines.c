@@ -49,12 +49,14 @@ void AppendLines(ecs_iter_t *it)
 {
 	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // up, shared
 	Line *line = ecs_field(it, Line, 2); // self
+	Color32 *color = ecs_field(it, Color32, 3); // self
 
 	for (int i = 0; i < it->count; ++i, ++line) {
+		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		line_t l =
 		{
-		.a = {.color = 0xFFFFFFFF, .pos = {line->a[0], line->a[1], line->a[2], 0.0f}},
-		.b = {.color = 0xFFFFFFFF, .pos = {line->b[0], line->b[1], line->b[2], 0.0f}}};
+		.a = {.color = c, .pos = {line->a[0], line->a[1], line->a[2], 0.0f}},
+		.b = {.color = c, .pos = {line->b[0], line->b[1], line->b[2], 0.0f}}};
 		lines_append(&lines->storage, &l);
 	}
 }
@@ -90,6 +92,7 @@ void MiscLinesImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(LinesBuffer), .src.trav = Use, .src.flags = EcsUp},
 	{.id = ecs_id(Line), .src.flags = EcsSelf},
+	{.id = ecs_id(Color32), .src.flags = EcsSelf},
 	}});
 
 	ecs_system_init(world,

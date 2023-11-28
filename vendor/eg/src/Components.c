@@ -7,6 +7,7 @@ ECS_COMPONENT_DECLARE(Position3);
 ECS_COMPONENT_DECLARE(Velocity2);
 ECS_COMPONENT_DECLARE(Velocity3);
 ECS_COMPONENT_DECLARE(Color);
+ECS_COMPONENT_DECLARE(Color32);
 ECS_COMPONENT_DECLARE(String);
 ECS_COMPONENT_DECLARE(Torus);
 ECS_COMPONENT_DECLARE(Cylinder);
@@ -83,6 +84,7 @@ void ComponentsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Velocity2);
 	ECS_COMPONENT_DEFINE(world, Velocity3);
 	ECS_COMPONENT_DEFINE(world, Color);
+	ECS_COMPONENT_DEFINE(world, Color32);
 	ECS_COMPONENT_DEFINE(world, String);
 	ECS_COMPONENT_DEFINE(world, Torus);
 	ECS_COMPONENT_DEFINE(world, Cylinder);
@@ -117,6 +119,15 @@ void ComponentsImport(ecs_world_t *world)
 	{.name = "mouse_left_edge", .type = ecs_id(ecs_u8_t)},
 	{.name = "mouse_right_edge", .type = ecs_id(ecs_u8_t)},
 	{.name = "keys", .type = ecs_id(ecs_u8_t), .count = 512},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(Color32),
+	.members = {
+	{.name = "r", .type = ecs_id(ecs_u8_t)},
+	{.name = "g", .type = ecs_id(ecs_u8_t)},
+	{.name = "b", .type = ecs_id(ecs_u8_t)},
+	{.name = "a", .type = ecs_id(ecs_u8_t)},
 	}});
 
 	ecs_struct(world,

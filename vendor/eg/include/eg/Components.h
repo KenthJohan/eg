@@ -46,6 +46,13 @@ typedef struct {
 } Color;
 
 typedef struct {
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t a;
+} Color32;
+
+typedef struct {
 	char *value;
 } String;
 
@@ -133,6 +140,7 @@ extern ECS_COMPONENT_DECLARE(Position3);
 extern ECS_COMPONENT_DECLARE(Velocity2);
 extern ECS_COMPONENT_DECLARE(Velocity3);
 extern ECS_COMPONENT_DECLARE(Color);
+extern ECS_COMPONENT_DECLARE(Color32);
 extern ECS_COMPONENT_DECLARE(String);
 extern ECS_COMPONENT_DECLARE(Torus);
 extern ECS_COMPONENT_DECLARE(Cylinder);
