@@ -16,6 +16,20 @@ shape_buffer {
 	- components.ShapeBuffer
 }
 
+lines_buffer {
+	- misc.lines.LinesBuffer
+	- (components.Use, cam)
+	- (components.Use, graphics.pipes.lines)
+}
+
+points_buffer {
+	- misc.points.PointsBuffer
+	- (components.Use, cam)
+	- (components.Use, graphics.pipes.points)
+}
+
+
+
 torus1 {
 	- components.Torus{radius: 10, ring_radius: 1, rings: 52, sides: 25, random_colors: 1}
 	- components.Position3{x: 0, y: 0, z: 0}
@@ -59,11 +73,7 @@ cylinder1 {
 
 
 
-lines_buffer {
-	- misc.lines.LinesBuffer
-	- (components.Use, cam)
-	- (components.Use, graphics.pipes.lines)
-}
+
 
 line1 {
 	- components.Line{a:[1,2,3], b:[20,20,20]}

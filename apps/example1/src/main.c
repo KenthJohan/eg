@@ -20,6 +20,7 @@
 
 #include "MiscShapes.h"
 #include "MiscLines.h"
+#include "MiscPoints.h"
 #include "MyController.h"
 
 
@@ -53,6 +54,7 @@ static void init_cb(app_t *app)
 	ECS_IMPORT(world, Components);
 	ECS_IMPORT(world, MiscShapes);
 	ECS_IMPORT(world, MiscLines);
+	ECS_IMPORT(world, MiscPoints);
 	ECS_IMPORT(world, Cameras);
 	ECS_IMPORT(world, Sg);
 	ECS_IMPORT(world, MyController);

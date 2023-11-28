@@ -1,7 +1,7 @@
 #include "lines.h"
 #include <flecs.h>
 
-int32_t next_pow_of_2(int32_t n)
+static int32_t next_pow_of_2(int32_t n)
 {
 	n--;
 	n |= n >> 1;
