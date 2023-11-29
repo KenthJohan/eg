@@ -64,6 +64,16 @@ void AppendLines(ecs_iter_t *it)
 	}
 }
 
+
+static void Flush(ecs_iter_t *it)
+{
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // self
+	for (int i = 0; i < it->count; ++i, ++lines) {
+		lines_flush(&lines->storage);
+	}
+}
+
+
 ECS_CTOR(LinesBuffer, ptr, {
 	ecs_os_memset_t(ptr, 0, LinesBuffer);
 })
@@ -107,5 +117,14 @@ void MiscLinesImport(ecs_world_t *world)
 	{.id = ecs_id(LinesBuffer), .src.flags = EcsSelf},
 	{.id = ecs_id(SgPipeline), .src.trav = Use, .src.flags = EcsUp},
 	{.id = ecs_id(Camera), .src.trav = Use, .src.flags = EcsUp},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = Flush,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(LinesBuffer), .src.flags = EcsSelf},
 	}});
 }

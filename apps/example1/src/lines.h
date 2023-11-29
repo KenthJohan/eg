@@ -28,3 +28,4 @@ void lines_init(lines_storage_t *storage);
 void lines_append(lines_storage_t *storage, line_t const *line);
 void lines_upload(lines_storage_t *storage);
 void lines_draw(lines_storage_t *storage);
+void lines_flush(lines_storage_t *storage);

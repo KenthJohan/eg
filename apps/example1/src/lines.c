@@ -60,5 +60,10 @@ void lines_draw(lines_storage_t *storage)
 	// storage->count is number of lines, one line consist of two vertices.
 	int32_t vertex_count = storage->count * 2;
 	sg_draw(0, vertex_count, 1);
+}
+
+
+void lines_flush(lines_storage_t *storage)
+{
 	storage->count = 0;
 }
