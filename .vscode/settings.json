@@ -6,7 +6,9 @@
 	"terminal.integrated.fontSize": 14,
 	"window.zoomLevel": 1.3,
 	"files.associations": {
-		"typeinfo": "c"
+		"typeinfo": "c",
+		"flecs.h": "c",
+		"stdio.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
