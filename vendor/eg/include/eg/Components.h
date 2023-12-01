@@ -152,6 +152,7 @@ extern ECS_COMPONENT_DECLARE(Camera);
 extern ECS_COMPONENT_DECLARE(Orientation);
 extern ECS_COMPONENT_DECLARE(Rotate3);
 extern ECS_COMPONENT_DECLARE(Transformation);
-extern ECS_TAG_DECLARE(Use);
+extern ECS_TAG_DECLARE(EgUse);
+extern ECS_TAG_DECLARE(EgUpdate);
 
 void ComponentsImport(ecs_world_t *world);

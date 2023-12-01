@@ -18,7 +18,8 @@ ECS_COMPONENT_DECLARE(Camera);
 ECS_COMPONENT_DECLARE(Orientation);
 ECS_COMPONENT_DECLARE(Rotate3);
 ECS_COMPONENT_DECLARE(Transformation);
-ECS_TAG_DECLARE(Use);
+ECS_TAG_DECLARE(EgUse);
+ECS_TAG_DECLARE(EgUpdate);
 
 ECS_CTOR(String, ptr, {
 	ptr->value = NULL;
@@ -94,8 +95,10 @@ void ComponentsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Orientation);
 	ECS_COMPONENT_DEFINE(world, Rotate3);
 	ECS_COMPONENT_DEFINE(world, Transformation);
-	ECS_TAG_DEFINE(world, Use);
-	ecs_add_id(world, Use, EcsTraversable);
+	ECS_TAG_DEFINE(world, EgUse);
+	ECS_TAG_DEFINE(world, EgUpdate);
+	ecs_add_id(world, EgUse, EcsTraversable);
+	ecs_add_id(world, EgUpdate, EcsTraversable);
 
 	ecs_set_hooks(world, String, {.ctor = ecs_ctor(String), .move = ecs_move(String), .copy = ecs_copy(String), .dtor = ecs_dtor(String), .on_add = hook_callback, .on_remove = hook_callback, .on_set = hook_callback});
 	ecs_set_hooks(world, Orientation, {.ctor = ecs_ctor(Orientation)});
