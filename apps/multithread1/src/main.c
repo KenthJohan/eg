@@ -1,4 +1,5 @@
 #include <flecs.h>
+#include <stdio.h>
 
 typedef struct {
 	int dummy;
