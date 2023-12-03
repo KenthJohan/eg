@@ -77,6 +77,13 @@ typedef struct {
 } Cylinder;
 
 typedef struct {
+	float radius;
+	int32_t slices;
+	int32_t stacks;
+	int32_t random_colors;
+} Sphere;
+
+typedef struct {
 	float a[3];
 	float b[3];
 } Line;
@@ -145,6 +152,7 @@ extern ECS_COMPONENT_DECLARE(Color32);
 extern ECS_COMPONENT_DECLARE(String);
 extern ECS_COMPONENT_DECLARE(Torus);
 extern ECS_COMPONENT_DECLARE(Cylinder);
+extern ECS_COMPONENT_DECLARE(Sphere);
 extern ECS_COMPONENT_DECLARE(Line);
 extern ECS_COMPONENT_DECLARE(ShapeElement);
 extern ECS_COMPONENT_DECLARE(ShapeBuffer);
