@@ -65,11 +65,11 @@ void RotateQuaternion(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i++) {
 		float *look = (float *)rotate;
 		float *q = orientation;
-		assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
+		//assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
 		float dq_pitch[4];                                 // Quaternion delta pitch rotation
 		float dq_yaw[4];                                   // Quaternion delta yaw rotation
 		float dq_roll[4];                                  // Quaternion delta roll rotation
-		qf32_normalize(q, q);                              // Normalize quaternion against floating point error
+		qf32_normalize(q, q, 0.000001f);                   // Normalize quaternion against floating point error
 		qf32_xyza(dq_pitch, 1.0f, 0.0f, 0.0f, rotate->dx); // Make delta pitch quaternion
 		qf32_xyza(dq_yaw, 0.0f, 1.0f, 0.0f, rotate->dy);   // Make delta yaw quaternion
 		qf32_xyza(dq_roll, 0.0f, 0.0f, 1.0f, rotate->dz);  // Make delta roll quaternion

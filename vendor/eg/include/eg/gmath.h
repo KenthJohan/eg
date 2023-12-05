@@ -69,26 +69,20 @@ static void qf32_xyza(float q[4], float x, float y, float z, float a)
 	q[3] = c;
 }
 
-static void qf32_normalize(float r[4], float const q[4])
+static void qf32_normalize(float r[4], float const q[4], float epsilon)
 {
 	float l2 = V4_DOT(q, q);
-	if (l2 <= 0) {
-		return;
-	}
-	float l = sqrtf(l2);
+	float l = sqrtf(l2 + epsilon);
 	r[0] = q[0] / l;
 	r[1] = q[1] / l;
 	r[2] = q[2] / l;
 	r[3] = q[3] / l;
 }
 
-static void v3f32_normalize(float r[3], float const q[3])
+static void v3f32_normalize(float r[3], float const q[3], float epsilon)
 {
 	float l2 = V3_DOT(q, q);
-	if (l2 <= 0) {
-		return;
-	}
-	float l = sqrtf(l2);
+	float l = sqrtf(l2 + epsilon);
 	r[0] = q[0] / l;
 	r[1] = q[1] / l;
 	r[2] = q[2] / l;
