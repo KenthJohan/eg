@@ -6,12 +6,12 @@
 
 void CameraUpdate(ecs_iter_t *it)
 {
-	Camera *cam = ecs_field(it, Camera, 1);
-	Position3 *pos = ecs_field(it, Position3, 2);
-	Orientation *o = ecs_field(it, Orientation, 3);
-	Window *win = ecs_field(it, Window, 4);
+	Camera *cam = ecs_field(it, Camera, 1);         // self
+	Position3 *pos = ecs_field(it, Position3, 2);   // self
+	Orientation *o = ecs_field(it, Orientation, 3); // self
+	Window *win = ecs_field(it, Window, 4);         // singleton
 
-	for (int i = 0; i < it->count; i++) {
+	for (int i = 0; i < it->count; ++i, ++cam, ++pos, ++o) {
 
 		float rad2deg = (2.0f * M_PI) / 360.0f;
 		float aspect = win->w / win->h;
@@ -40,11 +40,11 @@ void CameraUpdate(ecs_iter_t *it)
 
 void Move(ecs_iter_t *it)
 {
-	Position3 *p = ecs_field(it, Position3, 1);
-	Velocity3 *v = ecs_field(it, Velocity3, 2);
-	Orientation *o = ecs_field(it, Orientation, 3);
+	Position3 *p = ecs_field(it, Position3, 1);     // self
+	Velocity3 *v = ecs_field(it, Velocity3, 2);     // self
+	Orientation *o = ecs_field(it, Orientation, 3); // self
 
-	for (int i = 0; i < it->count; i++) {
+	for (int i = 0; i < it->count; ++i, ++p, ++o) {
 		// Convert unit quaternion to rotation matrix (r)
 		m4f32 r = M4_IDENTITY;
 		qf32_unit_to_m4((float *)o, &r);
@@ -60,12 +60,11 @@ void Move(ecs_iter_t *it)
 
 void RotateQuaternion(ecs_iter_t *it)
 {
-	Rotate3 *rotate = ecs_field(it, Rotate3, 1);
-	Orientation *orientation = ecs_field(it, Orientation, 2);
-	for (int i = 0; i < it->count; i++) {
-		float *look = (float *)rotate;
-		float *q = orientation;
-		//assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
+	Rotate3 *rotate = ecs_field(it, Rotate3, 1);              // self
+	Orientation *orientation = ecs_field(it, Orientation, 2); // self
+	for (int i = 0; i < it->count; ++i, ++rotate, ++orientation) {
+		float *q = (float *)orientation;
+		// assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
 		float dq_pitch[4];                                 // Quaternion delta pitch rotation
 		float dq_yaw[4];                                   // Quaternion delta yaw rotation
 		float dq_roll[4];                                  // Quaternion delta roll rotation
@@ -81,9 +80,9 @@ void RotateQuaternion(ecs_iter_t *it)
 
 void TransformationPosition(ecs_iter_t *it)
 {
-	Transformation *t = ecs_field(it, Transformation, 1);
-	Position3 const *pos = ecs_field(it, Position3, 2);
-	Orientation const *orientation = ecs_field(it, Orientation, 3);
+	Transformation *t = ecs_field(it, Transformation, 1);           // self
+	Position3 const *pos = ecs_field(it, Position3, 2);             // self
+	Orientation const *orientation = ecs_field(it, Orientation, 3); // self
 	for (int i = 0; i < it->count; ++i, ++t, ++pos, ++orientation) {
 		t->matrix = (m4f32)M4_IDENTITY;
 		qf32_unit_to_m4((float *)orientation, &t->matrix);
@@ -134,5 +133,4 @@ void CamerasImport(ecs_world_t *world)
 	{.id = ecs_id(Position3), .src.flags = EcsSelf},
 	{.id = ecs_id(Orientation), .src.flags = EcsSelf},
 	}});
-
 }

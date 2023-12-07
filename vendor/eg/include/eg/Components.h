@@ -5,6 +5,7 @@
 typedef struct {
 	float w;
 	float h;
+	float dt;
 	float mouse_x;
 	float mouse_y;
 	float mouse_dx;
