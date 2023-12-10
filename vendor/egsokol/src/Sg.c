@@ -474,3 +474,72 @@ void SgImport(ecs_world_t *world)
 	{.id = ecs_id(SgShader), .oper = EcsNot}, // Adds this
 	}});
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void egsokol_flecs_event_cb(const sapp_event *evt, Window *window)
+{
+	uint8_t *keys = window->keys;
+
+	switch (evt->type) {
+	case SAPP_EVENTTYPE_MOUSE_DOWN:
+		if (evt->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+			if (window->mouse_left == 0) {
+				window->mouse_left_edge = 1;
+			}
+			window->mouse_left = 1;
+		}
+
+		if (evt->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
+
+		}
+		break;
+	case SAPP_EVENTTYPE_MOUSE_UP:
+		if (evt->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+			window->mouse_left = 0;
+		}
+
+		if (evt->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
+		}
+		break;
+	case SAPP_EVENTTYPE_MOUSE_SCROLL:
+		break;
+	case SAPP_EVENTTYPE_MOUSE_MOVE:
+		window->mouse_x = evt->mouse_x;
+		window->mouse_y = evt->mouse_y;
+		window->mouse_dx = evt->mouse_dx;
+		window->mouse_dy = evt->mouse_dy;
+		break;
+	case SAPP_EVENTTYPE_KEY_UP:
+		assert(evt->key_code < 512);
+		keys[evt->key_code] = 0;
+		break;
+	case SAPP_EVENTTYPE_KEY_DOWN:
+		assert(evt->key_code < 512);
+		keys[evt->key_code] = 1;
+		break;
+	case SAPP_EVENTTYPE_RESIZED: {
+		break;
+	}
+	default:
+		break;
+	}
+
+	if (keys[SAPP_KEYCODE_ESCAPE]) {
+		sapp_quit();
+	}
+}

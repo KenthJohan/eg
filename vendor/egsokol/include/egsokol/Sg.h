@@ -1,6 +1,7 @@
 #pragma once
 
 #include <flecs.h>
+#include <eg/Components.h>
 #include <sokol/sokol_gfx.h>
 #include <sokol/sokol_debugtext.h>
 #include <sokol/sokol_app.h>
@@ -128,3 +129,6 @@ extern ECS_TAG_DECLARE(SgAttributeShapeColor);
 extern ECS_TAG_DECLARE(SgVertexBufferLayoutShape);
 
 void SgImport(ecs_world_t *world);
+
+
+void egsokol_flecs_event_cb(const sapp_event *evt, Window *window);
