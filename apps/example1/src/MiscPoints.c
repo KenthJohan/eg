@@ -94,8 +94,8 @@ void MiscPointsImport(ecs_world_t *world)
 	.query.filter.terms =
 	{
 	{.id = ecs_id(PointsBuffer), .src.flags = EcsSelf},
-	{.id = ecs_id(SgPipeline), .src.trav = Use, .src.flags = EcsUp},
-	{.id = ecs_id(Camera), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(SgPipeline), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(Camera), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
 	}});
 

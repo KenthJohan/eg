@@ -85,7 +85,7 @@ void MiscShapesImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(Torus), .src.flags = EcsSelf},
 	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
-	{.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
 	}});
 
 	ecs_system_init(world,
@@ -96,7 +96,7 @@ void MiscShapesImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(Cylinder), .src.flags = EcsSelf},
 	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
-	{.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
 	}});
 
 	ecs_system_init(world,
@@ -116,9 +116,9 @@ void MiscShapesImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
 	{.id = ecs_id(Transformation), .src.flags = EcsSelf},
-	{.id = ecs_id(SgPipeline), .src.trav = Use, .src.flags = EcsUp},
-	{.id = ecs_id(ShapeBuffer), .src.trav = Use, .src.flags = EcsUp},
-	{.id = ecs_id(Camera), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(SgPipeline), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(Camera), .src.trav = EgUse, .src.flags = EcsUp},
 	}});
 
 

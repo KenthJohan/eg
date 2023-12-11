@@ -103,7 +103,7 @@ void MiscLinesImport(ecs_world_t *world)
 	.callback = AppendLines,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(LinesBuffer), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(Line), .src.flags = EcsSelf},
 	{.id = ecs_id(Color32), .src.flags = EcsSelf},
 	}});
@@ -115,8 +115,8 @@ void MiscLinesImport(ecs_world_t *world)
 	.query.filter.terms =
 	{
 	{.id = ecs_id(LinesBuffer), .src.flags = EcsSelf},
-	{.id = ecs_id(SgPipeline), .src.trav = Use, .src.flags = EcsUp},
-	{.id = ecs_id(Camera), .src.trav = Use, .src.flags = EcsUp},
+	{.id = ecs_id(SgPipeline), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(Camera), .src.trav = EgUse, .src.flags = EcsUp},
 	}});
 
 	ecs_system_init(world,
