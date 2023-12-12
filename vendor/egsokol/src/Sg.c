@@ -1,4 +1,5 @@
 #include "egsokol/Sg.h"
+#include <eg/Components.h>
 #include <eg/eg_assert.h>
 #include <eg/eg_fs.h>
 #include <eg/eg_log.h>

@@ -10,7 +10,9 @@
 		"flecs.h": "c",
 		"stdio.h": "c",
 		"eg_assert.h": "c",
-		"sg.h": "c"
+		"sg.h": "c",
+		"cameras.h": "c",
+		"components.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
