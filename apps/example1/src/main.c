@@ -1,8 +1,8 @@
-#include <sokol/sokol_app.h>
-#include <sokol/sokol_gfx.h>
-#include <sokol/sokol_log.h>
-#include <sokol/sokol_debugtext.h>
-#include <sokol/sokol_glue.h>
+#include "sokol/sokol_app.h"
+#include "sokol/sokol_gfx.h"
+#include "sokol/sokol_log.h"
+#include "sokol/sokol_debugtext.h"
+#include "sokol/sokol_glue.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -16,12 +16,15 @@
 #include <flecs.h>
 #include <eg/Cameras.h>
 #include <eg/Components.h>
+#include <eg/Spatials.h>
 #include <egsokol/Sg.h>
 
 #include "MiscShapes.h"
 #include "MiscLines.h"
 #include "MiscPoints.h"
 #include "MyController.h"
+
+#include "argparse.h"
 
 
 
@@ -30,11 +33,14 @@ static void WindowLastFrame(ecs_iter_t *it)
 {
 	Window *window = ecs_field(it, Window, 1);
 	window->mouse_left_edge = 0;
+	window->mouse_right_edge = 0;
+	memset(window->keys_edge, 0, sizeof(uint8_t)*512);
 }
 
 
 typedef struct {
 	ecs_world_t *world;
+	char const * metafile;
 } app_t;
 
 static void init_cb(app_t *app)
@@ -52,10 +58,11 @@ static void init_cb(app_t *app)
 	});
 
 	ECS_IMPORT(world, Components);
+	ECS_IMPORT(world, Spatials);
+	ECS_IMPORT(world, Cameras);
 	ECS_IMPORT(world, MiscShapes);
 	ECS_IMPORT(world, MiscLines);
 	ECS_IMPORT(world, MiscPoints);
-	ECS_IMPORT(world, Cameras);
 	ECS_IMPORT(world, Sg);
 	ECS_IMPORT(world, MyController);
 
@@ -64,6 +71,8 @@ static void init_cb(app_t *app)
 	ecs_plecs_from_file(app->world, "config/graphics_shaders.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_ubs.flecs");
 	ecs_plecs_from_file(app->world, "config/app.flecs");
+
+
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
@@ -81,6 +90,7 @@ static void frame_cb(app_t *app)
 	Window *window = ecs_singleton_get_mut(app->world, Window);
 	window->w = w;
 	window->h = h;
+	window->dt = dt;
 
 	sg_pass_action action1 = (sg_pass_action){
 	.colors[0] = {
@@ -100,7 +110,58 @@ static void event_cb(const sapp_event *evt, app_t *app)
 {
 	Window *window = ecs_singleton_get_mut(app->world, Window);
 	uint8_t *keys = window->keys;
-	egsokol_flecs_event_cb(evt, window);
+	uint8_t *keyse = window->keys_edge;
+
+	switch (evt->type) {
+	case SAPP_EVENTTYPE_MOUSE_DOWN:
+		if (evt->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+			if (window->mouse_left == 0) {
+				window->mouse_left_edge = 1;
+			}
+			window->mouse_left = 1;
+		}
+
+		if (evt->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
+
+		}
+		break;
+	case SAPP_EVENTTYPE_MOUSE_UP:
+		if (evt->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+			window->mouse_left = 0;
+		}
+
+		if (evt->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
+		}
+		break;
+	case SAPP_EVENTTYPE_MOUSE_SCROLL:
+		break;
+	case SAPP_EVENTTYPE_MOUSE_MOVE:
+		window->mouse_x = evt->mouse_x;
+		window->mouse_y = evt->mouse_y;
+		window->mouse_dx = evt->mouse_dx;
+		window->mouse_dy = evt->mouse_dy;
+		break;
+	case SAPP_EVENTTYPE_KEY_UP:
+		assert(evt->key_code < 512);
+		keys[evt->key_code] = 0;
+		break;
+	case SAPP_EVENTTYPE_KEY_DOWN:
+		assert(evt->key_code < 512);
+		if (keys[evt->key_code] == 0) {
+			keyse[evt->key_code] = 1;
+		}
+		keys[evt->key_code] = 1;
+		break;
+	case SAPP_EVENTTYPE_RESIZED: {
+		break;
+	}
+	default:
+		break;
+	}
+
+	if (keys[SAPP_KEYCODE_ESCAPE]) {
+		sapp_quit();
+	}
 }
 
 static void cleanup_cb(app_t *app)
@@ -111,12 +172,23 @@ static void cleanup_cb(app_t *app)
 	free(app);
 }
 
-sapp_desc sokol_main(int argc, char *argv[])
+
+sapp_desc sokol_main(int argc, char /*const*/ *argv[])
 {
 
 	app_t *app = calloc(1, sizeof(app_t));
-
 	app->world = ecs_init();
+	// Disables warnings
+	// Disables warnings about flecs HTTP request to timeout.
+	ecs_log_set_level(-3);
+
+	struct argparse_option options[] = {
+	    OPT_HELP(),
+	    OPT_GROUP("Basic options"),
+	    OPT_STRING('m', "metafile", &app->metafile, "Metafile path", NULL, 0, 0),
+	    OPT_END(),
+	};
+
 
 	return (sapp_desc){
 	.user_data = app,
@@ -127,7 +199,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	.width = 800,
 	.height = 600,
 	.sample_count = 4,
-	.window_title = "Primitive Types",
+	.window_title = "example1",
 	.icon.sokol_default = true,
 	.logger.func = slog_func,
 	};

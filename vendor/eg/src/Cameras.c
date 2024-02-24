@@ -1,8 +1,16 @@
 #include "eg/Cameras.h"
 #include "eg/Components.h"
-
+#include "eg/Spatials.h"
+#include "eg/Windows.h"
 #include "eg/gmath.h"
 #include <assert.h>
+
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
+
+ECS_COMPONENT_DECLARE(Camera);
 
 void CameraUpdate(ecs_iter_t *it)
 {
@@ -26,6 +34,7 @@ void CameraUpdate(ecs_iter_t *it)
 		m4f32 r = M4_IDENTITY;
 		qf32_unit_to_m4((float *)o, &r);
 
+
 		// printf("Camera:\n");
 		// m4f32_print(&v);
 		m4f32_mul(&cam->view, &r, &t);
@@ -38,66 +47,37 @@ void CameraUpdate(ecs_iter_t *it)
 	}
 }
 
-void Move(ecs_iter_t *it)
-{
-	Position3 *p = ecs_field(it, Position3, 1);     // self
-	Velocity3 *v = ecs_field(it, Velocity3, 2);     // self
-	Orientation *o = ecs_field(it, Orientation, 3); // self
 
-	for (int i = 0; i < it->count; ++i, ++p, ++o) {
-		// Convert unit quaternion to rotation matrix (r)
-		m4f32 r = M4_IDENTITY;
-		qf32_unit_to_m4((float *)o, &r);
-		// Translate postion (pos) relative to direction of camera rotation
-		float dir[3];
-		dir[0] = V3_DOT(r.c0, (float *)v);
-		dir[1] = V3_DOT(r.c1, (float *)v);
-		dir[2] = V3_DOT(r.c2, (float *)v);
-		// v3f32_print((float*)dir);
-		v3f32_add((float *)p, (float *)p, dir);
-	}
-}
 
-void RotateQuaternion(ecs_iter_t *it)
-{
-	Rotate3 *rotate = ecs_field(it, Rotate3, 1);              // self
-	Orientation *orientation = ecs_field(it, Orientation, 2); // self
-	for (int i = 0; i < it->count; ++i, ++rotate, ++orientation) {
-		float *q = (float *)orientation;
-		// assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
-		float dq_pitch[4];                                 // Quaternion delta pitch rotation
-		float dq_yaw[4];                                   // Quaternion delta yaw rotation
-		float dq_roll[4];                                  // Quaternion delta roll rotation
-		qf32_normalize(q, q, 0.000001f);                   // Normalize quaternion against floating point error
-		qf32_xyza(dq_pitch, 1.0f, 0.0f, 0.0f, rotate->dx); // Make delta pitch quaternion
-		qf32_xyza(dq_yaw, 0.0f, 1.0f, 0.0f, rotate->dy);   // Make delta yaw quaternion
-		qf32_xyza(dq_roll, 0.0f, 0.0f, 1.0f, rotate->dz);  // Make delta roll quaternion
-		qf32_mul(q, dq_roll, q);                           // Apply roll delta rotation
-		qf32_mul(q, dq_yaw, q);                            // Apply yaw delta rotation
-		qf32_mul(q, dq_pitch, q);                          // Apply pitch delta rotation
-	}
-}
 
-void TransformationPosition(ecs_iter_t *it)
-{
-	Transformation *t = ecs_field(it, Transformation, 1);           // self
-	Position3 const *pos = ecs_field(it, Position3, 2);             // self
-	Orientation const *orientation = ecs_field(it, Orientation, 3); // self
-	for (int i = 0; i < it->count; ++i, ++t, ++pos, ++orientation) {
-		t->matrix = (m4f32)M4_IDENTITY;
-		qf32_unit_to_m4((float *)orientation, &t->matrix);
-		m4f32_translation3(&t->matrix, (float const *)pos);
-	}
-}
+ECS_CTOR(Camera, ptr, {
+	ptr->fov = 45;
+})
+
 
 void CamerasImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Cameras);
 	ECS_IMPORT(world, Components);
+	ECS_IMPORT(world, Spatials);
+	ECS_IMPORT(world, Windows);
+
+	ECS_COMPONENT_DEFINE(world, Camera);
+
+	ecs_set_hooks(world, Camera, {.ctor = ecs_ctor(Camera)});
+
+	ecs_struct(world,
+	{.entity = ecs_id(Camera),
+	.members = {
+	{.name = "fov", .type = ecs_id(ecs_f32_t)},
+	{.name = "view", .type = ecs_id(ecs_f32_t), .count = 16},
+	{.name = "projection", .type = ecs_id(ecs_f32_t), .count = 16},
+	{.name = "vp", .type = ecs_id(ecs_f32_t), .count = 16},
+	}});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.entity = ecs_entity(world, {.name = "CameraUpdate", .add = {ecs_dependson(EcsOnUpdate)}}),
 	.callback = CameraUpdate,
 	.query.filter.terms = {
 	{.id = ecs_id(Camera), .src.flags = EcsSelf},
@@ -106,31 +86,4 @@ void CamerasImport(ecs_world_t *world)
 	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = Move,
-	.query.filter.terms = {
-	{.id = ecs_id(Position3), .src.flags = EcsSelf},
-	{.id = ecs_id(Velocity3), .src.flags = EcsSelf},
-	{.id = ecs_id(Orientation), .src.flags = EcsSelf}}});
-
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = RotateQuaternion,
-	.query.filter.terms = {
-	{.id = ecs_id(Rotate3), .src.flags = EcsSelf},
-	{.id = ecs_id(Orientation), .src.flags = EcsSelf},
-	}});
-
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = TransformationPosition,
-	.query.filter.terms = {
-	{.id = ecs_id(Transformation), .src.flags = EcsSelf},
-	{.id = ecs_id(Position3), .src.flags = EcsSelf},
-	{.id = ecs_id(Orientation), .src.flags = EcsSelf},
-	}});
 }

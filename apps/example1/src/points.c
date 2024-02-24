@@ -28,6 +28,19 @@ void points_init(points_storage_t *storage)
 	storage->gpu_buffer = sg_make_buffer(&desc);
 }
 
+
+point_vertex_t * points_ensure(points_storage_t *storage, int32_t n)
+{
+	int32_t count = storage->count + n;
+	if (count > storage->capacity) {
+		storage->capacity = next_pow_of_2(count);
+		storage->points = ecs_os_realloc_n(storage->points, point_vertex_t, storage->capacity);
+	}
+	point_vertex_t *last = storage->points + storage->count;
+	return last;
+}
+
+
 point_vertex_t * points_append(points_storage_t *storage, int32_t n)
 {
 	int32_t count = storage->count + n;

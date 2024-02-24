@@ -2,6 +2,7 @@
 
 #include <flecs.h>
 #include <eg/Components.h>
+#include <eg/Windows.h>
 #include <sokol/sokol_gfx.h>
 #include <sokol/sokol_debugtext.h>
 #include <sokol/sokol_app.h>

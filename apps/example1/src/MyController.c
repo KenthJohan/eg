@@ -1,17 +1,20 @@
 #include "MyController.h"
 
-#include <egsokol/Sg.h>
-#include <eg/Components.h>
+#include "egsokol/Sg.h"
+#include "eg/Components.h"
+#include "eg/Spatials.h"
+#include "eg/Cameras.h"
+#include "eg/Shapes.h"
 #include "MiscLines.h"
 
-void ControllerRotate(ecs_iter_t *it)
+static void ControllerRotate(ecs_iter_t *it)
 {
-	// Camera *camera = ecs_field(it, Camera, 1);
+	KeyboardController *controller = ecs_field(it, KeyboardController, 1);
 	Rotate3 *rotate = ecs_field(it, Rotate3, 2);
 	Window *window = ecs_field(it, Window, 3);
 	uint8_t *keys = window->keys;
 	float k = 0.8f * it->delta_time;
-	for (int i = 0; i < it->count; i++) {
+	for (int i = 0; i < it->count; ++i, ++rotate) {
 		rotate->dx = keys[SAPP_KEYCODE_UP] - keys[SAPP_KEYCODE_DOWN];
 		rotate->dy = keys[SAPP_KEYCODE_RIGHT] - keys[SAPP_KEYCODE_LEFT];
 		rotate->dz = keys[SAPP_KEYCODE_E] - keys[SAPP_KEYCODE_Q];
@@ -19,13 +22,13 @@ void ControllerRotate(ecs_iter_t *it)
 	}
 }
 
-void ControllerMove(ecs_iter_t *it)
+static void ControllerMove(ecs_iter_t *it)
 {
-	// Camera *camera = ecs_field(it, Camera, 1);
+	KeyboardController *controller = ecs_field(it, KeyboardController, 1);
 	Velocity3 *vel = ecs_field(it, Velocity3, 2);
 	Window *window = ecs_field(it, Window, 3);
 	uint8_t *keys = window->keys;
-	float moving_speed = 100.1f;
+	float moving_speed = 1.1f;
 	float k = it->delta_time * moving_speed;
 	for (int i = 0; i < it->count; i++) {
 		vel->x = keys[SAPP_KEYCODE_A] - keys[SAPP_KEYCODE_D];
@@ -35,10 +38,11 @@ void ControllerMove(ecs_iter_t *it)
 	}
 }
 
-void ControllerPerspective(ecs_iter_t *it)
+static void ControllerPerspective(ecs_iter_t *it)
 {
-	Camera *camera = ecs_field(it, Camera, 1);
-	Window *window = ecs_field(it, Window, 2);
+	KeyboardController *controller = ecs_field(it, KeyboardController, 1);
+	Camera *camera = ecs_field(it, Camera, 2);
+	Window *window = ecs_field(it, Window, 3);
 	uint8_t *keys = window->keys;
 	for (int i = 0; i < it->count; i++) {
 		camera->fov = keys[SAPP_KEYCODE_KP_0] ? 45 : camera->fov;
@@ -48,7 +52,7 @@ void ControllerPerspective(ecs_iter_t *it)
 	}
 }
 
-void PrintMousePos(ecs_iter_t *it)
+static void PrintMousePos(ecs_iter_t *it)
 {
 	Window *win = ecs_field(it, Window, 1);
 	Camera *cam = ecs_field(it, Camera, 2);
@@ -128,13 +132,41 @@ void PrintMousePos(ecs_iter_t *it)
 }
 
 
+
+
+
+
+
+
+static void KeyActionToggleEntity_OnUpdate(ecs_iter_t *it)
+{
+	Window *window = ecs_field(it, Window, 1);
+	KeyActionToggleEntity *action = ecs_field(it, KeyActionToggleEntity, 2);
+	uint8_t *keys_edge = window->keys_edge;
+	for (int i = 0; i < it->count; ++i, ++action) {
+		if(keys_edge[action->keycode]) {
+			//ecs_add_id(it->world, it->entities[i], action->entity);
+			if(ecs_has_pair(it->world, it->entities[i], EcsIsA, action->entity)) {
+				ecs_remove_pair(it->world, it->entities[i], EcsIsA, action->entity);
+			} else {
+				ecs_add_pair(it->world, it->entities[i], EcsIsA, action->entity);
+			}
+		}
+	}
+}
+
+
 void MyControllerImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MyController);
 	ECS_IMPORT(world, Components);
+	ECS_IMPORT(world, Spatials);
+	ECS_IMPORT(world, Cameras);
+	ECS_IMPORT(world, Shapes);
 
-	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, Camera, Rotate3, Window($));
-	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, Camera, Velocity3, Window($));
-	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, Camera, Window($));
+	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, KeyboardController, Rotate3, Window($));
+	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, KeyboardController, Velocity3, Window($));
+	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, KeyboardController, Camera, Window($));
 	ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera, Position3, Orientation);
+	ECS_SYSTEM(world, KeyActionToggleEntity_OnUpdate, EcsOnUpdate, Window($), KeyActionToggleEntity);
 }

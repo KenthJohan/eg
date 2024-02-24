@@ -12,7 +12,16 @@
 		"eg_assert.h": "c",
 		"sg.h": "c",
 		"cameras.h": "c",
-		"components.h": "c"
+		"components.h": "c",
+		"miscshapes.h": "c",
+		"lines.h": "c",
+		"windows.h": "c",
+		"sokol_gfx.h": "c",
+		"shapes.h": "c",
+		"spatials.h": "c",
+		"misclines.h": "c",
+		"vector": "c",
+		"algorithm": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

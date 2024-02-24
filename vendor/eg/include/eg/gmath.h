@@ -28,6 +28,10 @@
 #define V3_ARG(a) (a[0]), (a[1]), (a[2])
 #define V4_ARG(a) (a[0]), (a[1]), (a[2]), (a[3])
 
+#define M3_R0(a) ((a).c0[0]), ((a).c1[0]), ((a).c2[0])
+#define M3_R1(a) ((a).c0[1]), ((a).c1[1]), ((a).c2[1])
+#define M3_R2(a) ((a).c0[2]), ((a).c1[2]), ((a).c2[2])
+
 #define M4_R0(a) ((a).c0[0]), ((a).c1[0]), ((a).c2[0]), ((a).c3[0])
 #define M4_R1(a) ((a).c0[1]), ((a).c1[1]), ((a).c2[1]), ((a).c3[1])
 #define M4_R2(a) ((a).c0[2]), ((a).c1[2]), ((a).c2[2]), ((a).c3[2])
@@ -42,6 +46,13 @@
 
 typedef struct
 {
+	float c0[3];
+	float c1[3];
+	float c2[3];
+} m3f32;
+
+typedef struct
+{
 	float c0[4];
 	float c1[4];
 	float c2[4];
@@ -51,6 +62,11 @@ typedef struct
 #define QF32_IDENTITY \
 	{                 \
 		0, 0, 0, 1    \
+	}
+
+#define M3_IDENTITY                                              \
+	{                                                            \
+		{1, 0, 0}, {0, 1, 0}, {0, 0, 1} \
 	}
 
 #define M4_IDENTITY                                              \
@@ -124,6 +140,46 @@ static void qf32_unit_to_m4(float const q[4], m4f32 *r)
 	r->c2[1] = 2.0f * (c * d - a * b);
 	r->c2[2] = a2 - b2 - c2 + d2;
 }
+
+static void qf32_unit_to_m3(float const q[4], m3f32 *r)
+{
+	float a = q[3];
+	float b = q[0];
+	float c = q[1];
+	float d = q[2];
+	float a2 = a * a;
+	float b2 = b * b;
+	float c2 = c * c;
+	float d2 = d * d;
+	// Column vector 0:
+	r->c0[0] = a2 + b2 - c2 - d2;
+	r->c0[1] = 2.0f * (b * c + a * d);
+	r->c0[2] = 2.0f * (b * d - a * c);
+	// Column vector 1:
+	r->c1[0] = 2.0f * (b * c - a * d);
+	r->c1[1] = a2 - b2 + c2 - d2;
+	r->c1[2] = 2.0f * (c * d + a * b);
+	// Column vector 2:
+	r->c2[0] = 2.0f * (b * d + a * c);
+	r->c2[1] = 2.0f * (c * d - a * b);
+	r->c2[2] = a2 - b2 - c2 + d2;
+}
+
+
+static void qf32_from_euler(float q[4], float pitch, float yaw, float roll)
+{
+    float cr = cos(roll * 0.5f);
+    float sr = sin(roll * 0.5f);
+    float cp = cos(pitch * 0.5f);
+    float sp = sin(pitch * 0.5f);
+    float cy = cos(yaw * 0.5f);
+    float sy = sin(yaw * 0.5f);
+    q[0] = cr * cp * cy + sr * sp * sy;
+    q[1] = sr * cp * cy - cr * sp * sy;
+    q[2] = cr * sp * cy + sr * cp * sy;
+    q[3] = cr * cp * sy - sr * sp * cy;
+}
+
 
 static void v3f32_mul(float r[3], float const a[3], float b)
 {
@@ -208,7 +264,7 @@ static void m4f32_mul_transpose(m4f32 *y, m4f32 const *at, m4f32 *const b)
 	*y = t;
 }
 
-static void m4f32_mul(m4f32 *y, m4f32 const *a, m4f32 *const b)
+static void m4f32_mul(m4f32 *y, m4f32 const *a, m4f32 const * b)
 {
 	m4f32 t;
 	// Column vector 0:
@@ -231,6 +287,24 @@ static void m4f32_mul(m4f32 *y, m4f32 const *a, m4f32 *const b)
 	t.c1[3] = V4_DOTE(b->c1, M4_R3(*a));
 	t.c2[3] = V4_DOTE(b->c2, M4_R3(*a));
 	t.c3[3] = V4_DOTE(b->c3, M4_R3(*a));
+	*y = t;
+}
+
+static void m3f32_mul(m3f32 *y, m3f32 const *a, m3f32 const * b)
+{
+	m3f32 t;
+	// Column vector 0:
+	t.c0[0] = V3_DOTE(b->c0, M3_R0(*a));
+	t.c1[0] = V3_DOTE(b->c1, M3_R0(*a));
+	t.c2[0] = V3_DOTE(b->c2, M3_R0(*a));
+	// Column vector 1:
+	t.c0[1] = V3_DOTE(b->c0, M3_R1(*a));
+	t.c1[1] = V3_DOTE(b->c1, M3_R1(*a));
+	t.c2[1] = V3_DOTE(b->c2, M3_R1(*a));
+	// Column vector 2:
+	t.c0[2] = V3_DOTE(b->c0, M3_R2(*a));
+	t.c1[2] = V3_DOTE(b->c1, M3_R2(*a));
+	t.c2[2] = V3_DOTE(b->c2, M3_R2(*a));
 	*y = t;
 }
 

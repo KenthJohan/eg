@@ -1,8 +1,7 @@
 #include "shapes.h"
 
-#include <sokol/sokol_gfx.h>
-
-#include <sokol/sokol_shape.h>
+#include "sokol/sokol_gfx.h"
+#include "sokol/sokol_shape.h"
 
 int32_t Memory_next_pow_of_2(int32_t n)
 {
@@ -41,7 +40,7 @@ sshape_buffer_t ShapeBuffer_convert(ShapeBuffer *b)
 	return buf;
 }
 
-void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *data)
+void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *data, uint32_t color)
 {
 	sshape_buffer_t buf;
 	switch (shape) {
@@ -52,7 +51,8 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 		.ring_radius = torus->ring_radius,
 		.rings = torus->rings,
 		.sides = torus->sides,
-		.random_colors = true,
+		.color = color,
+		.random_colors = false
 		};
 		sshape_sizes_t sizes = sshape_torus_sizes(torus->sides, torus->rings);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
@@ -69,13 +69,31 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 		.height = cylinder->height,
 		.slices = cylinder->slices,
 		.stacks = cylinder->stacks,
-		.random_colors = true,
+		.color = color,
+		.random_colors = false
 		};
 		sshape_sizes_t sizes = sshape_cylinder_sizes(cylinder->slices, cylinder->stacks);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
 		Memory_grow(&b->indices.buffer, sizes.indices.size);
 		buf = ShapeBuffer_convert(b);
 		buf = sshape_build_cylinder(&buf, &info);
+		break;
+	}
+
+	case SSHAPE_SPHERE: {
+		Sphere *cylinder = data;
+		sshape_sphere_t info = {
+		.radius = cylinder->radius,
+		.slices = cylinder->slices,
+		.stacks = cylinder->stacks,
+		.color = color,
+		.random_colors = false
+		};
+		sshape_sizes_t sizes = sshape_sphere_sizes(cylinder->slices, cylinder->stacks);
+		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
+		Memory_grow(&b->indices.buffer, sizes.indices.size);
+		buf = ShapeBuffer_convert(b);
+		buf = sshape_build_sphere(&buf, &info);
 		break;
 	}
 

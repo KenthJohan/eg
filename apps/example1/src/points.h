@@ -1,6 +1,6 @@
 #pragma once
 
-#include <sokol/sokol_gfx.h>
+#include "sokol/sokol_gfx.h"
 
 typedef struct
 {
@@ -20,6 +20,7 @@ typedef struct
 } points_storage_t;
 
 void points_init(points_storage_t *storage);
+point_vertex_t * points_ensure(points_storage_t *storage, int32_t n);
 point_vertex_t * points_append(points_storage_t *storage, int32_t n);
 void points_upload(points_storage_t *storage);
 void points_draw(points_storage_t *storage);
