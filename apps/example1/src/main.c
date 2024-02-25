@@ -40,7 +40,6 @@ static void WindowLastFrame(ecs_iter_t *it)
 
 typedef struct {
 	ecs_world_t *world;
-	char const * metafile;
 } app_t;
 
 static void init_cb(app_t *app)
@@ -66,11 +65,14 @@ static void init_cb(app_t *app)
 	ECS_IMPORT(world, Sg);
 	ECS_IMPORT(world, MyController);
 
+	ecs_log_set_level(1);
+	ecs_plecs_from_file(app->world, "config/keycode_sokol.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_attributes.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_pipes.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_shaders.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_ubs.flecs");
 	ecs_plecs_from_file(app->world, "config/app.flecs");
+	ecs_log_set_level(-1);
 
 
 
@@ -181,14 +183,6 @@ sapp_desc sokol_main(int argc, char /*const*/ *argv[])
 	// Disables warnings
 	// Disables warnings about flecs HTTP request to timeout.
 	ecs_log_set_level(-3);
-
-	struct argparse_option options[] = {
-	    OPT_HELP(),
-	    OPT_GROUP("Basic options"),
-	    OPT_STRING('m', "metafile", &app->metafile, "Metafile path", NULL, 0, 0),
-	    OPT_END(),
-	};
-
 
 	return (sapp_desc){
 	.user_data = app,
