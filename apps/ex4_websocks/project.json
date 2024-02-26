@@ -6,6 +6,7 @@
 		"public": false,
 		"use": [
 			"flecs",
+			"eg",
 			"egwebsockets"
 		]
 	},
@@ -17,6 +18,7 @@
 		"lib": [
 			"flecs",
 			"egwebsockets",
+			"eg",
 			"websockets"
 		],
 		"cflags": [
