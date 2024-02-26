@@ -5,6 +5,29 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Launch ex4_websocks",
+			"type": "cppdbg",
+			"request": "launch",
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}/apps/ex4_websocks",
+			"environment": [
+				{
+					"name": "LD_LIBRARY_PATH",
+					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
+				},
+			],
+			"program": "${workspaceFolder}/apps/ex4_websocks/bin/x64-Linux-debug/ex4_websocks",
+			"args": [],
+			"osx": {
+				"MIMode": "lldb",
+				"targetArchitecture": "arm64",
+				"externalConsole": false,
+			},
+			"linux": {
+				"externalConsole": false,
+			}
+		},
+		{
 			"name": "Launch example1",
 			"type": "cppdbg",
 			"request": "launch",

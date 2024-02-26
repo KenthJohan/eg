@@ -21,7 +21,11 @@
 		"spatials.h": "c",
 		"misclines.h": "c",
 		"vector": "c",
-		"algorithm": "c"
+		"algorithm": "c",
+		"websockets.h": "c",
+		"assert.h": "c",
+		"libwebsockets.h": "c",
+		"string.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
