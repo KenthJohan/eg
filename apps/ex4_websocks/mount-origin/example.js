@@ -31,38 +31,56 @@ function new_ws(urlpath, protocol)
 	return new WebSocket(urlpath, protocol);
 }
 
-document.addEventListener("DOMContentLoaded", function() {
 
-	var ws = new_ws(get_appropriate_ws_url(""), "lws-minimal");
-	try {
-		ws.onopen = function() {
-			document.getElementById("r").disabled = 0;
-		};
-	
-		ws.onmessage =function got_packet(msg) {
-			var n, s = "";
-	
-			ring[head] = msg.data + "\n";
-			head = (head + 1) % 50;
-			if (tail === head)
-				tail = (tail + 1) % 50;
-	
-			n = tail;
-			do {
-				s = s + ring[n];
-				n = (n + 1) % 50;
-			} while (n !== head);
-	
-			document.getElementById("r").value = s; 
-			document.getElementById("r").scrollTop =
-				document.getElementById("r").scrollHeight;
-		};
-	
-		ws.onclose = function(){
-			document.getElementById("r").disabled = 1;
-		};
-	} catch(exception) {
-		alert("<p>Error " + exception);  
+
+
+function fx(obj, a) {
+	return function () {
+		if(a == true) {
+			console.log("Open");
+			obj.ws = new_ws(get_appropriate_ws_url(""), "lws-minimal");
+			try {
+				var ws = obj.ws;
+				ws.onopen = function() {
+					document.getElementById("r").disabled = 0;
+				};
+			
+				ws.onmessage = function got_packet(msg) {
+					console.log("msg", msg);
+					var n, s = "";
+					let max = 30;
+			
+					ring[head] = msg.data + "\n";
+					head = (head + 1) % max;
+					if (tail === head)
+						tail = (tail + 1) % max;
+			
+					n = tail;
+					do {
+						s = s + ring[n];
+						n = (n + 1) % max;
+					} while (n !== head);
+			
+					document.getElementById("r").value = s; 
+					document.getElementById("r").scrollTop =
+					document.getElementById("r").scrollHeight;
+				};
+			
+				ws.onclose = function(){
+					document.getElementById("r").disabled = 1;
+				};
+			} catch(exception) {
+				alert("<p>Error " + exception);  
+			}
+		} else if (a == false){
+			console.log("Close");
+			obj?.ws?.close();
+		}
 	}
+}
 
+document.addEventListener("DOMContentLoaded", function() {
+	let obj = {};
+	document.getElementById("close").addEventListener("click", fx(obj, false));
+	document.getElementById("open").addEventListener("click", fx(obj, true));
 }, false);

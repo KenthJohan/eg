@@ -19,7 +19,7 @@ void Sys1(ecs_iter_t *it)
 {
 	Comp1 *points = ecs_field(it, Comp1, 1);
 	for (int i = 0; i < it->count; ++i) {
-		printf("Sys1\n");
+		//printf("Sys1\n");
 	}
 }
 
@@ -27,7 +27,7 @@ void Sys2(ecs_iter_t *it)
 {
 	Comp2 *points = ecs_field(it, Comp2, 1);
 	for (int i = 0; i < it->count; ++i) {
-		printf("Sys2\n");
+		//printf("Sys2\n");
 	}
 }
 
@@ -67,7 +67,7 @@ int main(int argc, char const * argv[])
 
 	while(1) {
 		ecs_os_sleep(1.0f, 100000.0f);
-		printf("ecs_progress\n");
+		//printf("ecs_progress\n");
 		ecs_progress(world, 0.0f);
 	}
 

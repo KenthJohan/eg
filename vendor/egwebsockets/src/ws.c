@@ -68,7 +68,7 @@ struct per_vhost_data__minimal {
 	const struct lws_protocols *protocol;
 
 	struct per_session_data__minimal *pss_list; /* linked-list of live pss*/
-	pthread_t pthread_spam[2];
+	pthread_t pthread_spam[1];
 
 	pthread_mutex_t lock_ring; /* serialize access to the ring buffer */
 	struct lws_ring *ring; /* {lock_ring} ringbuffer holding unsent content */
@@ -153,7 +153,7 @@ wait_unlock:
 		pthread_mutex_unlock(&vhd->lock_ring); /* } ring lock ------- */
 
 wait:
-		usleep(100000);
+		usleep(1000*1000*2);
 
 	} while (!vhd->finished);
 
@@ -448,7 +448,7 @@ void * server_thread(void* arg)
 
 
 
-void send_message(char const * msg)
+void send_message(ews_t * ews, char const * msg)
 {
 	/*
 	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)d;
