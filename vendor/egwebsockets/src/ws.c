@@ -448,7 +448,7 @@ void * server_thread(void* arg)
 
 
 
-void send_message(ews_t * ews, char const * msg)
+void ews_send_message(ews_t * ews, char const * msg)
 {
 	/*
 	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)d;
@@ -489,4 +489,12 @@ wait:
 }
 
 
+ews_t * ews_init() {
+	ews_t * ews = ecs_os_calloc_t(ews_t);
+	ecs_os_thread_t t = ecs_os_thread_new(server_thread, ews);
+	return ews;
+}
 
+void ews_fini(ews_t * ews) {
+	ecs_os_free(ews);
+}
