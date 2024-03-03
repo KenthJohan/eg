@@ -149,6 +149,8 @@ static void * thread_spam(void *d)
 			lws_cancel_service(vhd->context);
 		}
 
+		printf("lws_ring_insert %li\n", lws_ring_get_count_waiting_elements(vhd->ring, NULL));
+
 wait_unlock:
 		pthread_mutex_unlock(&vhd->lock_ring); /* } ring lock ------- */
 
@@ -171,15 +173,17 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 	struct per_session_data__minimal *pss = (struct per_session_data__minimal *)user;
 	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
 
+	
+
 	const struct lws_protocol_vhost_options *pvo;
 	const struct msg *pmsg;
 	void *retval;
 	int n, m, r = 0;
 
 	char ip[256];
-	if (lws_get_peer_simple(wsi, ip, 16)) {
-		lwsl_notice("Ip: %s\n", ip);
-	};
+
+
+	
 
 	switch (reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT:
@@ -208,20 +212,24 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 			lwsl_err("%s: failed to create ring\n", __func__);
 			return 1;
 		}
+		ews_t * a = lws_vhost_user(lws_get_vhost(wsi));
+		a->internal_vhd = vhd;
 
 		/* start the content-creating threads */
-
-		for (n = 0; n < (int)LWS_ARRAY_SIZE(vhd->pthread_spam); n++)
+		/*
+		for (n = 0; n < (int)LWS_ARRAY_SIZE(vhd->pthread_spam); n++) {
 			if (pthread_create(&vhd->pthread_spam[n], NULL, thread_spam, vhd)) {
 				lwsl_err("thread creation failed\n");
 				r = 1;
 				goto init_fail;
 			}
+		}
+		*/
 		break;
 
 	case LWS_CALLBACK_PROTOCOL_DESTROY:
 	lwsl_notice("LWS_CALLBACK_PROTOCOL_DESTROY\n");
-init_fail:
+//init_fail:
 		vhd->finished = 1;
 		for (n = 0; n < (int)LWS_ARRAY_SIZE(vhd->pthread_spam); n++) {
 			if (vhd->pthread_spam[n]) {
@@ -237,7 +245,9 @@ init_fail:
 		break;
 
 	case LWS_CALLBACK_ESTABLISHED:
-		lwsl_notice("LWS_CALLBACK_ESTABLISHED\n");
+		if (lws_get_peer_simple(wsi, ip, 16)) {
+			lwsl_notice("LWS_CALLBACK_ESTABLISHED %s\n", ip);
+		};
 		/* add ourselves to the list of live pss held in the vhd */
 		lws_ll_fwd_insert(pss, pss_list, vhd->pss_list);
 		pss->tail = lws_ring_get_oldest_tail(vhd->ring);
@@ -251,7 +261,10 @@ init_fail:
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
-		lwsl_notice("LWS_CALLBACK_SERVER_WRITEABLE\n");
+		if (lws_get_peer_simple(wsi, ip, 16)) {
+			lwsl_notice("LWS_CALLBACK_SERVER_WRITEABLE %s\n", ip);
+		};
+		
 		pthread_mutex_lock(&vhd->lock_ring); /* --------- ring lock { */
 
 		pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
@@ -339,8 +352,6 @@ static struct lws_protocols protocols[] = {
 	LWS_PROTOCOL_LIST_TERM
 };
 
-static int interrupted;
-
 
 
 static const struct lws_http_mount mount = {
@@ -374,10 +385,7 @@ static const struct lws_protocol_vhost_options pvo = {
 	.value = ""		/* ignored */
 };
 
-void sigint_handler(int sig)
-{
-	interrupted = 1;
-}
+
 
 static struct lws_context *context;
 
@@ -385,18 +393,8 @@ static struct lws_context *context;
 //static void ws_init(ecs_iter_t *it)
 void * server_thread(void* arg)
 {
-	{
-		char cwd[256];
-		if (getcwd(cwd, sizeof(cwd)) != NULL) {
-			printf("Current working dir: %s\n", cwd);
-		} else {
-			perror("getcwd() error");
-			return 1;
-		}
-	}
-	struct lws_context_creation_info info;
-	
-	const char *p;
+	ews_t * ews = (ews_t *)arg;
+
 	int logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE
 			/* for LLL_ verbosity above NOTICE to be built into lws,
 			 * lws must have been configured and built with
@@ -405,35 +403,37 @@ void * server_thread(void* arg)
 			/* | LLL_EXT */ /* | LLL_CLIENT */ /* | LLL_LATENCY */
 			/* | LLL_DEBUG */;
 
-	signal(SIGINT, sigint_handler);
+	
 
 	lws_set_log_level(logs, NULL);
 	lwsl_user("LWS minimal ws server + threads | visit http://localhost:7681\n");
 
-	memset(&info, 0, sizeof info); /* otherwise uninitialized garbage */
+	struct lws_context_creation_info info;
+	memset(&info, 0, sizeof(info)); /* otherwise uninitialized garbage */
 	info.port = 7681;
 	info.mounts = &mount;
 	info.protocols = protocols;
 	info.pvo = &pvo; /* per-vhost options */
 	info.options = LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE;
+	info.user = ews;
 
 	context = lws_create_context(&info);
 	if (!context) {
 		lwsl_err("lws init failed\n");
-		return 1;
+		return NULL;
 	}
 
 	/* start the threads that create content */
-
-	while (!interrupted) {
-		if (lws_service(context, 0)) {
-			interrupted = 1;
+	while (ews->should_quit == 0) {
+		int rc = lws_service(context, 0);
+		if (rc) {
+			break;
 		}
 	}
 
 	lws_context_destroy(context);
 
-	return 0;
+	return NULL;
 }
 
 
@@ -450,8 +450,7 @@ void * server_thread(void* arg)
 
 void ews_send_message(ews_t * ews, char const * msg)
 {
-	/*
-	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)d;
+	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)ews->internal_vhd;
 	struct msg amsg;
 	int len = 128, index = 1, n, whoami = 0;
 		if (!vhd->pss_list)
@@ -485,7 +484,6 @@ wait_unlock:
 
 wait:
 		usleep(100000);
-		*/
 }
 
 

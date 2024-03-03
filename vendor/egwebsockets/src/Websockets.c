@@ -9,11 +9,22 @@ static void Sys1(ecs_iter_t *it)
 {
 	ews_t * ews = it->ctx;
 	for (int i = 0; i < it->count; ++i) {
-		
-		ews_send_message(ews, "Hej!");
+		if(ews->internal_vhd) {
+			printf("ews_send_message\n");
+			ews_send_message(ews, "Hej!");
+		}
+		else {
+			printf("no vhd\n");
+		}
 	}
 }
 
+/*
+void sigint_handler(int sig)
+{
+	interrupted = 1;
+}
+*/
 
 
 void WebsocketsImport(ecs_world_t *world)
@@ -21,7 +32,7 @@ void WebsocketsImport(ecs_world_t *world)
 	ECS_MODULE(world, Websockets);
 	ECS_IMPORT(world, Components);
 
-	
+	//signal(SIGINT, sigint_handler);
 
 	ecs_entity_t * a = ecs_new(world, 0);
 	ecs_set(world, a, String, {"Hello"});

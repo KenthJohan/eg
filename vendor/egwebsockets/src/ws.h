@@ -3,7 +3,8 @@
 
 typedef struct {
 	ecs_world_t * world;
-	void * internal;
+	void * internal_vhd;
+	int should_quit;
 } ews_t;
 
 
