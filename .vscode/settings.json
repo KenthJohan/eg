@@ -25,7 +25,10 @@
 		"websockets.h": "c",
 		"assert.h": "c",
 		"libwebsockets.h": "c",
-		"string.h": "c"
+		"string.h": "c",
+		"ws.h": "c",
+		"lws_config.h": "c",
+		"lws_misc.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

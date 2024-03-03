@@ -3,43 +3,13 @@
 #include "eg/Components.h"
 #include <assert.h>
 
-
-
-
-
-
-/*
- * lws-minimal-ws-server
- *
- * Written in 2010-2019 by Andy Green <andy@warmcat.com>
- *
- * This file is made available under the Creative Commons CC0 1.0
- * Universal Public Domain Dedication.
- *
- * This demonstrates a minimal ws server that can cooperate with
- * other threads cleanly.  Two other threads are started, which fill
- * a ringbuffer with strings at 10Hz.
- *
- * The actual work and thread spawning etc are done in the protocol
- * implementation in protocol_lws_minimal.c.
- *
- * To keep it simple, it serves stuff in the subdirectory "./mount-origin" of
- * the directory it was started in.
- * You can change that by changing mount.origin.
- */
-
 #include <libwebsockets.h>
 #include <string.h>
 #include <signal.h>
-#if defined(WIN32)
-#define HAVE_STRUCT_TIMESPEC
-#if defined(pid_t)
-#undef pid_t
-#endif
-#endif
 #include <pthread.h>
-
 #include <string.h>
+
+#include "lws_misc.h"
 
 /* one of these created for each message in the ringbuffer */
 
@@ -170,6 +140,8 @@ wait:
 
 static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,void *user, void *in, size_t len)
 {
+
+
 	struct per_session_data__minimal *pss = (struct per_session_data__minimal *)user;
 	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
 
@@ -181,13 +153,15 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 	int n, m, r = 0;
 
 	char ip[256];
-
-
+	if (lws_get_peer_simple(wsi, ip, 16)) {
+		printf("reason: %s, ip:%s\n", lws_callback_reasons_tostr(reason), ip);
+	} else {
+		printf("reason: %s\n", lws_callback_reasons_tostr(reason));
+	};
 	
 
 	switch (reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT:
-		lwsl_notice("LWS_CALLBACK_PROTOCOL_INIT\n");
 		/* create our per-vhost struct */
 		vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi), lws_get_protocol(wsi), sizeof(struct per_vhost_data__minimal));
 		if (!vhd)
@@ -228,7 +202,6 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		break;
 
 	case LWS_CALLBACK_PROTOCOL_DESTROY:
-	lwsl_notice("LWS_CALLBACK_PROTOCOL_DESTROY\n");
 //init_fail:
 		vhd->finished = 1;
 		for (n = 0; n < (int)LWS_ARRAY_SIZE(vhd->pthread_spam); n++) {
@@ -245,9 +218,6 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		break;
 
 	case LWS_CALLBACK_ESTABLISHED:
-		if (lws_get_peer_simple(wsi, ip, 16)) {
-			lwsl_notice("LWS_CALLBACK_ESTABLISHED %s\n", ip);
-		};
 		/* add ourselves to the list of live pss held in the vhd */
 		lws_ll_fwd_insert(pss, pss_list, vhd->pss_list);
 		pss->tail = lws_ring_get_oldest_tail(vhd->ring);
@@ -255,15 +225,11 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		break;
 
 	case LWS_CALLBACK_CLOSED:
-		lwsl_notice("LWS_CALLBACK_CLOSED\n");
 		/* remove our closing pss from the list of live pss */
 		lws_ll_fwd_remove(struct per_session_data__minimal, pss_list, pss, vhd->pss_list);
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
-		if (lws_get_peer_simple(wsi, ip, 16)) {
-			lwsl_notice("LWS_CALLBACK_SERVER_WRITEABLE %s\n", ip);
-		};
 		
 		pthread_mutex_lock(&vhd->lock_ring); /* --------- ring lock { */
 
@@ -301,11 +267,9 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		break;
 
 	case LWS_CALLBACK_RECEIVE:
-		lwsl_notice("LWS_CALLBACK_RECEIVE\n");
 		break;
 
 	case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
-		lwsl_notice("LWS_CALLBACK_EVENT_WAIT_CANCELLED\n");
 		if (!vhd)
 			break;
 		/*
@@ -452,32 +416,38 @@ void ews_send_message(ews_t * ews, char const * msg)
 {
 	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)ews->internal_vhd;
 	struct msg amsg;
-	int len = 128, index = 1, n, whoami = 0;
-		if (!vhd->pss_list)
-			goto wait;
+	int len = 128; 
+	int index = 1;
+	int n;
+	int whoami = 0;
 
-		pthread_mutex_lock(&vhd->lock_ring);
-		n = (int)lws_ring_get_count_free_elements(vhd->ring);
-		if (!n) {
-			lwsl_user("dropping!\n");
-			goto wait_unlock;
-		}
+	// Xhwxk 
+	if (!vhd->pss_list) {
+		goto wait;
+	}
 
-		amsg.payload = malloc((unsigned int)(LWS_PRE + len));
-		if (!amsg.payload) {
-			lwsl_user("OOM: dropping\n");
-			goto wait_unlock;
-		}
-		n = lws_snprintf((char *)amsg.payload + LWS_PRE, (unsigned int)len,
-			         "%s: tid: %d, msg: %d", vhd->config,
-			         whoami, index++);
-		amsg.len = (unsigned int)n;
-		n = (int)lws_ring_insert(vhd->ring, &amsg, 1);
-		if (n != 1) {
-			__minimal_destroy_message(&amsg);
-			lwsl_user("dropping!\n");
-		} else
-			lws_cancel_service(vhd->context);
+	pthread_mutex_lock(&vhd->lock_ring);
+	n = (int)lws_ring_get_count_free_elements(vhd->ring);
+	if (!n) {
+		lwsl_user("dropping!\n");
+		goto wait_unlock;
+	}
+
+	amsg.payload = malloc((unsigned int)(LWS_PRE + len));
+	if (!amsg.payload) {
+		lwsl_user("OOM: dropping\n");
+		goto wait_unlock;
+	}
+
+	n = lws_snprintf((char *)amsg.payload + LWS_PRE, (unsigned int)len,"%s: tid: %d, msg: %d", vhd->config,whoami, index++);
+	amsg.len = (unsigned int)n;
+	n = (int)lws_ring_insert(vhd->ring, &amsg, 1);
+	if (n != 1) {
+		__minimal_destroy_message(&amsg);
+		lwsl_user("dropping!\n");
+	} else {
+		lws_cancel_service(vhd->context);
+	}
 
 wait_unlock:
 		pthread_mutex_unlock(&vhd->lock_ring);
@@ -485,6 +455,14 @@ wait_unlock:
 wait:
 		usleep(100000);
 }
+
+
+
+
+
+
+
+
 
 
 ews_t * ews_init() {
