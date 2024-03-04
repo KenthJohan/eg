@@ -28,7 +28,9 @@
 		"string.h": "c",
 		"ws.h": "c",
 		"lws_config.h": "c",
-		"lws_misc.h": "c"
+		"lws_misc.h": "c",
+		"wstypes.h": "c",
+		"spam.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

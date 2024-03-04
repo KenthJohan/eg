@@ -9,7 +9,7 @@ typedef struct {
 
 
 
-void ews_send_message(ews_t * ews, char const * msg);
+int ews_send_message(ews_t * ews, char const * msg);
 
 
 ews_t * ews_init();

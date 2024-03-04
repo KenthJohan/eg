@@ -10,210 +10,71 @@
 #include <string.h>
 
 #include "lws_misc.h"
+#include "wstypes.h"
+#include "spam.h"
 
-/* one of these created for each message in the ringbuffer */
 
-struct msg {
-	void *payload; /* is malloc'd */
-	size_t len;
-};
-
-/*
- * One of these is created for each client connecting to us.
- *
- * It is ONLY read or written from the lws service thread context.
- */
-
-struct per_session_data__minimal {
-	struct per_session_data__minimal *pss_list;
-	struct lws *wsi;
-	uint32_t tail;
-};
-
-/* one of these is created for each vhost our protocol is used with */
-
-struct per_vhost_data__minimal {
-	struct lws_context *context;
-	struct lws_vhost *vhost;
-	const struct lws_protocols *protocol;
-
-	struct per_session_data__minimal *pss_list; /* linked-list of live pss*/
-	pthread_t pthread_spam[1];
-
-	pthread_mutex_t lock_ring; /* serialize access to the ring buffer */
-	struct lws_ring *ring; /* {lock_ring} ringbuffer holding unsent content */
-
-	const char *config;
-	char finished;
-};
-
-#if defined(WIN32)
-static void usleep(unsigned long l) { Sleep(l / 1000); }
-#endif
-
-/*
- * This runs under both lws service and "spam threads" contexts.
- * Access is serialized by vhd->lock_ring.
- */
-
-static void
-__minimal_destroy_message(void *_msg)
+/* this runs under the lws service thread context only */
+static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,void *user, void *in, size_t len)
 {
-	struct msg *msg = _msg;
+	struct per_session_data__minimal *pss = (struct per_session_data__minimal *)user;
+	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
+	
+	
 
-	free(msg->payload);
-	msg->payload = NULL;
-	msg->len = 0;
-}
-
-/*
- * This runs under the "spam thread" thread context only.
- *
- * We spawn two threads that generate messages with this.
- *
- */
-
-static void * thread_spam(void *d)
-{
-	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)d;
-	struct msg amsg;
-	int len = 128, index = 1, n, whoami = 0;
-
-	for (n = 0; n < (int)LWS_ARRAY_SIZE(vhd->pthread_spam); n++) {
-		if (pthread_equal(pthread_self(), vhd->pthread_spam[n])) {
-			whoami = n + 1;
+	{
+		char ip[256];
+		if (lws_get_peer_simple(wsi, ip, 16)) {
+			printf("reason: %s, ip:%s\n", lws_callback_reasons_tostr(reason), ip);
+		} else {
+			printf("reason: %s\n", lws_callback_reasons_tostr(reason));
 		}
 	}
 
-	do {
-		/* don't generate output if nobody connected */
-		if (!vhd->pss_list) {
-			goto wait;
-		}
-
-		pthread_mutex_lock(&vhd->lock_ring); /* --------- ring lock { */
-
-		/* only create if space in ringbuffer */
-		n = (int)lws_ring_get_count_free_elements(vhd->ring);
-		if (!n) {
-			lwsl_user("dropping!\n");
-			goto wait_unlock;
-		}
-
-		amsg.payload = malloc((unsigned int)(LWS_PRE + len));
-		if (!amsg.payload) {
-			lwsl_user("OOM: dropping\n");
-			goto wait_unlock;
-		}
-		n = lws_snprintf((char *)amsg.payload + LWS_PRE, (unsigned int)len, "%s: tid: %d, msg: %d", vhd->config, whoami, index++);
-		amsg.len = (unsigned int)n;
-		n = (int)lws_ring_insert(vhd->ring, &amsg, 1);
-		if (n != 1) {
-			__minimal_destroy_message(&amsg);
-			lwsl_user("dropping!\n");
-		} else {
-			/*
-			 * This will cause a LWS_CALLBACK_EVENT_WAIT_CANCELLED
-			 * in the lws service thread context.
-			 */
-			lws_cancel_service(vhd->context);
-		}
-
-		printf("lws_ring_insert %li\n", lws_ring_get_count_waiting_elements(vhd->ring, NULL));
-
-wait_unlock:
-		pthread_mutex_unlock(&vhd->lock_ring); /* } ring lock ------- */
-
-wait:
-		usleep(1000*1000*2);
-
-	} while (!vhd->finished);
-
-	lwsl_notice("thread_spam %d exiting\n", whoami);
-
-	pthread_exit(NULL);
-
-	return NULL;
-}
-
-/* this runs under the lws service thread context only */
-
-static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,void *user, void *in, size_t len)
-{
-
-
-	struct per_session_data__minimal *pss = (struct per_session_data__minimal *)user;
-	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
-
-	
-
-	const struct lws_protocol_vhost_options *pvo;
-	const struct msg *pmsg;
-	void *retval;
-	int n, m, r = 0;
-
-	char ip[256];
-	if (lws_get_peer_simple(wsi, ip, 16)) {
-		printf("reason: %s, ip:%s\n", lws_callback_reasons_tostr(reason), ip);
-	} else {
-		printf("reason: %s\n", lws_callback_reasons_tostr(reason));
-	};
 	
 
 	switch (reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT:
-		/* create our per-vhost struct */
+		// create our per-vhost struct
 		vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi), lws_get_protocol(wsi), sizeof(struct per_vhost_data__minimal));
-		if (!vhd)
-			return 1;
-
-		pthread_mutex_init(&vhd->lock_ring, NULL);
-
-		/* recover the pointer to the globals struct */
-		pvo = lws_pvo_search((const struct lws_protocol_vhost_options *)in, "config");
-		if (!pvo || !pvo->value) {
-			lwsl_err("%s: Can't find \"config\" pvo\n", __func__);
+		if (!vhd) {
 			return 1;
 		}
-		vhd->config = pvo->value;
-
+		pthread_mutex_init(&vhd->lock_ring, NULL);
+		{
+			// recover the pointer to the globals struct
+			const struct lws_protocol_vhost_options *pvo;
+			pvo = lws_pvo_search((const struct lws_protocol_vhost_options *)in, "config");
+			if (!pvo || !pvo->value) {
+				lwsl_err("%s: Can't find \"config\" pvo\n", __func__);
+				return 1;
+			}
+			vhd->config = pvo->value;
+		}
 		vhd->context = lws_get_context(wsi);
 		vhd->protocol = lws_get_protocol(wsi);
 		vhd->vhost = lws_get_vhost(wsi);
-
 		vhd->ring = lws_ring_create(sizeof(struct msg), 8, __minimal_destroy_message);
 		if (!vhd->ring) {
 			lwsl_err("%s: failed to create ring\n", __func__);
 			return 1;
 		}
-		ews_t * a = lws_vhost_user(lws_get_vhost(wsi));
-		a->internal_vhd = vhd;
 
-		/* start the content-creating threads */
-		/*
-		for (n = 0; n < (int)LWS_ARRAY_SIZE(vhd->pthread_spam); n++) {
-			if (pthread_create(&vhd->pthread_spam[n], NULL, thread_spam, vhd)) {
-				lwsl_err("thread creation failed\n");
-				r = 1;
-				goto init_fail;
-			}
+		{
+
+			ews_t * a = lws_vhost_user(lws_get_vhost(wsi));
+			a->internal_vhd = vhd;
 		}
-		*/
+
+		// start the content-creating threads
+		//spam_start(vhd);
 		break;
 
 	case LWS_CALLBACK_PROTOCOL_DESTROY:
-//init_fail:
-		vhd->finished = 1;
-		for (n = 0; n < (int)LWS_ARRAY_SIZE(vhd->pthread_spam); n++) {
-			if (vhd->pthread_spam[n]) {
-				pthread_join(vhd->pthread_spam[n], &retval);
-			}
-		}
-
-		if (vhd->ring){
+		spam_fini(vhd);
+		if (vhd->ring) {
 			lws_ring_destroy(vhd->ring);
 		}
-
 		pthread_mutex_destroy(&vhd->lock_ring);
 		break;
 
@@ -230,23 +91,23 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
-		
-		pthread_mutex_lock(&vhd->lock_ring); /* --------- ring lock { */
+		pthread_mutex_lock(&vhd->lock_ring);
+		{
+			const struct msg *pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
+			if (!pmsg) {
+				pthread_mutex_unlock(&vhd->lock_ring);
+				break;
+			}
 
-		pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
-		if (!pmsg) {
-			pthread_mutex_unlock(&vhd->lock_ring); /* } ring lock ------- */
-			break;
+			// notice we allowed for LWS_PRE in the payload already
+			int m = lws_write(wsi, ((unsigned char *)pmsg->payload) + LWS_PRE, pmsg->len, LWS_WRITE_TEXT);
+			if (m < (int)pmsg->len) {
+				pthread_mutex_unlock(&vhd->lock_ring);
+				lwsl_err("ERROR %d writing to ws socket\n", m);
+				return -1;
+			}
 		}
-
-		/* notice we allowed for LWS_PRE in the payload already */
-		m = lws_write(wsi, ((unsigned char *)pmsg->payload) + LWS_PRE, pmsg->len, LWS_WRITE_TEXT);
-		if (m < (int)pmsg->len) {
-			pthread_mutex_unlock(&vhd->lock_ring); /* } ring lock ------- */
-			lwsl_err("ERROR %d writing to ws socket\n", m);
-			return -1;
-		}
-
+		// This will call the destroy callback specified in lws_ring_create()
 		lws_ring_consume_and_update_oldest_tail(
 			vhd->ring,	/* lws_ring object */
 			struct per_session_data__minimal, /* type of objects with tails */
@@ -257,21 +118,26 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 			pss_list	/* member name of next object in objects with tails */
 		);
 
-		/* more to do? */
+		// more to do?
 		if (lws_ring_get_element(vhd->ring, &pss->tail)) {
-			/* come back as soon as we can write more */
+			// come back as soon as we can write more
 			lws_callback_on_writable(pss->wsi);
 		}
 
-		pthread_mutex_unlock(&vhd->lock_ring); /* } ring lock ------- */
+
+		printf("lws_ring_get_count_waiting_elements %li\n", lws_ring_get_count_waiting_elements(vhd->ring, &pss->tail));
+
+		pthread_mutex_unlock(&vhd->lock_ring);
 		break;
 
 	case LWS_CALLBACK_RECEIVE:
 		break;
 
 	case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
-		if (!vhd)
+		if (!vhd) {
 			break;
+		}
+
 		/*
 		 * When the "spam" threads add a message to the ringbuffer,
 		 * they create this event in the lws service thread context
@@ -289,7 +155,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		break;
 	}
 
-	return r;
+	return 0;
 }
 
 
@@ -351,11 +217,11 @@ static const struct lws_protocol_vhost_options pvo = {
 
 
 
-static struct lws_context *context;
 
 
-//static void ws_init(ecs_iter_t *it)
-void * server_thread(void* arg)
+
+
+static void * private_server_thread(void* arg)
 {
 	ews_t * ews = (ews_t *)arg;
 
@@ -373,21 +239,20 @@ void * server_thread(void* arg)
 	lwsl_user("LWS minimal ws server + threads | visit http://localhost:7681\n");
 
 	struct lws_context_creation_info info;
-	memset(&info, 0, sizeof(info)); /* otherwise uninitialized garbage */
+	memset(&info, 0, sizeof(info));
 	info.port = 7681;
 	info.mounts = &mount;
 	info.protocols = protocols;
-	info.pvo = &pvo; /* per-vhost options */
+	info.pvo = &pvo; // per-vhost options
 	info.options = LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE;
 	info.user = ews;
 
-	context = lws_create_context(&info);
+	struct lws_context *context = lws_create_context(&info);
 	if (!context) {
 		lwsl_err("lws init failed\n");
 		return NULL;
 	}
 
-	/* start the threads that create content */
 	while (ews->should_quit == 0) {
 		int rc = lws_service(context, 0);
 		if (rc) {
@@ -403,74 +268,62 @@ void * server_thread(void* arg)
 
 
 
+ews_t * ews_init() {
+	ews_t * ews = ecs_os_calloc_t(ews_t);
+	ecs_os_thread_t t = ecs_os_thread_new(private_server_thread, ews);
+	return ews;
+}
 
 
+void ews_fini(ews_t * ews) {
+	ecs_os_free(ews);
+}
 
 
-
-
-
-
-
-void ews_send_message(ews_t * ews, char const * msg)
+int ews_send_message(ews_t * ews, char const * msg)
 {
 	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)ews->internal_vhd;
 	struct msg amsg;
 	int len = 128; 
 	int index = 1;
-	int n;
 	int whoami = 0;
 
-	// Xhwxk 
 	if (!vhd->pss_list) {
-		goto wait;
+		return -1;
 	}
 
 	pthread_mutex_lock(&vhd->lock_ring);
-	n = (int)lws_ring_get_count_free_elements(vhd->ring);
-	if (!n) {
-		lwsl_user("dropping!\n");
-		goto wait_unlock;
+
+	{
+		int n = (int)lws_ring_get_count_free_elements(vhd->ring);
+		if (!n) {
+			lwsl_user("dropping!\n");
+			goto unlock;
+		}
 	}
 
 	amsg.payload = malloc((unsigned int)(LWS_PRE + len));
 	if (!amsg.payload) {
 		lwsl_user("OOM: dropping\n");
-		goto wait_unlock;
+		goto unlock;
 	}
 
-	n = lws_snprintf((char *)amsg.payload + LWS_PRE, (unsigned int)len,"%s: tid: %d, msg: %d", vhd->config,whoami, index++);
-	amsg.len = (unsigned int)n;
-	n = (int)lws_ring_insert(vhd->ring, &amsg, 1);
-	if (n != 1) {
-		__minimal_destroy_message(&amsg);
-		lwsl_user("dropping!\n");
-	} else {
-		lws_cancel_service(vhd->context);
+	{
+		int n = lws_snprintf((char *)amsg.payload + LWS_PRE, (unsigned int)len,"%s: tid: %d, msg: %d", vhd->config, whoami, index++);
+		amsg.len = (unsigned int)n;
 	}
 
-wait_unlock:
-		pthread_mutex_unlock(&vhd->lock_ring);
+	{
+		int n = (int)lws_ring_insert(vhd->ring, &amsg, 1);
+		if (n != 1) {
+			__minimal_destroy_message(&amsg);
+			lwsl_user("dropping!\n");
+		} else {
+			lws_cancel_service(vhd->context);
+		}
+	}
 
-wait:
-		usleep(100000);
-}
-
-
-
-
-
-
-
-
-
-
-ews_t * ews_init() {
-	ews_t * ews = ecs_os_calloc_t(ews_t);
-	ecs_os_thread_t t = ecs_os_thread_new(server_thread, ews);
-	return ews;
-}
-
-void ews_fini(ews_t * ews) {
-	ecs_os_free(ews);
+unlock:
+	pthread_mutex_unlock(&vhd->lock_ring);
+	return 0;
 }
