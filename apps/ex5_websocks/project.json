@@ -1,0 +1,31 @@
+{
+	"id": "ex5_websocks",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"flecs",
+			"eg",
+			"egws"
+		]
+	},
+	"lang.c": {
+		"c-standard": "c11",
+		"defines": [
+			"SOKOL_GLCORE33"
+		],
+		"lib": [
+			"flecs",
+			"egws",
+			"eg"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}
