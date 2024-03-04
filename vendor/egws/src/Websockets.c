@@ -60,6 +60,10 @@ void * ping_thread(void * arg) {
 	return NULL;
 }
 
+static bool OnRequest(const ecs_http_request_t* request, ecs_http_reply_t *reply, void *ctx)
+{
+    return true;
+}
 
 
 void WebsocketsImport(ecs_world_t *world)
@@ -76,9 +80,16 @@ void WebsocketsImport(ecs_world_t *world)
 		.evs.onclose   = &onclose,
 		.evs.onmessage = &onmessage
 	});
-
-
 	ecs_os_thread_new(ping_thread, NULL);
+
+
+    ecs_http_server_t *srv = ecs_http_server_init(&(ecs_http_server_desc_t){
+        .port = 27751,
+        .callback = OnRequest
+    });
+	ecs_http_server_start(srv);
+
+
 
 
 
