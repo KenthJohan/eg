@@ -24,7 +24,7 @@ extern ECS_TAG_DECLARE(EgFsRenamedNew);
 
 // A filesystem path
 extern ECS_TAG_DECLARE(EgFsPath);
-extern ECS_TAG_DECLARE(EgFsPathRelative);
+extern ECS_TAG_DECLARE(EgFsPathReal);
 
 // Root instance of a filesystem monitor:
 extern ECS_TAG_DECLARE(EgFsMonitor);

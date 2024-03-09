@@ -42,11 +42,14 @@ ECS_MOVE(EgBuffer, dst, src, {
 	FLOG(stdout, "EgBuffer::Move %p %p\n", dst->data, src->data);
 	ecs_os_free((char*)dst->data);
 	dst->data = src->data;
+	dst->size = src->size;
 	src->data = NULL;
 })
 
 ECS_COPY(EgBuffer, dst, src, {
 	FLOG(stdout, "EgBuffer::Copy %p %p\n", dst->data, src->data);
+	dst->data = ecs_os_memdup(src->data, src->size);
+	dst->size = src->size;
 })
 
 
@@ -80,4 +83,13 @@ void EgStrImport(ecs_world_t *world)
 	{ .name = "value", .type = ecs_id(ecs_string_t) },
 	}
 	});
+
+	ecs_struct(world, {
+	.entity = ecs_id(EgBuffer),
+	.members = {
+	{ .name = "size", .type = ecs_id(ecs_i32_t) },
+	{ .name = "data", .type = ecs_id(ecs_uptr_t) }
+	}
+	});
+
 }

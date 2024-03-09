@@ -1,5 +1,7 @@
 #include "eg/EgFs.h"
 #include "eg/EgStr.h"
+#include <stdlib.h> 
+#include <stdio.h> 
 
 ECS_TAG_DECLARE(EgFsAdded);
 ECS_TAG_DECLARE(EgFsModified);
@@ -7,7 +9,7 @@ ECS_TAG_DECLARE(EgFsRemoved);
 ECS_TAG_DECLARE(EgFsRenamedOld);
 ECS_TAG_DECLARE(EgFsRenamedNew);
 ECS_TAG_DECLARE(EgFsPath);
-ECS_TAG_DECLARE(EgFsPathRelative);
+ECS_TAG_DECLARE(EgFsPathReal);
 ECS_TAG_DECLARE(EgFsMonitor);
 ECS_TAG_DECLARE(EgFsList);
 ECS_TAG_DECLARE(EgFsDir);
@@ -146,12 +148,16 @@ static void LoadFile(ecs_iter_t *it)
 
 		ecs_set_pair(it->world, e, EgText, EgFsPath, {buf});
 
+        char resolved_path[256]; 
+        realpath(buf, resolved_path);
+		ecs_set_pair(it->world, e, EgText, EgFsPathReal, {resolved_path});
+
 		int32_t size;
 		char * content = load_from_file(buf, &size);
 		if(content) {
 			EgBuffer * cont = ecs_ensure(it->world, e, EgBuffer);
 			cont->data = content;
-			ecs_set(it->world, e, EgFsSize, {size});
+			cont->size = size;
 		}
 	}
 }
@@ -174,7 +180,7 @@ void EgFsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgFsRenamedNew);
 
 	ECS_TAG_DEFINE(world, EgFsPath);
-	ECS_TAG_DEFINE(world, EgFsPathRelative);
+	ECS_TAG_DEFINE(world, EgFsPathReal);
 
 	ECS_TAG_DEFINE(world, EgFsMonitor);
 

@@ -8,7 +8,8 @@ typedef struct {
 } EgText;
 
 typedef struct {
-	uint8_t * data;
+	int32_t size;
+	void * data;
 } EgBuffer;
 
 
