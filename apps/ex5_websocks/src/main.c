@@ -1,6 +1,9 @@
 #include <flecs.h>
 #include <stdio.h>
-#include <egws/Websockets.h>
+//#include <egws/Websockets.h>
+#include <eg/EgHttp.h>
+#include <eg/EgStr.h>
+#include <eg/EgFs.h>
 
 typedef struct {
 	int dummy;
@@ -35,11 +38,40 @@ void Sys2(ecs_iter_t *it)
 
 int main(int argc, char const * argv[])
 {
-
-	
 	ecs_world_t *world = ecs_init();
+	//ECS_IMPORT(world, Websockets);
+	ECS_IMPORT(world, EgHttpServers);
+	ECS_IMPORT(world, EgFs);
+	ECS_IMPORT(world, EgStr);
+	
+	// https://www.flecs.dev/explorer/?remote=true
+	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
 
-	ECS_IMPORT(world, Websockets);
+	{
+		ecs_entity_t root = ecs_new_entity(world, "website");
+		ecs_set_pair(world, root, EgText, EgFsRoot, {"."});
+		ecs_entity_t f0 = ecs_new_entity(world, "website.frontend");
+		ecs_entity_t f1 = ecs_new_entity(world, "website.frontend.index,html");
+		ecs_entity_t f2 = ecs_new_entity(world, "website.frontend.example,js");
+		ecs_entity_t f3 = ecs_new_entity(world, "website.frontend.favicon,ico");
+		ecs_entity_t f4 = ecs_new_entity(world, "website.frontend.dummy");
+		ecs_add(world, f1, EgFsLoad);
+		ecs_add(world, f2, EgFsLoad);
+		ecs_add(world, f3, EgFsLoad);
+		ecs_add_pair(world, f1, EcsIsA, root);
+		ecs_add_pair(world, f2, EcsIsA, root);
+		ecs_add_pair(world, f3, EcsIsA, root);
+		ecs_add_pair(world, f4, EcsIsA, root);
+
+		ecs_entity_t b = ecs_lookup_path_w_sep(world, root, "frontend/dummy", "/", NULL, true);
+		
+
+
+		ecs_entity_t e = ecs_new_entity(world, "MyHttpServer");
+		ecs_set(world, e, EgHttp, {.root = root});
+	}
+
+
 
 	ECS_COMPONENT_DEFINE(world, Comp1);
 	ECS_COMPONENT_DEFINE(world, Comp2);

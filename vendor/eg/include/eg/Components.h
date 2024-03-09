@@ -19,14 +19,10 @@ typedef struct {
 	uint8_t a;
 } Color32;
 
-typedef struct {
-	char *value;
-} String;
 
 typedef struct {
 	char *value;
 } Pass;
-
 
 
 typedef struct {
@@ -74,10 +70,10 @@ typedef struct {
 extern ECS_COMPONENT_DECLARE(Pass);
 extern ECS_COMPONENT_DECLARE(Color);
 extern ECS_COMPONENT_DECLARE(Color32);
-extern ECS_COMPONENT_DECLARE(String);
 extern ECS_COMPONENT_DECLARE(ShapeElement);
 extern ECS_COMPONENT_DECLARE(ShapeBuffer);
 extern ECS_COMPONENT_DECLARE(ShowDrawReference);
+extern ECS_COMPONENT_DECLARE(Memory);
 
 
 extern ECS_TAG_DECLARE(EgRotateOrder1);

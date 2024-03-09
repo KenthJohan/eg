@@ -1,5 +1,7 @@
 #include "egwebsockets/Websockets.h"
 #include "eg/Components.h"
+#include "eg/EgFs.h"
+#include "eg/EgStr.h"
 #include "ws.h"
 
 
@@ -7,6 +9,8 @@
 
 static void Sys1(ecs_iter_t *it)
 {
+	//ecs_http_server_t *srv = it->ctx;
+	//ecs_http_server_dequeue(srv, it->delta_time);
 	for (int i = 0; i < it->count; ++i) {
 
 	}
@@ -60,17 +64,20 @@ void * ping_thread(void * arg) {
 	return NULL;
 }
 
-static bool OnRequest(const ecs_http_request_t* request, ecs_http_reply_t *reply, void *ctx)
-{
-    return true;
-}
+
+
+
+
 
 
 void WebsocketsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Websockets);
 	ECS_IMPORT(world, Components);
+	ECS_IMPORT(world, EgFs);
+	ECS_IMPORT(world, EgStr);
 
+	/*
 	ws_socket(&(struct ws_server){
 		.host = "0.0.0.0",
 		.port = 8080,
@@ -81,28 +88,23 @@ void WebsocketsImport(ecs_world_t *world)
 		.evs.onmessage = &onmessage
 	});
 	ecs_os_thread_new(ping_thread, NULL);
-
-
-    ecs_http_server_t *srv = ecs_http_server_init(&(ecs_http_server_desc_t){
-        .port = 27751,
-        .callback = OnRequest
-    });
-	ecs_http_server_start(srv);
+	*/
 
 
 
 
 
-	ecs_entity_t a = ecs_new(world, 0);
-	ecs_set(world, a, String, {"Hello"});
+
+
 
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "Sys1", .add = {ecs_dependson(EcsOnUpdate)}}),
 	.callback = Sys1,
+	.ctx = NULL,
 	.query.filter.terms = {
-		{.id = ecs_id(String)}
+		{.id = EgFsLoad}
 	}});
 
 

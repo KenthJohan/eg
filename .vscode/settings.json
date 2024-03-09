@@ -30,7 +30,18 @@
 		"lws_config.h": "c",
 		"lws_misc.h": "c",
 		"wstypes.h": "c",
-		"spam.h": "c"
+		"spam.h": "c",
+		"numbers": "c",
+		"server.h": "c",
+		"array": "c",
+		"string_view": "c",
+		"initializer_list": "c",
+		"complex": "c",
+		"sstream": "c",
+		"egfs.h": "c",
+		"string": "c",
+		"egstr.h": "c",
+		"eghttp.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
