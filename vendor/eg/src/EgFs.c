@@ -129,7 +129,7 @@ static void replace_ab(char * str, char a, char b)
 
 static void LoadFile(ecs_iter_t *it)
 {
-	EgText *path = ecs_field(it, EgText, 1);
+	EgText *rootpath = ecs_field(it, EgText, 1);
 	ecs_entity_t b = it->sources[0];
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
@@ -137,7 +137,7 @@ static void LoadFile(ecs_iter_t *it)
 		// Remove loading action
 		ecs_remove_id(it->world, e, EgFsLoad);
 
-		char const * prefix = path->value;
+		char const * prefix = rootpath->value;
 
 		// Allocate a path
 		char buf[128];

@@ -84,3 +84,6 @@ document.addEventListener("DOMContentLoaded", function() {
 	document.getElementById("close").addEventListener("click", fx(obj, false));
 	document.getElementById("open").addEventListener("click", fx(obj, true));
 }, false);
+
+
+

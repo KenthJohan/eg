@@ -48,22 +48,26 @@ int main(int argc, char const * argv[])
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
 
 	{
-		ecs_entity_t root = ecs_new_entity(world, "website");
-		ecs_set_pair(world, root, EgText, EgFsRoot, {"."});
-		ecs_entity_t f0 = ecs_new_entity(world, "website.frontend");
-		ecs_entity_t f1 = ecs_new_entity(world, "website.frontend.index,html");
-		ecs_entity_t f2 = ecs_new_entity(world, "website.frontend.example,js");
-		ecs_entity_t f3 = ecs_new_entity(world, "website.frontend.favicon,ico");
-		ecs_entity_t f4 = ecs_new_entity(world, "website.frontend.dummy");
+		ecs_entity_t root = ecs_new_entity(world, "web");
+		ecs_set_pair(world, root, EgText, EgFsRoot, {"./website"});
+		ecs_entity_t f1 = ecs_new_entity(world, "web.index,html");
+		ecs_entity_t f2 = ecs_new_entity(world, "web.example,js");
+		ecs_entity_t f3 = ecs_new_entity(world, "web.favicon,ico");
+		ecs_entity_t f4 = ecs_new_entity(world, "web.sub1.index,html");
+		ecs_entity_t f5 = ecs_new_entity(world, "web.sub1.script,js");
+		//ecs_entity_t f6 = ecs_new_entity(world, "web.dummy");
 		ecs_add(world, f1, EgFsLoad);
 		ecs_add(world, f2, EgFsLoad);
 		ecs_add(world, f3, EgFsLoad);
+		ecs_add(world, f4, EgFsLoad);
+		ecs_add(world, f5, EgFsLoad);
 		ecs_add_pair(world, f1, EcsIsA, root);
 		ecs_add_pair(world, f2, EcsIsA, root);
 		ecs_add_pair(world, f3, EcsIsA, root);
 		ecs_add_pair(world, f4, EcsIsA, root);
+		ecs_add_pair(world, f5, EcsIsA, root);
 
-		ecs_entity_t b = ecs_lookup_path_w_sep(world, root, "frontend/dummy", "/", NULL, true);
+		//ecs_entity_t b = ecs_lookup_path_w_sep(world, root, "frontend/dummy", "/", NULL, true);
 		
 
 
