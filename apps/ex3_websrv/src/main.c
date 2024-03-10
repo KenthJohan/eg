@@ -1,9 +1,10 @@
 #include <flecs.h>
 #include <stdio.h>
+//#include <egws/Websockets.h>
 #include <eg/EgWebservers.h>
 #include <eg/EgStr.h>
 #include <eg/EgFs.h>
-#include <egws/EgWebsockets.h>
+
 
 
 typedef struct {
@@ -43,10 +44,10 @@ void Sys2(ecs_iter_t *it)
 int main(int argc, char const * argv[])
 {
 	ecs_world_t *world = ecs_init();
+	//ECS_IMPORT(world, Websockets);
 	ECS_IMPORT(world, EgWebservers);
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgStr);
-	ECS_IMPORT(world, EgWebsockets);
 	
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
@@ -59,8 +60,8 @@ int main(int argc, char const * argv[])
 		EgHttp_add_file(world, root, "webroot/favicon.ico");
 		EgHttp_add_file(world, root, "webroot/sub1/index.html");
 		EgHttp_add_file(world, root, "webroot/sub1/script.js");
-		EgHttp_add_file(world, root, "webroot/ws/index.html");
-		EgHttp_add_file(world, root, "webroot/ws/example.js");
+		EgHttp_add_file(world, root, "webroot/sub2/index.html");
+		EgHttp_add_file(world, root, "webroot/sub2/example.js");
 		EgHttp_add_file(world, root, "webroot/webdesign.css");
 		ecs_entity_t e = ecs_new_entity(world, "websrv1");
 		ecs_set(world, e, EgWebsrv, {.root = root});

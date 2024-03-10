@@ -1,13 +1,12 @@
 {
-	"id": "ex4_websocks",
+	"id": "ex3_websrv",
 	"type": "application",
 	"value": {
 		"language": "c",
 		"public": false,
 		"use": [
 			"flecs",
-			"eg",
-			"egwebsockets"
+			"eg"
 		]
 	},
 	"lang.c": {
@@ -17,9 +16,7 @@
 		],
 		"lib": [
 			"flecs",
-			"egwebsockets",
-			"eg",
-			"websockets"
+			"eg"
 		],
 		"cflags": [
 			"-Werror",

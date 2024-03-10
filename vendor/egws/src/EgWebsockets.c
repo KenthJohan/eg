@@ -30,13 +30,19 @@ void onclose(ws_cli_conn_t *client)
 	printf("Disconnected!\n");
 }
 
-
+static int counter = 0;
 void onmessage(ws_cli_conn_t *client, const unsigned char *msg, uint64_t size, int type)
 {
 	((void)client);
 	((void)msg);
 	((void)size);
 	((void)type);
+	printf("onmessage: %s\n", msg);
+	if (strcmp(msg, "Dummy") == 0) {
+		char buf[128];
+		snprintf(buf, 128, "Dummy response %i", counter++);
+		ws_sendframe_txt(client, buf);
+	}
 }
 
 
@@ -70,14 +76,14 @@ void * ping_thread(void * arg) {
 
 
 
-void WebsocketsImport(ecs_world_t *world)
+void EgWebsocketsImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, Websockets);
+	ECS_MODULE(world, EgWebsockets);
 	ECS_IMPORT(world, Components);
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgStr);
 
-	/*
+	
 	ws_socket(&(struct ws_server){
 		.host = "0.0.0.0",
 		.port = 8080,
@@ -88,7 +94,7 @@ void WebsocketsImport(ecs_world_t *world)
 		.evs.onmessage = &onmessage
 	});
 	ecs_os_thread_new(ping_thread, NULL);
-	*/
+	
 
 
 

@@ -1,0 +1,32 @@
+{
+	"id": "ex4_libwebsockets",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"flecs",
+			"eg",
+			"egwebsockets"
+		]
+	},
+	"lang.c": {
+		"c-standard": "c11",
+		"defines": [
+			"SOKOL_GLCORE33"
+		],
+		"lib": [
+			"flecs",
+			"egwebsockets",
+			"eg",
+			"websockets"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}

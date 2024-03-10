@@ -1,88 +1,79 @@
-var head = 0, tail = 0, ring = new Array();
-
-function get_appropriate_ws_url(extra_url)
-{
-	var pcol;
-	var u = document.URL;
-
-	/*
-	 * We open the websocket encrypted if this page came on an
-	 * https:// url itself, otherwise unencrypted
-	 */
-
-	if (u.substring(0, 5) === "https") {
-		pcol = "wss://";
-		u = u.substr(8);
-	} else {
-		pcol = "ws://";
-		if (u.substring(0, 4) === "http")
-			u = u.substr(7);
-	}
-
-	u = u.split("/");
-
-	/* + "/xxx" bit is for IE10 workaround */
-
-	return pcol + u[0] + "/" + extra_url;
-}
-
-function new_ws(urlpath, protocol)
-{
-	return new WebSocket(urlpath, protocol);
-}
 
 
 
-
-function fx(obj, a) {
+function create_onopen(obj) {
 	return function () {
-		if(a == true) {
-			console.log("Open");
-			obj.ws = new_ws(get_appropriate_ws_url(""), "lws-minimal");
-			try {
-				var ws = obj.ws;
-				ws.onopen = function() {
-					document.getElementById("r").disabled = 0;
-				};
-			
-				ws.onmessage = function got_packet(msg) {
-					console.log("msg", msg);
-					var n, s = "";
-					let max = 30;
-			
-					ring[head] = msg.data + "\n";
-					head = (head + 1) % max;
-					if (tail === head)
-						tail = (tail + 1) % max;
-			
-					n = tail;
-					do {
-						s = s + ring[n];
-						n = (n + 1) % max;
-					} while (n !== head);
-			
-					document.getElementById("r").value = s; 
-					document.getElementById("r").scrollTop =
-					document.getElementById("r").scrollHeight;
-				};
-			
-				ws.onclose = function(){
-					document.getElementById("r").disabled = 1;
-				};
-			} catch(exception) {
-				alert("<p>Error " + exception);  
-			}
-		} else if (a == false){
-			console.log("Close");
-			obj?.ws?.close();
-		}
-	}
+		console.log("ws.onopen", obj.wsurl);
+		document.getElementById("r").disabled = 0;
+	};
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+
+function create_onmessage(obj) {
+	return function(msg) {
+		console.log("ws.onmessage", msg);
+		var n, s = "";
+		let max = 5;
+		obj.ring[obj.head] = msg.data + "\n";
+		obj.head = (obj.head + 1) % max;
+		if (obj.tail === obj.head) {
+			obj.tail = (obj.tail + 1) % max;
+		}
+		n = obj.tail;
+		do {
+			s = s + obj.ring[n];
+			n = (n + 1) % max;
+		} while (n !== obj.head);
+		document.getElementById("r").value = s;
+		document.getElementById("r").scrollTop = document.getElementById("r").scrollHeight;
+	};
+}
+
+function create_onclose(obj) {
+	return function () {
+		console.log("ws.onclose", obj.wsurl);
+	};	
+}
+
+
+function create_websocket(desc)
+{
 	let obj = {};
-	document.getElementById("close").addEventListener("click", fx(obj, false));
-	document.getElementById("open").addEventListener("click", fx(obj, true));
+	obj.head = 0;
+	obj.tail = 0;
+	obj.ring = new Array();
+
+	obj.open = function() {
+		obj.wsurl = "ws://localhost:8080/";
+		console.log("WebSocket open", obj.wsurl);
+		obj.ws = new WebSocket(obj.wsurl, "lws-minimal");
+		obj.ws.onopen = create_onopen(obj);
+		obj.ws.onmessage = create_onmessage(obj);
+		obj.ws.onclose = create_onclose(obj);
+	}
+
+	obj.close = function() {
+		console.log("Close");
+		obj.ws.close();
+	}
+
+	obj.send_dummy = function() {
+		obj.ws.send("Dummy");
+	}
+
+
+	return obj;
+}
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+	let desc = {};
+	let obj = create_websocket(desc);
+
+	document.getElementById("close").addEventListener("click", obj.close);
+	document.getElementById("open").addEventListener("click", obj.open);
+	document.getElementById("send_dummy").addEventListener("click", obj.send_dummy);
 }, false);
 
 
