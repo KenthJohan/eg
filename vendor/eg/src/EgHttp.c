@@ -1,42 +1,11 @@
 #include "eg/EgHttp.h"
 #include "eg/EgFs.h"
 #include "eg/EgStr.h"
+#include "eg/eg_fs.h"
+#include "eg/eg_http.h"
 #include <strings.h>
 
-ECS_COMPONENT_DECLARE(EgHttp);
-
-static void replace_ab(char *str, char a, char b)
-{
-	char *p = str;
-	while (p[0]) {
-		if (p[0] == a) {
-			p[0] = b;
-		}
-		p++;
-	}
-}
-
-
-// https://github.com/JeffreytheCoder/Simple-HTTP-Server/blob/master/server.c
-
-// https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
-static const char *get_mime_type(const char *file_ext)
-{
-	if (strcasecmp(file_ext, "html") == 0 || strcasecmp(file_ext, "htm") == 0) {
-		return "text/html";
-	} else if (strcasecmp(file_ext, "txt") == 0) {
-		return "text/plain";
-	} else if (strcasecmp(file_ext, "jpg") == 0 || strcasecmp(file_ext, "jpeg") == 0) {
-		return "image/jpeg";
-	} else if (strcasecmp(file_ext, "js") == 0) {
-		return "text/javascript";
-	} else if (strcasecmp(file_ext, "png") == 0) {
-		return "image/png";
-	} else if (strcasecmp(file_ext, "ico") == 0) {
-		return "image/vnd.microsoft.icon";
-	}
-	return NULL;
-}
+ECS_COMPONENT_DECLARE(EgWebServer);
 
 
 
@@ -48,7 +17,7 @@ static bool OnRequest(const ecs_http_request_t *request, ecs_http_reply_t *reply
 	ecs_world_t *world = web->world;
 
 	char path[256] = {0};
-	ecs_os_strncpy(path, request->path, 256);
+	ecs_os_strncpy(path, request->path, sizeof(path));
 
 	char const * ext = strrchr(path, '.');
 	if (ext == NULL) {
@@ -68,13 +37,13 @@ static bool OnRequest(const ecs_http_request_t *request, ecs_http_reply_t *reply
 		ext = ".html";
 	}
 
-	replace_ab(path, '.', ',');
+	eg_str_replace_ab(path, '.', ',');
 	ecs_entity_t b = ecs_lookup_path_w_sep(world, root, path, "/", NULL, true);
-	replace_ab(path, ',', '.');
+	eg_str_replace_ab(path, ',', '.');
 
 
 
-	char const * mime = get_mime_type(ext+1);
+	char const * mime = eg_http_get_mime_type(ext+1);
 
 	EgBuffer const *content = NULL;
 	if (b && mime) {
@@ -120,7 +89,7 @@ ecs_http_server_t *eg_server_init(ecs_world_t *world, ecs_entity_t root, const e
 
 static void Dequeue(ecs_iter_t *it)
 {
-	EgHttp *h = ecs_field(it, EgHttp, 1);
+	EgWebServer *h = ecs_field(it, EgWebServer, 1);
 
 	/*
 	if (it->delta_system_time > (ecs_ftime_t)1.0) {
@@ -136,7 +105,7 @@ static void Dequeue(ecs_iter_t *it)
 	}
 }
 
-static ECS_COPY(EgHttp, dst, src, {
+static ECS_COPY(EgWebServer, dst, src, {
 	eg_webserver_t *impl = src->impl;
 	if (impl) {
 		impl->rc++;
@@ -145,12 +114,12 @@ static ECS_COPY(EgHttp, dst, src, {
 	dst->root = src->root;
 })
 
-static ECS_MOVE(EgHttp, dst, src, {
+static ECS_MOVE(EgWebServer, dst, src, {
 	*dst = *src;
 	src->impl = NULL;
 })
 
-static ECS_DTOR(EgHttp, ptr, {
+static ECS_DTOR(EgWebServer, ptr, {
 	eg_webserver_t *impl = ptr->impl;
 	if (impl) {
 		impl->rc--;
@@ -161,9 +130,9 @@ static ECS_DTOR(EgHttp, ptr, {
 	}
 })
 
-static void EgHttp_on_set(ecs_iter_t *it)
+static void EgWebServer_on_set(ecs_iter_t *it)
 {
-	EgHttp *h = it->ptrs[0];
+	EgWebServer *h = it->ptrs[0];
 
 	for (int i = 0; i < it->count; ++i, ++h) {
 		ecs_http_server_t *srv = eg_server_init(it->real_world, h->root, &(ecs_http_server_desc_t){.port = 27756});
@@ -178,9 +147,51 @@ void EgHttpServersImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgStr);
 
-	ECS_COMPONENT_DEFINE(world, EgHttp);
+	ECS_COMPONENT_DEFINE(world, EgWebServer);
 
-	ECS_SYSTEM(world, Dequeue, EcsPostFrame, EgHttp);
+	ECS_SYSTEM(world, Dequeue, EcsPostFrame, EgWebServer);
 
-	ecs_set_hooks(world, EgHttp, {.ctor = ecs_default_ctor, .move = ecs_move(EgHttp), .copy = ecs_copy(EgHttp), .dtor = ecs_dtor(EgHttp), .on_set = EgHttp_on_set});
+	ecs_set_hooks(world, EgWebServer, {.ctor = ecs_default_ctor, .move = ecs_move(EgWebServer), .copy = ecs_copy(EgWebServer), .dtor = ecs_dtor(EgWebServer), .on_set = EgWebServer_on_set});
 }
+
+
+
+
+ecs_entity_t EgHttp_add_file(ecs_world_t * world, ecs_entity_t rootnode, char const * filename)
+{
+	char name_flecs[256];
+	ecs_os_strncpy(name_flecs, filename, sizeof(name_flecs));
+	eg_str_replace_ab(name_flecs, '.', ',');
+	eg_str_replace_ab(name_flecs, '/', '.');
+	ecs_entity_t f = ecs_new_entity(world, name_flecs);
+	ecs_add_pair(world, f, EcsIsA, rootnode);
+	ecs_add(world, f, EgFsLoad); // Load file once
+	return f;
+}
+
+/*
+	{
+		ecs_entity_t root = ecs_new_entity(world, "webroot");
+		ecs_set_pair(world, root, EgText, EgFsRoot, {"./website"});
+		ecs_entity_t f1 = ecs_new_entity(world, "webroot.index,html");
+		ecs_entity_t f2 = ecs_new_entity(world, "webroot.example,js");
+		ecs_entity_t f3 = ecs_new_entity(world, "webroot.favicon,ico");
+		ecs_entity_t f4 = ecs_new_entity(world, "webroot.sub1.index,html");
+		ecs_entity_t f5 = ecs_new_entity(world, "webroot.sub1.script,js");
+		ecs_entity_t f6 = ecs_new_entity(world, "webroot.webdesign,css");
+		ecs_add(world, f1, EgFsLoad); // Load file once
+		ecs_add(world, f2, EgFsLoad); // Load file once
+		ecs_add(world, f3, EgFsLoad); // Load file once
+		ecs_add(world, f4, EgFsLoad); // Load file once
+		ecs_add(world, f5, EgFsLoad); // Load file once
+		ecs_add(world, f6, EgFsLoad); // Load file once
+		ecs_add_pair(world, f1, EcsIsA, root);
+		ecs_add_pair(world, f2, EcsIsA, root);
+		ecs_add_pair(world, f3, EcsIsA, root);
+		ecs_add_pair(world, f4, EcsIsA, root);
+		ecs_add_pair(world, f5, EcsIsA, root);
+		ecs_add_pair(world, f6, EcsIsA, root);
+		ecs_entity_t e = ecs_new_entity(world, "MyHttpServer");
+		ecs_set(world, e, EgWebServer, {.root = root});
+	}
+	*/

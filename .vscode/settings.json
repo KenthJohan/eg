@@ -41,7 +41,12 @@
 		"egfs.h": "c",
 		"string": "c",
 		"egstr.h": "c",
-		"eghttp.h": "c"
+		"eghttp.h": "c",
+		"random": "c",
+		"stdint.h": "c",
+		"eg_fs.h": "c",
+		"eg_http.h": "c",
+		"strings.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

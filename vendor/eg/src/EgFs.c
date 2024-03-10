@@ -1,7 +1,8 @@
 #include "eg/EgFs.h"
 #include "eg/EgStr.h"
-#include <stdlib.h> 
-#include <stdio.h> 
+#include "eg/eg_fs.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 ECS_TAG_DECLARE(EgFsAdded);
 ECS_TAG_DECLARE(EgFsModified);
@@ -28,7 +29,6 @@ ECS_TAG_DECLARE(EgFsTypeDir);
 ECS_TAG_DECLARE(EgFsTypeExe);
 ECS_TAG_DECLARE(EgFsTypeLangC);
 
-
 ECS_TAG_DECLARE(EgFsRoot);
 ECS_TAG_DECLARE(EgFsLoad);
 ECS_TAG_DECLARE(EgFsSave);
@@ -36,90 +36,22 @@ ECS_TAG_DECLARE(EgFsSave);
 ECS_COMPONENT_DECLARE(EgFsMonitorDir);
 ECS_COMPONENT_DECLARE(EgFsSize);
 
-
-
-
-void System_File_Tagging(ecs_iter_t *it)
+static void System_File_Tagging(ecs_iter_t *it)
 {
 	EgText *path = ecs_field(it, EgText, 1);
-	for (int i = 0; i < it->count; i ++)
-	{
-		if(path->value == NULL) {continue;}
+	for (int i = 0; i < it->count; i++) {
+		if (path->value == NULL) {
+			continue;
+		}
 		ecs_entity_t e = it->entities[i];
-		char const * ext = strrchr(path[i].value, '.');
-		if(ecs_os_strcmp(ext, ".exe") == 0)
-		{
+		char const *ext = strrchr(path[i].value, '.');
+		if (ecs_os_strcmp(ext, ".exe") == 0) {
 			ecs_add_pair(it->world, e, EgFsType, EgFsTypeExe);
-		}
-		else if(ecs_os_strcmp(ext, ".c") == 0)
-		{
+		} else if (ecs_os_strcmp(ext, ".c") == 0) {
 			ecs_add_pair(it->world, e, EgFsType, EgFsTypeLangC);
-		}
-		else
-		{
+		} else {
 			ecs_add_pair(it->world, e, EgFsType, EgFsTypeUnknown);
 		}
-	}
-}
-
-
-
-
-
-
-static char* load_from_file(const char *filename, int32_t * out_size)
-{
-    FILE* file;
-    char* content = NULL;
-    int32_t bytes;
-    size_t size;
-
-    /* Open file for reading */
-    ecs_os_fopen(&file, filename, "r");
-    if (!file) {
-        ecs_err("%s (%s)", ecs_os_strerror(errno), filename);
-        goto error;
-    }
-
-    /* Determine file size */
-    fseek(file, 0, SEEK_END);
-    bytes = (int32_t)ftell(file);
-    if (bytes == -1) {
-        goto error;
-    }
-    fseek(file, 0, SEEK_SET);
-
-    /* Load contents in memory */
-    content = ecs_os_malloc(bytes + 1);
-	(*out_size) = bytes + 1;
-
-    size = (size_t)bytes;
-    if (!(size = fread(content, 1, size, file)) && bytes) {
-        ecs_err("%s: read zero bytes instead of %d", filename, size);
-        ecs_os_free(content);
-        content = NULL;
-        goto error;
-    } else {
-        content[size] = '\0';
-    }
-
-    fclose(file);
-
-    return content;
-error:
-    ecs_os_free(content);
-	(*out_size) = 0;
-    return NULL;
-}
-
-static void replace_ab(char * str, char a, char b)
-{
-	char * p = str;
-	while(p[0]) {
-		if (p[0] == a) {
-			p[0] = b;
-		}
-		p++;
 	}
 }
 
@@ -130,42 +62,56 @@ static void replace_ab(char * str, char a, char b)
 static void LoadFile(ecs_iter_t *it)
 {
 	EgText *rootpath = ecs_field(it, EgText, 1);
-	ecs_entity_t b = it->sources[0];
+	ecs_world_t *world = it->world;
+
+	char pathbuf[128] = {0};
+
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
 
 		// Remove loading action
-		ecs_remove_id(it->world, e, EgFsLoad);
+		ecs_remove_id(world, e, EgFsLoad);
 
-		char const * prefix = rootpath->value;
+		char const *prefix = rootpath->value;
 
-		// Allocate a path
-		char buf[128];
-		char * name = ecs_get_path_w_sep(it->world, b, e, "/", prefix);
-		replace_ab(name, ',', '.');
-		ecs_os_sprintf(buf, "%s/%s", prefix, name);
-		ecs_os_free(name);
+		{
+			// Set nice name for flecs explorer:
+			char const *name = ecs_get_name(world, e);
+			ecs_os_strncpy(pathbuf, name, sizeof(pathbuf));
+			eg_str_replace_ab(pathbuf, ',', '.');
+			ecs_doc_set_name(world, e, pathbuf);
+		}
 
-		ecs_set_pair(it->world, e, EgText, EgFsPath, {buf});
+		{
+			// Generate path from flecs name:
+			ecs_entity_t rootnode = it->sources[0];
+			char *name = ecs_get_path_w_sep(world, rootnode, e, "/", prefix);
+			eg_str_replace_ab(name, ',', '.');
+			ecs_os_sprintf(pathbuf, "%s/%s", prefix, name);
+			ecs_os_free(name);
+			ecs_set_pair(world, e, EgText, EgFsPath, {pathbuf});
+		}
 
-        char resolved_path[256]; 
-        realpath(buf, resolved_path);
-		ecs_set_pair(it->world, e, EgText, EgFsPathReal, {resolved_path});
 
-		int32_t size;
-		char * content = load_from_file(buf, &size);
-		if(content) {
-			EgBuffer * cont = ecs_ensure(it->world, e, EgBuffer);
-			cont->data = content;
-			cont->size = size;
+		{
+			// Generate realpath from relative path:
+			char resolved_path[256];
+			realpath(pathbuf, resolved_path);
+			ecs_set_pair(world, e, EgText, EgFsPathReal, {resolved_path});
+		}
+
+		{
+			// Try load content of the file
+			int32_t size;
+			char const *content = eg_fs_readfile_and_size(pathbuf, &size);
+			if (content) {
+				EgBuffer *cont = ecs_ensure(world, e, EgBuffer);
+				cont->data = content;
+				cont->size = size;
+			}
 		}
 	}
 }
-
-
-
-
-
 
 void EgFsImport(ecs_world_t *world)
 {
@@ -188,7 +134,7 @@ void EgFsImport(ecs_world_t *world)
 
 	ECS_TAG_DEFINE(world, EgFsDir);
 	ECS_TAG_DEFINE(world, EgFsFile);
-	
+
 	ECS_TAG_DEFINE(world, EgFsCwd);
 	ECS_TAG_DEFINE(world, EgFsCreated);
 	ECS_TAG_DEFINE(world, EgFsModified);
@@ -206,7 +152,7 @@ void EgFsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgFsRoot);
 	ECS_TAG_DEFINE(world, EgFsLoad);
 	ECS_TAG_DEFINE(world, EgFsSave);
-	
+
 	ECS_COMPONENT_DEFINE(world, EgFsMonitorDir);
 	ECS_COMPONENT_DEFINE(world, EgFsSize);
 
@@ -245,6 +191,4 @@ void EgFsImport(ecs_world_t *world)
 	{.id = ecs_pair(ecs_id(EgText), EgFsRoot), .src.trav = EcsIsA, .src.flags = EcsUp},
 	{.id = EgFsLoad}
 	}});
-
 }
-

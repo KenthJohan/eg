@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 /**
  * @brief Convert fs_readfile error to string
@@ -18,3 +19,9 @@ void eg_fs_pwd();
  * @param path filename to read
  */
 char *eg_fs_readfile(char const *path);
+
+
+char *eg_fs_readfile_and_size(const char *path, int32_t *out_size);
+
+
+void eg_str_replace_ab(char *str, char a, char b);

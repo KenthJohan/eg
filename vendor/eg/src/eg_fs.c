@@ -72,3 +72,53 @@ error:
 	}
 	return NULL;
 }
+
+
+
+char *eg_fs_readfile_and_size(const char *path, int32_t *out_size)
+{
+	eg_assert_notnull(path);
+	char *content = NULL;
+
+	FILE *file = fopen(path, "r");
+	if (file == NULL) {
+		goto error;
+	}
+
+	fseek(file, 0, SEEK_END);
+	int32_t size = (int32_t)ftell(file);
+	(*out_size) = size;
+
+	if (size == -1) {
+		goto error;
+	}
+	rewind(file);
+
+	content = malloc(size + 1);
+	content[size] = '\0';
+	size_t n = fread(content, size, 1, file);
+	if (n != 1) {
+		eg_log("%s: could not read wholef file %d bytes\n", path, size);
+		goto error;
+	}
+	eg_assert(content[size] == '\0', "Expected null terminator");
+	fclose(file);
+	return content;
+error:
+	if (content) {
+		free(content);
+	}
+	return NULL;
+}
+
+
+void eg_str_replace_ab(char *str, char a, char b)
+{
+	char *p = str;
+	while (p[0]) {
+		if (p[0] == a) {
+			p[0] = b;
+		}
+		p++;
+	}
+}
