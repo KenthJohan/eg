@@ -1,11 +1,11 @@
-#include "eg/EgHttp.h"
+#include "eg/EgWebservers.h"
 #include "eg/EgFs.h"
 #include "eg/EgStr.h"
 #include "eg/eg_fs.h"
 #include "eg/eg_http.h"
 #include <strings.h>
 
-ECS_COMPONENT_DECLARE(EgWebServer);
+ECS_COMPONENT_DECLARE(EgWebsrv);
 
 
 
@@ -89,7 +89,7 @@ ecs_http_server_t *eg_server_init(ecs_world_t *world, ecs_entity_t root, const e
 
 static void Dequeue(ecs_iter_t *it)
 {
-	EgWebServer *h = ecs_field(it, EgWebServer, 1);
+	EgWebsrv *h = ecs_field(it, EgWebsrv, 1);
 
 	/*
 	if (it->delta_system_time > (ecs_ftime_t)1.0) {
@@ -105,7 +105,7 @@ static void Dequeue(ecs_iter_t *it)
 	}
 }
 
-static ECS_COPY(EgWebServer, dst, src, {
+static ECS_COPY(EgWebsrv, dst, src, {
 	eg_webserver_t *impl = src->impl;
 	if (impl) {
 		impl->rc++;
@@ -114,12 +114,12 @@ static ECS_COPY(EgWebServer, dst, src, {
 	dst->root = src->root;
 })
 
-static ECS_MOVE(EgWebServer, dst, src, {
+static ECS_MOVE(EgWebsrv, dst, src, {
 	*dst = *src;
 	src->impl = NULL;
 })
 
-static ECS_DTOR(EgWebServer, ptr, {
+static ECS_DTOR(EgWebsrv, ptr, {
 	eg_webserver_t *impl = ptr->impl;
 	if (impl) {
 		impl->rc--;
@@ -130,9 +130,9 @@ static ECS_DTOR(EgWebServer, ptr, {
 	}
 })
 
-static void EgWebServer_on_set(ecs_iter_t *it)
+static void EgWebsrv_on_set(ecs_iter_t *it)
 {
-	EgWebServer *h = it->ptrs[0];
+	EgWebsrv *h = it->ptrs[0];
 
 	for (int i = 0; i < it->count; ++i, ++h) {
 		ecs_http_server_t *srv = eg_server_init(it->real_world, h->root, &(ecs_http_server_desc_t){.port = 27756});
@@ -141,17 +141,17 @@ static void EgWebServer_on_set(ecs_iter_t *it)
 	}
 }
 
-void EgHttpServersImport(ecs_world_t *world)
+void EgWebserversImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgHttpServers);
+	ECS_MODULE(world, EgWebservers);
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgStr);
 
-	ECS_COMPONENT_DEFINE(world, EgWebServer);
+	ECS_COMPONENT_DEFINE(world, EgWebsrv);
 
-	ECS_SYSTEM(world, Dequeue, EcsPostFrame, EgWebServer);
+	ECS_SYSTEM(world, Dequeue, EcsPostFrame, EgWebsrv);
 
-	ecs_set_hooks(world, EgWebServer, {.ctor = ecs_default_ctor, .move = ecs_move(EgWebServer), .copy = ecs_copy(EgWebServer), .dtor = ecs_dtor(EgWebServer), .on_set = EgWebServer_on_set});
+	ecs_set_hooks(world, EgWebsrv, {.ctor = ecs_default_ctor, .move = ecs_move(EgWebsrv), .copy = ecs_copy(EgWebsrv), .dtor = ecs_dtor(EgWebsrv), .on_set = EgWebsrv_on_set});
 }
 
 

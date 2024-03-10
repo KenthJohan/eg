@@ -46,7 +46,8 @@
 		"stdint.h": "c",
 		"eg_fs.h": "c",
 		"eg_http.h": "c",
-		"strings.h": "c"
+		"strings.h": "c",
+		"egwebservers.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

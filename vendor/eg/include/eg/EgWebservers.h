@@ -17,12 +17,12 @@ typedef struct
 {
 	eg_webserver_t * impl;
 	ecs_entity_t root;
-} EgWebServer;
+} EgWebsrv;
 
 
-extern ECS_COMPONENT_DECLARE(EgWebServer);
+extern ECS_COMPONENT_DECLARE(EgWebsrv);
 
-void EgHttpServersImport(ecs_world_t *world);
+void EgWebserversImport(ecs_world_t *world);
 
 
 ecs_entity_t EgHttp_add_file(ecs_world_t * world, ecs_entity_t rootnode, char const * filename);

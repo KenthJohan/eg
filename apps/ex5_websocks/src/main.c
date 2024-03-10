@@ -1,7 +1,7 @@
 #include <flecs.h>
 #include <stdio.h>
 //#include <egws/Websockets.h>
-#include <eg/EgHttp.h>
+#include <eg/EgWebservers.h>
 #include <eg/EgStr.h>
 #include <eg/EgFs.h>
 
@@ -45,7 +45,7 @@ int main(int argc, char const * argv[])
 {
 	ecs_world_t *world = ecs_init();
 	//ECS_IMPORT(world, Websockets);
-	ECS_IMPORT(world, EgHttpServers);
+	ECS_IMPORT(world, EgWebservers);
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgStr);
 	
@@ -63,8 +63,8 @@ int main(int argc, char const * argv[])
 		EgHttp_add_file(world, root, "webroot/ws/index.html");
 		EgHttp_add_file(world, root, "webroot/ws/example.js");
 		EgHttp_add_file(world, root, "webroot/webdesign.css");
-		ecs_entity_t e = ecs_new_entity(world, "MyHttpServer");
-		ecs_set(world, e, EgWebServer, {.root = root});
+		ecs_entity_t e = ecs_new_entity(world, "websrv1");
+		ecs_set(world, e, EgWebsrv, {.root = root});
 	}
 
 
