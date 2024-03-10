@@ -55,7 +55,6 @@ int main(int argc, char const * argv[])
 	{
 		ecs_entity_t root = ecs_new_entity(world, "webroot");
 		ecs_set_pair(world, root, EgText, EgFsRoot, {"./website"});
-
 		EgHttp_add_file(world, root, "webroot/index.html");
 		EgHttp_add_file(world, root, "webroot/example.js");
 		EgHttp_add_file(world, root, "webroot/favicon.ico");
@@ -64,28 +63,6 @@ int main(int argc, char const * argv[])
 		EgHttp_add_file(world, root, "webroot/ws/index.html");
 		EgHttp_add_file(world, root, "webroot/ws/example.js");
 		EgHttp_add_file(world, root, "webroot/webdesign.css");
-
-		/*
-		ecs_entity_t f1 = ecs_new_entity(world, "webroot.index,html");
-		ecs_entity_t f2 = ecs_new_entity(world, "webroot.example,js");
-		ecs_entity_t f3 = ecs_new_entity(world, "webroot.favicon,ico");
-		ecs_entity_t f4 = ecs_new_entity(world, "webroot.sub1.index,html");
-		ecs_entity_t f5 = ecs_new_entity(world, "webroot.sub1.script,js");
-		ecs_entity_t f6 = ecs_new_entity(world, "webroot.webdesign,css");
-		ecs_add(world, f1, EgFsLoad); // Load file once
-		ecs_add(world, f2, EgFsLoad); // Load file once
-		ecs_add(world, f3, EgFsLoad); // Load file once
-		ecs_add(world, f4, EgFsLoad); // Load file once
-		ecs_add(world, f5, EgFsLoad); // Load file once
-		ecs_add(world, f6, EgFsLoad); // Load file once
-		ecs_add_pair(world, f1, EcsIsA, root);
-		ecs_add_pair(world, f2, EcsIsA, root);
-		ecs_add_pair(world, f3, EcsIsA, root);
-		ecs_add_pair(world, f4, EcsIsA, root);
-		ecs_add_pair(world, f5, EcsIsA, root);
-		ecs_add_pair(world, f6, EcsIsA, root);
-		*/
-
 		ecs_entity_t e = ecs_new_entity(world, "MyHttpServer");
 		ecs_set(world, e, EgWebServer, {.root = root});
 	}
