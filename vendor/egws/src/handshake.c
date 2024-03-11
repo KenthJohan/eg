@@ -18,6 +18,7 @@
 #include "base64.h"
 #include "sha1.h"
 #include "ws.h"
+#include "wsll.h"
 
 #include <stdio.h>
 #include <stdlib.h>

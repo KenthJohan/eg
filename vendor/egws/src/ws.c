@@ -50,6 +50,7 @@ typedef int socklen_t;
 
 #include "utf8.h"
 #include "ws.h"
+#include "wsll.h"
 
 /**
  * @dir src/
