@@ -169,23 +169,7 @@ static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 		exit(-1);  \
 	} while (0);
 
-/**
- * @brief Shutdown and close a given socket.
- *
- * @param fd Socket file descriptor to be closed.
- *
- * @attention This is part of the internal API and is documented just
- * for completeness.
- */
-static void close_socket(int fd)
-{
-#ifndef _WIN32
-	shutdown(fd, SHUT_RDWR);
-	close(fd);
-#else
-	closesocket(fd);
-#endif
-}
+
 
 /**
  * @brief Returns the current client state for a given
@@ -303,7 +287,7 @@ static void close_client(ws_cli_conn_t *client, int lock)
 
 	set_client_state(client, WS_STATE_CLOSED);
 
-	close_socket(client->client_sock);
+	net_close_socket(client->client_sock);
 
 	/* Destroy client mutexes and clear fd 'slot'. */
 	/* clang-format off */
@@ -1783,7 +1767,7 @@ static void *ws_accept(void *data)
 			pthread_detach(client_thread);
 		}
 		else
-			close_socket(new_sock);
+			net_close_socket(new_sock);
 	}
 
 	free(data);

@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
+#include <fcntl.h>
+#include <unistd.h>
+
 
 #ifndef _WIN32
 #include <arpa/inet.h>
@@ -132,11 +135,30 @@ void net_get_address(int sock, char ip[1025], char port[32])
 	//if (!CLIENT_VALID(client))
 		//return;
 
-	memset(ip, 0, sizeof(ip));
-	memset(port, 0, sizeof(port));
+	memset(ip, 0, 1025);
+	memset(port, 0, 32);
 
 	if (getpeername(sock, (struct sockaddr *)&addr, &hlen) < 0)
 		return;
 
 	getnameinfo((struct sockaddr *)&addr, hlen, ip, 1025, port, 32, NI_NUMERICHOST | NI_NUMERICSERV);
+}
+
+
+/**
+ * @brief Shutdown and close a given socket.
+ *
+ * @param fd Socket file descriptor to be closed.
+ *
+ * @attention This is part of the internal API and is documented just
+ * for completeness.
+ */
+void net_close_socket(int fd)
+{
+#ifndef _WIN32
+	shutdown(fd, SHUT_RDWR);
+	close(fd);
+#else
+	closesocket(fd);
+#endif
 }
