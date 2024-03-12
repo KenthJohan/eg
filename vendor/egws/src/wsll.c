@@ -1,24 +1,11 @@
 #include "wsll.h"
 
-#include <pthread.h>
 #include <stdlib.h>
 #include <assert.h>
 
 
-#ifndef _WIN32
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#else
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-typedef int socklen_t;
-#endif
 
-
-
+// https://github.com/zephyrproject-rtos/zephyr/blob/main/subsys/net/lib/websocket/websocket.c
 
 void wsll_gen_frame_2(uint8_t frame[], int type, uint64_t length)
 {
@@ -26,7 +13,6 @@ void wsll_gen_frame_2(uint8_t frame[], int type, uint64_t length)
 	frame[0] = (WS_FIN | type);
 	frame[1] = length & 0x7F;
 }
-
 
 void wsll_gen_frame_4(uint8_t frame[], int type, uint64_t length)
 {
@@ -53,17 +39,35 @@ void wsll_gen_frame_10(uint8_t frame[], int type, uint64_t length)
 }
 
 
+int is_valid_frame(int opcode)
+{
+	return (
+	opcode == WS_FR_OP_TXT || opcode == WS_FR_OP_BIN ||
+	opcode == WS_FR_OP_CONT || opcode == WS_FR_OP_PING ||
+	opcode == WS_FR_OP_PONG || opcode == WS_FR_OP_CLSE);
+}
 
 
+int is_control_frame(int frame)
+{
+	return (frame == WS_FR_OP_CLSE || frame == WS_FR_OP_PING || frame == WS_FR_OP_PONG);
+}
 
 
+int32_t pong_msg_to_int32(uint8_t *msg)
+{
+	int32_t pong_id;
+	/* Decodes as big-endian. */
+	pong_id = (msg[3] << 0) | (msg[2] << 8) | (msg[1] << 16) | (msg[0] << 24);
+	return (pong_id);
+}
 
 
-
-
-
-
-
-
-
-
+void int32_to_ping_msg(int32_t ping_id, uint8_t *msg)
+{
+	/* Encodes as big-endian. */
+	msg[0] = (ping_id >> 24);
+	msg[1] = (ping_id >> 16);
+	msg[2] = (ping_id >> 8);
+	msg[3] = (ping_id >> 0);
+}

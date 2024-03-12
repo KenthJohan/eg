@@ -601,38 +601,7 @@ int ws_sendframe_bcast(uint16_t port, const char *msg, uint64_t size, int type)
 	return ws_sendframe_internal(NULL, msg, size, type, port);
 }
 
-/**
- * @brief Given a PONG message, decodes the content
- * as a int32_t number that corresponds to our
- * PONG id.
- *
- * @param msg Content to be decoded.
- *
- * @return Returns the PONG id.
- */
-static inline int32_t pong_msg_to_int32(uint8_t *msg)
-{
-	int32_t pong_id;
-	/* Decodes as big-endian. */
-	pong_id = (msg[3] << 0) | (msg[2] << 8) | (msg[1] << 16) | (msg[0] << 24);
-	return (pong_id);
-}
 
-/**
- * @brief Given a PING id, encodes the content to be sent
- * as payload of a PING frame.
- *
- * @param ping_id PING id to be encoded.
- * @param msg Target buffer.
- */
-static inline void int32_to_ping_msg(int32_t ping_id, uint8_t *msg)
-{
-	/* Encodes as big-endian. */
-	msg[0] = (ping_id >> 24);
-	msg[1] = (ping_id >> 16);
-	msg[2] = (ping_id >>  8);
-	msg[3] = (ping_id >>  0);
-}
 
 /**
  * @brief Send a ping message and close if the client surpasses
@@ -840,41 +809,9 @@ int ws_close_client(ws_cli_conn_t *client)
 	return (0);
 }
 
-/**
- * @brief Checks is a given opcode @p frame
- * belongs to a control frame or not.
- *
- * @param frame Frame opcode to be checked.
- *
- * @return Returns 1 if is a control frame, 0 otherwise.
- *
- * @attention This is part of the internal API and is documented just
- * for completeness.
- */
-static inline int is_control_frame(int frame)
-{
-	return (
-		frame == WS_FR_OP_CLSE || frame == WS_FR_OP_PING || frame == WS_FR_OP_PONG);
-}
 
-/**
- * @brief Checks is a given opcode @p opcode is valid or not.
- *
- * @param opcode Frame opcode to be checked.
- *
- * @return Returns 1 if valid, 0 otherwise.
- *
- * @attention This is part of the internal API and is documented just
- * for completeness.
- */
-static inline int is_valid_frame(int opcode)
-{
-	return (
-		opcode == WS_FR_OP_TXT  || opcode == WS_FR_OP_BIN  ||
-		opcode == WS_FR_OP_CONT || opcode == WS_FR_OP_PING ||
-		opcode == WS_FR_OP_PONG || opcode == WS_FR_OP_CLSE
-	);
-}
+
+
 
 /**
  * @brief Do the handshake process.

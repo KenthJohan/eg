@@ -185,3 +185,51 @@
 #endif
 /**@}*/
 
+
+
+/**
+ * @brief Checks is a given opcode @p opcode is valid or not.
+ *
+ * @param opcode Frame opcode to be checked.
+ *
+ * @return Returns 1 if valid, 0 otherwise.
+ *
+ * @attention This is part of the internal API and is documented just
+ * for completeness.
+ */
+int is_valid_frame(int opcode);
+
+/**
+ * @brief Checks is a given opcode @p frame
+ * belongs to a control frame or not.
+ *
+ * @param frame Frame opcode to be checked.
+ *
+ * @return Returns 1 if is a control frame, 0 otherwise.
+ *
+ * @attention This is part of the internal API and is documented just
+ * for completeness.
+ */
+int is_control_frame(int frame);
+
+
+/**
+ * @brief Given a PONG message, decodes the content
+ * as a int32_t number that corresponds to our
+ * PONG id.
+ *
+ * @param msg Content to be decoded.
+ *
+ * @return Returns the PONG id.
+ */
+int32_t pong_msg_to_int32(uint8_t *msg);
+
+
+/**
+ * @brief Given a PING id, encodes the content to be sent
+ * as payload of a PING frame.
+ *
+ * @param ping_id PING id to be encoded.
+ * @param msg Target buffer.
+ */
+void int32_to_ping_msg(int32_t ping_id, uint8_t *msg);
