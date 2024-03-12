@@ -405,31 +405,7 @@ out:
 	return (0);
 }
 
-/**
- * @brief Sets the IP address relative to a client connection opened
- * by the server and save inside the client structure.
- *
- * @param client Client connection.
- */
-static void set_client_address(ws_cli_conn_t *client)
-{
-	struct sockaddr_storage addr;
-	socklen_t hlen = sizeof(addr);
 
-	if (!CLIENT_VALID(client))
-		return;
-
-	memset(client->ip,   0, sizeof(client->ip));
-	memset(client->port, 0, sizeof(client->port));
-
-	if (getpeername(client->client_sock, (struct sockaddr *)&addr, &hlen) < 0)
-		return;
-
-	getnameinfo((struct sockaddr *)&addr, hlen,
-		client->ip,   sizeof(client->ip),
-		client->port, sizeof(client->port),
-		NI_NUMERICHOST|NI_NUMERICSERV);
-}
 
 /**
  * @brief Gets the IP address relative to a client connection opened
@@ -1763,28 +1739,8 @@ static void *ws_accept(void *data)
 
 	while (1)
 	{
-		/* Accept. */
-		new_sock = accept(sock, (struct sockaddr *)&sa, &salen);
-		if (new_sock < 0)
-			panic("Error on accepting connections..");
-
-		if (timeout)
-		{
-			time.tv_sec = timeout / 1000;
-			time.tv_usec = (timeout % 1000) * 1000;
-
-			/*
-			 * Socket timeout
-			 * This feature seems to be supported on Linux, Windows,
-			 * macOS and FreeBSD.
-			 *
-			 * See:
-			 *   https://linux.die.net/man/3/setsockopt
-			 */
-			setsockopt(new_sock, SOL_SOCKET, SO_SNDTIMEO, &time,
-				sizeof(struct timeval));
-		}
-
+		new_sock = net_accept(sock, timeout);
+		
 		/* Adds client socket to socks list. */
 		pthread_mutex_lock(&mutex);
 		for (i = 0; i < MAX_CLIENTS; i++)
@@ -1799,7 +1755,10 @@ static void *ws_accept(void *data)
 				client_socks[i].close_thrd   = false;
 				client_socks[i].last_pong_id = -1;
 				client_socks[i].current_ping_id = -1;
-				set_client_address(&client_socks[i]);
+
+				if (CLIENT_VALID(&client_socks[i])) {
+					net_get_address(client_socks[i].client_sock, client_socks[i].ip, client_socks[i].port);
+				}
 
 				if (pthread_mutex_init(&client_socks[i].mtx_state, NULL))
 					panic("Error on allocating close mutex");
