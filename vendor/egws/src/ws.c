@@ -27,19 +27,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-/* clang-format off */
-#ifndef _WIN32
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#else
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-typedef int socklen_t;
-#endif
-/* clang-format on */
+
 
 /* Windows and macOS seems to not have MSG_NOSIGNAL */
 #ifndef MSG_NOSIGNAL
@@ -255,7 +243,7 @@ static ssize_t send_all(
 	pthread_mutex_lock(&client->mtx_snd);
 		while (len)
 		{
-			r = send(client->client_sock, p, len, flags);
+			r = net_send(client->client_sock, p, len, flags);
 			if (r == -1)
 			{
 				pthread_mutex_unlock(&client->mtx_snd);
@@ -544,7 +532,7 @@ static int ws_sendframe_internal(ws_cli_conn_t *client, const char *msg,
 	output = 0;
 	if (client && port == 0)
 	{
-		output = SEND(client, response, idx_response);
+		output = send_all(client, response, idx_response, MSG_NOSIGNAL);
 		goto skip_broadcast;
 	}
 
@@ -559,7 +547,7 @@ static int ws_sendframe_internal(ws_cli_conn_t *client, const char *msg,
 				get_client_state(cli) == WS_STATE_OPEN &&
 				(cli->ws_srv.port == port))
 			{
-				if ((send_ret = SEND(cli, response, idx_response)) != -1)
+				if ((send_ret = send_all(cli, response, idx_response, MSG_NOSIGNAL)) != -1)
 					output += send_ret;
 				else
 				{
@@ -905,7 +893,7 @@ static int do_handshake(struct ws_frame_data *wfd)
 	ssize_t n;      /* Read/Write bytes.           */
 
 	/* Read the very first client message. */
-	if ((n = RECV(wfd->client, wfd->frm, sizeof(wfd->frm) - 1)) < 0)
+	if ((n = net_recv(wfd->client->client_sock, wfd->frm, sizeof(wfd->frm) - 1, 0)) < 0)
 		return (-1);
 
 	/* Advance our pointers before the first next_byte(). */
@@ -933,7 +921,7 @@ static int do_handshake(struct ws_frame_data *wfd)
 		response);
 
 	/* Send handshake. */
-	if (SEND(wfd->client, response, strlen(response)) < 0)
+	if (send_all(wfd->client, response, strlen(response), MSG_NOSIGNAL) < 0)
 	{
 		free(response);
 		DEBUG("As error has occurred while handshaking!\n");
@@ -1060,7 +1048,7 @@ static inline int next_byte(struct ws_frame_data *wfd)
 	/* If empty or full. */
 	if (wfd->cur_pos == 0 || wfd->cur_pos == wfd->amt_read)
 	{
-		if ((n = RECV(wfd->client, wfd->frm, sizeof(wfd->frm))) <= 0)
+		if ((n = net_recv(wfd->client->client_sock, wfd->frm, sizeof(wfd->frm), 0)) <= 0)
 		{
 			wfd->error = 1;
 			DEBUG("An error has occurred while trying to read next byte\n");
@@ -1709,17 +1697,14 @@ struct ws_accept_params
 static void *ws_accept(void *data)
 {
 	struct ws_accept_params *ws_prm; /* wsServer parameters. */
-	struct sockaddr_storage sa; /* Client.                */
 	pthread_t client_thread;    /* Client thread.         */
-	struct timeval time;        /* Client socket timeout. */
-	socklen_t salen;            /* Length of sockaddr.    */
 	int new_sock;               /* New opened connection. */
 	int sock;                   /* Server sock.           */
 	int i;                      /* Loop index.            */
 
 	ws_prm = data;
 	sock   = ws_prm->sock;
-	salen  = sizeof(sa);
+
 
 	while (1)
 	{
@@ -1824,7 +1809,7 @@ int ws_socket(struct ws_server *ws_srv)
 	sock = do_bind_socket(ws_srv->host, ws_srv->port);
 
 	/* Listen. */
-	listen(sock, MAX_CLIENTS);
+	net_listen(sock, MAX_CLIENTS);
 
 	/* Wait for incoming connections. */
 	printf("Waiting for incoming connections...\n");

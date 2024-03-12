@@ -1,5 +1,8 @@
 #include "sockets.h"
 
+
+#define _POSIX_C_SOURCE 200809L
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -99,6 +102,7 @@ int net_accept(int sock, int timeout_ms)
 	struct sockaddr_storage sa; /* Client.                */
 	socklen_t salen;            /* Length of sockaddr.    */
 	int new_sock;               /* New opened connection. */
+	salen  = sizeof(sa);
 	/* Accept. */
 	new_sock = accept(sock, (struct sockaddr *)&sa, &salen);
 	if (new_sock < 0)
@@ -162,3 +166,34 @@ void net_close_socket(int fd)
 	closesocket(fd);
 #endif
 }
+
+
+
+void net_listen(int sock, int n)
+{
+	listen(sock, n);
+}
+
+
+
+ssize_t net_send(int fd, const void *buf, size_t n, int flags)
+{
+	return send(fd, buf, n, flags);
+}
+
+
+ssize_t net_recv(int fd, void *buf, size_t n, int flags)
+{
+	return recv(fd, buf, n, 0);
+}
+
+
+/*
+#ifndef AFL_FUZZ
+#define SEND(client,buf,len) send_all((client), (buf), (len), MSG_NOSIGNAL)
+#define RECV(fd,buf,len) recv((fd)->client_sock, (buf), (len), 0)
+#else
+#define SEND(client,buf,len) write(fileno(stdout), (buf), (len))
+#define RECV(fd,buf,len) read((fd)->client_sock, (buf), (len))
+#endif
+*/

@@ -185,10 +185,3 @@
 #endif
 /**@}*/
 
-#ifndef AFL_FUZZ
-#define SEND(client,buf,len) send_all((client), (buf), (len), MSG_NOSIGNAL)
-#define RECV(fd,buf,len) recv((fd)->client_sock, (buf), (len), 0)
-#else
-#define SEND(client,buf,len) write(fileno(stdout), (buf), (len))
-#define RECV(fd,buf,len) read((fd)->client_sock, (buf), (len))
-#endif
