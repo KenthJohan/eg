@@ -51,6 +51,7 @@ typedef int socklen_t;
 #include "utf8.h"
 #include "ws.h"
 #include "wsll.h"
+#include "sockets.h"
 
 /**
  * @dir src/
@@ -1830,69 +1831,7 @@ static void *ws_accept(void *data)
 	return (data);
 }
 
-/**
- * @brief By using the server parameters provided in @p ws_srv,
- * create a socket and bind it accordingly with the server
- * configurations.
- *
- * @param ws_srv Web Socket configurations.
- *
- * @return Returns the socket file descriptor.
- */
-static int do_bind_socket(struct ws_server *ws_srv)
-{
-	struct addrinfo hints, *results, *try;
-	char port[8] = {0};
-	int reuse;
-	int sock;
 
-	reuse = 1;
-
-	/* Prepare the getaddrinfo structure. */
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_flags = AI_PASSIVE;
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-
-	/* Port. */
-	snprintf(port, sizeof port - 1, "%d", ws_srv->port);
-
-	if (getaddrinfo(ws_srv->host, port, &hints, &results) != 0)
-		panic("getaddrinfo() failed");
-
-	/* Try to create a socket with one of the returned addresses. */
-	for (try = results; try != NULL; try = try->ai_next)
-	{
-		/* try to make a socket with this setup */
-		if ((sock = socket(try->ai_family, try->ai_socktype,
-			try->ai_protocol)) < 0)
-		{
-			continue;
-		}
-
-		/* Reuse previous address. */
-		if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char *)&reuse,
-			sizeof(reuse)) < 0)
-		{
-			panic("setsockopt(SO_REUSEADDR) failed");
-		}
-
-		/* Bind. */
-		if (bind(sock, try->ai_addr, try->ai_addrlen) < 0)
-			panic("Bind failed");
-
-		/* if it worked, we're done. */
-		break;
-	}
-
-	freeaddrinfo(results);
-
-	/* Check if binded with success. */
-	if (try == NULL)
-		panic("couldn't find a port to bind to");
-
-	return (sock);
-}
 
 /**
  * @brief Main loop for the server.
@@ -1939,7 +1878,7 @@ int ws_socket(struct ws_server *ws_srv)
 #endif
 
 	/* Create socket and bind. */
-	sock = do_bind_socket(ws_srv);
+	sock = do_bind_socket(ws_srv->host, ws_srv->port);
 
 	/* Listen. */
 	listen(sock, MAX_CLIENTS);
