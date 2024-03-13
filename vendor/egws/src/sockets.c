@@ -1,7 +1,9 @@
 #include "sockets.h"
 
-
+#ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,7 +12,7 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <unistd.h>
-
+#include <assert.h>
 
 #ifndef _WIN32
 #include <arpa/inet.h>
@@ -102,7 +104,7 @@ int net_accept(int sock, int timeout_ms)
 	struct sockaddr_storage sa; /* Client.                */
 	socklen_t salen;            /* Length of sockaddr.    */
 	int new_sock;               /* New opened connection. */
-	salen  = sizeof(sa);
+	salen = sizeof(sa);
 	/* Accept. */
 	new_sock = accept(sock, (struct sockaddr *)&sa, &salen);
 	if (new_sock < 0)
@@ -136,8 +138,8 @@ void net_get_address(int sock, char ip[1025], char port[32])
 	struct sockaddr_storage addr;
 	socklen_t hlen = sizeof(addr);
 
-	//if (!CLIENT_VALID(client))
-		//return;
+	// if (!CLIENT_VALID(client))
+	// return;
 
 	memset(ip, 0, 1025);
 	memset(port, 0, 32);
@@ -147,7 +149,6 @@ void net_get_address(int sock, char ip[1025], char port[32])
 
 	getnameinfo((struct sockaddr *)&addr, hlen, ip, 1025, port, 32, NI_NUMERICHOST | NI_NUMERICSERV);
 }
-
 
 /**
  * @brief Shutdown and close a given socket.
@@ -167,26 +168,40 @@ void net_close_socket(int fd)
 #endif
 }
 
-
-
 void net_listen(int sock, int n)
 {
 	listen(sock, n);
 }
-
-
 
 ssize_t net_send(int fd, const void *buf, size_t n, int flags)
 {
 	return send(fd, buf, n, flags);
 }
 
-
 ssize_t net_recv(int fd, void *buf, size_t n, int flags)
 {
 	return recv(fd, buf, n, 0);
 }
 
+ssize_t net_send_all(int fd, const void *buf, size_t len, int flags)
+{
+	const char *p;
+	ssize_t ret;
+	ssize_t r;
+	ret = 0;
+	p = buf;
+	while (len) {
+		r = net_send(fd, p, len, flags);
+		if (r == -1) {
+			return (-1);
+		}
+		p += r;
+		assert(len >= (size_t)r);
+		len -= r;
+		ret += r;
+	}
+	return ret;
+}
 
 /*
 #ifndef AFL_FUZZ

@@ -17,5 +17,6 @@ void net_close_socket(int fd);
 void net_listen(int sock, int n);
 
 ssize_t net_send(int fd, const void *buf, size_t n, int flags);
+ssize_t net_send_all(int fd, const void *buf, size_t len, int flags);
 
 ssize_t net_recv(int fd, void *buf, size_t n, int flags);

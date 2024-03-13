@@ -225,8 +225,7 @@ static int set_client_state(ws_cli_conn_t *client, int state)
  * However, it was reported (issue #22 on GitHub) that this was
  * happening, so just to be cautious, I will keep using this routine.
  */
-static ssize_t send_all(
-	ws_cli_conn_t *client, const void *buf, size_t len, int flags)
+static ssize_t send_all(ws_cli_conn_t *client, const void *buf, size_t len, int flags)
 {
 	const char *p;
 	ssize_t ret;
@@ -239,22 +238,9 @@ static ssize_t send_all(
 		return (-1);
 
 	p = buf;
-	/* clang-format off */
 	pthread_mutex_lock(&client->mtx_snd);
-		while (len)
-		{
-			r = net_send(client->client_sock, p, len, flags);
-			if (r == -1)
-			{
-				pthread_mutex_unlock(&client->mtx_snd);
-				return (-1);
-			}
-			p   += r;
-			len -= r;
-			ret += r;
-		}
+	ret = net_send_all(client->client_sock, p, len, flags);
 	pthread_mutex_unlock(&client->mtx_snd);
-	/* clang-format on */
 	return (ret);
 }
 
