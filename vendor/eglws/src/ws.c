@@ -14,8 +14,61 @@
 #include "spam.h"
 
 
+
+
+
+static void _send_message(eglws_vhd_t * vhd, void * data, int len)
+{
+	eglws_msg_t msg;
+
+	if (!vhd->pss_list) {
+		return -1;
+	}
+
+	pthread_mutex_lock(&vhd->lock_ring);
+
+	{
+		int n = (int)lws_ring_get_count_free_elements(vhd->ring);
+		if (n == 0) {
+			lwsl_user("dropping!\n");
+			goto unlock;
+		}
+	}
+
+	msg.payload = malloc((unsigned int)(LWS_PRE + len));
+	if (msg.payload == NULL) {
+		lwsl_user("OOM: dropping\n");
+		goto unlock;
+	}
+
+	memcpy(msg.payload + LWS_PRE, data, len);
+	msg.len = len;
+
+
+	{
+		int n = (int)lws_ring_insert(vhd->ring, &msg, 1);
+		if (n != 1) {
+			eglws_msg_fini(&msg);
+			lwsl_user("dropping!\n");
+		} else {
+			lws_cancel_service(vhd->context);
+		}
+	}
+
+unlock:
+	pthread_mutex_unlock(&vhd->lock_ring);
+	return 0;
+}
+
+
+
+
+
+
+
+
 /* this runs under the lws service thread context only */
-static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,void *user, void *in, size_t len)
+static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,void *user, void *in, size_t len)
 {
 	eglws_pss_t *pss = (eglws_pss_t *)user;
 	eglws_vhd_t *vhd = (eglws_vhd_t *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
@@ -138,6 +191,8 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 			  lws_is_final_fragment(wsi),
 			  lws_frame_is_binary(wsi), (int)len);
 
+		_send_message(vhd, in, len);
+
 		/*
 		 * let everybody know we want to write something on them
 		 * as soon as they are ready
@@ -187,7 +242,7 @@ static struct lws_protocols protocols[] = {
 	},
 	{
 		.name = "lws-minimal",
-		.callback = callback_minimal,
+		.callback = _callback_minimal,
 		.per_session_data_size = sizeof(eglws_pss_t),
 		.rx_buffer_size = 128,
 		.id = 0,
@@ -284,6 +339,21 @@ static void * thread_server(void* arg)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ews_t * ews_init() {
 	ews_t * ews = ecs_os_calloc_t(ews_t);
 	ecs_os_thread_t t = ecs_os_thread_new(thread_server, ews);
@@ -295,49 +365,9 @@ void ews_fini(ews_t * ews) {
 	ecs_os_free(ews);
 }
 
-
 int ews_send_message(ews_t * ews, void * data, int len)
 {
-	eglws_vhd_t *vhd = (eglws_vhd_t *)ews->internal_vhd;
-	eglws_msg_t msg;
-
-	if (!vhd->pss_list) {
-		return -1;
-	}
-
-	pthread_mutex_lock(&vhd->lock_ring);
-
-	{
-		int n = (int)lws_ring_get_count_free_elements(vhd->ring);
-		if (n == 0) {
-			lwsl_user("dropping!\n");
-			goto unlock;
-		}
-	}
-
-	msg.payload = malloc((unsigned int)(LWS_PRE + len));
-	if (msg.payload == NULL) {
-		lwsl_user("OOM: dropping\n");
-		goto unlock;
-	}
-
-	memcpy(msg.payload + LWS_PRE, data, len);
-	msg.len = len;
-
-
-	{
-		int n = (int)lws_ring_insert(vhd->ring, &msg, 1);
-		if (n != 1) {
-			eglws_msg_fini(&msg);
-			lwsl_user("dropping!\n");
-		} else {
-			lws_cancel_service(vhd->context);
-		}
-	}
-
-unlock:
-	pthread_mutex_unlock(&vhd->lock_ring);
-	return 0;
+	_send_message(ews->internal_vhd, data, len);
 }
 
 
