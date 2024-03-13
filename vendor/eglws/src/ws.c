@@ -105,6 +105,74 @@ static eglws_vhd_t * eglws_vhd_init(struct lws *wsi, void *in)
 }
 
 
+static void eglws_vhd_fini(eglws_vhd_t * vhd)
+{
+	spam_fini(vhd);
+	if (vhd->ring) {
+		lws_ring_destroy(vhd->ring);
+	}
+	pthread_mutex_destroy(&vhd->lock_ring);
+}
+
+
+static int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
+{
+	pthread_mutex_lock(&vhd->lock_ring);
+
+	const eglws_msg_t *pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
+	if (!pmsg) {
+		pthread_mutex_unlock(&vhd->lock_ring);
+		return 0;
+	}
+
+	// notice we allowed for LWS_PRE in the payload already
+	int m = lws_write(wsi, ((unsigned char *)pmsg->payload) + LWS_PRE, pmsg->len, LWS_WRITE_TEXT);
+	if (m < (int)pmsg->len) {
+		pthread_mutex_unlock(&vhd->lock_ring);
+		lwsl_err("ERROR %d writing to ws socket\n", m);
+		return -1;
+	}
+
+	// This will call the destroy callback specified in lws_ring_create()
+	lws_ring_consume_and_update_oldest_tail(
+		vhd->ring,	/* lws_ring object */
+		eglws_pss_t, /* type of objects with tails */
+		&pss->tail,	/* tail of guy doing the consuming */
+		1,		/* number of payload objects being consumed */
+		vhd->pss_list,	/* head of list of objects with tails */
+		tail,		/* member name of tail in objects with tails */
+		pss_list	/* member name of next object in objects with tails */
+	);
+
+	// more to do?
+	if (lws_ring_get_element(vhd->ring, &pss->tail)) {
+		// come back as soon as we can write more
+		lws_callback_on_writable(pss->wsi);
+	}
+
+	printf("lws_ring_get_count_waiting_elements %li\n", lws_ring_get_count_waiting_elements(vhd->ring, &pss->tail));
+
+	pthread_mutex_unlock(&vhd->lock_ring);
+	return 0;
+}
+
+
+static int eglws_vhd_broadcast(eglws_vhd_t * vhd, void * in, int len)
+{
+	int rc = _send_message(vhd, in, len);
+	if(rc) {
+		return 1;
+	}
+	/*
+		* let everybody know we want to write something on them
+		* as soon as they are ready
+		*/
+	lws_start_foreach_llp(eglws_pss_t **, ppss, vhd->pss_list) {
+		lws_callback_on_writable((*ppss)->wsi);
+	} lws_end_foreach_llp(ppss, pss_list);
+}
+
+
 
 
 
@@ -130,6 +198,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 
 	switch (reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT:
+		assert(vhd == NULL);
 		vhd = eglws_vhd_init(wsi, in);
 		if(vhd == NULL) {
 			return 1;
@@ -137,11 +206,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 		break;
 
 	case LWS_CALLBACK_PROTOCOL_DESTROY:
-		spam_fini(vhd);
-		if (vhd->ring) {
-			lws_ring_destroy(vhd->ring);
-		}
-		pthread_mutex_destroy(&vhd->lock_ring);
+		eglws_vhd_fini(vhd);
 		break;
 
 	case LWS_CALLBACK_ESTABLISHED:
@@ -157,68 +222,12 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
-		pthread_mutex_lock(&vhd->lock_ring);
-		{
-			const eglws_msg_t *pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
-			if (!pmsg) {
-				pthread_mutex_unlock(&vhd->lock_ring);
-				break;
-			}
-
-			// notice we allowed for LWS_PRE in the payload already
-			int m = lws_write(wsi, ((unsigned char *)pmsg->payload) + LWS_PRE, pmsg->len, LWS_WRITE_TEXT);
-			if (m < (int)pmsg->len) {
-				pthread_mutex_unlock(&vhd->lock_ring);
-				lwsl_err("ERROR %d writing to ws socket\n", m);
-				return -1;
-			}
-		}
-		// This will call the destroy callback specified in lws_ring_create()
-		lws_ring_consume_and_update_oldest_tail(
-			vhd->ring,	/* lws_ring object */
-			eglws_pss_t, /* type of objects with tails */
-			&pss->tail,	/* tail of guy doing the consuming */
-			1,		/* number of payload objects being consumed */
-			vhd->pss_list,	/* head of list of objects with tails */
-			tail,		/* member name of tail in objects with tails */
-			pss_list	/* member name of next object in objects with tails */
-		);
-
-		// more to do?
-		if (lws_ring_get_element(vhd->ring, &pss->tail)) {
-			// come back as soon as we can write more
-			lws_callback_on_writable(pss->wsi);
-		}
-
-
-		printf("lws_ring_get_count_waiting_elements %li\n", lws_ring_get_count_waiting_elements(vhd->ring, &pss->tail));
-
-		pthread_mutex_unlock(&vhd->lock_ring);
+		eglws_vhd_consume(vhd, pss, wsi);
 		break;
 
 	case LWS_CALLBACK_RECEIVE:
-		lwsl_user("LWS_CALLBACK_RECEIVE: %4d (rpp %5d, first %d, "
-			  "last %d, bin %d, len %d)\n",
-			  (int)len, (int)lws_remaining_packet_payload(wsi),
-			  lws_is_first_fragment(wsi),
-			  lws_is_final_fragment(wsi),
-			  lws_frame_is_binary(wsi), (int)len);
-
-		{
-			int rc = _send_message(vhd, in, len);
-			if(rc) {
-				return 1;
-			}
-		}
-
-		/*
-		 * let everybody know we want to write something on them
-		 * as soon as they are ready
-		 */
-		lws_start_foreach_llp(eglws_pss_t **, ppss, vhd->pss_list) {
-			lws_callback_on_writable((*ppss)->wsi);
-		} lws_end_foreach_llp(ppss, pss_list);
-
+		lwsl_user("LWS_CALLBACK_RECEIVE: %4d (rpp %5d, first %d, ""last %d, bin %d, len %d)\n",(int)len, (int)lws_remaining_packet_payload(wsi),lws_is_first_fragment(wsi),lws_is_final_fragment(wsi),lws_frame_is_binary(wsi), (int)len);
+		eglws_vhd_broadcast(vhd, in, len);
 		break;
 
 	case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
