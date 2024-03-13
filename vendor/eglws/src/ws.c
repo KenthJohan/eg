@@ -131,6 +131,21 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		break;
 
 	case LWS_CALLBACK_RECEIVE:
+		lwsl_user("LWS_CALLBACK_RECEIVE: %4d (rpp %5d, first %d, "
+			  "last %d, bin %d, len %d)\n",
+			  (int)len, (int)lws_remaining_packet_payload(wsi),
+			  lws_is_first_fragment(wsi),
+			  lws_is_final_fragment(wsi),
+			  lws_frame_is_binary(wsi), (int)len);
+
+		/*
+		 * let everybody know we want to write something on them
+		 * as soon as they are ready
+		 */
+		lws_start_foreach_llp(eglws_pss_t **, ppss, vhd->pss_list) {
+			lws_callback_on_writable((*ppss)->wsi);
+		} lws_end_foreach_llp(ppss, pss_list);
+
 		break;
 
 	case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
@@ -281,13 +296,10 @@ void ews_fini(ews_t * ews) {
 }
 
 
-int ews_send_message(ews_t * ews, char const * msg)
+int ews_send_message(ews_t * ews, void * data, int len)
 {
 	eglws_vhd_t *vhd = (eglws_vhd_t *)ews->internal_vhd;
-	eglws_msg_t amsg;
-	int len = 128; 
-	int index = 1;
-	int whoami = 0;
+	eglws_msg_t msg;
 
 	if (!vhd->pss_list) {
 		return -1;
@@ -297,27 +309,26 @@ int ews_send_message(ews_t * ews, char const * msg)
 
 	{
 		int n = (int)lws_ring_get_count_free_elements(vhd->ring);
-		if (!n) {
+		if (n == 0) {
 			lwsl_user("dropping!\n");
 			goto unlock;
 		}
 	}
 
-	amsg.payload = malloc((unsigned int)(LWS_PRE + len));
-	if (!amsg.payload) {
+	msg.payload = malloc((unsigned int)(LWS_PRE + len));
+	if (msg.payload == NULL) {
 		lwsl_user("OOM: dropping\n");
 		goto unlock;
 	}
 
-	{
-		int n = lws_snprintf((char *)amsg.payload + LWS_PRE, (unsigned int)len,"%s: tid: %d, msg: %d", vhd->config, whoami, index++);
-		amsg.len = (unsigned int)n;
-	}
+	memcpy(msg.payload + LWS_PRE, data, len);
+	msg.len = len;
+
 
 	{
-		int n = (int)lws_ring_insert(vhd->ring, &amsg, 1);
+		int n = (int)lws_ring_insert(vhd->ring, &msg, 1);
 		if (n != 1) {
-			eglws_msg_fini(&amsg);
+			eglws_msg_fini(&msg);
 			lwsl_user("dropping!\n");
 		} else {
 			lws_cancel_service(vhd->context);
@@ -327,4 +338,12 @@ int ews_send_message(ews_t * ews, char const * msg)
 unlock:
 	pthread_mutex_unlock(&vhd->lock_ring);
 	return 0;
+}
+
+
+
+int ews_send_string(ews_t * ews, char const * msg)
+{
+	int n = strlen(msg);
+	return ews_send_message(ews, msg, n);
 }

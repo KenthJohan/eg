@@ -4,14 +4,17 @@
 
 
 
+static int banana = 1;
 
 static void Sys1(ecs_iter_t *it)
 {
 	ews_t * ews = it->ctx;
 	for (int i = 0; i < it->count; ++i) {
 		if(ews->internal_vhd) {
-			printf("ews_send_message\n");
-			ews_send_message(ews, "Hej!");
+			printf("ews_send_string\n");
+			char buf[128];
+			snprintf(buf, sizeof(buf), "Banana %i", banana++);
+			ews_send_string(ews, buf);
 		}
 		else {
 			printf("no vhd\n");
