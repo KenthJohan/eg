@@ -1,5 +1,5 @@
 {
-	"id": "egwebsockets",
+	"id": "eglws",
 	"type": "package",
 	"value": {
 		"language": "c",

@@ -1,5 +1,5 @@
 #include "ws.h"
-#include "egwebsockets/Websockets.h"
+#include "eglws/Websockets.h"
 #include "eg/Components.h"
 #include <assert.h>
 

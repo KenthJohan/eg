@@ -1,6 +1,6 @@
 #include <flecs.h>
 #include <stdio.h>
-#include <egwebsockets/Websockets.h>
+#include <eglws/Websockets.h>
 
 typedef struct {
 	int dummy;
@@ -35,9 +35,10 @@ void Sys2(ecs_iter_t *it)
 
 int main(int argc, char const * argv[])
 {
-
-	
 	ecs_world_t *world = ecs_init();
+	
+	// https://www.flecs.dev/explorer/?remote=true
+	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
 
 	ECS_IMPORT(world, Websockets);
 

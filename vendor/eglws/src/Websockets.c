@@ -1,5 +1,5 @@
-#include "egwebsockets/Websockets.h"
-#include "eg/Components.h"
+#include "eglws/Websockets.h"
+#include "eg/EgStr.h"
 #include "ws.h"
 
 
@@ -30,12 +30,12 @@ void sigint_handler(int sig)
 void WebsocketsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Websockets);
-	ECS_IMPORT(world, Components);
+	ECS_IMPORT(world, EgStr);
 
 	//signal(SIGINT, sigint_handler);
 
 	ecs_entity_t * a = ecs_new(world, 0);
-	ecs_set(world, a, String, {"Hello"});
+	ecs_set(world, a, EgText, {"Hello"});
 
 
 	ews_t * ews = ews_init();
@@ -47,7 +47,7 @@ void WebsocketsImport(ecs_world_t *world)
 	.callback = Sys1,
 	.ctx = ews,
 	.query.filter.terms = {
-		{.id = ecs_id(String)}
+		{.id = ecs_id(EgText)}
 	}});
 
 

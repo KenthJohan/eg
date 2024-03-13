@@ -1,5 +1,5 @@
 {
-	"id": "ex4_libwebsockets",
+	"id": "ex4_eglws",
 	"type": "application",
 	"value": {
 		"language": "c",
@@ -7,7 +7,7 @@
 		"use": [
 			"flecs",
 			"eg",
-			"egwebsockets"
+			"eglws"
 		]
 	},
 	"lang.c": {
@@ -17,7 +17,7 @@
 		],
 		"lib": [
 			"flecs",
-			"egwebsockets",
+			"eglws",
 			"eg",
 			"websockets"
 		],
