@@ -17,7 +17,7 @@
 
 
 
-static void _send_message(eglws_vhd_t * vhd, void * data, int len)
+static int _send_message(eglws_vhd_t * vhd, void const * data, int len)
 {
 	eglws_msg_t msg;
 
@@ -41,7 +41,7 @@ static void _send_message(eglws_vhd_t * vhd, void * data, int len)
 		goto unlock;
 	}
 
-	memcpy(msg.payload + LWS_PRE, data, len);
+	memcpy((char*)msg.payload + LWS_PRE, data, len);
 	msg.len = len;
 
 
@@ -61,6 +61,48 @@ unlock:
 }
 
 
+
+
+
+
+
+static eglws_vhd_t * eglws_vhd_init(struct lws *wsi, void *in)
+{
+	// create our per-vhost struct
+	eglws_vhd_t * vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi), lws_get_protocol(wsi), sizeof(eglws_vhd_t));
+	if (!vhd) {
+		return NULL;
+	}
+	pthread_mutex_init(&vhd->lock_ring, NULL);
+	{
+		// recover the pointer to the globals struct
+		const struct lws_protocol_vhost_options *pvo;
+		pvo = lws_pvo_search((const struct lws_protocol_vhost_options *)in, "config");
+		if (!pvo || !pvo->value) {
+			lwsl_err("%s: Can't find \"config\" pvo\n", __func__);
+			return NULL;
+		}
+		vhd->config = pvo->value;
+	}
+	vhd->context = lws_get_context(wsi);
+	vhd->protocol = lws_get_protocol(wsi);
+	vhd->vhost = lws_get_vhost(wsi);
+	vhd->ring = lws_ring_create(sizeof(eglws_msg_t), 8, eglws_msg_fini);
+	if (!vhd->ring) {
+		lwsl_err("%s: failed to create ring\n", __func__);
+		return NULL;
+	}
+
+	{
+
+		ews_t * a = lws_vhost_user(lws_get_vhost(wsi));
+		a->internal_vhd = vhd;
+	}
+
+	// start the content-creating threads
+	//spam_start(vhd);
+	return vhd;
+}
 
 
 
@@ -88,39 +130,10 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 
 	switch (reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT:
-		// create our per-vhost struct
-		vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi), lws_get_protocol(wsi), sizeof(eglws_vhd_t));
-		if (!vhd) {
+		vhd = eglws_vhd_init(wsi, in);
+		if(vhd == NULL) {
 			return 1;
 		}
-		pthread_mutex_init(&vhd->lock_ring, NULL);
-		{
-			// recover the pointer to the globals struct
-			const struct lws_protocol_vhost_options *pvo;
-			pvo = lws_pvo_search((const struct lws_protocol_vhost_options *)in, "config");
-			if (!pvo || !pvo->value) {
-				lwsl_err("%s: Can't find \"config\" pvo\n", __func__);
-				return 1;
-			}
-			vhd->config = pvo->value;
-		}
-		vhd->context = lws_get_context(wsi);
-		vhd->protocol = lws_get_protocol(wsi);
-		vhd->vhost = lws_get_vhost(wsi);
-		vhd->ring = lws_ring_create(sizeof(eglws_msg_t), 8, eglws_msg_fini);
-		if (!vhd->ring) {
-			lwsl_err("%s: failed to create ring\n", __func__);
-			return 1;
-		}
-
-		{
-
-			ews_t * a = lws_vhost_user(lws_get_vhost(wsi));
-			a->internal_vhd = vhd;
-		}
-
-		// start the content-creating threads
-		//spam_start(vhd);
 		break;
 
 	case LWS_CALLBACK_PROTOCOL_DESTROY:
@@ -191,7 +204,12 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 			  lws_is_final_fragment(wsi),
 			  lws_frame_is_binary(wsi), (int)len);
 
-		_send_message(vhd, in, len);
+		{
+			int rc = _send_message(vhd, in, len);
+			if(rc) {
+				return 1;
+			}
+		}
 
 		/*
 		 * let everybody know we want to write something on them
@@ -356,7 +374,7 @@ static void * thread_server(void* arg)
 
 ews_t * ews_init() {
 	ews_t * ews = ecs_os_calloc_t(ews_t);
-	ecs_os_thread_t t = ecs_os_thread_new(thread_server, ews);
+	ews->thread = ecs_os_thread_new(thread_server, ews);
 	return ews;
 }
 
@@ -365,9 +383,9 @@ void ews_fini(ews_t * ews) {
 	ecs_os_free(ews);
 }
 
-int ews_send_message(ews_t * ews, void * data, int len)
+int ews_send_message(ews_t * ews, void const * data, int len)
 {
-	_send_message(ews->internal_vhd, data, len);
+	return _send_message(ews->internal_vhd, data, len);
 }
 
 

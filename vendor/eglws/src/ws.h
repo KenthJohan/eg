@@ -5,11 +5,12 @@ typedef struct {
 	ecs_world_t * world;
 	void * internal_vhd;
 	int should_quit;
+	ecs_os_thread_t thread;
 } ews_t;
 
 
 
-int ews_send_message(ews_t * ews, void * data, int len);
+int ews_send_message(ews_t * ews, void const * data, int len);
 int ews_send_string(ews_t * ews, char const * msg);
 
 
