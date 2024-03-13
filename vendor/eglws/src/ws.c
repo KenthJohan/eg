@@ -17,8 +17,8 @@
 /* this runs under the lws service thread context only */
 static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,void *user, void *in, size_t len)
 {
-	struct per_session_data__minimal *pss = (struct per_session_data__minimal *)user;
-	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
+	eglws_pss_t *pss = (eglws_pss_t *)user;
+	eglws_vhd_t *vhd = (eglws_vhd_t *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
 	
 	
 
@@ -36,7 +36,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 	switch (reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT:
 		// create our per-vhost struct
-		vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi), lws_get_protocol(wsi), sizeof(struct per_vhost_data__minimal));
+		vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi), lws_get_protocol(wsi), sizeof(eglws_vhd_t));
 		if (!vhd) {
 			return 1;
 		}
@@ -54,7 +54,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		vhd->context = lws_get_context(wsi);
 		vhd->protocol = lws_get_protocol(wsi);
 		vhd->vhost = lws_get_vhost(wsi);
-		vhd->ring = lws_ring_create(sizeof(struct msg), 8, __minimal_destroy_message);
+		vhd->ring = lws_ring_create(sizeof(eglws_msg_t), 8, eglws_msg_fini);
 		if (!vhd->ring) {
 			lwsl_err("%s: failed to create ring\n", __func__);
 			return 1;
@@ -87,13 +87,13 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 
 	case LWS_CALLBACK_CLOSED:
 		/* remove our closing pss from the list of live pss */
-		lws_ll_fwd_remove(struct per_session_data__minimal, pss_list, pss, vhd->pss_list);
+		lws_ll_fwd_remove(eglws_pss_t, pss_list, pss, vhd->pss_list);
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
 		pthread_mutex_lock(&vhd->lock_ring);
 		{
-			const struct msg *pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
+			const eglws_msg_t *pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
 			if (!pmsg) {
 				pthread_mutex_unlock(&vhd->lock_ring);
 				break;
@@ -110,7 +110,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		// This will call the destroy callback specified in lws_ring_create()
 		lws_ring_consume_and_update_oldest_tail(
 			vhd->ring,	/* lws_ring object */
-			struct per_session_data__minimal, /* type of objects with tails */
+			eglws_pss_t, /* type of objects with tails */
 			&pss->tail,	/* tail of guy doing the consuming */
 			1,		/* number of payload objects being consumed */
 			vhd->pss_list,	/* head of list of objects with tails */
@@ -146,7 +146,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,vo
 		 * We respond by scheduling a writable callback for all
 		 * connected clients.
 		 */
-		lws_start_foreach_llp(struct per_session_data__minimal **, ppss, vhd->pss_list) {
+		lws_start_foreach_llp(eglws_pss_t **, ppss, vhd->pss_list) {
 			lws_callback_on_writable((*ppss)->wsi);
 		} lws_end_foreach_llp(ppss, pss_list);
 		break;
@@ -173,7 +173,7 @@ static struct lws_protocols protocols[] = {
 	{
 		.name = "lws-minimal",
 		.callback = callback_minimal,
-		.per_session_data_size = sizeof(struct per_session_data__minimal),
+		.per_session_data_size = sizeof(eglws_pss_t),
 		.rx_buffer_size = 128,
 		.id = 0,
 		.user = NULL,
@@ -221,7 +221,7 @@ static const struct lws_protocol_vhost_options pvo = {
 
 
 
-static void * private_server_thread(void* arg)
+static void * thread_server(void* arg)
 {
 	ews_t * ews = (ews_t *)arg;
 
@@ -254,6 +254,7 @@ static void * private_server_thread(void* arg)
 	}
 
 	while (ews->should_quit == 0) {
+		// Service any pending websocket activity
 		int rc = lws_service(context, 0);
 		if (rc) {
 			break;
@@ -270,7 +271,7 @@ static void * private_server_thread(void* arg)
 
 ews_t * ews_init() {
 	ews_t * ews = ecs_os_calloc_t(ews_t);
-	ecs_os_thread_t t = ecs_os_thread_new(private_server_thread, ews);
+	ecs_os_thread_t t = ecs_os_thread_new(thread_server, ews);
 	return ews;
 }
 
@@ -282,8 +283,8 @@ void ews_fini(ews_t * ews) {
 
 int ews_send_message(ews_t * ews, char const * msg)
 {
-	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)ews->internal_vhd;
-	struct msg amsg;
+	eglws_vhd_t *vhd = (eglws_vhd_t *)ews->internal_vhd;
+	eglws_msg_t amsg;
 	int len = 128; 
 	int index = 1;
 	int whoami = 0;
@@ -316,7 +317,7 @@ int ews_send_message(ews_t * ews, char const * msg)
 	{
 		int n = (int)lws_ring_insert(vhd->ring, &amsg, 1);
 		if (n != 1) {
-			__minimal_destroy_message(&amsg);
+			eglws_msg_fini(&amsg);
 			lwsl_user("dropping!\n");
 		} else {
 			lws_cancel_service(vhd->context);

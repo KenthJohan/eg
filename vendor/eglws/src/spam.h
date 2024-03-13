@@ -3,5 +3,5 @@
 #include <libwebsockets.h>
 #include "wstypes.h"
 
-int spam_start(struct per_vhost_data__minimal *vhd);
-int spam_fini(struct per_vhost_data__minimal *vhd);
+int spam_start(eglws_vhd_t *vhd);
+int spam_fini(eglws_vhd_t *vhd);

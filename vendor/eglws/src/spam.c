@@ -4,8 +4,8 @@
 
 static void * thread_spam(void *d)
 {
-	struct per_vhost_data__minimal *vhd = (struct per_vhost_data__minimal *)d;
-	struct msg amsg;
+	eglws_vhd_t *vhd = (eglws_vhd_t *)d;
+	eglws_msg_t amsg;
 	int len = 128;
 	int index = 1;
 	int whoami = 0;
@@ -44,7 +44,7 @@ static void * thread_spam(void *d)
 			amsg.len = (unsigned int)n;
 			n = (int)lws_ring_insert(vhd->ring, &amsg, 1);
 			if (n != 1) {
-				__minimal_destroy_message(&amsg);
+				eglws_msg_fini(&amsg);
 				lwsl_user("dropping!\n");
 			} else {
 				// This will cause a LWS_CALLBACK_EVENT_WAIT_CANCELLED in the lws service thread context.
@@ -70,7 +70,7 @@ wait:
 }
 
 
-int spam_fini(struct per_vhost_data__minimal *vhd)
+int spam_fini(eglws_vhd_t *vhd)
 {
 	void *retval;
 	vhd->spam_finished = 1;
@@ -83,7 +83,7 @@ int spam_fini(struct per_vhost_data__minimal *vhd)
 }
 
 
-int spam_start(struct per_vhost_data__minimal *vhd)
+int spam_start(eglws_vhd_t *vhd)
 {
 	for (int n = 0; n < (int)LWS_ARRAY_SIZE(vhd->spam_pthread); n++) {
 		if (pthread_create(&vhd->spam_pthread[n], NULL, thread_spam, vhd)) {
@@ -92,5 +92,6 @@ int spam_start(struct per_vhost_data__minimal *vhd)
 			return -1;
 		}
 	}
+	return 0;
 }
 

@@ -5,10 +5,10 @@
 
 /* one of these created for each message in the ringbuffer */
 
-struct msg {
+typedef struct {
 	void *payload; /* is malloc'd */
 	size_t len;
-};
+} eglws_msg_t;
 
 /*
  * One of these is created for each client connecting to us.
@@ -16,19 +16,20 @@ struct msg {
  * It is ONLY read or written from the lws service thread context.
  */
 
-struct per_session_data__minimal {
-	struct per_session_data__minimal *pss_list;
+
+typedef struct eglws_pss_t {
+	struct eglws_pss_t *pss_list;
 	struct lws *wsi;
 	uint32_t tail;
-};
+} eglws_pss_t;
 
 /* one of these is created for each vhost our protocol is used with */
 
-struct per_vhost_data__minimal {
+typedef struct {
 	struct lws_context *context;
 	struct lws_vhost *vhost;
 	const struct lws_protocols *protocol;
-	struct per_session_data__minimal *pss_list; /* linked-list of live pss*/
+	eglws_pss_t *pss_list; /* linked-list of live pss*/
 	const char *config;
 
 	// Serialize access to the ring buffer
@@ -43,16 +44,16 @@ struct per_vhost_data__minimal {
 	// Optional spam thread
 	pthread_t spam_pthread[1];
 	char spam_finished;
-};
+} eglws_vhd_t;
 
 /*
  * This runs under both lws service and "spam threads" contexts.
  * Access is serialized by vhd->lock_ring.
  */
 
-static void __minimal_destroy_message(void *_msg)
+static void eglws_msg_fini(void * ptr)
 {
-	struct msg *msg = _msg;
+	eglws_msg_t *msg = ptr;
 	free(msg->payload);
 	msg->payload = NULL;
 	msg->len = 0;
