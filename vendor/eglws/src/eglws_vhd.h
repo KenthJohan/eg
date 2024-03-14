@@ -2,12 +2,7 @@
 
 #include <libwebsockets.h>
 
-/* one of these created for each message in the ringbuffer */
 
-typedef struct {
-	void *payload; /* is malloc'd */
-	size_t len;
-} eglws_msg_t;
 
 /*
  * One of these is created for each client connecting to us.
@@ -45,18 +40,7 @@ typedef struct {
 	char spam_finished;
 } eglws_vhd_t;
 
-/*
- * This runs under both lws service and "spam threads" contexts.
- * Access is serialized by vhd->lock_ring.
- */
 
-static void eglws_msg_fini(void * ptr)
-{
-	eglws_msg_t *msg = ptr;
-	free(msg->payload);
-	msg->payload = NULL;
-	msg->len = 0;
-}
 
 
 eglws_vhd_t * eglws_vhd_init(struct lws *wsi, void *in);

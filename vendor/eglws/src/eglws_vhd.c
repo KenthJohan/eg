@@ -1,6 +1,7 @@
 #include "eglws_vhd.h"
 
 #include "spam.h"
+#include "msg.h"
 
 eglws_vhd_t * eglws_vhd_init(struct lws *wsi, void *in)
 {
@@ -110,7 +111,6 @@ int eglws_vhd_request_writable(eglws_vhd_t * vhd)
 
 int eglws_vhd_send_message(eglws_vhd_t * vhd, void const * data, int len)
 {
-	eglws_msg_t msg;
 	int n;
 	if (!vhd->pss_list) {
 		return -1;
@@ -121,13 +121,12 @@ int eglws_vhd_send_message(eglws_vhd_t * vhd, void const * data, int len)
 		lwsl_user("dropping!\n");
 		goto unlock;
 	}
-	msg.payload = malloc((unsigned int)(LWS_PRE + len));
+	eglws_msg_t msg = {0};
+	eglws_msg_init(&msg, data, len);
 	if (msg.payload == NULL) {
 		lwsl_user("OOM: dropping\n");
 		goto unlock;
 	}
-	memcpy((char*)msg.payload + LWS_PRE, data, len);
-	msg.len = len;
 	n = (int)lws_ring_insert(vhd->ring, &msg, 1);
 	if (n != 1) {
 		eglws_msg_fini(&msg);

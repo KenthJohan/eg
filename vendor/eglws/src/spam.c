@@ -1,5 +1,5 @@
 #include "spam.h"
-
+#include "msg.h"
 
 
 static void * thread_spam(void *d)
