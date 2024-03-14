@@ -11,167 +11,7 @@
 
 #include "lws_misc.h"
 #include "wstypes.h"
-#include "spam.h"
-
-
-
-
-
-static int _send_message(eglws_vhd_t * vhd, void const * data, int len)
-{
-	eglws_msg_t msg;
-
-	if (!vhd->pss_list) {
-		return -1;
-	}
-
-	pthread_mutex_lock(&vhd->lock_ring);
-
-	{
-		int n = (int)lws_ring_get_count_free_elements(vhd->ring);
-		if (n == 0) {
-			lwsl_user("dropping!\n");
-			goto unlock;
-		}
-	}
-
-	msg.payload = malloc((unsigned int)(LWS_PRE + len));
-	if (msg.payload == NULL) {
-		lwsl_user("OOM: dropping\n");
-		goto unlock;
-	}
-
-	memcpy((char*)msg.payload + LWS_PRE, data, len);
-	msg.len = len;
-
-
-	{
-		int n = (int)lws_ring_insert(vhd->ring, &msg, 1);
-		if (n != 1) {
-			eglws_msg_fini(&msg);
-			lwsl_user("dropping!\n");
-		} else {
-			lws_cancel_service(vhd->context);
-		}
-	}
-
-unlock:
-	pthread_mutex_unlock(&vhd->lock_ring);
-	return 0;
-}
-
-
-
-
-
-
-
-static eglws_vhd_t * eglws_vhd_init(struct lws *wsi, void *in)
-{
-	// create our per-vhost struct
-	eglws_vhd_t * vhd = lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi), lws_get_protocol(wsi), sizeof(eglws_vhd_t));
-	if (!vhd) {
-		return NULL;
-	}
-	pthread_mutex_init(&vhd->lock_ring, NULL);
-	{
-		// recover the pointer to the globals struct
-		const struct lws_protocol_vhost_options *pvo;
-		pvo = lws_pvo_search((const struct lws_protocol_vhost_options *)in, "config");
-		if (!pvo || !pvo->value) {
-			lwsl_err("%s: Can't find \"config\" pvo\n", __func__);
-			return NULL;
-		}
-		vhd->config = pvo->value;
-	}
-	vhd->context = lws_get_context(wsi);
-	vhd->protocol = lws_get_protocol(wsi);
-	vhd->vhost = lws_get_vhost(wsi);
-	vhd->ring = lws_ring_create(sizeof(eglws_msg_t), 8, eglws_msg_fini);
-	if (!vhd->ring) {
-		lwsl_err("%s: failed to create ring\n", __func__);
-		return NULL;
-	}
-
-	{
-
-		ews_t * a = lws_vhost_user(lws_get_vhost(wsi));
-		a->internal_vhd = vhd;
-	}
-
-	// start the content-creating threads
-	//spam_start(vhd);
-	return vhd;
-}
-
-
-static void eglws_vhd_fini(eglws_vhd_t * vhd)
-{
-	spam_fini(vhd);
-	if (vhd->ring) {
-		lws_ring_destroy(vhd->ring);
-	}
-	pthread_mutex_destroy(&vhd->lock_ring);
-}
-
-
-static int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
-{
-	pthread_mutex_lock(&vhd->lock_ring);
-
-	const eglws_msg_t *pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
-	if (!pmsg) {
-		pthread_mutex_unlock(&vhd->lock_ring);
-		return 0;
-	}
-
-	// notice we allowed for LWS_PRE in the payload already
-	int m = lws_write(wsi, ((unsigned char *)pmsg->payload) + LWS_PRE, pmsg->len, LWS_WRITE_TEXT);
-	if (m < (int)pmsg->len) {
-		pthread_mutex_unlock(&vhd->lock_ring);
-		lwsl_err("ERROR %d writing to ws socket\n", m);
-		return -1;
-	}
-
-	// This will call the destroy callback specified in lws_ring_create()
-	lws_ring_consume_and_update_oldest_tail(
-		vhd->ring,	/* lws_ring object */
-		eglws_pss_t, /* type of objects with tails */
-		&pss->tail,	/* tail of guy doing the consuming */
-		1,		/* number of payload objects being consumed */
-		vhd->pss_list,	/* head of list of objects with tails */
-		tail,		/* member name of tail in objects with tails */
-		pss_list	/* member name of next object in objects with tails */
-	);
-
-	// more to do?
-	if (lws_ring_get_element(vhd->ring, &pss->tail)) {
-		// come back as soon as we can write more
-		lws_callback_on_writable(pss->wsi);
-	}
-
-	printf("lws_ring_get_count_waiting_elements %li\n", lws_ring_get_count_waiting_elements(vhd->ring, &pss->tail));
-
-	pthread_mutex_unlock(&vhd->lock_ring);
-	return 0;
-}
-
-
-static int eglws_vhd_broadcast(eglws_vhd_t * vhd, void * in, int len)
-{
-	int rc = _send_message(vhd, in, len);
-	if(rc) {
-		return 1;
-	}
-	/*
-		* let everybody know we want to write something on them
-		* as soon as they are ready
-		*/
-	lws_start_foreach_llp(eglws_pss_t **, ppss, vhd->pss_list) {
-		lws_callback_on_writable((*ppss)->wsi);
-	} lws_end_foreach_llp(ppss, pss_list);
-}
-
+#include "eglws_vhd.h"
 
 
 
@@ -194,7 +34,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 		}
 	}
 
-	
+	int rc = 0;
 
 	switch (reason) {
 	case LWS_CALLBACK_PROTOCOL_INIT:
@@ -202,6 +42,9 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 		vhd = eglws_vhd_init(wsi, in);
 		if(vhd == NULL) {
 			return 1;
+		} else {
+			ews_t * a = lws_vhost_user(lws_get_vhost(wsi));
+			a->internal_vhd = vhd;
 		}
 		break;
 
@@ -222,12 +65,12 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 		break;
 
 	case LWS_CALLBACK_SERVER_WRITEABLE:
-		eglws_vhd_consume(vhd, pss, wsi);
+		rc = eglws_vhd_consume(vhd, pss, wsi);
 		break;
 
 	case LWS_CALLBACK_RECEIVE:
 		lwsl_user("LWS_CALLBACK_RECEIVE: %4d (rpp %5d, first %d, ""last %d, bin %d, len %d)\n",(int)len, (int)lws_remaining_packet_payload(wsi),lws_is_first_fragment(wsi),lws_is_final_fragment(wsi),lws_frame_is_binary(wsi), (int)len);
-		eglws_vhd_broadcast(vhd, in, len);
+		rc = eglws_vhd_broadcast(vhd, in, len);
 		break;
 
 	case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
@@ -252,7 +95,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 		break;
 	}
 
-	return 0;
+	return rc;
 }
 
 
@@ -392,11 +235,11 @@ void ews_fini(ews_t * ews) {
 	ecs_os_free(ews);
 }
 
+
 int ews_send_message(ews_t * ews, void const * data, int len)
 {
-	return _send_message(ews->internal_vhd, data, len);
+	return eglws_vhd_send_message(ews->internal_vhd, data, len);
 }
-
 
 
 int ews_send_string(ews_t * ews, char const * msg)
