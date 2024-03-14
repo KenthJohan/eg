@@ -51,6 +51,6 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi);
 
 int eglws_vhd_request_writable(eglws_vhd_t * vhd);
 
-int eglws_vhd_send_message(eglws_vhd_t * vhd, void const * data, int len);
+int eglws_vhd_send_binary(eglws_vhd_t * vhd, void const * data, int len);
 
 int eglws_vhd_send_text(eglws_vhd_t * vhd, char const * text);

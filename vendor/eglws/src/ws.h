@@ -10,7 +10,7 @@ typedef struct {
 
 
 
-int ews_send_message(ews_t * ews, void const * data, int len);
+int ews_send_binary(ews_t * ews, void const * data, int len);
 int ews_send_string(ews_t * ews, char const * msg);
 
 

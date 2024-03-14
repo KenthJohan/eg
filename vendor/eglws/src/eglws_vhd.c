@@ -60,7 +60,7 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 	printf("lws_ring_get_count_waiting_elements %li\n", lws_ring_get_count_waiting_elements(vhd->ring, &pss->tail));
 	
 	// notice we allowed for LWS_PRE in the payload already
-	int m = lws_write(wsi, ((unsigned char *)pmsg->payload) + LWS_PRE, pmsg->len, LWS_WRITE_TEXT);
+	int m = lws_write(wsi, ((unsigned char *)pmsg->payload) + LWS_PRE, pmsg->len, pmsg->protocol);
 	if (m < (int)pmsg->len) {
 		pthread_mutex_unlock(&vhd->lock_ring);
 		lwsl_err("ERROR %d writing to ws socket\n", m);
@@ -109,7 +109,7 @@ int eglws_vhd_request_writable(eglws_vhd_t * vhd)
 
 
 
-int eglws_vhd_send_message(eglws_vhd_t * vhd, void const * data, int len)
+int eglws_vhd_send(eglws_vhd_t * vhd, eglws_msg_t * msg)
 {
 	int n;
 	if (!vhd->pss_list) {
@@ -118,29 +118,48 @@ int eglws_vhd_send_message(eglws_vhd_t * vhd, void const * data, int len)
 	pthread_mutex_lock(&vhd->lock_ring);
 	n = (int)lws_ring_get_count_free_elements(vhd->ring);
 	if (n == 0) {
-		lwsl_user("dropping!\n");
-		goto unlock;
+		pthread_mutex_unlock(&vhd->lock_ring);
+		return -1;
 	}
-	eglws_msg_t msg = {0};
-	eglws_msg_init(&msg, data, len);
-	if (msg.payload == NULL) {
-		lwsl_user("OOM: dropping\n");
-		goto unlock;
-	}
-	n = (int)lws_ring_insert(vhd->ring, &msg, 1);
+	n = (int)lws_ring_insert(vhd->ring, msg, 1);
 	if (n != 1) {
-		eglws_msg_fini(&msg);
-		lwsl_user("dropping!\n");
-	} else {
-		lws_cancel_service(vhd->context);
+		pthread_mutex_unlock(&vhd->lock_ring);
+		return -1;
 	}
-unlock:
+	lws_cancel_service(vhd->context);
 	pthread_mutex_unlock(&vhd->lock_ring);
 	return 0;
 }
 
 
+int eglws_vhd_send_binary(eglws_vhd_t * vhd, void const * data, int len)
+{
+	eglws_msg_t msg = {0};
+	msg.protocol = LWS_WRITE_BINARY;
+	msg.payload = malloc((unsigned int)(LWS_PRE + len));
+	memcpy((char*)msg.payload + LWS_PRE, data, len);
+	msg.len = len;
+	int rc = eglws_vhd_send(vhd, &msg);
+	if (rc) {
+		free(msg.payload);
+	}
+	return rc;
+}
+
 int eglws_vhd_send_text(eglws_vhd_t * vhd, char const * text)
 {
-	return eglws_vhd_send_message(vhd, text, strlen(text));
+	eglws_msg_t msg = {0};
+	msg.protocol = LWS_WRITE_TEXT;
+	int len = strlen(text);
+	msg.payload = malloc((unsigned int)(LWS_PRE + len));
+	memcpy((char*)msg.payload + LWS_PRE, text, len);
+	msg.len = len;
+	int rc = eglws_vhd_send(vhd, &msg);
+	if (rc) {
+		free(msg.payload);
+	}
+	return rc;
 }
+
+
+

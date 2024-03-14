@@ -13,6 +13,13 @@ function create_onopen(obj) {
 
 function create_onmessage(obj) {
 	return function(msg) {
+		if (msg.data instanceof ArrayBuffer) {
+			const view = new DataView(msg.data);
+			console.log(view.getInt32(0, true));
+		} else if (typeof(msg.data) === 'string') {
+			console.log(msg.data);
+		}
+		/*
 		console.log("ws.onmessage", msg);
 		var n, s = "";
 		let max = 5;
@@ -28,6 +35,7 @@ function create_onmessage(obj) {
 		} while (n !== obj.head);
 		document.getElementById("r").value = s;
 		document.getElementById("r").scrollTop = document.getElementById("r").scrollHeight;
+		*/
 	};
 }
 
@@ -54,6 +62,7 @@ function create_websocket(desc)
 		console.log("WebSocket open", obj.wsurl);
 		console.assert(obj.ws == null);
 		obj.ws = new WebSocket(obj.wsurl, "lws-minimal");
+		obj.ws.binaryType = "arraybuffer";
 		obj.ws.onopen = create_onopen(obj);
 		obj.ws.onmessage = create_onmessage(obj);
 		obj.ws.onclose = create_onclose(obj);

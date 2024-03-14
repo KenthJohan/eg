@@ -76,7 +76,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 
 	case LWS_CALLBACK_RECEIVE:
 		lwsl_user("LWS_CALLBACK_RECEIVE: %4d (rpp %5d, first %d, ""last %d, bin %d, len %d)\n",(int)len, (int)lws_remaining_packet_payload(wsi),lws_is_first_fragment(wsi),lws_is_final_fragment(wsi),lws_frame_is_binary(wsi), (int)len);
-		rc = eglws_vhd_send_message(vhd, in, len);
+		//rc = eglws_vhd_send_message(vhd, in, len);
 		break;
 
 	case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
@@ -228,13 +228,13 @@ void ews_fini(ews_t * ews) {
 }
 
 
-int ews_send_message(ews_t * ews, void const * data, int len)
+int ews_send_binary(ews_t * ews, void const * data, int len)
 {
-	return eglws_vhd_send_message(ews->internal_vhd, data, len);
+	return eglws_vhd_send_binary(ews->internal_vhd, data, len);
 }
 
 
-int ews_send_string(ews_t * ews, char const * msg)
+int ews_send_text(ews_t * ews, char const * msg)
 {
 	return eglws_vhd_send_text(ews->internal_vhd, msg);
 }

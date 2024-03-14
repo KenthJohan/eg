@@ -15,6 +15,7 @@ static void Sys1(ecs_iter_t *it)
 			char buf[128];
 			snprintf(buf, sizeof(buf), "Banana %i", banana++);
 			//ews_send_string(ews, buf);
+			ews_send_binary(ews, &banana, sizeof(banana));
 		}
 		else {
 			printf("no vhd\n");
