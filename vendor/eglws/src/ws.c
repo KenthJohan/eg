@@ -10,7 +10,6 @@
 #include <string.h>
 
 #include "lws_misc.h"
-#include "wstypes.h"
 #include "eglws_vhd.h"
 
 
@@ -25,14 +24,14 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 	
 	
 
-	{
-		char ip[256];
-		if (lws_get_peer_simple(wsi, ip, 16)) {
-			printf("reason: %s, ip:%s\n", lws_callback_reasons_tostr(reason), ip);
-		} else {
-			printf("reason: %s\n", lws_callback_reasons_tostr(reason));
-		}
+	
+	char ip[64];
+	if (lws_get_peer_simple(wsi, ip, 16)) {
+		printf("reason: %s, ip:%s\n", lws_callback_reasons_tostr(reason), ip);
+	} else {
+		printf("reason: %s\n", lws_callback_reasons_tostr(reason));
 	}
+	
 
 	int rc = 0;
 
@@ -57,6 +56,11 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 		lws_ll_fwd_insert(pss, pss_list, vhd->pss_list);
 		pss->tail = lws_ring_get_oldest_tail(vhd->ring);
 		pss->wsi = wsi;
+		{
+			char buf[128] = {0};
+			snprintf(buf, sizeof(buf), "[NEW_SESSION]: %s", ip);
+			eglws_vhd_send_text(vhd, buf);
+		}
 		break;
 
 	case LWS_CALLBACK_CLOSED:
@@ -70,25 +74,11 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 
 	case LWS_CALLBACK_RECEIVE:
 		lwsl_user("LWS_CALLBACK_RECEIVE: %4d (rpp %5d, first %d, ""last %d, bin %d, len %d)\n",(int)len, (int)lws_remaining_packet_payload(wsi),lws_is_first_fragment(wsi),lws_is_final_fragment(wsi),lws_frame_is_binary(wsi), (int)len);
-		rc = eglws_vhd_broadcast(vhd, in, len);
+		rc = eglws_vhd_send_message(vhd, in, len);
 		break;
 
 	case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
-		if (!vhd) {
-			break;
-		}
-
-		/*
-		 * When the "spam" threads add a message to the ringbuffer,
-		 * they create this event in the lws service thread context
-		 * using lws_cancel_service().
-		 *
-		 * We respond by scheduling a writable callback for all
-		 * connected clients.
-		 */
-		lws_start_foreach_llp(eglws_pss_t **, ppss, vhd->pss_list) {
-			lws_callback_on_writable((*ppss)->wsi);
-		} lws_end_foreach_llp(ppss, pss_list);
+		rc = eglws_vhd_request_writable(vhd);
 		break;
 
 	default:
@@ -244,6 +234,5 @@ int ews_send_message(ews_t * ews, void const * data, int len)
 
 int ews_send_string(ews_t * ews, char const * msg)
 {
-	int n = strlen(msg);
-	return ews_send_message(ews, msg, n);
+	return eglws_vhd_send_text(ews->internal_vhd, msg);
 }

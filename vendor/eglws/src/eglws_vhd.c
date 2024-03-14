@@ -55,7 +55,7 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 		return 0;
 	}
 
-	printf("lws_write: %i\n", pmsg->len);
+	printf("lws_write: %li\n", pmsg->len);
 	printf("lws_ring_get_count_waiting_elements %li\n", lws_ring_get_count_waiting_elements(vhd->ring, &pss->tail));
 	
 	// notice we allowed for LWS_PRE in the payload already
@@ -89,63 +89,59 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 }
 
 
-int eglws_vhd_broadcast(eglws_vhd_t * vhd, void * in, int len)
+int eglws_vhd_request_writable(eglws_vhd_t * vhd)
 {
-	int rc = eglws_vhd_send_message(vhd, in, len);
-	if(rc) {
-		return 1;
-	}
 	/*
-		* let everybody know we want to write something on them
-		* as soon as they are ready
+		* When the "spam" threads add a message to the ringbuffer,
+		* they create this event in the lws service thread context
+		* using lws_cancel_service().
+		*
+		* We respond by scheduling a writable callback for all
+		* connected clients.
 		*/
-	/*
 	lws_start_foreach_llp(eglws_pss_t **, ppss, vhd->pss_list) {
 		lws_callback_on_writable((*ppss)->wsi);
 	} lws_end_foreach_llp(ppss, pss_list);
-	*/
-	return rc;
+	return 0;
 }
+
+
+
 
 int eglws_vhd_send_message(eglws_vhd_t * vhd, void const * data, int len)
 {
 	eglws_msg_t msg;
-
+	int n;
 	if (!vhd->pss_list) {
 		return -1;
 	}
-
 	pthread_mutex_lock(&vhd->lock_ring);
-
-	{
-		int n = (int)lws_ring_get_count_free_elements(vhd->ring);
-		if (n == 0) {
-			lwsl_user("dropping!\n");
-			goto unlock;
-		}
+	n = (int)lws_ring_get_count_free_elements(vhd->ring);
+	if (n == 0) {
+		lwsl_user("dropping!\n");
+		goto unlock;
 	}
-
 	msg.payload = malloc((unsigned int)(LWS_PRE + len));
 	if (msg.payload == NULL) {
 		lwsl_user("OOM: dropping\n");
 		goto unlock;
 	}
-
 	memcpy((char*)msg.payload + LWS_PRE, data, len);
 	msg.len = len;
-
-
-	{
-		int n = (int)lws_ring_insert(vhd->ring, &msg, 1);
-		if (n != 1) {
-			eglws_msg_fini(&msg);
-			lwsl_user("dropping!\n");
-		} else {
-			lws_cancel_service(vhd->context);
-		}
+	n = (int)lws_ring_insert(vhd->ring, &msg, 1);
+	if (n != 1) {
+		eglws_msg_fini(&msg);
+		lwsl_user("dropping!\n");
+	} else {
+		lws_cancel_service(vhd->context);
 	}
-
 unlock:
 	pthread_mutex_unlock(&vhd->lock_ring);
 	return 0;
+}
+
+
+int eglws_vhd_send_text(eglws_vhd_t * vhd, char const * text)
+{
+	return eglws_vhd_send_message(vhd, text, strlen(text));
 }
