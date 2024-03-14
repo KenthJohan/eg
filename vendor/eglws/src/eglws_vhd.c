@@ -56,11 +56,11 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 		return 0;
 	}
 
-	printf("lws_write: %li\n", pmsg->len);
-	printf("lws_ring_get_count_waiting_elements %li\n", lws_ring_get_count_waiting_elements(vhd->ring, &pss->tail));
-	
-	// notice we allowed for LWS_PRE in the payload already
-	int m = lws_write(wsi, ((unsigned char *)pmsg->payload) + LWS_PRE, pmsg->len, pmsg->protocol);
+	//printf("lws_write: %li\n", pmsg->len);
+	//printf("lws_ring_get_count_waiting_elements %li\n", lws_ring_get_count_waiting_elements(vhd->ring, &pss->tail));
+
+
+	int m = eglws_msg_write(pmsg, wsi);
 	if (m < (int)pmsg->len) {
 		pthread_mutex_unlock(&vhd->lock_ring);
 		lwsl_err("ERROR %d writing to ws socket\n", m);

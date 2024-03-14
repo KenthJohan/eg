@@ -10,11 +10,9 @@ typedef struct {
 	enum lws_write_protocol protocol;
 } eglws_msg_t;
 
-void eglws_msg_init(eglws_msg_t * msg, void const * data, int len);
 
 void eglws_msg_fini(void * ptr);
 
-int eglws_msg_write(struct lws *wsi, eglws_msg_t const *msg);
-
+int eglws_msg_write(eglws_msg_t const *msg, struct lws *wsi);
 
 int eglws_msg_add(eglws_msg_t * msg, struct lws_ring *ring, pthread_mutex_t *mtx);
