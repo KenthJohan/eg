@@ -109,55 +109,43 @@ int eglws_vhd_request_writable(eglws_vhd_t * vhd)
 
 
 
-int eglws_vhd_send(eglws_vhd_t * vhd, eglws_msg_t * msg)
-{
-	int n;
-	if (!vhd->pss_list) {
-		return -1;
-	}
-	pthread_mutex_lock(&vhd->lock_ring);
-	n = (int)lws_ring_get_count_free_elements(vhd->ring);
-	if (n == 0) {
-		pthread_mutex_unlock(&vhd->lock_ring);
-		return -1;
-	}
-	n = (int)lws_ring_insert(vhd->ring, msg, 1);
-	if (n != 1) {
-		pthread_mutex_unlock(&vhd->lock_ring);
-		return -1;
-	}
-	lws_cancel_service(vhd->context);
-	pthread_mutex_unlock(&vhd->lock_ring);
-	return 0;
-}
-
 
 int eglws_vhd_send_binary(eglws_vhd_t * vhd, void const * data, int len)
 {
+	if (!vhd->pss_list) {
+		return -1;
+	}
 	eglws_msg_t msg = {0};
 	msg.protocol = LWS_WRITE_BINARY;
 	msg.payload = malloc((unsigned int)(LWS_PRE + len));
 	memcpy((char*)msg.payload + LWS_PRE, data, len);
 	msg.len = len;
-	int rc = eglws_vhd_send(vhd, &msg);
+	int rc;
+	rc = eglws_msg_add(&msg, vhd->ring, &vhd->lock_ring);
 	if (rc) {
 		free(msg.payload);
 	}
+	lws_cancel_service(vhd->context);
 	return rc;
 }
 
 int eglws_vhd_send_text(eglws_vhd_t * vhd, char const * text)
 {
+	if (!vhd->pss_list) {
+		return -1;
+	}
 	eglws_msg_t msg = {0};
 	msg.protocol = LWS_WRITE_TEXT;
 	int len = strlen(text);
 	msg.payload = malloc((unsigned int)(LWS_PRE + len));
 	memcpy((char*)msg.payload + LWS_PRE, text, len);
 	msg.len = len;
-	int rc = eglws_vhd_send(vhd, &msg);
+	int rc;
+	rc = eglws_msg_add(&msg, vhd->ring, &vhd->lock_ring);
 	if (rc) {
 		free(msg.payload);
 	}
+	lws_cancel_service(vhd->context);
 	return rc;
 }
 

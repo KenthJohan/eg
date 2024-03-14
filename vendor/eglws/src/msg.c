@@ -31,3 +31,24 @@ void eglws_msg_init(eglws_msg_t * msg, void const * data, int len)
 	memcpy((char*)msg->payload + LWS_PRE, data, len);
 	msg->len = len;
 }
+
+
+
+
+int eglws_msg_add(eglws_msg_t * msg, struct lws_ring *ring, pthread_mutex_t *mtx)
+{
+	int n;
+	pthread_mutex_lock(mtx);
+	n = (int)lws_ring_get_count_free_elements(ring);
+	if (n == 0) {
+		pthread_mutex_unlock(mtx);
+		return -1;
+	}
+	n = (int)lws_ring_insert(ring, msg, 1);
+	if (n != 1) {
+		pthread_mutex_unlock(mtx);
+		return -1;
+	}
+	pthread_mutex_unlock(mtx);
+	return 0;
+}
