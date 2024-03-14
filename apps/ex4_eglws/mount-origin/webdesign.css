@@ -3,12 +3,36 @@ body {
 	max-width: 650px;
 	line-height: 1.6;
 	font-size: 18px;
-	color: #444;
-	padding: 0 10px
+	color: #e7e7e7;
+	padding: 0 10px;
+	background-color: #2a2a2a;
 }
 
 h1,
 h2,
 h3 {
 	line-height: 1.2
+}
+
+table {
+	border-collapse: collapse;
+}
+
+input, button, textarea {
+	background-color: rgb(36, 47, 81);
+	font-size: 20px;
+	color: #e7e7e7;
+	border-color: #2a2a2a;
+}
+
+
+input, button, textarea {
+	background-color: rgb(36, 47, 81);
+	font-size: 20px;
+	color: #e7e7e7;
+	border-color: #2a2a2a;
+}
+
+input:focus {
+	border-color: #cdd95a;
 }

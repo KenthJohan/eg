@@ -75,15 +75,63 @@ function create_websocket(desc)
 
 
 
-document.addEventListener("DOMContentLoaded", function () {
+
+
+function create_table(desc)
+{
+	let obj = {};
+	obj.rows = [];
+
+	obj.add = function() {
+		obj.rows.push();
+	}
+}
+
+
+
+
+
+
+
+function test_ws()
+{
 	let desc = {};
 	let obj = create_websocket(desc);
-
 	document.getElementById("close").addEventListener("click", obj.close);
 	document.getElementById("open").addEventListener("click", (e) => {
 		obj.open();
 	});
 	document.getElementById("send_dummy").addEventListener("click", obj.send_dummy);
+}
+
+function test_table()
+{
+	let desc = {};
+	let obj = create_table(desc);
+	document.getElementById("add").addEventListener("click", (e) => {
+		let tr = document.createElement("tr");
+		let td1 = document.createElement("td");
+		let td2 = document.createElement("td");
+		let td3 = document.createElement("td");
+		let in1 = document.createElement(`input`);
+		let in2 = document.createElement(`input`);
+		let in3 = document.createElement(`input`);
+		in1.setAttribute("type", "text");
+		td1.appendChild(in1);
+		td2.appendChild(in2);
+		td3.appendChild(in3);
+		tr.appendChild(td1);
+		tr.appendChild(td2);
+		tr.appendChild(td3);
+		document.getElementById("rows").appendChild(tr);
+	});
+}
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+	test_ws();
+	test_table();
 }, false);
 
 
