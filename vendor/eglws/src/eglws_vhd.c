@@ -109,7 +109,6 @@ int eglws_vhd_request_writable(eglws_vhd_t * vhd)
 
 
 
-
 int eglws_vhd_send_binary(eglws_vhd_t * vhd, void const * data, int len)
 {
 	if (!vhd->pss_list) {

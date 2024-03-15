@@ -68,8 +68,10 @@ int main(int argc, char const * argv[])
 	ecs_entity_t e1 = ecs_new(world, Comp1);
 	ecs_entity_t e2 = ecs_new(world, Comp2);
 
+	ecs_set_target_fps(world, 60.0f);
+
 	while(1) {
-		ecs_os_sleep(1.0f, 100000.0f);
+		//ecs_os_sleep(0.0f, 100000.0f);
 		//printf("ecs_progress\n");
 		ecs_progress(world, 0.0f);
 	}

@@ -31,7 +31,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 	if ((fd > 0) && lws_get_peer_simple(wsi, ip, 16)) {
 		printf("reason: %s, fd:%i, ip:%s\n", lws_callback_reasons_tostr(reason), fd, ip);
 	} else {
-		printf("reason: %s, fd:%i\n", lws_callback_reasons_tostr(reason));
+		printf("reason: %s, fd:%i\n", lws_callback_reasons_tostr(reason), fd);
 	}
 	
 

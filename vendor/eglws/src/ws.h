@@ -6,6 +6,7 @@ typedef struct {
 	void * internal_vhd;
 	int should_quit;
 	ecs_os_thread_t thread;
+	int rc;
 } ews_t;
 
 
