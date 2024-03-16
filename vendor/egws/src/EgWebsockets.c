@@ -1,4 +1,4 @@
-#include "egwebsockets/Websockets.h"
+#include "egws/EgWebsockets.h"
 #include "eg/Components.h"
 #include "eg/EgFs.h"
 #include "eg/EgStr.h"

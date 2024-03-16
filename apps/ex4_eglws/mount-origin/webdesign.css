@@ -18,7 +18,7 @@ table {
 	border-collapse: collapse;
 }
 
-input, button, textarea {
+input, textarea {
 	background-color: rgb(36, 47, 81);
 	font-size: 20px;
 	color: #e7e7e7;
@@ -26,13 +26,16 @@ input, button, textarea {
 }
 
 
-input, button, textarea {
+button {
 	background-color: rgb(36, 47, 81);
-	font-size: 20px;
 	color: #e7e7e7;
-	border-color: #2a2a2a;
+	font-size: 20px;
 }
 
 input:focus {
 	border-color: #cdd95a;
+}
+
+a:visited {
+	color: green;
 }

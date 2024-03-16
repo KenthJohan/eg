@@ -4,7 +4,10 @@
 	<meta charset=utf-8 http-equiv="Content-Language" content="en"/>
 
 	
+	<script src="./egws.js"></script>
+	<script src="./tables.js"></script>
 	<script src="./example.js"></script>
+	<script src="./mon.js"></script>
 	<link rel="stylesheet" type="text/css" href="/webdesign.css" media="all">
 	</head>
 	<body>
@@ -27,26 +30,40 @@
 		<button id="add_row">add_row</button>
 		<button id="add_col">add_col</button>
 
+
+
+
+
 		<table id="t1">
 			<colgroup>
 				<col style="background-color:#313540;">
 				<col style="background-color:rgb(68, 68, 16);">
 				<col style="background-color:rgb(16, 48, 5);">
+				<col style="background-color:rgb(48, 5, 43);">
 			  </colgroup>
 			<thead>
 			<tr>
 				<th>name</th>
 				<th>component</th>
 				<th>value</th>
+				<th>update</th>
 			</tr>
 			<tr>
 				<th>name</th>
 				<th>component</th>
 				<th>value</th>
+				<th>update</th>
 			</tr>
 			</thead>
 			<tbody id="rows">
-
+				<template id="my-template">
+					<tr>
+						<td><input type="text" name="name"></td>
+						<td><input type="text" name="component"></td>
+						<td><input type="text" name="value"></td>
+						<td><button>Update</button></td>
+					</tr>
+				</template>
 			</tbody>
 		</table>
 

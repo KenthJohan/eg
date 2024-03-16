@@ -15,12 +15,12 @@ typedef struct
 
 typedef struct
 {
-	eg_webserver_t * impl;
+	egws_context_t * impl;
 	ecs_entity_t root;
 } EgwsContext;
 
 
-extern ECS_COMPONENT_DECLARE(EgWebsocksrv);
+extern ECS_COMPONENT_DECLARE(EgwsContext);
 
 
 
