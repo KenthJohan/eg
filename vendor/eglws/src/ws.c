@@ -126,24 +126,17 @@ static const struct lws_http_mount mount = {
 
 
 
-/*
+
  static const struct lws_protocol_vhost_options pvo_hsbph[] = {
 	{NULL, NULL,		"referrer-policy:", "no-referrer"}, 
 	{&pvo_hsbph[0], NULL,	"x-xss-protection:", "1; mode=block"}, 
 	{&pvo_hsbph[1], NULL,	"x-content-type-options:", "nosniff"}, 
 	{&pvo_hsbph[2], NULL,	"content-security-policy:",
-		"default-src 'self'; "
-		"img-src https://www.gravatar.com 'self' data: ; "
-		"script-src 'self'; "
-		"font-src 'self'; "
-		"style-src 'self'; "
-		
-		"frame-ancestors 'self'; "
-		"base-uri 'none'; "
-		"form-action  'self';"
+		//"default-src 'self'; "
+		"connect-src http://localhost:27750 http://localhost:27750/entity/Comp1&type_info=true;"
 	}
 };
-*/
+
 
 /*
  * This demonstrates how to pass a pointer into a specific protocol handler
@@ -162,7 +155,7 @@ static const struct lws_protocol_vhost_options pvo_ops1 = {
 };
 
 static const struct lws_protocol_vhost_options pvo_ops = {
-	.next = &pvo_ops1,
+	.next = NULL,
 	.options = NULL,
 	.name = "config",		/* pvo name */
 	.value = (void *)"myconfig"	/* pvo value */
@@ -199,7 +192,7 @@ static void * thread_server(void* arg)
 	info.mounts = &mount;
 	info.protocols = protocols;
 	info.pvo = &pvo; // per-vhost options
-	info.options = LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE;
+	//info.options = LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE;
 	info.user = ews;
 	//info.headers = &pvo_hsbph[3];
 

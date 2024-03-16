@@ -86,7 +86,66 @@ function create_websocket(desc)
 
 
 
+
+
+// https://stackoverflow.com/questions/18333427/how-to-insert-a-row-in-an-html-table-body-in-javascript
+// https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableElement
 function create_table(desc)
+{
+	let obj = {
+		table : desc.table
+	};
+	obj.colgroup = obj.table.children[0];
+
+	//console.log(obj.colgroup.childElementCount);
+
+	obj.add_row = function() {
+		//console.log(obj.table.tBodies[0]);
+		let r = obj.table.tBodies[0].insertRow();
+		console.log(`Inserting cells: ${obj.colgroup.childElementCount}`);
+		for (var c = 0; c < obj.colgroup.childElementCount; c++) {
+			let cell = r.insertCell(c);
+			cell.innerText = c;
+		}
+	}
+
+
+	obj.add_col = function(index) {
+		let col = document.createElement('col');
+		obj.colgroup.insertBefore(col, obj.colgroup.children[index]);
+		//console.log(obj.colgroup.children[index]);
+		let rowsh = obj.table.tHead.rows;
+		let rowsb = obj.table.tBodies[0].rows;
+		//console.log(rowsh);
+
+		console.log(`Inserting cells in thead: ${rowsh.length}`);
+		for (var r = 0; r < rowsh.length; r++) {
+			let cell = rowsh[r].insertCell(index);
+			cell.innerText = r;
+		}
+		console.log(`Inserting cells in tBodies: ${rowsb.length}`);
+		for (var r = 0; r < rowsb.length; r++) {
+			let cell = rowsb[r].insertCell(index);
+			cell.innerText = r;
+		}
+	}
+
+
+	return obj;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+function create_monitor(desc)
 {
 	let obj = {};
 	obj.rows = [];
@@ -100,35 +159,41 @@ function create_table(desc)
 		};
 		obj.rows.push(r);
 
-		/*
 		fetch(`http://127.0.0.1:27750/entity/${component}&type_info=true`, { method: "GET" })
 		.then((res) => res.json())
 		.then((json) => {
 			console.log(json);
 		})
 		.catch((err) => console.error("error:", err));
-		*/
-
-
-		const xhr = new XMLHttpRequest();
-		xhr.open("GET", `http://localhost:27750/entity/${component}&type_info=true`);
-		xhr.onreadystatechange = () => {
-			console.log(xhr);
-			// is request complete?
-			if (xhr.readyState !== 4) return;
-		  
-			if (xhr.status === 200) {
-			  // request successful
-			  console.log(JSON.parse(xhr.responseText));
-			} else {
-			  // request not successful
-			  console.log("HTTP error", xhr.status, xhr.statusText);
-			}
-		  };
-		  xhr.send();
 	}
 	return obj;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -147,35 +212,32 @@ function test_ws()
 	document.getElementById("send_dummy").addEventListener("click", obj.send_dummy);
 }
 
-function test_table()
+function test_monitor()
 {
-	let desc = {};
-	let obj = create_table(desc);
+	let m1 = create_monitor({});
+	let t1 = create_table({
+		table : document.getElementById("t1")
+	});
+
+	document.getElementById("add_row").addEventListener("click", (e) => {
+		t1.add_row();
+	});
+
+	document.getElementById("add_col").addEventListener("click", (e) => {
+		t1.add_col(1);
+	});
+
 	document.getElementById("add").addEventListener("click", (e) => {
-		let tr = document.createElement("tr");
-		let td1 = document.createElement("td");
-		let td2 = document.createElement("td");
-		let td3 = document.createElement("td");
-		let in1 = document.createElement(`input`);
-		let in2 = document.createElement(`input`);
-		let in3 = document.createElement(`input`);
-		in1.setAttribute("type", "text");
-		td1.appendChild(in1);
-		td2.appendChild(in2);
-		td3.appendChild(in3);
-		tr.appendChild(td1);
-		tr.appendChild(td2);
-		tr.appendChild(td3);
-		document.getElementById("rows").appendChild(tr);
-		obj.add("123", "Comp1", "");
+		m1.add("123", "Comp1", "");
 	});
 }
 
 
 
+
 document.addEventListener("DOMContentLoaded", function () {
 	test_ws();
-	test_table();
+	test_monitor();
 }, false);
 
 

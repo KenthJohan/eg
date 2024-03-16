@@ -2,6 +2,8 @@
 <html>
 	<head>
 	<meta charset=utf-8 http-equiv="Content-Language" content="en"/>
+
+	
 	<script src="./example.js"></script>
 	<link rel="stylesheet" type="text/css" href="/webdesign.css" media="all">
 	</head>
@@ -22,8 +24,21 @@
 
 		<h1>Table</h1>
 		<button id="add">add</button>
-		<table>
+		<button id="add_row">add_row</button>
+		<button id="add_col">add_col</button>
+
+		<table id="t1">
+			<colgroup>
+				<col style="background-color:#313540;">
+				<col style="background-color:rgb(68, 68, 16);">
+				<col style="background-color:rgb(16, 48, 5);">
+			  </colgroup>
 			<thead>
+			<tr>
+				<th>name</th>
+				<th>component</th>
+				<th>value</th>
+			</tr>
 			<tr>
 				<th>name</th>
 				<th>component</th>
@@ -34,6 +49,9 @@
 
 			</tbody>
 		</table>
+
+
+
 	</body>
 </html>
 
