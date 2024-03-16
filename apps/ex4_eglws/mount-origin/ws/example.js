@@ -91,9 +91,43 @@ function create_table(desc)
 	let obj = {};
 	obj.rows = [];
 
-	obj.add = function() {
-		obj.rows.push();
+	obj.add = function(name, component, value) {
+		let r = {
+			name : name,
+			component : component,
+			value : value,
+			e : null
+		};
+		obj.rows.push(r);
+
+		/*
+		fetch(`http://127.0.0.1:27750/entity/${component}&type_info=true`, { method: "GET" })
+		.then((res) => res.json())
+		.then((json) => {
+			console.log(json);
+		})
+		.catch((err) => console.error("error:", err));
+		*/
+
+
+		const xhr = new XMLHttpRequest();
+		xhr.open("GET", `http://localhost:27750/entity/${component}&type_info=true`);
+		xhr.onreadystatechange = () => {
+			console.log(xhr);
+			// is request complete?
+			if (xhr.readyState !== 4) return;
+		  
+			if (xhr.status === 200) {
+			  // request successful
+			  console.log(JSON.parse(xhr.responseText));
+			} else {
+			  // request not successful
+			  console.log("HTTP error", xhr.status, xhr.statusText);
+			}
+		  };
+		  xhr.send();
 	}
+	return obj;
 }
 
 
@@ -133,6 +167,7 @@ function test_table()
 		tr.appendChild(td2);
 		tr.appendChild(td3);
 		document.getElementById("rows").appendChild(tr);
+		obj.add("123", "Comp1", "");
 	});
 }
 
