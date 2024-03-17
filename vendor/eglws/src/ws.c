@@ -12,6 +12,38 @@
 #include "lws_misc.h"
 #include "eglws_vhd.h"
 #include "msg.h"
+#include "parse.h"
+
+
+
+void add_sub(ews_t * ews, int32_t channel)
+{
+	if (channel >= EWS_MAX_CHANNEL) {
+		return;
+	}
+	sub_t * s = ews->subs + channel;
+	s->active = 1;
+	s->channel = channel;
+}
+
+
+
+void ews_parse_command(ews_t * ews, char const * in, int len)
+{
+	char const * p = in;
+	p = parse_string(p, "sub");
+	if(p) {
+		int64_t value = 0;
+		p = parse_c_digit(p, &value);
+		if (p) {
+			add_sub(ews, value);
+		}
+	}
+	//eglws_vhd_send_text(vhd, "Subscribing %i:");
+	
+}
+
+
 
 
 
@@ -29,9 +61,9 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 	char ip[64];
 	int fd = lws_get_socket_fd(wsi);
 	if ((fd > 0) && lws_get_peer_simple(wsi, ip, 16)) {
-		printf("reason: %s, fd:%i, ip:%s\n", lws_callback_reasons_tostr(reason), fd, ip);
+		printf("reason: %s, fd:%i, ip:%s, len:%li\n", lws_callback_reasons_tostr(reason), fd, ip, len);
 	} else {
-		printf("reason: %s, fd:%i\n", lws_callback_reasons_tostr(reason), fd);
+		printf("reason: %s, fd:%i, len:%li\n", lws_callback_reasons_tostr(reason), fd, len);
 	}
 	
 
@@ -75,8 +107,16 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 		break;
 
 	case LWS_CALLBACK_RECEIVE:
-		lwsl_user("LWS_CALLBACK_RECEIVE: %4d (rpp %5d, first %d, ""last %d, bin %d, len %d)\n",(int)len, (int)lws_remaining_packet_payload(wsi),lws_is_first_fragment(wsi),lws_is_final_fragment(wsi),lws_frame_is_binary(wsi), (int)len);
+		//lwsl_user("LWS_CALLBACK_RECEIVE: %4d (rpp %5d, first %d, ""last %d, bin %d, len %d)\n",(int)len, (int)lws_remaining_packet_payload(wsi),lws_is_first_fragment(wsi),lws_is_final_fragment(wsi),lws_frame_is_binary(wsi), (int)len);
 		//rc = eglws_vhd_send_message(vhd, in, len);
+		if (lws_frame_is_binary(wsi)) {
+			printf("LWS_CALLBACK_RECEIVE %li\n", len);
+		} else {
+			if (len <= 128) {
+				ews_t * a = lws_vhost_user(lws_get_vhost(wsi));
+				ews_parse_command(a, in, len);
+			}
+		}
 		break;
 
 	case LWS_CALLBACK_EVENT_WAIT_CANCELLED:
@@ -127,17 +167,6 @@ static const struct lws_http_mount mount = {
 
 
 
- static const struct lws_protocol_vhost_options pvo_hsbph[] = {
-	{NULL, NULL,		"referrer-policy:", "no-referrer"}, 
-	{&pvo_hsbph[0], NULL,	"x-xss-protection:", "1; mode=block"}, 
-	{&pvo_hsbph[1], NULL,	"x-content-type-options:", "nosniff"}, 
-	{&pvo_hsbph[2], NULL,	"content-security-policy:",
-		//"default-src 'self'; "
-		"connect-src http://localhost:27750 http://localhost:27750/entity/Comp1&type_info=true;"
-	}
-};
-
-
 /*
  * This demonstrates how to pass a pointer into a specific protocol handler
  * running on a specific vhost.  In this case, it's our default vhost and
@@ -146,13 +175,6 @@ static const struct lws_http_mount mount = {
  * This is the preferred way to pass configuration into a specific vhost +
  * protocol instance.
  */
-
-static const struct lws_protocol_vhost_options pvo_ops1 = {
-	.next = NULL,
-	.options = NULL,
-	.name = "content-security-policy:",		/* pvo name */
-	.value = (void *)"connect-src 'self' http://localhost:27750;"	/* pvo value */
-};
 
 static const struct lws_protocol_vhost_options pvo_ops = {
 	.next = NULL,
@@ -234,6 +256,7 @@ static void * thread_server(void* arg)
 
 
 ews_t * ews_init() {
+	parse_test();
 	ews_t * ews = ecs_os_calloc_t(ews_t);
 	ews->thread = ecs_os_thread_new(thread_server, ews);
 	return ews;
@@ -254,4 +277,17 @@ int ews_send_binary(ews_t * ews, void const * data, int len)
 int ews_send_text(ews_t * ews, char const * msg)
 {
 	return eglws_vhd_send_text(ews->internal_vhd, msg);
+}
+
+
+
+int ews_progress(ews_t * ews)
+{
+	for(int i = 0; i < EWS_MAX_CHANNEL; ++i) {
+		if(ews->subs[i].active) {
+			printf("Sending sub channel %i\n", ews->subs[i].channel);
+			int32_t data = ews->subs[i].channel;
+			eglws_vhd_send_binary(ews->internal_vhd, &data, sizeof(data));
+		}
+	}
 }

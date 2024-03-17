@@ -11,6 +11,11 @@ function test_ws()
 		obj.open();
 	});
 	document.getElementById("send_dummy").addEventListener("click", obj.send_dummy);
+	document.getElementById("send").addEventListener("click", (event) =>  {
+		let value = document.getElementById("sendval").value;
+		//console.log(value);
+		obj.send(value);
+	});
 }
 
 

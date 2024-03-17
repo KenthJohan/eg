@@ -57,11 +57,12 @@ static void SendBananas(ecs_iter_t *it)
     EglwsContext *ctx = ecs_field(it, EglwsContext, 1);
     for(int32_t i = 0; i < it->count; ++i, ++ctx) {
 		if (ctx->impl) {
-			printf("ews_send_binary\n");
-			char buf[128];
-			snprintf(buf, sizeof(buf), "Banana %i", banana++);
+			ews_progress(ctx->impl);
+			//printf("ews_send_binary\n");
+			//char buf[128];
+			//snprintf(buf, sizeof(buf), "Banana %i", banana++);
 			// ews_send_string(ews, buf);
-			ews_send_binary(ctx->impl, &banana, sizeof(banana));
+			//ews_send_binary(ctx->impl, &banana, sizeof(banana));
 		} else {
 			printf("no vhd\n");
 		}
@@ -90,6 +91,7 @@ void WebsocketsImport(ecs_world_t *world)
 	ecs_entity_t a = ecs_new_entity(world, "EglwsContext1");
 	ecs_set(world, a, EglwsContext, {.port = 1234, "localhost"});
 
+	
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "SendBananas", .add = {ecs_dependson(EcsOnUpdate)}}),
@@ -97,4 +99,5 @@ void WebsocketsImport(ecs_world_t *world)
 	.interval = 1.0,
 	.query.filter.terms = {
 	{.id = ecs_id(EglwsContext)}}});
+	
 }

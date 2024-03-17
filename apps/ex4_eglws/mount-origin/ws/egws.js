@@ -11,6 +11,23 @@ function create_onopen(obj) {
 }
 
 
+function rotate(obj, str) {
+	let max = 5;
+	obj.ring[obj.head] = str + "\n";
+	obj.head = (obj.head + 1) % max;
+	if (obj.tail === obj.head) {
+		obj.tail = (obj.tail + 1) % max;
+	}
+	let n = obj.tail;
+	let s = "";
+	do {
+		s = s + obj.ring[n];
+		n = (n + 1) % max;
+	} while (n !== obj.head);
+	return s;
+}
+
+
 function create_onmessage(obj) {
 	return function(msg) {
 		if (msg.data instanceof ArrayBuffer) {
@@ -18,6 +35,8 @@ function create_onmessage(obj) {
 			console.log(view.getInt32(0, true));
 		} else if (typeof(msg.data) === 'string') {
 			console.log(msg.data);
+			let s = rotate(obj.console, msg.data);
+			document.getElementById("r").value = s;
 		}
 		/*
 		console.log("ws.onmessage", msg);
@@ -52,9 +71,12 @@ function create_websocket(desc)
 {
 	let obj = {};
 	obj.ws = null;
-	obj.head = 0;
-	obj.tail = 0;
-	obj.ring = new Array();
+	obj.console = {
+		head: 0,
+		tail: 0,
+		ring: new Array()
+	};
+
 	obj.counter = 0;
 
 	obj.open = function() {
@@ -78,6 +100,9 @@ function create_websocket(desc)
 		obj.ws.send(`Dummy ${obj.counter++}.`);
 	}
 
+	obj.send = function(str) {
+		obj.ws.send(str);
+	}
 
 	return obj;
 }
