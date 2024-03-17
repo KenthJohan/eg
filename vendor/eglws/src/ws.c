@@ -16,7 +16,7 @@
 
 
 
-void add_sub(ews_t * ews, int32_t channel)
+void subs_add(ews_t * ews, int32_t channel)
 {
 	if (channel >= EWS_MAX_CHANNEL) {
 		return;
@@ -26,19 +26,45 @@ void add_sub(ews_t * ews, int32_t channel)
 	s->channel = channel;
 }
 
+void subs_del(ews_t * ews, int32_t channel)
+{
+	if (channel >= EWS_MAX_CHANNEL) {
+		return;
+	}
+	sub_t * s = ews->subs + channel;
+	s->active = 0;
+	s->channel = channel;
+}
+
 
 
 void ews_parse_command(ews_t * ews, char const * in, int len)
 {
-	char const * p = in;
-	p = parse_string(p, "sub");
+	char cmd[256] = {0};
+	memcpy(cmd, in, len);
+
+	char const * p;
+
+	p = parse_string(cmd, "sub");
 	if(p) {
 		int64_t value = 0;
 		p = parse_c_digit(p, &value);
 		if (p) {
-			add_sub(ews, value);
+			eglws_vhd_send_text(ews->internal_vhd, "Subbing");
+			subs_add(ews, value);
 		}
 	}
+
+	p = parse_string(cmd, "unsub");
+	if(p) {
+		int64_t value = 0;
+		p = parse_c_digit(p, &value);
+		if (value) {
+			eglws_vhd_send_text(ews->internal_vhd, "Unsub");
+			subs_del(ews, value);
+		}
+	}
+
 	//eglws_vhd_send_text(vhd, "Subscribing %i:");
 	
 }
@@ -290,4 +316,5 @@ int ews_progress(ews_t * ews)
 			eglws_vhd_send_binary(ews->internal_vhd, &data, sizeof(data));
 		}
 	}
+	return 0;
 }

@@ -1,6 +1,7 @@
 #include "parse.h"
 
 #include <flecs.h>
+#include <stdlib.h>
 
 const char* parse_c_digit(const char *ptr,int64_t *value_out)
 {
@@ -32,6 +33,7 @@ char * parse_string(char const *p, char const * needle)
 void parse_command(char const * in, int len)
 {
 	char const * p = in;
+
 	p = parse_string(p, "sub");
 	if(p) {
 		int64_t value = 0;
@@ -40,6 +42,9 @@ void parse_command(char const * in, int len)
 			return;
 		}
 	}
+
+
+
 	//eglws_vhd_send_text(vhd, "Subscribing %i:");
 	
 }
