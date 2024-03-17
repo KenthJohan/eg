@@ -3,6 +3,13 @@
 #include "spam.h"
 #include "msg.h"
 
+
+/*
+https://github.com/warmcat/libwebsockets/blob/main/minimal-examples-lowlevel/ws-server/minimal-ws-server-ring/protocol_lws_minimal.c
+
+*/
+
+
 eglws_vhd_t * eglws_vhd_init(struct lws *wsi, void *in)
 {
 	// create our per-vhost struct
@@ -50,11 +57,23 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 {
 	pthread_mutex_lock(&vhd->lock_ring);
 
+	/*
+	lws_start_foreach_llp(eglws_pss_t **, ppss, vhd->pss_list) {
+		int fd1 = lws_get_socket_fd(wsi);
+		int fd2 = lws_get_socket_fd((*ppss)->wsi);
+		printf("consume %i %i\n", fd1, fd2);
+	} lws_end_foreach_llp(ppss, pss_list);
+	*/
+
+	int n = lws_ring_get_count_waiting_elements(vhd->ring, NULL);
+	printf("lws_ring_get_count_waiting_elementsA %i\n", n);
+
 	const eglws_msg_t *pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
 	if (!pmsg) {
 		pthread_mutex_unlock(&vhd->lock_ring);
 		return 0;
 	}
+
 
 	//printf("lws_write: %li\n", pmsg->len);
 	//printf("lws_ring_get_count_waiting_elements %li\n", lws_ring_get_count_waiting_elements(vhd->ring, &pss->tail));
@@ -83,6 +102,9 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 		// come back as soon as we can write more
 		lws_callback_on_writable(pss->wsi);
 	}
+
+	n = lws_ring_get_count_waiting_elements(vhd->ring, NULL);
+	printf("lws_ring_get_count_waiting_elementsB %i\n", n);
 
 
 	pthread_mutex_unlock(&vhd->lock_ring);
@@ -147,6 +169,8 @@ int eglws_vhd_send_text(eglws_vhd_t * vhd, char const * text)
 	lws_cancel_service(vhd->context);
 	return rc;
 }
+
+
 
 
 
