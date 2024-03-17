@@ -8,6 +8,7 @@ typedef struct {
 	void *payload; /* is malloc'd */
 	size_t len;
 	enum lws_write_protocol protocol;
+	struct lws *wsi;
 } eglws_msg_t;
 
 

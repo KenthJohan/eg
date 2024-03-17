@@ -38,8 +38,10 @@ void subs_del(ews_t * ews, int32_t channel)
 
 
 
-void ews_parse_command(ews_t * ews, char const * in, int len)
+void ews_parse_command(struct lws * wsi, char const * in, int len)
 {
+	ews_t * ews = lws_vhost_user(lws_get_vhost(wsi));
+	eglws_vhd_t *vhd = ews->internal_vhd;
 	char cmd[256] = {0};
 	memcpy(cmd, in, len);
 
@@ -50,7 +52,8 @@ void ews_parse_command(ews_t * ews, char const * in, int len)
 		int64_t value = 0;
 		p = parse_c_digit(p, &value);
 		if (p) {
-			eglws_vhd_send_text(ews->internal_vhd, "Subbing");
+			eglws_vhd_send_text(vhd->ring, &vhd->lock_ring, "Subbing");
+			lws_cancel_service(vhd->context);
 			subs_add(ews, value);
 		}
 	}
@@ -60,7 +63,8 @@ void ews_parse_command(ews_t * ews, char const * in, int len)
 		int64_t value = 0;
 		p = parse_c_digit(p, &value);
 		if (value) {
-			eglws_vhd_send_text(ews->internal_vhd, "Unsub");
+			eglws_vhd_send_text(vhd->ring, &vhd->lock_ring, "Unsub");
+			lws_cancel_service(vhd->context);
 			subs_del(ews, value);
 		}
 	}
@@ -119,7 +123,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 		{
 			char buf[128] = {0};
 			snprintf(buf, sizeof(buf), "[NEW_SESSION]: %s", ip);
-			eglws_vhd_send_text(vhd, buf);
+			eglws_vhd_send_text(vhd->ring, &vhd->lock_ring, buf);
 		}
 		break;
 
@@ -139,8 +143,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,v
 			printf("LWS_CALLBACK_RECEIVE %li\n", len);
 		} else {
 			if (len <= 128) {
-				ews_t * a = lws_vhost_user(lws_get_vhost(wsi));
-				ews_parse_command(a, in, len);
+				ews_parse_command(wsi, in, len);
 			}
 		}
 		break;
@@ -296,13 +299,15 @@ void ews_fini(ews_t * ews) {
 
 int ews_send_binary(ews_t * ews, void const * data, int len)
 {
-	return eglws_vhd_send_binary(ews->internal_vhd, data, len);
+	eglws_vhd_t *vhd = ews->internal_vhd;
+	return eglws_vhd_send_binary(vhd->ring, &vhd->lock_ring, data, len);
 }
 
 
 int ews_send_text(ews_t * ews, char const * msg)
 {
-	return eglws_vhd_send_text(ews->internal_vhd, msg);
+	eglws_vhd_t *vhd = ews->internal_vhd;
+	return eglws_vhd_send_text(vhd->ring, &vhd->lock_ring, msg);
 }
 
 
@@ -313,7 +318,8 @@ int ews_progress(ews_t * ews)
 		if(ews->subs[i].active) {
 			printf("Sending sub channel %i\n", ews->subs[i].channel);
 			int32_t data = ews->subs[i].channel;
-			eglws_vhd_send_binary(ews->internal_vhd, &data, sizeof(data));
+			eglws_vhd_t *vhd = ews->internal_vhd;
+			eglws_vhd_send_binary(vhd->ring, &vhd->lock_ring, &data, sizeof(data));
 		}
 	}
 	return 0;
