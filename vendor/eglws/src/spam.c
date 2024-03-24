@@ -15,7 +15,7 @@ static void * thread_spam(void *d)
 	do {
 		char buf[256];
 		snprintf(buf, sizeof(buf), "%s: tid: %d, msg: %d", vhd->config, whoami, index++);
-		int rc = eglws_vhd_send_text(vhd, buf);
+		int rc = eglws_vhd_send_text(vhd->ring, &vhd->lock_ring, NULL, buf);
 		if(rc) {
 			usleep(1000*1000*2);
 		}

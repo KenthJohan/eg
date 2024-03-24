@@ -65,8 +65,8 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 	} lws_end_foreach_llp(ppss, pss_list);
 	*/
 
-	int n = lws_ring_get_count_waiting_elements(vhd->ring, NULL);
-	printf("lws_ring_get_count_waiting_elementsA %i\n", n);
+
+	
 
 	const eglws_msg_t *pmsg = lws_ring_get_element(vhd->ring, &pss->tail);
 	if (!pmsg) {
@@ -86,6 +86,9 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 		return -1;
 	}
 
+	//lws_ring_consume_single_tail(vhd->ring, &pss->tail, 1);
+
+	printf("lws_ring_get_count_waiting_elementsA %li\n", lws_ring_get_count_waiting_elements(vhd->ring, NULL));
 	// This will call the destroy callback specified in lws_ring_create()
 	lws_ring_consume_and_update_oldest_tail(
 		vhd->ring,	/* lws_ring object */
@@ -96,15 +99,13 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 		tail,		/* member name of tail in objects with tails */
 		pss_list	/* member name of next object in objects with tails */
 	);
+	printf("lws_ring_get_count_waiting_elementsB %li\n", lws_ring_get_count_waiting_elements(vhd->ring, NULL));
 
 	// more to do?
 	if (lws_ring_get_element(vhd->ring, &pss->tail)) {
 		// come back as soon as we can write more
 		lws_callback_on_writable(pss->wsi);
 	}
-
-	n = lws_ring_get_count_waiting_elements(vhd->ring, NULL);
-	printf("lws_ring_get_count_waiting_elementsB %i\n", n);
 
 
 	pthread_mutex_unlock(&vhd->lock_ring);
@@ -131,7 +132,7 @@ int eglws_vhd_request_writable(eglws_vhd_t * vhd)
 
 
 
-int eglws_vhd_send_binary(struct lws_ring *ring, pthread_mutex_t *mtx, void const * data, int len)
+int eglws_vhd_send_binary(struct lws_ring *ring, pthread_mutex_t *mtx, struct lws * wsi, void const * data, int len)
 {
 	/*
 	if (!vhd->pss_list) {
@@ -139,6 +140,7 @@ int eglws_vhd_send_binary(struct lws_ring *ring, pthread_mutex_t *mtx, void cons
 	}
 	*/
 	eglws_msg_t msg = {0};
+	msg.wsi = wsi;
 	msg.protocol = LWS_WRITE_BINARY;
 	msg.payload = malloc((unsigned int)(LWS_PRE + len));
 	memcpy((char*)msg.payload + LWS_PRE, data, len);
@@ -152,7 +154,7 @@ int eglws_vhd_send_binary(struct lws_ring *ring, pthread_mutex_t *mtx, void cons
 	return rc;
 }
 
-int eglws_vhd_send_text(struct lws_ring *ring, pthread_mutex_t *mtx, char const * text)
+int eglws_vhd_send_text(struct lws_ring *ring, pthread_mutex_t *mtx, struct lws * wsi, char const * text)
 {
 	/*
 	if (!vhd->pss_list) {
@@ -160,6 +162,7 @@ int eglws_vhd_send_text(struct lws_ring *ring, pthread_mutex_t *mtx, char const 
 	}
 	*/
 	eglws_msg_t msg = {0};
+	msg.wsi = wsi;
 	msg.protocol = LWS_WRITE_TEXT;
 	int len = strlen(text);
 	msg.payload = malloc((unsigned int)(LWS_PRE + len));
