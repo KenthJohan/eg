@@ -2,6 +2,7 @@
 
 #include "spam.h"
 #include "msg.h"
+#include <flecs.h>
 
 
 /*
@@ -87,8 +88,8 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 	}
 
 	//lws_ring_consume_single_tail(vhd->ring, &pss->tail, 1);
-
-	printf("lws_ring_get_count_waiting_elementsA %li\n", lws_ring_get_count_waiting_elements(vhd->ring, NULL));
+	//ecs_dbg_3("#[magenta]merge");
+	ecs_dbg_3("lws_ring_get_count_waiting_elementsA %li, tail %i", lws_ring_get_count_waiting_elements(vhd->ring, NULL), pss->tail);
 	// This will call the destroy callback specified in lws_ring_create()
 	lws_ring_consume_and_update_oldest_tail(
 		vhd->ring,	/* lws_ring object */
@@ -99,7 +100,7 @@ int eglws_vhd_consume(eglws_vhd_t * vhd, eglws_pss_t * pss, struct lws *wsi)
 		tail,		/* member name of tail in objects with tails */
 		pss_list	/* member name of next object in objects with tails */
 	);
-	printf("lws_ring_get_count_waiting_elementsB %li\n", lws_ring_get_count_waiting_elements(vhd->ring, NULL));
+	ecs_dbg_3("lws_ring_get_count_waiting_elementsB %li, tail %i", lws_ring_get_count_waiting_elements(vhd->ring, NULL), pss->tail);
 
 	// more to do?
 	if (lws_ring_get_element(vhd->ring, &pss->tail)) {

@@ -79,14 +79,15 @@ void ews_parse_command(struct lws *wsi, char const *in, int len)
 /* this runs under the lws service thread context only */
 static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len)
 {
-	eglws_pss_t *pss = (eglws_pss_t *)user;
+
+	ecs_log_set_level(3);
 
 	char ip[64];
 	int fd = lws_get_socket_fd(wsi);
 	if ((fd > 0) && lws_get_peer_simple(wsi, ip, 16)) {
-		printf("reason: %s, fd:%i, ip:%s, len:%li\n", lws_callback_reasons_tostr(reason), fd, ip, len);
+		ecs_dbg_3("%s, fd:%i, ip:%s, len:%li", lws_callback_reasons_tostr(reason), fd, ip, len);
 	} else {
-		printf("reason: %s, fd:%i, len:%li\n", lws_callback_reasons_tostr(reason), fd, len);
+		ecs_dbg_3("%s, fd:%i, len:%li", lws_callback_reasons_tostr(reason), fd, len);
 	}
 
 	int rc = 0;
@@ -97,7 +98,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason, 
 		assert(vhd == NULL);
 		vhd = eglws_vhd_init(wsi, in);
 		if (vhd == NULL) {
-			return 1;
+			rc = 1;
 		} else {
 			ews_t *a = lws_vhost_user(lws_get_vhost(wsi));
 			a->internal_vhd = vhd;
@@ -113,6 +114,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason, 
 
 	case LWS_CALLBACK_ESTABLISHED: {
 		eglws_vhd_t *vhd = (eglws_vhd_t *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
+		eglws_pss_t *pss = (eglws_pss_t *)user;
 		/* add ourselves to the list of live pss held in the vhd */
 		lws_ll_fwd_insert(pss, pss_list, vhd->pss_list);
 		pss->tail = lws_ring_get_oldest_tail(vhd->ring);
@@ -127,14 +129,18 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason, 
 
 	case LWS_CALLBACK_CLOSED: {
 		eglws_vhd_t *vhd = (eglws_vhd_t *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
+		eglws_pss_t *pss = (eglws_pss_t *)user;
 		/* remove our closing pss from the list of live pss */
 		lws_ll_fwd_remove(eglws_pss_t, pss_list, pss, vhd->pss_list);
 		break;
 	}
 
 	case LWS_CALLBACK_SERVER_WRITEABLE: {
+		ecs_log_push_3();
 		eglws_vhd_t *vhd = (eglws_vhd_t *)lws_protocol_vh_priv_get(lws_get_vhost(wsi), lws_get_protocol(wsi));
+		eglws_pss_t *pss = (eglws_pss_t *)user;
 		rc = eglws_vhd_consume(vhd, pss, wsi);
+		ecs_log_pop_3();
 		break;
 	}
 
@@ -142,7 +148,7 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason, 
 		// lwsl_user("LWS_CALLBACK_RECEIVE: %4d (rpp %5d, first %d, ""last %d, bin %d, len %d)\n",(int)len, (int)lws_remaining_packet_payload(wsi),lws_is_first_fragment(wsi),lws_is_final_fragment(wsi),lws_frame_is_binary(wsi), (int)len);
 		// rc = eglws_vhd_send_message(vhd, in, len);
 		if (lws_frame_is_binary(wsi)) {
-			printf("LWS_CALLBACK_RECEIVE %li\n", len);
+			ecs_dbg_3("LWS_CALLBACK_RECEIVE %li", len);
 		} else {
 			if (len <= 128) {
 				ews_parse_command(wsi, in, len);
@@ -160,6 +166,10 @@ static int _callback_minimal(struct lws *wsi, enum lws_callback_reasons reason, 
 	default:
 		break;
 	}
+
+
+
+	ecs_log_set_level(0);
 
 	return rc;
 }

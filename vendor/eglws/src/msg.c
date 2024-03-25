@@ -1,5 +1,6 @@
 #include "msg.h"
 
+#include <flecs.h>
 
 /*
  * This runs under both lws service and "spam threads" contexts.
@@ -8,7 +9,7 @@
 
 void eglws_msg_fini(void * ptr)
 {
-	printf("eglws_msg_fini()\n");
+	//printf("eglws_msg_fini()\n");
 	eglws_msg_t *msg = ptr;
 	free(msg->payload);
 	msg->payload = NULL;
