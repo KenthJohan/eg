@@ -25,6 +25,10 @@
 
 
 #include "overview.h"
+#include "calculator.h"
+#include "node_editor.h"
+#include "canvas.h"
+#include "style.h"
 
 /*
 #include "style.c"
@@ -94,6 +98,7 @@ int main(int argc, char *argv[])
     /* style.c */
 
     /* ease regression testing during Nuklear release process; not needed for anything else */
+	#define STYLE_DARK
     #ifdef STYLE_WHITE
     set_style(ctx, THEME_WHITE);
     #elif defined(STYLE_RED)
@@ -153,11 +158,10 @@ int main(int argc, char *argv[])
 
         /* -------------- EXAMPLES ---------------- */
           overview(ctx);
-		/*
           calculator(ctx);
           canvas(ctx);
           node_editor(ctx);
-		  */
+
         /* ----------------------------------------- */
 
         /* Draw */

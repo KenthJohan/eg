@@ -74,7 +74,10 @@
 		"sdl.h": "c",
 		"nk_font.h": "c",
 		"nk_color.h": "c",
-		"overview.h": "c"
+		"overview.h": "c",
+		"calculator.h": "c",
+		"node_editor.h": "c",
+		"canvas.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

@@ -1,3 +1,5 @@
+#include "node_editor.h"
+
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
@@ -159,7 +161,7 @@ node_editor_init(struct node_editor *editor)
     editor->show_grid = nk_true;
 }
 
-static int
+int
 node_editor(struct nk_context *ctx)
 {
     int n = 0;

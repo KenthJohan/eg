@@ -1,3 +1,5 @@
+#include "calculator.h"
+
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
@@ -9,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static void
+void
 calculator(struct nk_context *ctx)
 {
     if (nk_begin(ctx, "Calculator", nk_rect(10, 10, 180, 250),

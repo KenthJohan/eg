@@ -1,3 +1,5 @@
+#include "calculator.h"
+
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
@@ -53,7 +55,7 @@ canvas_end(struct nk_context *ctx, struct nk_canvas *canvas)
     ctx->style.window.fixed_background = canvas->window_background;
 }
 
-static void
+void
 canvas(struct nk_context *ctx)
 {
         struct nk_canvas canvas;
