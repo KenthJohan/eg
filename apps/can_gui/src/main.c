@@ -13,16 +13,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
 
-#define NK_INCLUDE_FIXED_TYPES
-#define NK_INCLUDE_STANDARD_IO
-#define NK_INCLUDE_STANDARD_VARARGS
-#define NK_INCLUDE_DEFAULT_ALLOCATOR
-#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
-#define NK_INCLUDE_FONT_BAKING
-#define NK_INCLUDE_DEFAULT_FONT
-#define NK_IMPLEMENTATION
-#define NK_SDL_GL3_IMPLEMENTATION
-#include "nuklear.h"
+
+#include <nuklear/nuklear.h>
 #include "nuklear_sdl_gl3.h"
 
 #define WINDOW_WIDTH 1200
@@ -31,43 +23,14 @@
 #define MAX_VERTEX_MEMORY 512 * 1024
 #define MAX_ELEMENT_MEMORY 128 * 1024
 
-/* ===============================================================
- *
- *                          EXAMPLE
- *
- * ===============================================================*/
-/* This are some code examples to provide a small overview of what can be
- * done with this library. To try out an example uncomment the defines */
-/*#define INCLUDE_ALL */
-/*#define INCLUDE_STYLE */
-/*#define INCLUDE_CALCULATOR */
-/*#define INCLUDE_CANVAS */
-/*#define INCLUDE_OVERVIEW */
-/*#define INCLUDE_NODE_EDITOR */
+/*
+#include "style.c"
+#include "calculator.c"
+#include "canvas.c"
+#include "overview.c"
+#include "node_editor.c"
+*/
 
-#ifdef INCLUDE_ALL
-  #define INCLUDE_STYLE
-  #define INCLUDE_CALCULATOR
-  #define INCLUDE_CANVAS
-  #define INCLUDE_OVERVIEW
-  #define INCLUDE_NODE_EDITOR
-#endif
-
-#ifdef INCLUDE_STYLE
-  #include "../../demo/common/style.c"
-#endif
-#ifdef INCLUDE_CALCULATOR
-  #include "../../demo/common/calculator.c"
-#endif
-#ifdef INCLUDE_CANVAS
-  #include "../../demo/common/canvas.c"
-#endif
-#ifdef INCLUDE_OVERVIEW
-  #include "../../demo/common/overview.c"
-#endif
-#ifdef INCLUDE_NODE_EDITOR
-  #include "../../demo/common/node_editor.c"
-#endif
 
 /* ===============================================================
  *
@@ -127,7 +90,7 @@ int main(int argc, char *argv[])
     /*nk_style_set_font(ctx, &roboto->handle);*/}
 
     /* style.c */
-    #ifdef INCLUDE_STYLE
+
     /* ease regression testing during Nuklear release process; not needed for anything else */
     #ifdef STYLE_WHITE
     set_style(ctx, THEME_WHITE);
@@ -137,7 +100,6 @@ int main(int argc, char *argv[])
     set_style(ctx, THEME_BLUE);
     #elif defined(STYLE_DARK)
     set_style(ctx, THEME_DARK);
-    #endif
     #endif
 
     bg.r = 0.10f, bg.g = 0.18f, bg.b = 0.24f, bg.a = 1.0f;
@@ -188,18 +150,12 @@ int main(int argc, char *argv[])
         nk_end(ctx);
 
         /* -------------- EXAMPLES ---------------- */
-        #ifdef INCLUDE_CALCULATOR
+		/*
           calculator(ctx);
-        #endif
-        #ifdef INCLUDE_CANVAS
           canvas(ctx);
-        #endif
-        #ifdef INCLUDE_OVERVIEW
           overview(ctx);
-        #endif
-        #ifdef INCLUDE_NODE_EDITOR
           node_editor(ctx);
-        #endif
+		  */
         /* ----------------------------------------- */
 
         /* Draw */

@@ -15,6 +15,7 @@
 		"lib": [
 			"flecs",
 			"eg",
+			"nuklear",
 			"GL",
 			"SDL2",
 			"GLEW",

@@ -60,7 +60,20 @@
 		"microui.h": "c",
 		"microui_sdl.h": "c",
 		"eg_can.h": "c",
-		"nuklear.h": "c"
+		"nuklear.h": "c",
+		"stdlib.h": "c",
+		"sdl_opengl.h": "c",
+		"stdarg.h": "c",
+		"glew.h": "c",
+		"nuklear_sdl_gl3.h": "c",
+		"math.h": "c",
+		"time.h": "c",
+		"limits.h": "c",
+		"style.h": "c",
+		"nuklear_internal.h": "c",
+		"sdl.h": "c",
+		"nk_font.h": "c",
+		"nk_color.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
