@@ -73,7 +73,8 @@
 		"nuklear_internal.h": "c",
 		"sdl.h": "c",
 		"nk_font.h": "c",
-		"nk_color.h": "c"
+		"nk_color.h": "c",
+		"overview.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
