@@ -111,3 +111,36 @@ int eg_can_send(int s, eg_can_frame_t *frame)
 	}
 	return n;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+void eg_can_book_init(eg_can_book_t * book)
+{
+	book->count = EG_CAN_MAX_ID;
+	book->v = malloc(sizeof(eg_can_book_t) * book->count);
+}
+
+
+void eg_can_book_set(eg_can_book_t * book, eg_can_frame_t * frame)
+{
+	int index = frame->can_id;
+	book->v[index] = *frame;
+}
+
+
+void eg_can_book_fini(eg_can_book_t * book)
+{
+	free(book->v);
+	book->v = NULL;
+	book->count = 0;
+}

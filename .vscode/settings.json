@@ -59,7 +59,8 @@
 		"renderer.h": "c",
 		"microui.h": "c",
 		"microui_sdl.h": "c",
-		"eg_can.h": "c"
+		"eg_can.h": "c",
+		"nuklear.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

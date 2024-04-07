@@ -17,6 +17,7 @@
 			"eg",
 			"GL",
 			"SDL2",
+			"GLEW",
 			"m",
 			"mks_servo",
 			"eg_can"
