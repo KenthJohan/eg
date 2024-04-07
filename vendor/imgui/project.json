@@ -1,0 +1,34 @@
+{
+	"id": "imgui",
+	"type": "package",
+	"value": {
+		"language": "cpp",
+		"public": true,
+		"use": []
+	},
+	"lang.cpp": {
+		"c-standard": "c++0x",
+		"export-symbols": true,
+		"static": true,
+		"defines": [],
+		"cppflags": [
+			"-Werror",
+			"-Wall",
+			"-Wpedantic",
+			"-Wextra",
+			"-Wno-error=pedantic",
+			"-Wno-error=unused-variable"
+		],
+		"lib": [
+			"m",
+			"GL",
+			"X11",
+			"Xi",
+			"Xcursor",
+			"SDL2"
+		],
+		"include": [
+			"/usr/include/SDL2"
+		]
+	}
+}
