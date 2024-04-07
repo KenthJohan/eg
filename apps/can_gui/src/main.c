@@ -1,8 +1,10 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
+#include <flecs.h>
 #include "renderer.h"
 #include "microui.h"
 #include "microui_sdl.h"
+#include "cancode.h"
 
 static char logbuf[64000];
 static int logbuf_updated = 0;
@@ -259,6 +261,18 @@ int main(int argc, char **argv)
 	mu_init(ctx);
 	ctx->text_width = text_width;
 	ctx->text_height = text_height;
+
+
+
+	ecs_world_t *world = ecs_init();
+
+	// https://www.flecs.dev/explorer/?remote=true
+	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
+
+
+	ecs_os_thread_t t = ecs_os_thread_new(cancode_thread, NULL);
+
+
 	for (;;) {
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
@@ -266,7 +280,15 @@ int main(int argc, char **argv)
 		}
 		process_frame(ctx);
 		adapter_render(ctx);
+
+		ecs_os_sleep(0.0f, 100000.0f);
+		//printf("ecs_progress\n");
+		ecs_progress(world, 0.0f);
 	}
+
+
+
+
 
 	return 0;
 }

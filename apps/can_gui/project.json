@@ -16,9 +16,10 @@
 			"flecs",
 			"eg",
 			"GL",
-			"imgui",
 			"SDL2",
-			"m"
+			"m",
+			"mks_servo",
+			"eg_can"
 		],
 		"cflags": [
 			"-Werror",
