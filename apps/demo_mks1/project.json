@@ -1,0 +1,29 @@
+{
+	"id": "demo_mks1",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"flecs",
+			"mks_servo",
+			"eg_can"
+		]
+	},
+	"lang.c": {
+		"c-standard": "c11",
+		"defines": [],
+		"lib": [
+			"flecs",
+			"mks_servo",
+			"eg_can"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}
