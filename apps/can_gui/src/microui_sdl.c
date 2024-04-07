@@ -1,4 +1,4 @@
-#include "adapter.h"
+#include "microui_sdl.h"
 #include "renderer.h"
 
 static const char button_map[256] = {

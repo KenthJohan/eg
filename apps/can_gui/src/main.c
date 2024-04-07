@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "renderer.h"
 #include "microui.h"
-#include "adapter.h"
+#include "microui_sdl.h"
 
 static char logbuf[64000];
 static int logbuf_updated = 0;
@@ -253,30 +253,19 @@ static int text_height(mu_Font font)
 
 int main(int argc, char **argv)
 {
-	/* init SDL and renderer */
 	SDL_Init(SDL_INIT_EVERYTHING);
 	r_init();
-
-	/* init microui */
 	mu_Context *ctx = malloc(sizeof(mu_Context));
 	mu_init(ctx);
 	ctx->text_width = text_width;
 	ctx->text_height = text_height;
-
-	/* main loop */
 	for (;;) {
-		/* handle SDL events */
 		SDL_Event e;
 		while (SDL_PollEvent(&e)) {
 			adapter_frame(ctx, &e);
 		}
-
-		/* process frame */
 		process_frame(ctx);
-
 		adapter_render(ctx);
-
-
 	}
 
 	return 0;
