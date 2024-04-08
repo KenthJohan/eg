@@ -1,6 +1,9 @@
 #pragma once
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // Accumulating encoder value
 #define MKS_REG_ACC_ENC_VAL 0x31
@@ -16,3 +19,7 @@ int mks_save_speed(uint8_t tx[3], uint8_t can_id, uint8_t cmd);
 
 
 void mks_parse(uint8_t can_id, uint8_t rx[]);
+
+#ifdef __cplusplus
+}
+#endif
