@@ -1,8 +1,7 @@
-#include <SDL2/SDL.h>
+#include "demo_window.h"
+#include <stddef.h>
 #include <stdio.h>
-#include "renderer.h"
-#include "microui.h"
-#include "microui_sdl.h"
+#include <string.h>
 
 
 static char logbuf[64000];
@@ -226,49 +225,11 @@ static void style_window(mu_Context *ctx)
 	}
 }
 
-static void process_frame(mu_Context *ctx)
+void demo_window_progress(mu_Context *ctx)
 {
 	mu_begin(ctx);
 	style_window(ctx);
 	log_window(ctx);
 	test_window(ctx);
 	mu_end(ctx);
-}
-
-
-
-
-
-static int text_width(mu_Font font, const char *text, int len)
-{
-	if (len == -1) {
-		len = strlen(text);
-	}
-	return r_get_text_width(text, len);
-}
-
-static int text_height(mu_Font font)
-{
-	return r_get_text_height();
-}
-
-int main(int argc, char **argv)
-{
-	SDL_Init(SDL_INIT_EVERYTHING);
-	r_init();
-	mu_Context *ctx = malloc(sizeof(mu_Context));
-	mu_init(ctx);
-	ctx->text_width = text_width;
-	ctx->text_height = text_height;
-
-	for (;;) {
-		SDL_Event e;
-		while (SDL_PollEvent(&e)) {
-			mu_backend_events(ctx, &e);
-		}
-		process_frame(ctx);
-		mu_backend_render(ctx);
-	}
-
-	return 0;
 }
