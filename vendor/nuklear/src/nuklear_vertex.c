@@ -1,11 +1,5 @@
-#include "nuklear/nuklear.h"
+#include "nuklear.h"
 #include "nuklear_internal.h"
-
-#define NK_MEMCPY nk_memcopy
-#define NK_MEMSET nk_memset
-#define NK_COS nk_cos
-#define NK_SIN nk_sin
-#define NK_INV_SQRT nk_inv_sqrt
 
 /* ===============================================================
  *

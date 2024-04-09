@@ -1,7 +1,5 @@
-#include "nuklear/nuklear.h"
+#include "nuklear.h"
 #include "nuklear_internal.h"
-
-#define NK_MEMCPY nk_memcopy
 
 /* ===============================================================
  *

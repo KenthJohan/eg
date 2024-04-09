@@ -1,10 +1,5 @@
-#include "nuklear/nuklear.h"
-#include "nuklear/nk_color.h"
+#include "nuklear.h"
 #include "nuklear_internal.h"
-
-
-#define NK_DTOA nk_dtoa
-#define NK_MEMCPY nk_memcopy
 
 /* ===============================================================
  *

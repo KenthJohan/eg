@@ -1,4 +1,4 @@
-#include "nuklear/nuklear.h"
+#include "nuklear.h"
 #include "nuklear_internal.h"
 
 /* ===============================================================
