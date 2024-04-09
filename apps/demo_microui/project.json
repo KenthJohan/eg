@@ -1,0 +1,26 @@
+{
+	"id": "demo_microui",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": []
+	},
+	"lang.c": {
+		"c-standard": "c11",
+		"defines": [],
+		"lib": [
+			"GL",
+			"SDL2",
+			"GLEW",
+			"m"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}
