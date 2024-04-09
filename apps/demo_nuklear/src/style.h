@@ -1,5 +1,5 @@
 #pragma once
-#include <nuklear/nuklear.h>
+#include <nuklear.h>
 
 enum theme {THEME_BLACK, THEME_WHITE, THEME_RED, THEME_BLUE, THEME_DARK};
 

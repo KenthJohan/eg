@@ -1,5 +1,5 @@
 
-#include <nuklear/nuklear.h>
+#include <nuklear.h>
 
 void
 calculator(struct nk_context *ctx);

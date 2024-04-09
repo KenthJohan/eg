@@ -1,6 +1,10 @@
 #include "nuklear.h"
 #include "nuklear_internal.h"
 
+#undef NK_COS
+#undef NK_SIN
+#undef NK_INV_SQRT
+
 /* ===============================================================
  *
  *                              MATH

@@ -1,6 +1,14 @@
 #ifndef NK_NUKLEAR_H_
 #define NK_NUKLEAR_H_
 
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_STANDARD_VARARGS
+#define NK_INCLUDE_DEFAULT_ALLOCATOR
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -252,6 +260,12 @@ struct nk_style_window;
 
 enum {nk_false, nk_true};
 struct nk_color {nk_byte r,g,b,a;};
+NK_GLOBAL const struct nk_color nk_red = {255,0,0,255};
+NK_GLOBAL const struct nk_color nk_green = {0,255,0,255};
+NK_GLOBAL const struct nk_color nk_blue = {0,0,255,255};
+NK_GLOBAL const struct nk_color nk_white = {255,255,255,255};
+NK_GLOBAL const struct nk_color nk_black = {0,0,0,255};
+NK_GLOBAL const struct nk_color nk_yellow = {255,255,0,255};
 struct nk_colorf {float r,g,b,a;};
 struct nk_vec2 {float x,y;};
 struct nk_vec2i {short x, y;};

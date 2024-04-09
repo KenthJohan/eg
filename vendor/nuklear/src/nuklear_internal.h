@@ -80,12 +80,7 @@ NK_STATIC_ASSERT(sizeof(nk_bool) == 4);
 NK_GLOBAL const struct nk_rect nk_null_rect = {-8192.0f, -8192.0f, 16384, 16384};
 #define NK_FLOAT_PRECISION 0.00000000000001
 
-NK_GLOBAL const struct nk_color nk_red = {255,0,0,255};
-NK_GLOBAL const struct nk_color nk_green = {0,255,0,255};
-NK_GLOBAL const struct nk_color nk_blue = {0,0,255,255};
-NK_GLOBAL const struct nk_color nk_white = {255,255,255,255};
-NK_GLOBAL const struct nk_color nk_black = {0,0,0,255};
-NK_GLOBAL const struct nk_color nk_yellow = {255,255,0,255};
+
 
 /* widget */
 #define nk_widget_state_reset(s)\
@@ -366,6 +361,15 @@ nk_stbtt_free(void *ptr, void *user_data) {
 #endif /* STBTT_malloc */
 
 #endif /* NK_INCLUDE_FONT_BAKING */
+
+
+#define NK_DTOA nk_dtoa
+#define NK_MEMCPY nk_memcopy
+#define NK_MEMSET nk_memset
+#define NK_COS nk_cos
+#define NK_SIN nk_sin
+#define NK_INV_SQRT nk_inv_sqrt
+
 
 #endif
 

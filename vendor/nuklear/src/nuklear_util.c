@@ -1,6 +1,11 @@
 #include "nuklear.h"
 #include "nuklear_internal.h"
 
+#undef NK_DTOA
+#undef NK_MEMCPY
+#undef NK_MEMSET
+
+
 /* ===============================================================
  *
  *                              UTIL

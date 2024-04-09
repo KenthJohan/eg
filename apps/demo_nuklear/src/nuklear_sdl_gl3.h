@@ -10,11 +10,10 @@
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
 #define NK_INCLUDE_FONT_BAKING
 #define NK_INCLUDE_DEFAULT_FONT
-#include <nuklear/nuklear.h>
-#include <nuklear/nk_font.h>
+#include <nuklear.h>
 
 
-
+struct nk_font_atlas;
 
 NK_API struct nk_context*   nk_sdl_init(SDL_Window *win);
 NK_API void                 nk_sdl_font_stash_begin(struct nk_font_atlas **atlas);

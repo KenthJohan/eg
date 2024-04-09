@@ -14,7 +14,7 @@
 #include <SDL2/SDL_opengl.h>
 
 
-#include <nuklear/nuklear.h>
+#include <nuklear.h>
 #include "nuklear_sdl_gl3.h"
 
 #define WINDOW_WIDTH 1200
