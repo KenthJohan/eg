@@ -1,0 +1,18 @@
+module app
+
+
+s1 {
+	- gui.can.GuiSlider{123}
+}
+
+s2 {
+	- gui.can.GuiSlider{2}
+}
+
+s3 {
+	- gui.can.GuiSlider{55}
+}
+
+s4 {
+	- gui.can.GuiSlider{99}
+}

@@ -32,8 +32,6 @@ void gui_can_progress1(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
 	ecs_iter_t it = ecs_query_iter(world, q);
 	while (ecs_query_next(&it)) {
 		GuiSlider *p = ecs_field(&it, GuiSlider, 1);
-
-		// Inner loop, iterates entities in archetype
 		for (int i = 0; i < it.count; i++) {
 			char const * name = ecs_get_name(world, it.entities[i]);
 			mu_label(ctx, name);
@@ -62,7 +60,7 @@ void gui_can_progress(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
 		/* window info */
 		if (mu_header(ctx, "Window Info")) {
 			int sw = mu_get_current_container(ctx)->body.w * 0.14;
-			mu_layout_row(ctx, 2, (int[]){80, sw, -1}, 0);
+			mu_layout_row(ctx, 2, (int[]){80, -1}, 0);
 
 			gui_can_progress1(ctx, world, q);
 

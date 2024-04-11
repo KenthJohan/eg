@@ -51,21 +51,10 @@ int main(int argc, char **argv)
 
 	//ecs_singleton_set(world, GuiContext, {ctx});
 
-	ecs_entity_t e1 = ecs_new_entity(world, "s1");
-	ecs_set(world, e1, GuiSlider, {0.5f});
-
-	ecs_entity_t e2 = ecs_new_entity(world, "s2");
-	ecs_set(world, e2, GuiSlider, {0.5f});
-
-	ecs_entity_t e3 = ecs_new_entity(world, "s3");
-	ecs_set(world, e3, GuiSlider, {0.5f});
-
-	ecs_entity_t e4 = ecs_new_entity(world, "s4");
-	ecs_set(world, e4, GuiSlider, {0.5f});
-
-	ecs_entity_t e5 = ecs_new_entity(world, "s5");
-	ecs_set(world, e5, GuiSlider, {0.5f});
-
+	ecs_log_set_level(1);
+	ecs_plecs_from_file(world, "config/signals.flecs");
+	ecs_log_set_level(-1);
+	
     ecs_query_t *q = ecs_query(world, {
         .filter.terms = {
             { .id = ecs_id(GuiSlider) }, 

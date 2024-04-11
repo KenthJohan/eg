@@ -49,6 +49,14 @@ void GuiCanImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, GuiContext);
 	ECS_COMPONENT_DEFINE(world, GuiSlider);
 
+	ecs_struct(world,
+	{.entity = ecs_id(GuiSlider),
+	.members = {
+	{.name = "value", .type = ecs_id(ecs_u8_t)},
+	}});
+
+
+
 	ecs_system(world, {
 	.entity = ecs_entity(world, {
 		.name = "System_GuiBegin",
