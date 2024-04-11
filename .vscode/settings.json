@@ -81,7 +81,8 @@
 		"demo_window.h": "c",
 		"stddef.h": "c",
 		"gui_can.h": "c",
-		"guican.h": "c"
+		"guican.h": "c",
+		"can.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

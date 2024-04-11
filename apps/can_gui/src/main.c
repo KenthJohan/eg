@@ -6,6 +6,7 @@
 #include "microui_sdl.h"
 #include "demo_window.h"
 #include "gui_can.h"
+#include "Can.h"
 #include "GuiCan.h"
 
 
@@ -44,6 +45,7 @@ int main(int argc, char **argv)
 
 
 	ecs_world_t *world = ecs_init();
+	ECS_IMPORT(world, Can);
 	ECS_IMPORT(world, GuiCan);
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});

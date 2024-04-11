@@ -2,17 +2,21 @@ module app
 
 
 s1 {
+	- can.CanSignal{3}
 	- gui.can.GuiSlider{123}
 }
 
 s2 {
+	- can.CanSignal{3}
 	- gui.can.GuiSlider{2}
 }
 
 s3 {
+	- can.CanSignal{3}
 	- gui.can.GuiSlider{55}
 }
 
 s4 {
+	- can.CanSignal{3}
 	- gui.can.GuiSlider{99}
 }

@@ -46,6 +46,7 @@ static void System_GuiSlider(ecs_iter_t *it)
 void GuiCanImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, GuiCan);
+	ECS_IMPORT(world, Can);
 	ECS_COMPONENT_DEFINE(world, GuiContext);
 	ECS_COMPONENT_DEFINE(world, GuiSlider);
 
