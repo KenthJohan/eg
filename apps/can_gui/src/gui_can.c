@@ -29,13 +29,18 @@ static int uint8_slider(mu_Context *ctx, unsigned char *value, int low, int high
 
 void gui_can_progress1(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
 {
+	mu_layout_row(ctx, 3, (int[]){80, 20, -1}, 0);
 	ecs_iter_t it = ecs_query_iter(world, q);
 	while (ecs_query_next(&it)) {
 		GuiSlider *p = ecs_field(&it, GuiSlider, 1);
-		for (int i = 0; i < it.count; i++) {
+		CanSignal *c = ecs_field(&it, CanSignal, 2);
+		for (int i = 0; i < it.count; ++i, ++p, ++c) {
 			char const * name = ecs_get_name(world, it.entities[i]);
 			mu_label(ctx, name);
-			uint8_slider(ctx, &p[i].value, 0, 255);
+			char buf[128];
+			snprintf(buf, sizeof(buf), "%02X", c->canid);
+			mu_label(ctx, buf);
+			uint8_slider(ctx, &p->value, 0, 255);
 			//mu_draw_rect(ctx, mu_layout_next(ctx), ctx->style->colors[i]);
 			/*
 			uint8_slider(ctx, &ctx->style->colors[i].r, 0, 255);
@@ -60,7 +65,6 @@ void gui_can_progress(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
 		/* window info */
 		if (mu_header(ctx, "Window Info")) {
 			int sw = mu_get_current_container(ctx)->body.w * 0.14;
-			mu_layout_row(ctx, 2, (int[]){80, -1}, 0);
 
 			gui_can_progress1(ctx, world, q);
 

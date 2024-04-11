@@ -4,23 +4,28 @@ bus1 {
 	- can.CanBusDescription{interface:"can5"}
 }
 
-
-s1 {
-	- can.CanSignal{3}
+Prefab x1 {
+	- can.CanSignal{canid:3, value:0}
 	- gui.can.GuiSlider{123}
 }
 
-s2 {
-	- can.CanSignal{3}
+
+
+s1 : bus1, x1 {
+
+}
+
+s2 : bus1 {
+	- can.CanSignal{canid:3, value:0}
 	- gui.can.GuiSlider{2}
 }
 
-s3 {
-	- can.CanSignal{3}
+s3 : bus1 {
+	- can.CanSignal{canid:3, value:0}
 	- gui.can.GuiSlider{55}
 }
 
-s4 {
-	- can.CanSignal{3}
+very_long_name_does_this_work_question_mark : bus1 {
+	- can.CanSignal{canid:3, value:0}
 	- gui.can.GuiSlider{99}
 }

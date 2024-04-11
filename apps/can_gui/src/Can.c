@@ -15,28 +15,23 @@
 #include <errno.h>
 #include <assert.h>
 
-
-
 ECS_COMPONENT_DECLARE(CanBusDescription);
 ECS_COMPONENT_DECLARE(CanBus);
 ECS_COMPONENT_DECLARE(CanSignal);
 
 ECS_COPY(CanBusDescription, dst, src, {
-	ecs_os_strset((char**)&dst->interface, src->interface);
+	ecs_os_strset((char **)&dst->interface, src->interface);
 });
 
 ECS_MOVE(CanBusDescription, dst, src, {
-	ecs_os_free((char*)dst->interface);
+	ecs_os_free((char *)dst->interface);
 	dst->interface = src->interface;
 	src->interface = NULL;
 });
 
 ECS_DTOR(CanBusDescription, ptr, {
-	ecs_os_free((char*)ptr->interface);
+	ecs_os_free((char *)ptr->interface);
 });
-
-
-
 
 static int sockaddr_can_from_interface(struct sockaddr_can *addr, int s, char const *interface)
 {
@@ -76,9 +71,6 @@ int socket_from_interace(char const *interface)
 	return s;
 }
 
-
-
-
 static void CanBusDescription_System(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
@@ -92,10 +84,6 @@ static void CanBusDescription_System(ecs_iter_t *it)
 	}
 }
 
-
-
-
-
 void CanImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Can);
@@ -103,8 +91,7 @@ void CanImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, CanBus);
 	ECS_COMPONENT_DEFINE(world, CanSignal);
 
-
-
+	// clang-format off
 	ecs_set_hooks(world, CanBusDescription, {
 	.ctor = ecs_default_ctor,
 	.move = ecs_move(CanBusDescription),
@@ -128,6 +115,7 @@ void CanImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(CanSignal),
 	.members = {
+	{.name = "canid", .type = ecs_id(ecs_u32_t)},
 	{.name = "value", .type = ecs_id(ecs_u8_t)},
 	}});
 
@@ -141,6 +129,5 @@ void CanImport(ecs_world_t *world)
 	{.id = ecs_id(CanBusDescription), .src.flags = EcsSelf},
 	{.id = ecs_id(CanBus), .oper = EcsNot}, // Adds this
 	}});
-
-
+	// clang-format on
 }

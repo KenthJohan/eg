@@ -16,9 +16,14 @@ typedef struct {
 	ecs_i32_t socket;
 } CanBus;
 
-
+/*
+https://docs.openvehicles.com/en/latest/components/vehicle_dbc/docs/dbc-primer.html
+https://www.csselectronics.com/pages/can-dbc-file-database-intro
+https://canlogger.csselectronics.com/dbc-editor/v129/dbc-editor.html
+*/
 
 typedef struct {
+	uint32_t canid;
 	uint8_t value;
 	/*
 	uint8_t type;
