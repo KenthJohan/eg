@@ -79,7 +79,9 @@
 		"node_editor.h": "c",
 		"canvas.h": "c",
 		"demo_window.h": "c",
-		"stddef.h": "c"
+		"stddef.h": "c",
+		"gui_can.h": "c",
+		"guican.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

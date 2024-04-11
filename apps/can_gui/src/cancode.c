@@ -16,7 +16,7 @@
 #include <errno.h>
 
 #include "eg_can/eg_can.h"
-#include "mks_servo/mks_servo.h"
+#include "mks_servo.h"
 
 #define MAXSOCK 16 /* max. number of CAN interfaces given on the cmdline */
 

@@ -15,12 +15,11 @@
 		"lib": [
 			"flecs",
 			"eg",
-			"nuklear",
+			"mks_servo",
 			"GL",
 			"SDL2",
 			"GLEW",
 			"m",
-			"mks_servo",
 			"eg_can"
 		],
 		"cflags": [
@@ -29,13 +28,6 @@
 			"-Wno-pedantic",
 			"-Wextra",
 			"-Wno-error=unused-variable"
-		]
-	},
-	"lang.cpp": {
-		"cpp-standard": "c++17",
-		"defines": [],
-		"lib": [
-			"stdc++"
 		]
 	}
 }
