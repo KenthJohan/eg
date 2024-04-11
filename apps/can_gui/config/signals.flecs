@@ -1,5 +1,9 @@
 module app
 
+bus1 {
+	- can.CanBusDescription{interface:"can5"}
+}
+
 
 s1 {
 	- can.CanSignal{3}

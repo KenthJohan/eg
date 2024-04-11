@@ -1,7 +1,22 @@
 #pragma once
 
+// Fixes: error: variable ‘ifr’ has initializer but incomplete type
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+
 #include <flecs.h>
 #include <stdint.h>
+
+typedef struct {
+	char const * interface;
+} CanBusDescription;
+
+typedef struct {
+	ecs_i32_t socket;
+} CanBus;
+
+
 
 typedef struct {
 	uint8_t value;
@@ -17,6 +32,7 @@ typedef struct {
 	*/
 } CanSignal;
 
+extern ECS_COMPONENT_DECLARE(CanBus);
 extern ECS_COMPONENT_DECLARE(CanSignal);
 
 void CanImport(ecs_world_t *world);

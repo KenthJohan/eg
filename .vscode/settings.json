@@ -82,7 +82,8 @@
 		"stddef.h": "c",
 		"gui_can.h": "c",
 		"guican.h": "c",
-		"can.h": "c"
+		"can.h": "c",
+		"epoll.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
