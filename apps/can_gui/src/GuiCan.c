@@ -5,6 +5,7 @@
 
 ECS_COMPONENT_DECLARE(GuiContext);
 ECS_COMPONENT_DECLARE(GuiSlider);
+ECS_COMPONENT_DECLARE(GuiCanSignalInfo);
 
 
 
@@ -49,6 +50,7 @@ void GuiCanImport(ecs_world_t *world)
 	ECS_IMPORT(world, Can);
 	ECS_COMPONENT_DEFINE(world, GuiContext);
 	ECS_COMPONENT_DEFINE(world, GuiSlider);
+	ECS_COMPONENT_DEFINE(world, GuiCanSignalInfo);
 
 	ecs_struct(world,
 	{.entity = ecs_id(GuiSlider),

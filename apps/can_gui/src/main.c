@@ -27,6 +27,11 @@ static int text_height(mu_Font font)
 	return r_get_text_height();
 }
 
+static int compare_entity(ecs_entity_t e1, const void *v1, ecs_entity_t e2, const void *v2)
+{
+	return (e1 > e2) - (e1 < e2);
+}
+
 int main(int argc, char **argv)
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -53,7 +58,9 @@ int main(int argc, char **argv)
 		.filter.terms = {
 			{.id = ecs_id(GuiSlider)},
 			{.id = ecs_id(CanSignal)}
-		}}
+		},
+		.order_by = compare_entity
+		}
 	);
 	// clang-format on
 

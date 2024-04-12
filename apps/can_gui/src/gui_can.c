@@ -27,19 +27,34 @@ static int uint8_slider(mu_Context *ctx, unsigned char *value, int low, int high
 	return res;
 }
 
+
+
+
+
 void gui_can_progress1(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
 {
-	mu_layout_row(ctx, 3, (int[]){80, 20, -1}, 0);
+	char buf[128];
+	mu_layout_row(ctx, 2, (int[]){80, -1}, 0);
 	ecs_iter_t it = ecs_query_iter(world, q);
 	while (ecs_query_next(&it)) {
 		GuiSlider *p = ecs_field(&it, GuiSlider, 1);
 		CanSignal *c = ecs_field(&it, CanSignal, 2);
 		for (int i = 0; i < it.count; ++i, ++p, ++c) {
-			char const * name = ecs_get_name(world, it.entities[i]);
-			mu_label(ctx, name);
-			char buf[128];
-			snprintf(buf, sizeof(buf), "%02X", c->canid);
-			mu_label(ctx, buf);
+			ecs_entity_t e = it.entities[i];
+			char const * name = ecs_get_name(world, e);
+			snprintf(buf, sizeof(buf), "%s popup", name);
+			if (mu_button(ctx, name)) {
+				if(ecs_has(world, e, GuiCanSignalInfo)) {
+					ecs_remove(world, e, GuiCanSignalInfo);
+				} else {
+					ecs_set(world, e, GuiCanSignalInfo, {1});
+				}
+			}
+
+			//mu_label(ctx, name);
+			//char buf[128];
+			//snprintf(buf, sizeof(buf), "%02X", c->canid);
+			//mu_label(ctx, buf);
 			uint8_slider(ctx, &p->value, 0, 255);
 			//mu_draw_rect(ctx, mu_layout_next(ctx), ctx->style->colors[i]);
 			/*
@@ -52,6 +67,32 @@ void gui_can_progress1(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
 		}
 	}
 }
+
+void gui_can_progress2(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
+{
+	char buf[128];
+	mu_layout_row(ctx, 2, (int[]){80, -1}, 0);
+	ecs_iter_t it = ecs_query_iter(world, q);
+	while (ecs_query_next(&it)) {
+		GuiSlider *p = ecs_field(&it, GuiSlider, 1);
+		CanSignal *c = ecs_field(&it, CanSignal, 2);
+		for (int i = 0; i < it.count; ++i, ++p, ++c) {
+
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 void gui_can_progress(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
 {
