@@ -56,6 +56,7 @@ void GuiCanImport(ecs_world_t *world)
 	{.entity = ecs_id(GuiSlider),
 	.members = {
 	{.name = "value", .type = ecs_id(ecs_u8_t)},
+	{.name = "list_index", .type = ecs_id(ecs_u8_t)},
 	}});
 
 

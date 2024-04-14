@@ -9,6 +9,7 @@ typedef struct {
 
 typedef struct {
 	uint8_t value;
+	uint8_t list_index;
 } GuiSlider;
 
 typedef struct {
