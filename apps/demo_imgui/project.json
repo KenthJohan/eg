@@ -1,0 +1,27 @@
+{
+	"id": "demo_imgui",
+	"type": "application",
+	"value": {
+		"language": "cpp",
+		"public": false,
+		"use": []
+	},
+	"lang.c": {
+		"cpp-standard": "c++17",
+		"defines": [],
+		"lib": [
+			"imgui",
+			"GL",
+			"SDL2",
+			"GLEW",
+			"m"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}

@@ -963,7 +963,7 @@ CODE
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "imgui/imgui.h"
+#include "imgui.h"
 #ifndef IMGUI_DISABLE
 #include "imgui_internal.h"
 
