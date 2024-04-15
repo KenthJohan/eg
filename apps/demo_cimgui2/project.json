@@ -1,0 +1,41 @@
+{
+	"id": "demo_cimgui2",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"sokol_app",
+			"sokol_log",
+			"sokol_gfx",
+			"sokol_glue",
+			"sokol_imgui",
+			"cimgui"
+		]
+	},
+	"lang.c": {
+		"c-standard": "c11",
+		"defines": [],
+		"lib": [
+			"sokol_app",
+			"sokol_log",
+			"sokol_gfx",
+			"sokol_glue",
+			"sokol_imgui",
+			"cimgui",
+			"GL",
+			"X11",
+			"Xi",
+			"Xcursor",
+			"m",
+			"stdc++"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}
