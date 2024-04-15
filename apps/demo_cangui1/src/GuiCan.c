@@ -31,7 +31,7 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 	while (ecs_query_next(&it)) {
 		GuiSlider *p = ecs_field(&it, GuiSlider, 1);
 		CanSignal *c = ecs_field(&it, CanSignal, 2);
-		for (int i = 0; i < it.count; ++i, ++p, ++c, ++n) {
+		for (int i = 0; i < it.count; ++i, ++p, ++c) {
 			ecs_entity_t e = it.entities[i];
 			int list_index = p->list_index;
 			if (list_index >= 128) {
@@ -41,15 +41,18 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 			gui[list_index].e = e;
 			gui[list_index].name = name;
 			gui[list_index].signal = c;
+			n = ECS_MAX(list_index, n);
 		}
 	}
+
+
 
 	if (igBeginTable("table_nested1", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable, (ImVec2){0, 0}, 0)) {
 		igTableSetupColumn("name", 0, 0, 0);
 		igTableSetupColumn("value", 0, 0, 0);
 		igTableHeadersRow();
 
-		for (int i = 0; i < n; ++i) {
+		for (int i = 0; i <= n; ++i) {
 			ecs_entity_t e = gui[i].e;
 			char const * name = gui[i].name;
 			if(name) {
@@ -62,13 +65,15 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 				int32_t min = 0;
 				int32_t max = 255;
 				snprintf(buf, sizeof(buf), "##%s", name);
+				igPushItemWidth(-1);
 				igSliderScalar("", ImGuiDataType_S32, &gui[i].signal->value, &min, &max, "%d", 0);
+				igPopItemWidth();
 				igPopID();
 			} else {
-				igText("?");
 				igTableNextColumn();
 				igText("?");
 				igTableNextColumn();
+				igText("?");
 			}
 		}
 

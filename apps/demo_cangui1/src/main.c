@@ -70,6 +70,7 @@ void frame(app_t * app) {
 
     // 1. Show a simple window
     // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+	/*
     static float f = 0.0f;
     igText("Hello, world!");
     igSliderFloat("float", &f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
@@ -77,10 +78,11 @@ void frame(app_t * app) {
     if (igButton("Test Window", (ImVec2) { 0.0f, 0.0f})) state.show_test_window ^= 1;
     if (igButton("Another Window", (ImVec2) { 0.0f, 0.0f })) state.show_another_window ^= 1;
     igText("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / igGetIO()->Framerate, igGetIO()->Framerate);
+	*/
 
     // 2. Show another simple window, this time using an explicit Begin/End pair
-    if (state.show_another_window) {
-        igSetNextWindowSize((ImVec2){200,100}, ImGuiCond_FirstUseEver);
+    if (state.show_another_window || 1) {
+        igSetNextWindowSize((ImVec2){600,400}, ImGuiCond_FirstUseEver);
         igBegin("Another Window", &state.show_another_window, 0);
         igText("Hello");
 		gui_can_progress1(app->world, app->q1);
