@@ -3,7 +3,7 @@
 #include <eg/eg_assert.h>
 #include <eg/eg_fs.h>
 #include <eg/eg_log.h>
-#include <sokol/sokol_shape.h>
+#include <sokol_shape.h>
 #include <stdio.h>
 
 ECS_COMPONENT_DECLARE(SgPipelineCreate);
@@ -188,7 +188,7 @@ static void iterate_vertex_attrs(ecs_world_t *world, ecs_entity_t parent, sg_ver
 				outstate->buffer_index = attr->buffer_index;
 				outstate->offset = attr->offset;
 			} else {
-				SgAttribute *attr = ecs_get_mut(world, e, SgAttribute);
+				SgAttribute *attr = ecs_ensure(world, e, SgAttribute);
 				attr->buffer_index = outstate->buffer_index;
 				attr->offset = outstate->offset;
 			}
@@ -216,7 +216,7 @@ static void set_vertex_buffers(ecs_world_t *world, ecs_entity_t parent, sg_verte
 		}
 		if (ecs_has(world, e, SgVertexBufferLayoutShape)) {
 			buffers[i] = sshape_vertex_buffer_layout_state();
-			SgVertexBufferLayout *b = ecs_get_mut(world, e, SgVertexBufferLayout);
+			SgVertexBufferLayout *b = ecs_ensure(world, e, SgVertexBufferLayout);
 			b->stride = buffers[i].stride;
 			b->step_func = buffers[i].step_func;
 			b->step_rate = buffers[i].step_rate;
@@ -246,7 +246,7 @@ void Pip_Create(ecs_iter_t *it)
 		ecs_doc_set_color(world, e, ENTITY_COLOR);
 		print_entity_from_it(it, i);
 
-		SgPipeline *pip = ecs_get_mut(world, e, SgPipeline);
+		SgPipeline *pip = ecs_ensure(world, e, SgPipeline);
 
 		SgIndexType const *index_type = ecsx_get_target_data(world, e, ecs_id(SgIndexType));
 		SgPrimitiveType const *primitive_type = ecsx_get_target_data(world, e, ecs_id(SgPrimitiveType));
@@ -312,7 +312,7 @@ void Shader_Create(ecs_iter_t *it)
 		iterate_shader_blocks(world, entity_blocks, desc.vs.uniform_blocks);
 
 		sg_shader shd = sg_make_shader(&desc);
-		SgShader *shader = ecs_get_mut(world, e, SgShader);
+		SgShader *shader = ecs_ensure(world, e, SgShader);
 		shader->id = shd;
 		eg_log("");
 	}

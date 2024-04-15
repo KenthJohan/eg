@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "eg/Shapes.h"
 #include "eg/Components.h"
-#include "sokol/sokol_gfx.h"
+#include <sokol_gfx.h>
 
 
 

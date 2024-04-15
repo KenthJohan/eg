@@ -18,7 +18,10 @@
 #define EGSOKOL_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <sokol_gfx.h>
+#include <sokol_debugtext.h>
+#include <sokol_app.h>
+#include <sokol_shape.h>
 
 /* Convenience macro for exporting symbols */
 #ifndef egsokol_STATIC

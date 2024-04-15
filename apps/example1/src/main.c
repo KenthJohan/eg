@@ -1,8 +1,8 @@
-#include "sokol/sokol_app.h"
-#include "sokol/sokol_gfx.h"
-#include "sokol/sokol_log.h"
-#include "sokol/sokol_debugtext.h"
-#include "sokol/sokol_glue.h"
+#include <sokol_app.h>
+#include <sokol_gfx.h>
+#include <sokol_log.h>
+#include <sokol_debugtext.h>
+#include <sokol_glue.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -47,8 +47,8 @@ static void init_cb(app_t *app)
 	ecs_world_t *world = app->world;
 
 	sg_setup(&(sg_desc){
-	.context = sapp_sgcontext(),
-	.logger.func = slog_func,
+        .environment = sglue_environment(),
+        .logger.func = slog_func,
 	});
 	// setup sokol-debugtext
 	sdtx_setup(&(sdtx_desc_t){
@@ -89,7 +89,7 @@ static void frame_cb(app_t *app)
 	float dt = sapp_frame_duration();
 	float w = sapp_widthf();
 	float h = sapp_heightf();
-	Window *window = ecs_singleton_get_mut(app->world, Window);
+	Window *window = ecs_get_mut(app->world, ecs_id(Window), Window);
 	window->w = w;
 	window->h = h;
 	window->dt = dt;
@@ -99,7 +99,7 @@ static void frame_cb(app_t *app)
 	.load_action = SG_LOADACTION_CLEAR,
 	.clear_value = {0.1f, 0.1f, 0.1f, 1.0f}}};
 
-	sg_begin_default_passf(&action1, w, h);
+	sg_begin_pass(&(sg_pass){ .action = action1, .swapchain = sglue_swapchain() });
 	ecs_progress(app->world, 0.0f);
 	sdtx_draw();
 	sg_end_pass();
@@ -110,7 +110,7 @@ static void frame_cb(app_t *app)
 
 static void event_cb(const sapp_event *evt, app_t *app)
 {
-	Window *window = ecs_singleton_get_mut(app->world, Window);
+	Window *window = ecs_get_mut(app->world, ecs_id(Window), Window);
 	uint8_t *keys = window->keys;
 	uint8_t *keyse = window->keys_edge;
 

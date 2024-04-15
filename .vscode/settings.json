@@ -87,7 +87,10 @@
 		"sokol_glue.h": "c",
 		"sokol_imgui.h": "c",
 		"sokol_app.h": "c",
-		"cimgui.h": "c"
+		"cimgui.h": "c",
+		"sokol_debugtext.h": "c",
+		"sokol_shape.h": "c",
+		"eg_log.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

@@ -6,7 +6,10 @@
 		"public": true,
 		"use": [
 			"eg",
-			"sokol"
+			"sokol_gfx",
+			"sokol_debugtext",
+			"sokol_app",
+			"sokol_shape"
 		]
 	},
 	"lang.c": {
@@ -17,7 +20,10 @@
 		"cflags": [],
 		"lib": [
 			"eg",
-			"sokol"
+			"sokol_gfx",
+			"sokol_debugtext",
+			"sokol_app",
+			"sokol_shape"
 		]
 	}
 }

@@ -6,9 +6,16 @@
 		"public": false,
 		"use": [
 			"flecs",
-			"sokol",
+			"egsokol",
 			"eg",
-			"egsokol"
+			"sokol_app",
+			"sokol_log",
+			"sokol_gfx",
+			"sokol_glue",
+			"sokol_imgui",
+			"sokol_shape",
+			"sokol_debugtext",
+			"cimgui"
 		]
 	},
 	"lang.c": {
@@ -20,12 +27,20 @@
 			"flecs",
 			"egsokol",
 			"eg",
-			"sokol",
-			"m",
+			"sokol_app",
+			"sokol_log",
+			"sokol_gfx",
+			"sokol_glue",
+			"sokol_imgui",
+			"sokol_shape",
+			"sokol_debugtext",
+			"cimgui",
 			"GL",
 			"X11",
 			"Xi",
-			"Xcursor"
+			"Xcursor",
+			"m",
+			"stdc++"
 		],
 		"cflags": [
 			"-Werror",

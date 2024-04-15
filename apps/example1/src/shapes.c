@@ -1,7 +1,7 @@
 #include "shapes.h"
 
-#include "sokol/sokol_gfx.h"
-#include "sokol/sokol_shape.h"
+#include <sokol_gfx.h>
+#include <sokol_shape.h>
 
 int32_t Memory_next_pow_of_2(int32_t n)
 {

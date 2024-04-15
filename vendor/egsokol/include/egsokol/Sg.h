@@ -3,9 +3,9 @@
 #include <flecs.h>
 #include <eg/Components.h>
 #include <eg/Windows.h>
-#include <sokol/sokol_gfx.h>
-#include <sokol/sokol_debugtext.h>
-#include <sokol/sokol_app.h>
+#include <sokol_gfx.h>
+#include <sokol_debugtext.h>
+#include <sokol_app.h>
 
 typedef struct
 {
