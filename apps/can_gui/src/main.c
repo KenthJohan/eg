@@ -27,11 +27,6 @@ static int text_height(mu_Font font)
 	return r_get_text_height();
 }
 
-static int compare_entity(ecs_entity_t e1, const void *v1, ecs_entity_t e2, const void *v2)
-{
-	return (e1 > e2) - (e1 < e2);
-}
-
 int main(int argc, char **argv)
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
@@ -54,12 +49,17 @@ int main(int argc, char **argv)
 	ecs_log_set_level(-1);
 
 	// clang-format off
-	ecs_query_t *q = ecs_query(world, {
+	ecs_query_t *q1 = ecs_query(world, {
 		.filter.terms = {
 			{.id = ecs_id(GuiSlider)},
 			{.id = ecs_id(CanSignal)}
-		},
-		.order_by = compare_entity
+		}
+		}
+	);
+	ecs_query_t *q2 = ecs_query(world, {
+		.filter.terms = {
+			{.id = ecs_id(GuiCanSignalInfo)}
+		}
 		}
 	);
 	// clang-format on
@@ -73,7 +73,8 @@ int main(int argc, char **argv)
 		while (SDL_PollEvent(&e)) {
 			mu_backend_events((mu_Context *)ctx, &e);
 		}
-		gui_can_progress((mu_Context *)ctx, world, q);
+		gui_can_progress((mu_Context *)ctx, world, q1);
+		//gui_can_progress2((mu_Context *)ctx, world, q2);
 		// demo_window_progress((mu_Context*)ctx);
 
 		mu_backend_render((mu_Context *)ctx);

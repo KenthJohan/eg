@@ -24,6 +24,11 @@ s3 : bus1 {
 	- gui.can.GuiSlider{value:123, list_index:0}
 }
 
+s4 : bus1 {
+	- can.CanSignal{canid:3, value:0}
+	- gui.can.GuiSlider{value:123, list_index:0}
+}
+
 very_long_name_does_this_work_question_mark : bus1 {
 	- can.CanSignal{canid:3, value:0}
 	- gui.can.GuiSlider{value:123, list_index:2}
