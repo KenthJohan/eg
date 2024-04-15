@@ -83,7 +83,11 @@
 		"gui_can.h": "c",
 		"guican.h": "c",
 		"can.h": "c",
-		"epoll.h": "c"
+		"epoll.h": "c",
+		"sokol_glue.h": "c",
+		"sokol_imgui.h": "c",
+		"sokol_app.h": "c",
+		"cimgui.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

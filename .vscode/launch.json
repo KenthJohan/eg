@@ -5,6 +5,29 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Launch demo_cimgui",
+			"type": "cppdbg",
+			"request": "launch",
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}/apps/demo_cimgui",
+			"environment": [
+				{
+					"name": "LD_LIBRARY_PATH",
+					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
+				},
+			],
+			"program": "${workspaceFolder}/apps/demo_cimgui/bin/x64-Linux-debug/demo_cimgui",
+			"args": [],
+			"osx": {
+				"MIMode": "lldb",
+				"targetArchitecture": "arm64",
+				"externalConsole": false,
+			},
+			"linux": {
+				"externalConsole": false,
+			}
+		},
+		{
 			"name": "Launch demo_imgui",
 			"type": "cppdbg",
 			"request": "launch",
