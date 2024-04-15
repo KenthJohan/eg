@@ -6,6 +6,7 @@
 		"public": false,
 		"use": [
 			"flecs",
+			"egcan",
 			"sokol_app",
 			"sokol_log",
 			"sokol_gfx",
@@ -19,6 +20,7 @@
 		"defines": [],
 		"lib": [
 			"flecs",
+			"egcan",
 			"sokol_app",
 			"sokol_log",
 			"sokol_gfx",

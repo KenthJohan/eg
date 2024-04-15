@@ -92,7 +92,8 @@
 		"sokol_shape.h": "c",
 		"eg_log.h": "c",
 		"compare": "c",
-		"cstdint": "c"
+		"cstdint": "c",
+		"egcan.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

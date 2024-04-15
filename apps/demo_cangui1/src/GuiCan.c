@@ -2,6 +2,7 @@
 
 #include "eg/Components.h"
 
+#include <egcan.h>
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
@@ -12,7 +13,7 @@ ECS_COMPONENT_DECLARE(GuiCanSignalInfo);
 
 typedef struct {
 	char const *name;
-	CanSignal *signal;
+	EgCanSignal *signal;
 	ecs_entity_t e;
 } gui_can_table_t;
 
@@ -30,7 +31,7 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 	ecs_iter_t it = ecs_query_iter(world, q);
 	while (ecs_query_next(&it)) {
 		GuiSlider *p = ecs_field(&it, GuiSlider, 1);
-		CanSignal *c = ecs_field(&it, CanSignal, 2);
+		EgCanSignal *c = ecs_field(&it, EgCanSignal, 2);
 		for (int i = 0; i < it.count; ++i, ++p, ++c) {
 			ecs_entity_t e = it.entities[i];
 			int list_index = p->list_index;
@@ -85,7 +86,7 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 void GuiCanImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, GuiCan);
-	ECS_IMPORT(world, Can);
+	ECS_IMPORT(world, EgCan);
 	ECS_COMPONENT_DEFINE(world, GuiSlider);
 	ECS_COMPONENT_DEFINE(world, GuiCanSignalInfo);
 

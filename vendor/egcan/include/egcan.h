@@ -10,11 +10,11 @@
 
 typedef struct {
 	char const * interface;
-} CanBusDescription;
+} EgCanBusDescription;
 
 typedef struct {
 	ecs_i32_t socket;
-} CanBus;
+} EgCanBus;
 
 /*
 https://docs.openvehicles.com/en/latest/components/vehicle_dbc/docs/dbc-primer.html
@@ -35,9 +35,10 @@ typedef struct {
 	uint8_t offset;
 	uint8_t min;
 	*/
-} CanSignal;
+} EgCanSignal;
 
-extern ECS_COMPONENT_DECLARE(CanBus);
-extern ECS_COMPONENT_DECLARE(CanSignal);
+extern ECS_COMPONENT_DECLARE(EgCanBusDescription);
+extern ECS_COMPONENT_DECLARE(EgCanBus);
+extern ECS_COMPONENT_DECLARE(EgCanSignal);
 
-void CanImport(ecs_world_t *world);
+void EgCanImport(ecs_world_t *world);

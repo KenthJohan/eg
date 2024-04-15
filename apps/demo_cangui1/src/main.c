@@ -14,7 +14,7 @@
 #include <flecs.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "Can.h"
+#include "egcan.h"
 #include "GuiCan.h"
 
 typedef struct {
@@ -114,7 +114,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
     (void)argv;
 	app_t * app = malloc(sizeof(app_t));
 	app->world = ecs_init();
-	ECS_IMPORT(app->world, Can);
+	ECS_IMPORT(app->world, EgCan);
 	ECS_IMPORT(app->world, GuiCan);
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
@@ -127,7 +127,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 	app->q1 = ecs_query(app->world, {
 		.filter.terms = {
 			{.id = ecs_id(GuiSlider)},
-			{.id = ecs_id(CanSignal)}
+			{.id = ecs_id(EgCanSignal)}
 		}
 		}
 	);

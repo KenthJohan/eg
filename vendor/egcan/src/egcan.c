@@ -1,4 +1,4 @@
-#include "Can.h"
+#include "egcan.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,23 +15,23 @@
 #include <errno.h>
 #include <assert.h>
 
-ECS_COMPONENT_DECLARE(CanBusDescription);
-ECS_COMPONENT_DECLARE(CanBus);
-ECS_COMPONENT_DECLARE(CanSignal);
+ECS_COMPONENT_DECLARE(EgCanBusDescription);
+ECS_COMPONENT_DECLARE(EgCanBus);
+ECS_COMPONENT_DECLARE(EgCanSignal);
 
-ECS_COPY(CanBusDescription, dst, src, {
+ECS_COPY(EgCanBusDescription, dst, src, {
 	ecs_os_strset((char **)&dst->interface, src->interface);
-});
+})
 
-ECS_MOVE(CanBusDescription, dst, src, {
+ECS_MOVE(EgCanBusDescription, dst, src, {
 	ecs_os_free((char *)dst->interface);
 	dst->interface = src->interface;
 	src->interface = NULL;
-});
+})
 
-ECS_DTOR(CanBusDescription, ptr, {
+ECS_DTOR(EgCanBusDescription, ptr, {
 	ecs_os_free((char *)ptr->interface);
-});
+})
 
 static int sockaddr_can_from_interface(struct sockaddr_can *addr, int s, char const *interface)
 {
@@ -74,46 +74,46 @@ int socket_from_interace(char const *interface)
 static void CanBusDescription_System(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
-	CanBusDescription *d = ecs_field(it, CanBusDescription, 1);
+	EgCanBusDescription *d = ecs_field(it, EgCanBusDescription, 1);
 
 	for (int i = 0; i < it->count; ++i, ++d) {
 		ecs_entity_t e = it->entities[i];
-		CanBus *b = ecs_ensure(world, e, CanBus);
+		EgCanBus *b = ecs_ensure(world, e, EgCanBus);
 		int fd = socket_from_interace(d->interface);
 		b->socket = fd;
 	}
 }
 
-void CanImport(ecs_world_t *world)
+void EgCanImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Can);
-	ECS_COMPONENT_DEFINE(world, CanBusDescription);
-	ECS_COMPONENT_DEFINE(world, CanBus);
-	ECS_COMPONENT_DEFINE(world, CanSignal);
+	ECS_COMPONENT_DEFINE(world, EgCanBusDescription);
+	ECS_COMPONENT_DEFINE(world, EgCanBus);
+	ECS_COMPONENT_DEFINE(world, EgCanSignal);
 
 	// clang-format off
-	ecs_set_hooks(world, CanBusDescription, {
+	ecs_set_hooks(world, EgCanBusDescription, {
 	.ctor = ecs_default_ctor,
-	.move = ecs_move(CanBusDescription),
-	.copy = ecs_copy(CanBusDescription),
-	.dtor = ecs_dtor(CanBusDescription)
+	.move = ecs_move(EgCanBusDescription),
+	.copy = ecs_copy(EgCanBusDescription),
+	.dtor = ecs_dtor(EgCanBusDescription)
 	});
 
 	ecs_struct(world,
-	{.entity = ecs_id(CanBusDescription),
+	{.entity = ecs_id(EgCanBusDescription),
 	.members = {
 	{.name = "interface", .type = ecs_id(ecs_string_t)},
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(CanBus),
+	{.entity = ecs_id(EgCanBus),
 	.members = {
 	{.name = "socket", .type = ecs_id(ecs_i32_t)},
 	}});
 
 
 	ecs_struct(world,
-	{.entity = ecs_id(CanSignal),
+	{.entity = ecs_id(EgCanSignal),
 	.members = {
 	{.name = "canid", .type = ecs_id(ecs_u32_t)},
 	{.name = "value", .type = ecs_id(ecs_i32_t)},
@@ -126,8 +126,8 @@ void CanImport(ecs_world_t *world)
 	.callback = CanBusDescription_System,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(CanBusDescription), .src.flags = EcsSelf},
-	{.id = ecs_id(CanBus), .oper = EcsNot}, // Adds this
+	{.id = ecs_id(EgCanBusDescription), .src.flags = EcsSelf},
+	{.id = ecs_id(EgCanBus), .oper = EcsNot}, // Adds this
 	}});
 	// clang-format on
 }
