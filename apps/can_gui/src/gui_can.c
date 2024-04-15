@@ -28,44 +28,51 @@ static int uint8_slider(mu_Context *ctx, unsigned char *value, int low, int high
 }
 
 
-
+typedef struct {
+	char const * name;
+	uint8_t * value;
+	ecs_entity_t e;
+} gui_can_table_t;
 
 
 void gui_can_progress1(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
 {
-	char buf[128];
-	mu_layout_row(ctx, 2, (int[]){80, -1}, 0);
+	//int n = ecs_query_entity_count(q);
+	gui_can_table_t gui[128];
+
+	int n = 0;
 	ecs_iter_t it = ecs_query_iter(world, q);
 	while (ecs_query_next(&it)) {
 		GuiSlider *p = ecs_field(&it, GuiSlider, 1);
 		CanSignal *c = ecs_field(&it, CanSignal, 2);
-		for (int i = 0; i < it.count; ++i, ++p, ++c) {
+		for (int i = 0; i < it.count; ++i, ++p, ++c, ++n) {
 			ecs_entity_t e = it.entities[i];
-			char const * name = ecs_get_name(world, e);
-			snprintf(buf, sizeof(buf), "%s popup", name);
-			if (mu_button(ctx, name)) {
-				if(ecs_has(world, e, GuiCanSignalInfo)) {
-					ecs_remove(world, e, GuiCanSignalInfo);
-				} else {
-					ecs_set(world, e, GuiCanSignalInfo, {1});
-				}
+			int list_index = p->list_index;
+			if(list_index >= 128) {
+				continue;
 			}
-
-			//mu_label(ctx, name);
-			//char buf[128];
-			//snprintf(buf, sizeof(buf), "%02X", c->canid);
-			//mu_label(ctx, buf);
-			uint8_slider(ctx, &p->value, 0, 255);
-			//mu_draw_rect(ctx, mu_layout_next(ctx), ctx->style->colors[i]);
-			/*
-			uint8_slider(ctx, &ctx->style->colors[i].r, 0, 255);
-			uint8_slider(ctx, &ctx->style->colors[i].g, 0, 255);
-			uint8_slider(ctx, &ctx->style->colors[i].b, 0, 255);
-			uint8_slider(ctx, &ctx->style->colors[i].a, 0, 255);
-			mu_draw_rect(ctx, mu_layout_next(ctx), ctx->style->colors[i]);
-			*/
+			gui[list_index].e = e;
+			gui[list_index].name = ecs_get_name(world, e);
+			gui[list_index].value = &(c->value);
 		}
 	}
+	
+	mu_layout_row(ctx, 2, (int[]){80, -1}, 0);
+	for(int i = 0; i < n; ++i) {
+		ecs_entity_t e = gui[i].e;
+		char buf[128];
+		snprintf(buf, sizeof(buf), "%s popup", gui[i].name);
+		if (mu_button(ctx, buf)) {
+			if(ecs_has(world, e, GuiCanSignalInfo)) {
+				ecs_remove(world, e, GuiCanSignalInfo);
+			} else {
+				ecs_set(world, e, GuiCanSignalInfo, {1});
+			}
+		}
+		uint8_slider(ctx, gui[i].value, 0, 255);
+	}
+
+
 }
 
 void gui_can_progress2(mu_Context *ctx, ecs_world_t *world, ecs_query_t *q)
