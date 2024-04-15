@@ -5,6 +5,29 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Launch demo_cangui1",
+			"type": "cppdbg",
+			"request": "launch",
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}/apps/demo_cangui1",
+			"environment": [
+				{
+					"name": "LD_LIBRARY_PATH",
+					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
+				},
+			],
+			"program": "${workspaceFolder}/apps/demo_cangui1/bin/x64-Linux-debug/demo_cangui1",
+			"args": [],
+			"osx": {
+				"MIMode": "lldb",
+				"targetArchitecture": "arm64",
+				"externalConsole": false,
+			},
+			"linux": {
+				"externalConsole": false,
+			}
+		},
+		{
 			"name": "Launch demo_cimgui2",
 			"type": "cppdbg",
 			"request": "launch",
