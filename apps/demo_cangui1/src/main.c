@@ -83,8 +83,8 @@ void frame(app_t * app) {
     // 2. Show another simple window, this time using an explicit Begin/End pair
     if (state.show_another_window || 1) {
         igSetNextWindowSize((ImVec2){600,400}, ImGuiCond_FirstUseEver);
-        igBegin("Another Window", &state.show_another_window, 0);
-        igText("Hello");
+        igBegin("Signal window", &state.show_another_window, 0);
+        //igText("Hello");
 		gui_can_progress1(app->world, app->q1);
         igEnd();
     }

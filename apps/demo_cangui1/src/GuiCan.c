@@ -48,7 +48,7 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 
 
 
-	if (igBeginTable("table_nested1", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable, (ImVec2){0, 0}, 0)) {
 		igTableSetupColumn("name", 0, 0, 0);
 		igTableSetupColumn("value", 0, 0, 0);
 		igTableHeadersRow();
