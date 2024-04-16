@@ -14,7 +14,8 @@
 #include <flecs.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "egcan.h"
+#include <egcan.h>
+#include <egquantities.h>
 #include "GuiCan.h"
 
 typedef struct {
@@ -89,6 +90,8 @@ void frame(app_t * app) {
         igEnd();
     }
 
+	ecs_progress(app->world, 0.0f);
+
     // the sokol_gfx draw pass
     sg_begin_pass(&(sg_pass){ .action = state.pass_action, .swapchain = sglue_swapchain() });
     simgui_render();
@@ -114,8 +117,10 @@ sapp_desc sokol_main(int argc, char* argv[]) {
     (void)argv;
 	app_t * app = malloc(sizeof(app_t));
 	app->world = ecs_init();
+	ECS_IMPORT(app->world, FlecsUnits);
 	ECS_IMPORT(app->world, EgCan);
 	ECS_IMPORT(app->world, GuiCan);
+	ECS_IMPORT(app->world, EgQuantities);
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
 
@@ -127,7 +132,8 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 	app->q1 = ecs_query(app->world, {
 		.filter.terms = {
 			{.id = ecs_id(GuiSlider)},
-			{.id = ecs_id(EgCanSignal)}
+			{.id = ecs_id(EgCanSignal)},
+			{.id = ecs_id(EgQuantitiesIsq), .oper = EcsOptional}
 		}
 		}
 	);

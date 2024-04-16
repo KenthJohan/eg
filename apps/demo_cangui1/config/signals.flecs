@@ -52,7 +52,7 @@ rc_channel_4 : bus1 {
 
 
 
-battery_voltage : bus1 {
+battery_voltage : bus1, eg.quantities.Voltage {
 	- eg.can.Signal{canid:3, value:100}
 	- gui.can.GuiSlider{value:123, list_index:13}
 }

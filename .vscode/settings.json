@@ -93,7 +93,8 @@
 		"eg_log.h": "c",
 		"compare": "c",
 		"cstdint": "c",
-		"egcan.h": "c"
+		"egcan.h": "c",
+		"egquantities.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

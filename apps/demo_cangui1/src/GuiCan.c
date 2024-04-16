@@ -3,6 +3,7 @@
 #include "eg/Components.h"
 
 #include <egcan.h>
+#include <egquantities.h>
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
@@ -14,6 +15,7 @@ ECS_COMPONENT_DECLARE(GuiCanSignalInfo);
 typedef struct {
 	char const *name;
 	EgCanSignal *signal;
+	EgQuantitiesIsq *q;
 	ecs_entity_t e;
 } gui_can_table_t;
 
@@ -32,6 +34,7 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 	while (ecs_query_next(&it)) {
 		GuiSlider *p = ecs_field(&it, GuiSlider, 1);
 		EgCanSignal *c = ecs_field(&it, EgCanSignal, 2);
+		EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 3);
 		for (int i = 0; i < it.count; ++i, ++p, ++c) {
 			ecs_entity_t e = it.entities[i];
 			int list_index = p->list_index;
@@ -42,20 +45,24 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 			gui[list_index].e = e;
 			gui[list_index].name = name;
 			gui[list_index].signal = c;
+			gui[list_index].q = quant;
 			n = ECS_MAX(list_index, n);
 		}
 	}
 
 
 
-	if (igBeginTable("Signals table", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable, (ImVec2){0, 0}, 0)) {
 		igTableSetupColumn("name", 0, 0, 0);
 		igTableSetupColumn("value", 0, 0, 0);
+		igTableSetupColumn("q", 0, 0, 0);
+		igTableSetupColumn("u", 0, 0, 0);
 		igTableHeadersRow();
 
 		for (int i = 0; i <= n; ++i) {
 			ecs_entity_t e = gui[i].e;
 			char const * name = gui[i].name;
+			EgQuantitiesIsq *quant = gui[i].q;
 			if(name) {
 				igPushID_Ptr(gui[i].signal);
 				char buf[128];
@@ -69,12 +76,20 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 				igPushItemWidth(-1);
 				igSliderScalar("", ImGuiDataType_S32, &gui[i].signal->value, &min, &max, "%d", 0);
 				igPopItemWidth();
+				igTableNextColumn();
+				igText(quant ? quant->symbol : "");
+				igTableNextColumn();
+				igText("");
 				igPopID();
 			} else {
 				igTableNextColumn();
-				igText("?");
+				igText("");
 				igTableNextColumn();
-				igText("?");
+				igText("");
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
 			}
 		}
 

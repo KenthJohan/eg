@@ -87,6 +87,7 @@ static void CanBusDescription_System(ecs_iter_t *it)
 void EgCanImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgCan);
+	ECS_IMPORT(world, FlecsUnits);
 	ecs_set_name_prefix(world, "EgCan");
 
 	ECS_COMPONENT_DEFINE(world, EgCanBusDescription);
