@@ -2,6 +2,73 @@ module app
 
 bus1 {
 	- eg.can.BusDescription{interface:"can5"}
+	
+	motor_1 {
+		- eg.can.Signal{canid:3, value:42}
+		- gui.can.GuiSlider{value:123, list_index:1}
+	}
+
+	motor_2 {
+		- eg.can.Signal{canid:3, value:10}
+		- gui.can.GuiSlider{value:123, list_index:2}
+	}
+
+	motor_3 {
+		- eg.can.Signal{canid:3, value:50}
+		- gui.can.GuiSlider{value:123, list_index:3}
+	}
+
+	motor_4 {
+		- eg.can.Signal{canid:3, value:200}
+		- gui.can.GuiSlider{value:123, list_index:4}
+	}
+
+	rc_channel_1 {
+		- eg.can.Signal{canid:3, value:100}
+		- gui.can.GuiSlider{value:123, list_index:7}
+	}
+
+	rc_channel_2 {
+		- eg.can.Signal{canid:3, value:100}
+		- gui.can.GuiSlider{value:123, list_index:8}
+	}
+
+	rc_channel_3 {
+		- eg.can.Signal{canid:3, value:100}
+		- gui.can.GuiSlider{value:123, list_index:9}
+	}
+
+	rc_channel_4 {
+		- eg.can.Signal{canid:3, value:100}
+		- gui.can.GuiSlider{value:123, list_index:10}
+	}
+
+
+
+	battery_voltage, eg.quantities.Voltage {
+		- eg.can.Signal{canid:3, value:100}
+		- gui.can.GuiSlider{value:123, list_index:13}
+	}
+
+	battery_voltage_s1 {
+		- eg.can.Signal{canid:3, value:100}
+		- gui.can.GuiSlider{value:123, list_index:14}
+	}
+
+	battery_voltage_s2 {
+		- eg.can.Signal{canid:3, value:100}
+		- gui.can.GuiSlider{value:123, list_index:15}
+	}
+
+	battery_voltage_s3 {
+		- eg.can.Signal{canid:3, value:100}
+		- gui.can.GuiSlider{value:123, list_index:16}
+	}
+
+	battery_voltage_s4 {
+		- eg.can.Signal{canid:3, value:100}
+		- gui.can.GuiSlider{value:123, list_index:17}
+	}
 }
 
 Prefab x1 {
@@ -10,69 +77,3 @@ Prefab x1 {
 
 
 
-motor_1 : bus1 {
-	- eg.can.Signal{canid:3, value:42}
-	- gui.can.GuiSlider{value:123, list_index:1}
-}
-
-motor_2 : bus1 {
-	- eg.can.Signal{canid:3, value:10}
-	- gui.can.GuiSlider{value:123, list_index:2}
-}
-
-motor_3 : bus1 {
-	- eg.can.Signal{canid:3, value:50}
-	- gui.can.GuiSlider{value:123, list_index:3}
-}
-
-motor_4 : bus1 {
-	- eg.can.Signal{canid:3, value:200}
-	- gui.can.GuiSlider{value:123, list_index:4}
-}
-
-rc_channel_1 : bus1 {
-	- eg.can.Signal{canid:3, value:100}
-	- gui.can.GuiSlider{value:123, list_index:7}
-}
-
-rc_channel_2 : bus1 {
-	- eg.can.Signal{canid:3, value:100}
-	- gui.can.GuiSlider{value:123, list_index:8}
-}
-
-rc_channel_3 : bus1 {
-	- eg.can.Signal{canid:3, value:100}
-	- gui.can.GuiSlider{value:123, list_index:9}
-}
-
-rc_channel_4 : bus1 {
-	- eg.can.Signal{canid:3, value:100}
-	- gui.can.GuiSlider{value:123, list_index:10}
-}
-
-
-
-battery_voltage : bus1, eg.quantities.Voltage {
-	- eg.can.Signal{canid:3, value:100}
-	- gui.can.GuiSlider{value:123, list_index:13}
-}
-
-battery_voltage_s1 : bus1 {
-	- eg.can.Signal{canid:3, value:100}
-	- gui.can.GuiSlider{value:123, list_index:14}
-}
-
-battery_voltage_s2 : bus1 {
-	- eg.can.Signal{canid:3, value:100}
-	- gui.can.GuiSlider{value:123, list_index:15}
-}
-
-battery_voltage_s3 : bus1 {
-	- eg.can.Signal{canid:3, value:100}
-	- gui.can.GuiSlider{value:123, list_index:16}
-}
-
-battery_voltage_s4 : bus1 {
-	- eg.can.Signal{canid:3, value:100}
-	- gui.can.GuiSlider{value:123, list_index:17}
-}

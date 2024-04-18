@@ -131,6 +131,9 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 	// clang-format off
 	app->q1 = ecs_query(app->world, {
 		.filter.terms = {
+			{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
+			{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsChildOf},
+			{.id = ecs_id(EgCanBusBook), .src.flags = EcsUp, .src.trav = EcsChildOf},
 			{.id = ecs_id(GuiSlider)},
 			{.id = ecs_id(EgCanSignal)},
 			{.id = ecs_id(EgQuantitiesIsq), .oper = EcsOptional}
