@@ -25,6 +25,7 @@ typedef struct {
 
 
 
+
 void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 {
 	assert(world);
@@ -61,17 +62,26 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 
 
 
-	if (igBeginTable("Signals table", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 9, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable, (ImVec2){0, 0}, 0)) {
 		igTableSetupColumn("name", 0, 0, 0);
 		igTableSetupColumn("bus", 0, 0, 0);
 		igTableSetupColumn("sock", 0, 0, 0);
-		igTableSetupColumn("value", 0, 0, 0);
+		igTableSetupColumn("canid", 0, 0, 0);
+		igTableSetupColumn("o", 0, 0, 0);
+		igTableSetupColumn("tx", 0, 0, 0);
+		igTableSetupColumn("rx", 0, 0, 0);
 		igTableSetupColumn("q", 0, 0, 0);
 		igTableSetupColumn("u", 0, 0, 0);
 		igTableHeadersRow();
 
+		/*
+		ecs_os_mutex_lock(stuff->lock);
+		memcpy(book->tx, book->rx, sizeof(eg_can_book8_t) * book->cap);
+		ecs_os_mutex_unlock(stuff->lock);
+		*/
+
 		for (int i = 0; i <= n; ++i) {
-			ecs_entity_t e = gui[i].e;
+			//ecs_entity_t e = gui[i].e;
 			char const * name = gui[i].name;
 			EgQuantitiesIsq *quant = gui[i].q;
 			EgCanSignal *signal = gui[i].signal;
@@ -87,19 +97,31 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 				igTableNextColumn();
 				igText("%i", bus->socket);
 				igTableNextColumn();
+				igText("%i", signal->canid);
+				igTableNextColumn();
+				igText("%i", signal->byte_offset);
+				igTableNextColumn();
 				int32_t min = 0;
 				int32_t max = 255;
 				igPushItemWidth(-1);
-				if (igSliderScalar("", ImGuiDataType_S32, &signal->value, &min, &max, "%d", 0)) {
+				if (igSliderScalar("", ImGuiDataType_S32, &signal->tx, &min, &max, "%d", 0)) {
 					EgCanBusBook_prepare_send(book, signal);
 				};
 				igPopItemWidth();
+				igTableNextColumn();
+				igText("%i", signal->rx);
 				igTableNextColumn();
 				igText(quant ? quant->symbol : "");
 				igTableNextColumn();
 				igText("");
 				igPopID();
 			} else {
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
 				igTableNextColumn();
 				igText("");
 				igTableNextColumn();

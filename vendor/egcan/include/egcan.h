@@ -9,6 +9,10 @@
 #include <stdint.h>
 
 typedef struct {
+	void * internal;
+} EgCanEpoll;
+
+typedef struct {
 	char const * interface;
 } EgCanBusDescription;
 
@@ -40,8 +44,10 @@ typedef struct {
 } eg_can_book8_t;
 
 typedef struct {
+	int32_t socket;
 	int32_t cap;
-	eg_can_book8_t * book;
+	eg_can_book8_t * tx;
+	eg_can_book8_t * rx;
 } EgCanBusBook;
 
 /*
@@ -52,7 +58,8 @@ https://canlogger.csselectronics.com/dbc-editor/v129/dbc-editor.html
 
 typedef struct {
 	uint32_t canid;
-	int32_t value;
+	int32_t rx;
+	int32_t tx;
 	int32_t byte_offset;
 	/*
 	uint8_t type;
@@ -66,6 +73,7 @@ typedef struct {
 	*/
 } EgCanSignal;
 
+extern ECS_COMPONENT_DECLARE(EgCanEpoll);
 extern ECS_COMPONENT_DECLARE(EgCanBusDescription);
 extern ECS_COMPONENT_DECLARE(EgCanBus);
 extern ECS_COMPONENT_DECLARE(EgCanSignal);

@@ -94,7 +94,8 @@
 		"compare": "c",
 		"cstdint": "c",
 		"egcan.h": "c",
-		"egquantities.h": "c"
+		"egquantities.h": "c",
+		"mutex": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

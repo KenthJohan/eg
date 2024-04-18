@@ -1,7 +1,7 @@
 module app
 
 bus1 {
-	- can.CanBusDescription{interface:"can5"}
+	- can.CanBusDescription{interface:"can4"}
 }
 
 Prefab x1 {
