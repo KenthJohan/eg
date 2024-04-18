@@ -11,15 +11,15 @@ Adafruit_DS3502 ds3502[4];
 Adafruit_MCP2515 mcp(PIN_CAN_CS);
 
 
-void Adafruit_DS3502_begin(SerialUSB& s, Adafruit_DS3502 &ds) {
-  s.println("[begin] DS3502");
-  if (!ds.begin(DS3502_I2CADDR_DEFAULT)) {
-    Serial.println("[error] DS3502");
+void Adafruit_DS3502_begin(SerialUSB& s, Adafruit_DS3502 &ds, uint8_t a) {
+  s.printf("[begin] DS3502 %02X\n", a);
+  if (!ds.begin(DS3502_I2CADDR_DEFAULT + a)) {
+    Serial.printf("[error] DS3502 %02X\n", a);
     while(1) {
       delay(10);
     } 
   }
-  s.println("[found] DS3502");
+  s.printf("[found] DS3502 %02X\n", a);
 }
 
 
@@ -29,7 +29,7 @@ void Adafruit_MCP2515_begin(SerialUSB& s, Adafruit_MCP2515 &m) {
     s.println("[error] MCP2515");
     while(1) {
       delay(10);
-    } 
+    }
   }
   s.println("[found] MCP2515");
 }
@@ -39,7 +39,8 @@ void setup() {
   while(!Serial) {
     delay(10);
   }
-  Adafruit_DS3502_begin(Serial, ds3502[0]);
+  Adafruit_DS3502_begin(Serial, ds3502[0], 0x00);
+  Adafruit_DS3502_begin(Serial, ds3502[1], 0x02);
   Adafruit_MCP2515_begin(Serial, mcp);
 }
 
