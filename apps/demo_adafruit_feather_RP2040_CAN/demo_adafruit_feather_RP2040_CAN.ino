@@ -40,7 +40,9 @@ void setup() {
     delay(10);
   }
   Adafruit_DS3502_begin(Serial, ds3502[0], 0x00);
-  Adafruit_DS3502_begin(Serial, ds3502[1], 0x02);
+  Adafruit_DS3502_begin(Serial, ds3502[1], 0x01);
+  Adafruit_DS3502_begin(Serial, ds3502[2], 0x02);
+  Adafruit_DS3502_begin(Serial, ds3502[3], 0x03);
   Adafruit_MCP2515_begin(Serial, mcp);
 
   Serial.println("[cansend] begin");
@@ -54,7 +56,15 @@ void setup() {
   Serial.println("[cansend] end");
 }
 
+static int inc = 0;
+static int inc2 = 0;
 
 void loop() {
   progress(mcp, ds3502);
+  inc++;
+  if((inc % 10000) == 0) {
+    mcp.beginPacket(CANID_HEARTBEAT);
+    mcp.write(inc2++);
+    mcp.endPacket();
+  }
 }

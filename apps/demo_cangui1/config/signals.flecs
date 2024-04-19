@@ -4,23 +4,28 @@ bus1 {
 	- eg.can.BusDescription{interface:"can4"}
 	
 	motor_1 {
-		- eg.can.Signal{canid:85, tx:42, byte_offset:0}
+		- eg.can.Signal{canid:85, tx:0, byte_offset:0, min: 0, max: 127}
 		- gui.can.GuiSlider{value:123, list_index:1}
 	}
 
 	motor_2 {
-		- eg.can.Signal{canid:85, tx:10, byte_offset:1}
+		- eg.can.Signal{canid:85, tx:0, byte_offset:1, min: 0, max: 127}
 		- gui.can.GuiSlider{value:123, list_index:2}
 	}
 
 	motor_3 {
-		- eg.can.Signal{canid:85, tx:50, byte_offset:2}
+		- eg.can.Signal{canid:85, tx:0, byte_offset:2, min: 0, max: 127}
 		- gui.can.GuiSlider{value:123, list_index:3}
 	}
 
 	motor_4 {
-		- eg.can.Signal{canid:85, tx:200, byte_offset:3}
+		- eg.can.Signal{canid:85, tx:0, byte_offset:3, min: 0, max: 127}
 		- gui.can.GuiSlider{value:123, list_index:4}
+	}
+
+	mcu_time0 {
+		- eg.can.Signal{canid:256, tx:0, byte_offset:0}
+		- gui.can.GuiSlider{value:123, list_index:5}
 	}
 
 	rc_channel_1 {

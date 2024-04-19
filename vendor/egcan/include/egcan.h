@@ -61,6 +61,8 @@ typedef struct {
 	int32_t rx;
 	int32_t tx;
 	int32_t byte_offset;
+	int32_t min;
+	int32_t max;
 	/*
 	uint8_t type;
 	uint8_t order;

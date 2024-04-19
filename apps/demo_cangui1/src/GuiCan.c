@@ -63,15 +63,15 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 
 
 	if (igBeginTable("Signals table", 9, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable, (ImVec2){0, 0}, 0)) {
-		igTableSetupColumn("name", 0, 0, 0);
-		igTableSetupColumn("bus", 0, 0, 0);
-		igTableSetupColumn("sock", 0, 0, 0);
-		igTableSetupColumn("canid", 0, 0, 0);
-		igTableSetupColumn("o", 0, 0, 0);
+		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("canid", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("tx", 0, 0, 0);
-		igTableSetupColumn("rx", 0, 0, 0);
-		igTableSetupColumn("q", 0, 0, 0);
-		igTableSetupColumn("u", 0, 0, 0);
+		igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("q", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("u", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableHeadersRow();
 
 		/*
@@ -100,14 +100,18 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 				igText("%i", signal->canid);
 				igTableNextColumn();
 				igText("%i", signal->byte_offset);
+
 				igTableNextColumn();
-				int32_t min = 0;
-				int32_t max = 255;
-				igPushItemWidth(-1);
-				if (igSliderScalar("", ImGuiDataType_S32, &signal->tx, &min, &max, "%d", 0)) {
-					EgCanBusBook_prepare_send(book, signal);
-				};
-				igPopItemWidth();
+				if (signal->min != signal->max) {
+					igPushItemWidth(-1);
+					if (igSliderScalar("", ImGuiDataType_S32, &signal->tx, &signal->min, &signal->max, "%d", 0)) {
+						EgCanBusBook_prepare_send(book, signal);
+					};
+					igPopItemWidth();
+				} else {
+					igText("");
+				}
+
 				igTableNextColumn();
 				igText("%i", signal->rx);
 				igTableNextColumn();
