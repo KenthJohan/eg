@@ -42,6 +42,16 @@ void setup() {
   Adafruit_DS3502_begin(Serial, ds3502[0], 0x00);
   Adafruit_DS3502_begin(Serial, ds3502[1], 0x02);
   Adafruit_MCP2515_begin(Serial, mcp);
+
+  Serial.println("[cansend] begin");
+  mcp.beginPacket(CANID_BEGIN);
+  mcp.write('h');
+  mcp.write('e');
+  mcp.write('l');
+  mcp.write('l');
+  mcp.write('o');
+  mcp.endPacket();
+  Serial.println("[cansend] end");
 }
 
 

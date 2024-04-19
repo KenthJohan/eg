@@ -37,7 +37,7 @@ void progress(Adafruit_MCP2515 &can, Adafruit_DS3502 pot[4])
   int len = can.parsePacket();
   if (len) {
     // received a packet
-    // Serial.print("Received ");
+    Serial.printf("canid:%03X\n", can.packetId());
 
     if (can.packetExtended()) {
       Serial.print("packetExtended(): ");

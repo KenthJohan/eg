@@ -2,6 +2,7 @@
 
 
 
+#define CANID_BEGIN 0x10
 #define CANID_PING 0x11
 #define CANID_DIGIPOTS_WIPER 0x55
 #define CANID_DIGIPOTS_READY 0x56
@@ -9,7 +10,7 @@
 #define WIPER_VALUE_PIN A0
 
 // Set CAN bus baud rate
-#define CAN_BAUDRATE (500000)
+#define CAN_BAUDRATE (10000) // -s0
 
 #ifdef __cplusplus
 extern "C" {
