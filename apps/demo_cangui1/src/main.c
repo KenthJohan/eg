@@ -22,6 +22,7 @@ typedef struct {
 	ecs_world_t * world;
 	ecs_query_t * q1;
 	ecs_query_t * q2;
+	ImFont * font;
 } app_t;
 
 
@@ -83,10 +84,23 @@ void frame(app_t * app) {
 
     // 2. Show another simple window, this time using an explicit Begin/End pair
     if (state.show_another_window || 1) {
-        igSetNextWindowSize((ImVec2){600,400}, ImGuiCond_FirstUseEver);
-        igBegin("Signal window", &state.show_another_window, 0);
+		ImGuiViewport* viewport = igGetMainViewport();
+		igSetNextWindowPos(viewport->Pos, 0, (ImVec2){0,0});
+		igSetNextWindowSize(viewport->Size, 0);
+		//igSetNextWindowViewport(viewport->ID);
+		ImGuiWindowFlags flags1 = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
+        igBegin("Signal window", &state.show_another_window, flags1);
+		igBeginTabBar("tabs", 0);
         //igText("Hello");
-		gui_can_progress1(app->world, app->q1);
+		if (igBeginTabItem("Signals", NULL, 0)) {
+			gui_can_progress1(app->world, app->q1);
+			igEndTabItem();
+		};
+		if (igBeginTabItem("Tab2", NULL, 0)) {
+			igText("Hello!");
+			igEndTabItem();
+		};
+		igEndTabBar();
         igEnd();
     }
 
@@ -147,7 +161,6 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 		}
 	);
 	// clang-format on
-
 
     return (sapp_desc) {
         .init_userdata_cb = init,

@@ -61,13 +61,17 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 	}
 
 
+	
+	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
-	if (igBeginTable("Signals table", 9, ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 11, flags2, (ImVec2){0, 0}, 0)) {
 		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("canid", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("max", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("tx", 0, 0, 0);
 		igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("q", ImGuiTableColumnFlags_WidthFixed, 50, 0);
@@ -102,6 +106,15 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 				igText("%i", signal->byte_offset);
 
 				igTableNextColumn();
+				igPushItemWidth(-1);
+				igInputInt("#1", &signal->min, 0, 0, 0);
+				igPopItemWidth();
+				igTableNextColumn();
+				igPushItemWidth(-1);
+				igInputInt("#2", &signal->max, 0, 0, 0);
+				igPopItemWidth();
+
+				igTableNextColumn();
 				if (signal->min != signal->max) {
 					igPushItemWidth(-1);
 					if (igSliderScalar("", ImGuiDataType_S32, &signal->tx, &signal->min, &signal->max, "%d", 0)) {
@@ -120,6 +133,10 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 				igText("");
 				igPopID();
 			} else {
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
 				igTableNextColumn();
 				igText("");
 				igTableNextColumn();

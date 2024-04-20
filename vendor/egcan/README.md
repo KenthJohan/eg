@@ -118,6 +118,40 @@ sudo ip link set can5 up type can bitrate 500000
 https://github.com/linux-can/can-utils/blob/master/candump.c
 
 
+
+
+
+
+
+## command to determine ports of a device (like /dev/ttyUSB0)
+
+Below is a quick and dirty script which walks through devices in /sys looking for USB devices with a ID_SERIAL attribute. Typically only real USB devices will have this attribute, and so we can filter with it. If we don't, you'll see a lot of things in the list that aren't physical devices.
+https://unix.stackexchange.com/questions/144029/command-to-determine-ports-of-a-device-like-dev-ttyusb0
+
+```bash
+cd /usr/local/bin/
+sudo touch lsusbdev
+sudo chmod +x lsusbdev
+sudo nano lsusbdev
+```
+
+```bash
+#!/bin/bash
+
+for sysdevpath in $(find /sys/bus/usb/devices/usb*/ -name dev); do
+    (
+        syspath="${sysdevpath%/dev}"
+        devname="$(udevadm info -q name -p $syspath)"
+        [[ "$devname" == "bus/"* ]] && exit
+        eval "$(udevadm info -q property --export -p $syspath)"
+        [[ -z "$ID_SERIAL" ]] && exit
+        echo "/dev/$devname - $ID_SERIAL"
+    )
+done
+
+```
+
+
 ## References
 * https://www.youtube.com/watch?v=GdnKQclBvP4
 * https://github.com/makerbase-motor/MKS-SERVO57D/blob/master/Example%20Code/Arduino%20Example%20Code/arduino_11_Serial_Speed%20Mode/arduino_11_speedMode/arduino_11_speedMode.ino
