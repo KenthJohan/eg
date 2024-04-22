@@ -39,16 +39,17 @@ void gui_can_progress1(ecs_world_t *world, ecs_query_t *q)
 		EgCanBus *bus = ecs_field(&it, EgCanBus, 1);
 		EgCanBusDescription *desc = ecs_field(&it, EgCanBusDescription, 2);
 		EgCanBusBook *book = ecs_field(&it, EgCanBusBook, 3);
-		GuiSlider *slider = ecs_field(&it, GuiSlider, 4);
-		EgCanSignal *signal = ecs_field(&it, EgCanSignal, 5);
-		EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 6);
-		for (int i = 0; i < it.count; ++i, ++slider, ++signal, ++quant) {
+		EgCanSignal *signal = ecs_field(&it, EgCanSignal, 4);
+		EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 5);
+
+		for (int i = 0; i < it.count; ++i, ++signal, ++quant) {
 			ecs_entity_t e = it.entities[i];
-			int list_index = slider->list_index;
+			int list_index = signal->gui_index;
 			if (list_index >= 128) {
 				continue;
 			}
 			char const * name = ecs_get_name(world, e);
+			//printf("e: %s, from : %s\n", name, name1 ? name1 : "?");
 			gui[list_index].e = e;
 			gui[list_index].name = name;
 			gui[list_index].signal = signal;

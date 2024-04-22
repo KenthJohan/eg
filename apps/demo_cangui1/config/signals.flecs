@@ -1,84 +1,65 @@
-module app
+module app.signals
 
 bus1 {
 	- eg.can.BusDescription{interface:"can4"}
-	
-	motor_1 {
-		- eg.can.Signal{canid:85, tx:0, byte_offset:0, min: 0, max: 127}
-		- gui.can.GuiSlider{value:123, list_index:1}
-	}
-
-	motor_2 {
-		- eg.can.Signal{canid:85, tx:0, byte_offset:1, min: 0, max: 127}
-		- gui.can.GuiSlider{value:123, list_index:2}
-	}
-
-	motor_3 {
-		- eg.can.Signal{canid:85, tx:0, byte_offset:2, min: 0, max: 127}
-		- gui.can.GuiSlider{value:123, list_index:3}
-	}
-
-	motor_4 {
-		- eg.can.Signal{canid:85, tx:0, byte_offset:3, min: 0, max: 127}
-		- gui.can.GuiSlider{value:123, list_index:4}
-	}
-
-	mcu_time0 {
-		- eg.can.Signal{canid:256, tx:0, byte_offset:0}
-		- gui.can.GuiSlider{value:123, list_index:5}
-	}
-
-	rc_channel_1 {
-		- eg.can.Signal{canid:3, tx:100}
-		- gui.can.GuiSlider{value:123, list_index:7}
-	}
-
-	rc_channel_2 {
-		- eg.can.Signal{canid:3, tx:100}
-		- gui.can.GuiSlider{value:123, list_index:8}
-	}
-
-	rc_channel_3 {
-		- eg.can.Signal{canid:3, tx:100}
-		- gui.can.GuiSlider{value:123, list_index:9}
-	}
-
-	rc_channel_4 {
-		- eg.can.Signal{canid:3, tx:100}
-		- gui.can.GuiSlider{value:123, list_index:10}
-	}
-
-
-
-	battery_voltage : eg.quantities.Voltage {
-		- eg.can.Signal{canid:3, tx:100}
-		- gui.can.GuiSlider{value:123, list_index:13}
-	}
-
-	battery_voltage_s1 {
-		- eg.can.Signal{canid:3, tx:100}
-		- gui.can.GuiSlider{value:123, list_index:14}
-	}
-
-	battery_voltage_s2 {
-		- eg.can.Signal{canid:3, tx:100}
-		- gui.can.GuiSlider{value:123, list_index:15}
-	}
-
-	battery_voltage_s3 {
-		- eg.can.Signal{canid:3, tx:100}
-		- gui.can.GuiSlider{value:123, list_index:16}
-	}
-
-	battery_voltage_s4 {
-		- eg.can.Signal{canid:3, tx:100}
-		- gui.can.GuiSlider{value:123, list_index:17}
-	}
-}
-
-Prefab x1 {
-	- eg.can.Signal{canid:3, tx:42}
 }
 
 
+motor_1 : bus1 {
+	- eg.can.Signal{canid:85, tx:0, byte_offset:0, min: 0, max: 127, gui_index:1}
+}
+
+motor_2 : bus1 {
+	- eg.can.Signal{canid:85, tx:0, byte_offset:1, min: 0, max: 127, gui_index:2}
+}
+
+motor_3 : bus1 {
+	- eg.can.Signal{canid:85, tx:0, byte_offset:2, min: 0, max: 127, gui_index:3}
+}
+
+motor_4 : bus1 {
+	- eg.can.Signal{canid:85, tx:0, byte_offset:3, min: 0, max: 127, gui_index:4}
+}
+
+mcu_time0 : bus1 {
+	- eg.can.Signal{canid:256, tx:0, byte_offset:0, gui_index:6}
+}
+
+rc_channel_1 : bus1 {
+	- eg.can.Signal{canid:3, tx:100, gui_index:8}
+}
+
+rc_channel_2 : bus1 {
+	- eg.can.Signal{canid:3, tx:100, gui_index:9}
+}
+
+rc_channel_3 : bus1 {
+	- eg.can.Signal{canid:3, tx:100, gui_index:10}
+}
+
+rc_channel_4 : bus1 {
+	- eg.can.Signal{canid:3, tx:100, gui_index:11}
+}
+
+
+
+battery_voltage : bus1, eg.quantities.Voltage {
+	- eg.can.Signal{canid:3, tx:100, gui_index:15}
+}
+
+battery_voltage_s1 : bus1 {
+	- eg.can.Signal{canid:3, tx:100, gui_index:16}
+}
+
+battery_voltage_s2 : bus1 {
+	- eg.can.Signal{canid:3, tx:100, gui_index:17}
+}
+
+battery_voltage_s3 : bus1 {
+	- eg.can.Signal{canid:3, tx:100, gui_index:18}
+}
+
+battery_voltage_s4 : bus1 {
+	- eg.can.Signal{canid:3, tx:100, gui_index:19}
+}
 

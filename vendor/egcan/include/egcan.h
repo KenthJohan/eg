@@ -14,6 +14,7 @@ typedef struct {
 
 typedef struct {
 	char const * interface;
+	int32_t signals_amount;
 } EgCanBusDescription;
 
 typedef struct {
@@ -63,6 +64,7 @@ typedef struct {
 	int32_t byte_offset;
 	int32_t min;
 	int32_t max;
+	int32_t gui_index;
 	/*
 	uint8_t type;
 	uint8_t order;

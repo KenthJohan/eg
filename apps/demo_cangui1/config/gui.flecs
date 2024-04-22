@@ -1,0 +1,19 @@
+module app.gui
+
+a : app.signals.motor_1 {
+	- gui.can.GuiSlider{value:123, list_index:1}
+}
+
+b : app.signals.motor_2 {
+	- gui.can.GuiSlider{value:123, list_index:2}
+}
+
+c : app.signals.motor_3 {
+	- gui.can.GuiSlider{value:123, list_index:3}
+}
+
+d : app.signals.motor_4 {
+	- gui.can.GuiSlider{value:123, list_index:4}
+}
+
+

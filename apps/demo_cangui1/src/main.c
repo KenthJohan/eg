@@ -100,6 +100,19 @@ void frame(app_t * app) {
 			igText("Hello!");
 			igEndTabItem();
 		};
+		if (igBeginTabItem("Tab3", NULL, 0)) {
+			ImDrawList * a = igGetWindowDrawList();
+			ImVec2 p;
+			igGetCursorScreenPos(&p);
+			float x = p.x + 4.0f;
+            float y = p.y + 4.0f;
+			static float sz = 36.0f;
+			static float th = 3.0f;
+			static int ngon_sides = 6;
+			ImDrawList_AddCircle(a, (ImVec2){x + sz*0.5f, y + sz*0.5f}, sz*0.5f, 0xFFFFFFFF, 12, th);
+			ImDrawList_AddCircle(a, (ImVec2){x + sz*1.5f - 20, y + sz*1.5f}, sz*1.5f, 0xFFFFFFFF, 12, th);
+			igEndTabItem();
+		};
 		igEndTabBar();
         igEnd();
     }
@@ -138,19 +151,25 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
 
+	ecs_entity_t e_app = ecs_new_entity(app->world, "app");
+	ecs_entity_t e_app_signals = ecs_new_entity(app->world, "app.signals");
+	ecs_entity_t e_app_gui = ecs_new_entity(app->world, "app.gui");
+
 	ecs_log_set_level(1);
 	ecs_plecs_from_file(app->world, "config/signals.flecs");
+	ecs_plecs_from_file(app->world, "config/gui.flecs");
 	ecs_log_set_level(-1);
-
 	// clang-format off
 	app->q1 = ecs_query(app->world, {
 		.filter.terms = {
-			{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
-			{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsChildOf},
-			{.id = ecs_id(EgCanBusBook), .src.flags = EcsUp, .src.trav = EcsChildOf},
-			{.id = ecs_id(GuiSlider)},
-			{.id = ecs_id(EgCanSignal)},
-			{.id = ecs_id(EgQuantitiesIsq), .oper = EcsOptional}
+			{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsIsA},
+			{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsIsA},
+			{.id = ecs_id(EgCanBusBook), .src.flags = EcsUp, .src.trav = EcsIsA},
+			{.id = ecs_id(EgCanSignal), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
+			//{.id = ecs_id(EgCanSignal)},
+			{.id = ecs_id(EgQuantitiesIsq), .oper = EcsOptional},
+			// TODO: Only query entities from "app.signals"
+			//{.id = EcsModule, .src.id = e_app_signals},
 		}
 		}
 	);

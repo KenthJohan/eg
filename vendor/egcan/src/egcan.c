@@ -73,9 +73,22 @@ static int socket_from_interace(char const *interface)
 	return s;
 }
 
+static void System_EgCanBusDescription1(ecs_iter_t *it)
+{
+	EgCanBusDescription *d = ecs_field(it, EgCanBusDescription, 1);
+	for (int i = 0; i < it->count; ++i, ++d) {
+		d->signals_amount = 0;
+	}
+}
 
-
-
+static void System_EgCanBusDescription2(ecs_iter_t *it)
+{
+	EgCanBusDescription *d = ecs_field(it, EgCanBusDescription, 1);
+	//EgCanSignal *s = ecs_field(it, EgCanSignal, 2);
+	for (int i = 0; i < it->count; ++i) {
+		d->signals_amount++;
+	}
+}
 
 
 typedef struct {
@@ -338,6 +351,7 @@ void EgCanImport(ecs_world_t *world)
 	{.entity = ecs_id(EgCanBusDescription),
 	.members = {
 	{.name = "interface", .type = ecs_id(ecs_string_t)},
+	{.name = "signals_amount", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct(world,
@@ -356,6 +370,7 @@ void EgCanImport(ecs_world_t *world)
 	{.name = "byte_offset", .type = ecs_id(ecs_i32_t)},
 	{.name = "min", .type = ecs_id(ecs_i32_t)},
 	{.name = "max", .type = ecs_id(ecs_i32_t)},
+	{.name = "gui_index", .type = ecs_id(ecs_i32_t)},
 	}});
 
 
@@ -364,6 +379,27 @@ void EgCanImport(ecs_world_t *world)
 	.members = {
 	{.name = "len", .type = ecs_id(ecs_i32_t)},
 	{.name = "book", .type = ecs_id(ecs_uptr_t)},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = System_EgCanBusDescription1,
+	.ctx = stuff,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(EgCanBusDescription)},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = System_EgCanBusDescription2,
+	.ctx = stuff,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsIsA},
+	{.id = ecs_id(EgCanSignal)}
 	}});
 
 	ecs_system_init(world,

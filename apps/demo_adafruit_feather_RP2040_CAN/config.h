@@ -11,8 +11,8 @@
 #define WIPER_VALUE_PIN A0
 
 // Set CAN bus baud rate
-//#define CAN_BAUDRATE (10000) // -s0
-#define CAN_BAUDRATE (500000) // -s6
+#define CAN_BAUDRATE (10000) // -s0
+//#define CAN_BAUDRATE (500000) // -s6
 
 #ifdef __cplusplus
 extern "C" {
