@@ -17,10 +17,33 @@ d : app.signals.motor_4 {
 }
 
 
+const bar_thick = 40
+const bar_length = 100
+const bar_x = 10
+const bar_y = 10
+const bot_w = 150
+const bot_h = 100
 
+m1 : app.signals.motor_1 {
+	- eg.spatials.Position2{x:$bar_x, y:$bar_y}
+	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
+	- eg.quantities.Progress{min:0, max:128, value:50}
+}
 
-kk : app.signals.motor_1 {
-	- eg.spatials.Position2{x:10, y:10}
-	- eg.shapes.Rectangle{w:30, h:40}
+m2 : app.signals.motor_2 {
+	- eg.spatials.Position2{x:$bar_x, y:$bar_y+$bot_h}
+	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
+	- eg.quantities.Progress{min:0, max:128, value:50}
+}
+
+m3 : app.signals.motor_3 {
+	- eg.spatials.Position2{x:$bar_x + $bot_w, y:$bar_y}
+	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
+	- eg.quantities.Progress{min:0, max:128, value:50}
+}
+
+m4 : app.signals.motor_4 {
+	- eg.spatials.Position2{x:$bar_x + $bot_w, y:$bar_y+$bot_h}
+	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
 	- eg.quantities.Progress{min:0, max:128, value:50}
 }

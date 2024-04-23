@@ -47,14 +47,14 @@ void egimgui_progress1(ecs_world_t *world, ecs_query_t *q)
 			//ImDrawList_AddText_Vec2(a, (ImVec2){x + sz*1.5f - 20, y + sz*1.5f}, 0xFFFFFFFF, "Hej!", NULL);
 			float d = q->max - q->min;
 			if(d > __FLT32_MIN__) {
-				float v = q->value - q->min;
-				float h = r->h * v / d;
-				ImDrawList_AddRectFilled(a, (ImVec2){x, y + r->h}, (ImVec2){x + r->w, y + r->h - h}, 0xFFFFFFFF, 0.0f, 0);
+				float v = (q->value - q->min) / d;
+				float w = r->w * v;
+				ImDrawList_AddRectFilled(a, (ImVec2){x, y}, (ImVec2){x + w, y + r->h}, 0xFFAA1111, 0.0f, 0);
+				char buf[128];
+				snprintf(buf, sizeof(buf), "%3i", (int)(v*100.0f));
+				ImDrawList_AddText_Vec2(a, (ImVec2){x + 10, y + r->h/2}, 0xFF0000FF, buf, NULL);
 			}
-			ImDrawList_AddRect(a, (ImVec2){x, y}, (ImVec2){x + r->w, y + r->h}, 0xFFFFFFFF, 0.0f, 0, 1.0f);
-			char buf[128];
-			snprintf(buf, sizeof(buf), "%f", q->value);
-			ImDrawList_AddText_Vec2(a, (ImVec2){x + r->w/2, y + r->h/2}, 0xFF0000FF, buf, NULL);
+			ImDrawList_AddRect(a, (ImVec2){x, y}, (ImVec2){x + r->w, y + r->h}, 0xFFAAAAAA, 0.0f, 0, 1.0f);
 		}
 	}
 }
