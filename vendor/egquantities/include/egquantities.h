@@ -27,8 +27,15 @@ typedef struct {
 	int32_t intensity;
 } EgQuantitiesIsq;
 
+typedef struct {
+	float min;
+	float max;
+	float value;
+} EgQuantitiesProgress;
+
 
 extern ECS_COMPONENT_DECLARE(EgQuantitiesIsq);
+extern ECS_COMPONENT_DECLARE(EgQuantitiesProgress);
 
 extern ECS_TAG_DECLARE(EgQuantitiesVoltage);
 

@@ -1,4 +1,5 @@
 #include "egcan.h"
+#include <egquantities.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -204,16 +205,17 @@ static void * thread_loop(thread_stuff_t * stuff)
 			eg_can_frame_t frame = {0};
 			eg_can_recv(book->socket, &frame);
 			ecs_os_mutex_lock(stuff->lock);
-			book->rx[frame.can_id].dirty = 1;
-			book->rx[frame.can_id].len = frame.len;
-			book->rx[frame.can_id].packet[0] = frame.data[0];
-			book->rx[frame.can_id].packet[1] = frame.data[1];
-			book->rx[frame.can_id].packet[2] = frame.data[2];
-			book->rx[frame.can_id].packet[3] = frame.data[3];
-			book->rx[frame.can_id].packet[4] = frame.data[4];
-			book->rx[frame.can_id].packet[5] = frame.data[5];
-			book->rx[frame.can_id].packet[6] = frame.data[6];
-			book->rx[frame.can_id].packet[7] = frame.data[7];
+			eg_can_book8_t * rx = book->rx + frame.can_id;
+			rx->dirty = 1;
+			rx->len = frame.len;
+			rx->packet[0] = frame.data[0];
+			rx->packet[1] = frame.data[1];
+			rx->packet[2] = frame.data[2];
+			rx->packet[3] = frame.data[3];
+			rx->packet[4] = frame.data[4];
+			rx->packet[5] = frame.data[5];
+			rx->packet[6] = frame.data[6];
+			rx->packet[7] = frame.data[7];
 			ecs_os_mutex_unlock(stuff->lock);
 		}
 	}
@@ -281,9 +283,22 @@ static void System_Rx(ecs_iter_t *it)
 		if(byte_offset < 0) {
 			continue;
 		}
+		
 		ecs_os_mutex_lock(stuff->lock);
-		signal->rx = book->rx[canid].packet[byte_offset];
+		int32_t value = book->rx[canid].packet[byte_offset];
 		ecs_os_mutex_unlock(stuff->lock);
+		signal->rx = value;
+	}
+}
+
+static void System_Value(ecs_iter_t *it)
+{
+	EgCanSignal *s = ecs_field(it, EgCanSignal, 1);
+	EgQuantitiesProgress *q = ecs_field(it, EgQuantitiesProgress, 2);
+	for (int i = 0; i < it->count; ++i, ++s, ++q) {
+		q->value = (float)s->rx;
+		q->min = (float)s->min;
+		q->max = (float)s->max;
 	}
 }
 
@@ -317,6 +332,7 @@ void EgCanImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgCan);
 	ECS_IMPORT(world, FlecsUnits);
+	ECS_IMPORT(world, EgQuantities);
 	ecs_set_name_prefix(world, "EgCan");
 
 	ECS_COMPONENT_DEFINE(world, EgCanEpoll);
@@ -432,8 +448,18 @@ void EgCanImport(ecs_world_t *world)
 	.ctx = stuff,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(EgCanBusBook), .src.flags = EcsUp, .src.trav = EcsChildOf},
+	{.id = ecs_id(EgCanBusBook), .src.flags = EcsUp, .src.trav = EcsIsA},
 	{.id = ecs_id(EgCanSignal)}
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = System_Value,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(EgCanSignal)},
+	{.id = ecs_id(EgQuantitiesProgress)}
 	}});
 	// clang-format on
 }

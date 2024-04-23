@@ -2,6 +2,7 @@
 
 
 ECS_COMPONENT_DECLARE(EgQuantitiesIsq);
+ECS_COMPONENT_DECLARE(EgQuantitiesProgress);
 ECS_TAG_DECLARE(EgQuantitiesVoltage);
 
 
@@ -11,6 +12,7 @@ void EgQuantitiesImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgQuantities");
 
 	ECS_COMPONENT_DEFINE(world, EgQuantitiesIsq);
+	ECS_COMPONENT_DEFINE(world, EgQuantitiesProgress);
 	ECS_TAG_DEFINE(world, EgQuantitiesVoltage);
 
 	ecs_struct(world,
@@ -25,6 +27,15 @@ void EgQuantitiesImport(ecs_world_t *world)
 	{.name = "substance", .type = ecs_id(ecs_i32_t)},
 	{.name = "intensity", .type = ecs_id(ecs_i32_t)},
 	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgQuantitiesProgress),
+	.members = {
+	{.name = "min", .type = ecs_id(ecs_f32_t)},
+	{.name = "max", .type = ecs_id(ecs_f32_t)},
+	{.name = "value", .type = ecs_id(ecs_f32_t)}
+	}});
+
 
 	ecs_set(world, EgQuantitiesVoltage, EgQuantitiesIsq, {.symbol = "V", .length = 2, .mass = 1, .time = -3, .current = -1});
 

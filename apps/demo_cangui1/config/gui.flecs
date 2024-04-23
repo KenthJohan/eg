@@ -19,7 +19,8 @@ d : app.signals.motor_4 {
 
 
 
-kk {
+kk : app.signals.motor_1 {
 	- eg.spatials.Position2{x:10, y:10}
 	- eg.shapes.Rectangle{w:30, h:40}
+	- eg.quantities.Progress{min:0, max:128, value:50}
 }
