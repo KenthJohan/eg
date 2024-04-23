@@ -240,7 +240,7 @@ int eg_can_send(int s, eg_can_frame_t *frame)
 static void EgCanBusBook_System_Sender(ecs_iter_t *it)
 {
 	//ecs_world_t *world = it->world;
-	thread_stuff_t * stuff = it->ctx;
+	//thread_stuff_t * stuff = it->ctx;
 	EgCanBus *bus = ecs_field(it, EgCanBus, 1);
 	EgCanBusBook *book = ecs_field(it, EgCanBusBook, 2);
 	for (int i = 0; i < it->count; ++i, ++bus, ++book) {

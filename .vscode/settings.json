@@ -95,7 +95,10 @@
 		"cstdint": "c",
 		"egcan.h": "c",
 		"egquantities.h": "c",
-		"mutex": "c"
+		"mutex": "c",
+		"gui_signals.h": "c",
+		"egmath.h": "c",
+		"egspatials.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
