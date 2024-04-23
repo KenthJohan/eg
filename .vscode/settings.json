@@ -98,7 +98,8 @@
 		"mutex": "c",
 		"gui_signals.h": "c",
 		"egmath.h": "c",
-		"egspatials.h": "c"
+		"egspatials.h": "c",
+		"egshapes.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

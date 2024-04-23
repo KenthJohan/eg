@@ -1,9 +1,24 @@
 #include "egimgui.h"
+#include "egspatials.h"
+#include "egshapes.h"
 
 
 
+void sys1(ecs_world_t *world, ecs_query_t *q)
+{
+	assert(world);
+	assert(q);
+	// int n = ecs_query_entity_count(q);
+	int n = 0;
+	ecs_iter_t it = ecs_query_iter(world, q);
+	while (ecs_query_next(&it)) {
+		Position2 *p = ecs_field(&it, Position2, 1);
+		Rectangle *r = ecs_field(&it, Rectangle, 2);
+		for (int i = 0; i < it.count; ++i, ++p, ++r) {
 
-
+		}
+	}
+}
 
 
 

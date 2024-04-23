@@ -1,6 +1,5 @@
 #include "GuiCan.h"
 
-#include "eg/Components.h"
 
 #include <egcan.h>
 #include <egquantities.h>
