@@ -18,7 +18,8 @@
 #define EGIMGUI_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <egspatials.h>
+#include <egshapes.h>
 
 /* Convenience macro for exporting symbols */
 #ifndef egimgui_STATIC

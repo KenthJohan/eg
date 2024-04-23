@@ -7,7 +7,10 @@
 		"use": [
 			"flecs",
 			"egcan",
+			"egimgui",
 			"egquantities",
+			"egspatials",
+			"egshapes",
 			"sokol_app",
 			"sokol_log",
 			"sokol_gfx",
@@ -22,7 +25,10 @@
 		"lib": [
 			"flecs",
 			"egcan",
+			"egimgui",
 			"egquantities",
+			"egspatials",
+			"egshapes",
 			"sokol_app",
 			"sokol_log",
 			"sokol_gfx",

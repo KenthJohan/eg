@@ -4,7 +4,10 @@
 	"value": {
 		"language": "c",
 		"public": true,
-		"use": []
+		"use": [
+			"egspatials",
+			"egshapes"
+		]
 	},
 	"lang.c": {
 		"c-standard": "c11",
@@ -12,6 +15,9 @@
 		"static": true,
 		"defines": [],
 		"cflags": [],
-		"lib": []
+		"lib": [
+			"egspatials",
+			"egshapes"
+		]
 	}
 }

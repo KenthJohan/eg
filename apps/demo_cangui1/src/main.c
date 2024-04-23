@@ -16,12 +16,17 @@
 #include <assert.h>
 #include <egcan.h>
 #include <egquantities.h>
+#include <egimgui.h>
+#include <egspatials.h>
+#include <egshapes.h>
+
 #include "GuiCan.h"
 #include "gui_signals.h"
 
 typedef struct {
 	ecs_world_t * world;
 	ecs_query_t * q1;
+	ecs_query_t * q2;
 	ImFont * font;
 } app_t;
 
@@ -101,17 +106,7 @@ void frame(app_t * app) {
 			igEndTabItem();
 		};
 		if (igBeginTabItem("Tab3", NULL, 0)) {
-			ImDrawList * a = igGetWindowDrawList();
-			ImVec2 p;
-			igGetCursorScreenPos(&p);
-			float x = p.x + 4.0f;
-            float y = p.y + 4.0f;
-			static float sz = 36.0f;
-			static float th = 3.0f;
-			//static int ngon_sides = 6;
-			ImDrawList_AddCircle(a, (ImVec2){x + sz*0.5f, y + sz*0.5f}, sz*0.5f, 0xFFFFFFFF, 12, th);
-			ImDrawList_AddCircle(a, (ImVec2){x + sz*1.5f - 20, y + sz*1.5f}, sz*1.5f, 0xFFFFFFFF, 12, th);
-			ImDrawList_AddText_Vec2(a, (ImVec2){x + sz*1.5f - 20, y + sz*1.5f}, 0xFFFFFFFF, "Hej!", NULL);
+			egimgui_progress1(app->world, app->q2);
 			igEndTabItem();
 		};
 		igEndTabBar();
@@ -149,6 +144,9 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 	ECS_IMPORT(app->world, EgCan);
 	ECS_IMPORT(app->world, GuiCan);
 	ECS_IMPORT(app->world, EgQuantities);
+	ECS_IMPORT(app->world, EgSpatials);
+	ECS_IMPORT(app->world, EgShapes);
+	ECS_IMPORT(app->world, EgImgui);
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
 
@@ -162,6 +160,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 	ecs_log_set_level(-1);
 	// clang-format off
 	app->q1 = gui_signals_query(app->world);
+	app->q2 = egimgui_query1(app->world);
 	// clang-format on
 
     return (sapp_desc) {

@@ -17,3 +17,9 @@ d : app.signals.motor_4 {
 }
 
 
+
+
+kk {
+	- eg.spatials.Position2{x:10, y:10}
+	- eg.shapes.Rectangle{w:30, h:40}
+}

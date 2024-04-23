@@ -99,7 +99,8 @@
 		"gui_signals.h": "c",
 		"egmath.h": "c",
 		"egspatials.h": "c",
-		"egshapes.h": "c"
+		"egshapes.h": "c",
+		"egimgui.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

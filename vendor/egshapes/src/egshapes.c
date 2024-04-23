@@ -10,13 +10,14 @@ ECS_COMPONENT_DECLARE(Rectangle);
 
 void EgShapesImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, Shapes);
+	ECS_MODULE(world, EgShapes);
 	ecs_set_name_prefix(world, "EgShapes");
 
 	ECS_COMPONENT_DEFINE(world, Torus);
 	ECS_COMPONENT_DEFINE(world, Cylinder);
 	ECS_COMPONENT_DEFINE(world, Sphere);
 	ECS_COMPONENT_DEFINE(world, Line);
+	ECS_COMPONENT_DEFINE(world, Rectangle);
 
 	ecs_struct(world,
 	{.entity = ecs_id(Line),
