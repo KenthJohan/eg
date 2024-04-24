@@ -101,7 +101,8 @@
 		"egspatials.h": "c",
 		"egshapes.h": "c",
 		"egimgui.h": "c",
-		"egcolors.h": "c"
+		"egcolors.h": "c",
+		"variant": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

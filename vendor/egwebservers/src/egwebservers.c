@@ -1,12 +1,22 @@
-#include "eg/EgWebservers.h"
-#include "eg/EgFs.h"
-#include "eg/EgStr.h"
-#include "eg/eg_fs.h"
-#include "eg/eg_http.h"
+#include "egwebservers.h"
+#include "egfs.h"
+#include "egstr.h"
+#include "eg_http.h"
 #include <strings.h>
 
 ECS_COMPONENT_DECLARE(EgWebsrv);
 
+
+void eg_str_replace_ab(char *str, char a, char b)
+{
+	char *p = str;
+	while (p[0]) {
+		if (p[0] == a) {
+			p[0] = b;
+		}
+		p++;
+	}
+}
 
 
 static bool OnRequest(const ecs_http_request_t *request, ecs_http_reply_t *reply, void *ctx)

@@ -1,10 +1,11 @@
 #include "egsokol/Sg.h"
-#include <eg/Components.h>
-#include <eg/eg_assert.h>
-#include <eg/eg_fs.h>
-#include <eg/eg_log.h>
+#include <egcomponents.h>
+//#include <eg/eg_assert.h>
+//#include <eg/eg_fs.h>
+//#include <eg/eg_log.h>
 #include <sokol_shape.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 ECS_COMPONENT_DECLARE(SgPipelineCreate);
 ECS_COMPONENT_DECLARE(SgPipeline);
@@ -46,6 +47,42 @@ ECS_TAG_DECLARE(SgVertexBufferLayoutShape);
 
 #define ENTITY_COLOR "#55A3F4"
 
+
+char *eg_fs_readfile(char const *path)
+{
+	ecs_assert(path != NULL, ECS_INTERNAL_ERROR, NULL);
+	char *content = NULL;
+
+	FILE *file = fopen(path, "r");
+	if (file == NULL) {
+		goto error;
+	}
+
+	fseek(file, 0, SEEK_END);
+	int32_t size = (int32_t)ftell(file);
+
+	if (size == -1) {
+		goto error;
+	}
+	rewind(file);
+
+	content = malloc(size + 1);
+	content[size] = '\0';
+	size_t n = fread(content, size, 1, file);
+	if (n != 1) {
+		ecs_dbg_2("%s: could not read wholef file %d bytes\n", path, size);
+		goto error;
+	}
+	ecs_assert(content[size] == '\0', ECS_INTERNAL_ERROR, "Expected null terminator");
+	fclose(file);
+	return content;
+error:
+	if (content) {
+		free(content);
+	}
+	return NULL;
+}
+
 static void const *ecsx_get_target_data(ecs_world_t *world, ecs_entity_t e, ecs_entity_t type)
 {
 	ecs_entity_t target = ecs_get_target(world, e, type, 0);
@@ -62,7 +99,7 @@ static void print_entity(ecs_world_t *world, ecs_entity_t e)
 	char const *scope_name = scope ? ecs_get_name(world, scope) : "";
 	char *path_str = ecs_get_fullpath(world, e);
 	char *type_str = ecs_type_str(world, ecs_get_type(world, e));
-	eg_log(ECS_GREY "%s" ECS_NORMAL " %s [%s]\n", scope_name, path_str, type_str);
+	ecs_dbg_2(ECS_GREY "%s" ECS_NORMAL " %s [%s]\n", scope_name, path_str, type_str);
 	ecs_os_free(type_str);
 	ecs_os_free(path_str);
 }
@@ -74,7 +111,7 @@ static void print_entity_from_it(ecs_iter_t *it, int i)
 	char const *scope_name = parent ? ecs_get_name(it->world, parent) : "";
 	char *path_str = ecs_get_fullpath(it->world, it->entities[i]);
 	char *type_str = ecs_type_str(it->world, ecs_get_type(it->world, it->entities[i]));
-	eg_log(ECS_MAGENTA "%s" ECS_NORMAL " %s [%s]\n", scope_name, path_str, type_str);
+	ecs_dbg_2(ECS_MAGENTA "%s" ECS_NORMAL " %s [%s]\n", scope_name, path_str, type_str);
 	ecs_os_free(type_str);
 	ecs_os_free(path_str);
 }
@@ -135,8 +172,8 @@ static void iterate_shader_uniforms(ecs_world_t *world, ecs_entity_t parent, sg_
 			char const *name = ecs_get_name(world, e);
 			SgUniform const *uniform = ecs_get(world, e, SgUniform);
 			SgUniformType const *type = ecsx_get_target_data(world, e, ecs_id(SgUniformType));
-			eg_assert_notnull(uniform);
-			eg_assert_notnull(type);
+			ecs_assert(uniform != NULL, ECS_INTERNAL_ERROR, NULL);
+			ecs_assert(type != NULL, ECS_INTERNAL_ERROR, NULL);
 			descs[uniform->index].name = name;
 			descs[uniform->index].array_count = uniform->array_count;
 			descs[uniform->index].type = type->value;
@@ -195,7 +232,7 @@ static void iterate_vertex_attrs(ecs_world_t *world, ecs_entity_t parent, sg_ver
 
 			if (ecs_has_pair(world, e, ecs_id(SgVertexFormat), EcsWildcard)) {
 				SgVertexFormat const *format = ecsx_get_target_data(world, e, ecs_id(SgVertexFormat));
-				eg_assert_notnull(format);
+				ecs_assert(format != NULL, ECS_INTERNAL_ERROR, NULL);
 				outstate->format = format->value;
 			} else {
 				ecs_entity_t f = get_vertex_format_entity(outstate->format);
@@ -252,9 +289,9 @@ void Pip_Create(ecs_iter_t *it)
 		SgPrimitiveType const *primitive_type = ecsx_get_target_data(world, e, ecs_id(SgPrimitiveType));
 		SgCullMode const *cull_mode = ecsx_get_target_data(world, e, ecs_id(SgCullMode));
 
-		eg_assert_notnull(index_type);
-		eg_assert_notnull(primitive_type);
-		eg_assert_notnull(cull_mode);
+		ecs_assert(index_type != NULL, ECS_INTERNAL_ERROR, NULL);
+		ecs_assert(primitive_type != NULL, ECS_INTERNAL_ERROR, NULL);
+		ecs_assert(cull_mode != NULL, ECS_INTERNAL_ERROR, NULL);
 
 		sg_pipeline_desc desc = {
 		.shader = shader->id,
@@ -289,14 +326,14 @@ void Shader_Create(ecs_iter_t *it)
 		ecs_doc_set_color(world, e, "#003366");
 		sg_shader_desc desc = {0};
 
-		eg_log("Readfile %s\n", create->filename_vs);
+		ecs_dbg_2("Readfile %s\n", create->filename_vs);
 		desc.vs.source = eg_fs_readfile(create->filename_vs);
 		if (desc.vs.source == NULL) {
 			ecs_enable(world, e, false);
 			break;
 		}
 
-		eg_log("Readfile %s\n", create->filename_fs);
+		ecs_dbg_2("Readfile %s\n", create->filename_fs);
 		desc.fs.source = eg_fs_readfile(create->filename_fs);
 		if (desc.fs.source == NULL) {
 			ecs_enable(world, e, false);
@@ -305,8 +342,10 @@ void Shader_Create(ecs_iter_t *it)
 
 		desc.vs.entry = "main";
 		desc.fs.entry = "main";
-		eg_assert_notnull(desc.vs.source);
-		eg_assert_notnull(desc.fs.source);
+
+
+		ecs_assert(desc.vs.source != NULL, ECS_INTERNAL_ERROR, NULL);
+		ecs_assert(desc.fs.source != NULL, ECS_INTERNAL_ERROR, NULL);
 		// shader->id = create_shader(desc->filename_fs, desc->filename_vs);
 		iterate_shader_attrs(world, entity_attrs, desc.attrs);
 		iterate_shader_blocks(world, entity_blocks, desc.vs.uniform_blocks);
@@ -314,7 +353,7 @@ void Shader_Create(ecs_iter_t *it)
 		sg_shader shd = sg_make_shader(&desc);
 		SgShader *shader = ecs_ensure(world, e, SgShader);
 		shader->id = shd;
-		eg_log("");
+		ecs_dbg_2("");
 	}
 }
 

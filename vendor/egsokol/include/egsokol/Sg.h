@@ -1,8 +1,8 @@
 #pragma once
 
 #include <flecs.h>
-#include <eg/Components.h>
-#include <eg/Windows.h>
+#include <egcomponents.h>
+#include <egwindows.h>
 #include <sokol_gfx.h>
 #include <sokol_debugtext.h>
 #include <sokol_app.h>

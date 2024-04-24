@@ -1,5 +1,6 @@
-#include "eg/eg_http.h"
+#include "eg_http.h"
 #include <stddef.h>
+#include <strings.h>
 
 // https://github.com/JeffreytheCoder/Simple-HTTP-Server/blob/master/server.c
 
