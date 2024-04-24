@@ -1,6 +1,6 @@
 #pragma once
 #include <flecs.h>
-#include "gmath.h"
+#include <egmath.h>
 
 typedef struct {
 	float fov;
@@ -11,4 +11,4 @@ typedef struct {
 
 extern ECS_COMPONENT_DECLARE(Camera);
 
-void CamerasImport(ecs_world_t *world);
+void EgCamerasImport(ecs_world_t *world);

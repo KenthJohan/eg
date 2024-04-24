@@ -1,8 +1,8 @@
-#include "eg/Cameras.h"
-#include "eg/Components.h"
-#include "eg/Spatials.h"
-#include "eg/Windows.h"
-#include "eg/gmath.h"
+#include "egcameras.h"
+
+#include <egspatials.h>
+#include <egwindows.h>
+#include <egmath.h>
 #include <assert.h>
 
 #ifndef M_PI
@@ -55,12 +55,11 @@ ECS_CTOR(Camera, ptr, {
 })
 
 
-void CamerasImport(ecs_world_t *world)
+void EgCamerasImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, Cameras);
-	ECS_IMPORT(world, Components);
-	ECS_IMPORT(world, Spatials);
-	ECS_IMPORT(world, Windows);
+	ECS_MODULE(world, EgCameras);
+	ECS_IMPORT(world, EgSpatials);
+	ECS_IMPORT(world, EgWindows);
 
 	ECS_COMPONENT_DEFINE(world, Camera);
 
