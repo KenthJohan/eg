@@ -166,18 +166,18 @@
 			}
 		},
 		{
-			"name": "Launch ex3_websrv",
+			"name": "Launch demo_webserver",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/ex3_websrv",
+			"cwd": "${workspaceFolder}/apps/demo_webserver",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/ex3_websrv/bin/x64-Linux-debug/ex3_websrv",
+			"program": "${workspaceFolder}/apps/demo_webserver/bin/x64-Linux-debug/demo_webserver",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",

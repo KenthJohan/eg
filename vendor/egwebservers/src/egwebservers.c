@@ -7,7 +7,7 @@
 ECS_COMPONENT_DECLARE(EgWebsrv);
 
 
-void eg_str_replace_ab(char *str, char a, char b)
+static void eg_str_replace_ab(char *str, char a, char b)
 {
 	char *p = str;
 	while (p[0]) {

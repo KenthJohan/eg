@@ -1,22 +1,26 @@
 {
-	"id": "ex3_websrv",
+	"id": "demo_webserver",
 	"type": "application",
 	"value": {
 		"language": "c",
 		"public": false,
 		"use": [
 			"flecs",
-			"eg"
+			"egstr",
+			"egfs",
+			"egwebservers",
+			"egmisc"
 		]
 	},
 	"lang.c": {
 		"c-standard": "c11",
-		"defines": [
-			"SOKOL_GLCORE33"
-		],
+		"defines": [],
 		"lib": [
 			"flecs",
-			"eg"
+			"egstr",
+			"egfs",
+			"egwebservers",
+			"egmisc"
 		],
 		"cflags": [
 			"-Werror",

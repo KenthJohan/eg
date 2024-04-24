@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 
-#include "egfs/eg_fs.h"
+#include "eg_fs.h"
 
 ECS_TAG_DECLARE(EgFsAdded);
 ECS_TAG_DECLARE(EgFsModified);

@@ -1,9 +1,9 @@
 #include <flecs.h>
 #include <stdio.h>
 //#include <egws/Websockets.h>
-#include <eg/EgWebservers.h>
-#include <eg/EgStr.h>
-#include <eg/EgFs.h>
+#include <egwebservers.h>
+#include <egstr.h>
+#include <egfs.h>
 
 
 

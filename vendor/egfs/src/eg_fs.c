@@ -1,6 +1,6 @@
-#include "eg/eg_fs.h"
-#include "eg/eg_assert.h"
-#include "eg/eg_log.h"
+#include "eg_fs.h"
+#include <egmisc/eg_assert.h>
+#include <egmisc/eg_log.h>
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
