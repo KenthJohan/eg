@@ -66,8 +66,8 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("max", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("tx", 0, 0, 0);
-		igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("tx", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+		igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("q", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("u", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableHeadersRow();
@@ -111,7 +111,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				igTableNextColumn();
 				if (signal->min != signal->max) {
 					igPushItemWidth(-1);
-					if (igSliderScalar("", ImGuiDataType_S32, &signal->tx, &signal->min, &signal->max, "%d", 0)) {
+					if (igSliderScalar("##s1", ImGuiDataType_S32, &signal->tx, &signal->min, &signal->max, "%d", 0)) {
 						EgCanBusBook_prepare_send(book, signal);
 					};
 					igPopItemWidth();
@@ -120,7 +120,27 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				}
 
 				igTableNextColumn();
+				if (signal->min != signal->max) {
+					igBeginDisabled(true);
+					igPushItemWidth(-1);
+					if (igSliderScalar("##s2", ImGuiDataType_S32, &signal->rx, &signal->min, &signal->max, "%d", 0)) {
+						EgCanBusBook_prepare_send(book, signal);
+					};
+					igPopItemWidth();
+					igEndDisabled();
+				} else {
+					igText("");
+				}
+
+				/*
+				igTableNextColumn();
+				igBeginDisabled(true);
 				igText("%i", signal->rx);
+				igEndDisabled();
+				*/
+
+
+
 				igTableNextColumn();
 				igText(quant ? quant->symbol : "");
 				igTableNextColumn();

@@ -63,7 +63,7 @@ void loop() {
   progress(mcp, ds3502);
   inc++;
   if((inc % 10000) == 0) {
-    mcp.beginPacket(CANID_HEARTBEAT);
+    mcp.beginPacket(CANID_MCU_TIME);
     mcp.write(inc2++);
     mcp.endPacket();
   }

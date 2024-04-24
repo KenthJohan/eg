@@ -201,7 +201,7 @@ static void * thread_loop(thread_stuff_t * stuff)
 		// Check every event:
 		for (int i = 0; i < num_events; i++) {
 			EgCanBusBook *book = events[i].data.ptr;
-			printf("epoll event: %i\n", book->socket);
+			//printf("epoll event: %i\n", book->socket);
 			eg_can_frame_t frame = {0};
 			eg_can_recv(book->socket, &frame);
 			ecs_os_mutex_lock(stuff->lock);
@@ -251,7 +251,7 @@ static void EgCanBusBook_System_Sender(ecs_iter_t *it)
 			if (book->tx[canid].dirty) {
 				eg_can_frame_t frame = {0};
 				frame.can_id = canid;
-				frame.len = 4;
+				frame.len = book->tx[canid].len;
 				frame.data[0] = book->tx[canid].packet[0];
 				frame.data[1] = book->tx[canid].packet[1];
 				frame.data[2] = book->tx[canid].packet[2];
@@ -316,7 +316,7 @@ void EgCanBusBook_prepare_send(EgCanBusBook * book, EgCanSignal * signal) {
 		return;
 	}
 	uint8_t value = signal->tx;
-	book->tx[signal->canid].len = 4;
+	book->tx[signal->canid].len = signal->len;
 	book->tx[signal->canid].packet[signal->byte_offset] = value;
 	book->tx[signal->canid].dirty = 1;
 }
@@ -381,6 +381,7 @@ void EgCanImport(ecs_world_t *world)
 	{.entity = ecs_id(EgCanSignal),
 	.members = {
 	{.name = "canid", .type = ecs_id(ecs_u32_t)},
+	{.name = "len", .type = ecs_id(ecs_i32_t)},
 	{.name = "rx", .type = ecs_id(ecs_i32_t)},
 	{.name = "tx", .type = ecs_id(ecs_i32_t)},
 	{.name = "byte_offset", .type = ecs_id(ecs_i32_t)},
