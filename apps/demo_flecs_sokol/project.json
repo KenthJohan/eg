@@ -1,5 +1,5 @@
 {
-	"id": "example1",
+	"id": "demo_flecs_sokol",
 	"type": "application",
 	"value": {
 		"language": "c",

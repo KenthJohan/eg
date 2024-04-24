@@ -193,7 +193,7 @@ sapp_desc sokol_main(int argc, char /*const*/ *argv[])
 	.width = 800,
 	.height = 600,
 	.sample_count = 4,
-	.window_title = "example1",
+	.window_title = "demo_flecs_sokol",
 	.icon.sokol_default = true,
 	.logger.func = slog_func,
 	};

@@ -258,18 +258,18 @@
 			}
 		},
 		{
-			"name": "Launch example1",
+			"name": "Launch demo_flecs_sokol",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/example1",
+			"cwd": "${workspaceFolder}/apps/demo_flecs_sokol",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/example1/bin/x64-Linux-debug/example1",
+			"program": "${workspaceFolder}/apps/demo_flecs_sokol/bin/x64-Linux-debug/demo_flecs_sokol",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
