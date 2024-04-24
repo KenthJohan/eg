@@ -1,10 +1,10 @@
 module app
 
-using components
-using windows
-using spatials
-using cameras
-using shapes
+using eg.components
+using eg.windows
+using eg.spatials
+using eg.cameras
+using eg.shapes
 
 // Rotate {Orientation} with keyboard
 Prefab SpaceShip {

@@ -20,6 +20,11 @@
 /* Headers of public dependencies */
 #include <flecs.h>
 #include <egsokol.h>
+#include <egcomponents.h>
+#include <egshapes.h>
+#include <egcameras.h>
+#include <egspatials.h>
+#include <egwindows.h>
 #include <sokol_app.h>
 #include <sokol_log.h>
 #include <sokol_gfx.h>

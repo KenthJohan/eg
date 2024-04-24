@@ -1,4 +1,4 @@
-#include "eg/eg_assert.h"
+#include "egmisc/eg_assert.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -7,7 +7,11 @@
 		"use": [
 			"flecs",
 			"egsokol",
-			"eg",
+			"egcomponents",
+			"egshapes",
+			"egcameras",
+			"egspatials",
+			"egwindows",
 			"sokol_app",
 			"sokol_log",
 			"sokol_gfx",
@@ -26,7 +30,6 @@
 		"lib": [
 			"flecs",
 			"egsokol",
-			"eg",
 			"egcomponents",
 			"egshapes",
 			"egcameras",
