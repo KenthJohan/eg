@@ -14,10 +14,10 @@
 #include <stdio.h>
 
 #include <flecs.h>
-#include <eg/Cameras.h>
-#include <eg/Components.h>
-#include <eg/Spatials.h>
-#include <egsokol/Sg.h>
+#include <egcameras.h>
+#include <egcomponents.h>
+#include <egspatials.h>
+#include <egsokol.h>
 
 #include "MiscShapes.h"
 #include "MiscLines.h"
@@ -56,9 +56,9 @@ static void init_cb(app_t *app)
 	.logger.func = slog_func,
 	});
 
-	ECS_IMPORT(world, Components);
-	ECS_IMPORT(world, Spatials);
-	ECS_IMPORT(world, Cameras);
+	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgSpatials);
+	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, MiscShapes);
 	ECS_IMPORT(world, MiscLines);
 	ECS_IMPORT(world, MiscPoints);

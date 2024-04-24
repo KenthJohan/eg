@@ -6,13 +6,13 @@
 #include <sokol_debugtext.h>
 #include <sokol_glue.h>
 #include <sokol_shape.h>
-#include "eg/eg_fs.h"
-#include "eg/Components.h"
-#include "eg/Cameras.h"
-#include "eg/Spatials.h"
-#include "eg/Shapes.h"
-#include "egsokol/Sg.h"
+#include <egcomponents.h>
+#include <egcameras.h>
+#include <egspatials.h>
+#include <egshapes.h>
+#include <egsokol.h>
 
+#include "lines.h"
 #include "shapes.h"
 
 static void AddShapeTorus(ecs_iter_t *it)
@@ -100,10 +100,10 @@ static void DrawShape(ecs_iter_t *it)
 void MiscShapesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MiscShapes);
-	ECS_IMPORT(world, Components);
-	ECS_IMPORT(world, Cameras);
-	ECS_IMPORT(world, Spatials);
-	ECS_IMPORT(world, Shapes);
+	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgCameras);
+	ECS_IMPORT(world, EgSpatials);
+	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, Sg);
 
 	ecs_system_init(world,

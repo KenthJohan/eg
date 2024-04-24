@@ -1,16 +1,16 @@
 #include "MiscLines.h"
-#include "egsokol/Sg.h"
-#include "eg/gmath.h"
+#include <egsokol.h>
+#include <egmath.h>
 #include <sokol_app.h>
 #include <sokol_gfx.h>
 #include <sokol_log.h>
 #include <sokol_debugtext.h>
 #include <sokol_glue.h>
 #include <sokol_shape.h>
-#include "eg/Components.h"
-#include "eg/Spatials.h"
-#include "eg/Cameras.h"
-#include "eg/Shapes.h"
+#include <egcomponents.h>
+#include <egspatials.h>
+#include <egcameras.h>
+#include <egshapes.h>
 
 
 ECS_COMPONENT_DECLARE(LinesBuffer);
@@ -122,10 +122,10 @@ ECS_CTOR(LinesBuffer, ptr, {
 void MiscLinesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MiscLines);
-	ECS_IMPORT(world, Components);
-	ECS_IMPORT(world, Spatials);
-	ECS_IMPORT(world, Cameras);
-	ECS_IMPORT(world, Shapes);
+	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgSpatials);
+	ECS_IMPORT(world, EgCameras);
+	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, Sg);
 
 	ECS_COMPONENT_DEFINE(world, LinesBuffer);

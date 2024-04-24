@@ -1,4 +1,4 @@
-#include "egsokol/Sg.h"
+#include "egsokol.h"
 #include <egcomponents.h>
 //#include <eg/eg_assert.h>
 //#include <eg/eg_fs.h>

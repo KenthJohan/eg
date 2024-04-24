@@ -25,11 +25,11 @@ ECS_CTOR(ShapeBuffer, ptr, {
 
 
 
-void ComponentsImport(ecs_world_t *world)
+void EgComponentsImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, Components);
+	ECS_MODULE(world, EgComponents);
 
-	ecs_set_name_prefix(world, "Components");
+	ecs_set_name_prefix(world, "EgComponents");
 
 	ECS_COMPONENT_DEFINE(world, Pass);
 

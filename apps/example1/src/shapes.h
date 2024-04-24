@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
-#include "eg/Shapes.h"
-#include "eg/Components.h"
+#include <egshapes.h>
+#include <egcomponents.h>
 #include <sokol_gfx.h>
 
 

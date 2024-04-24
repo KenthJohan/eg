@@ -102,7 +102,9 @@
 		"egshapes.h": "c",
 		"egimgui.h": "c",
 		"egcolors.h": "c",
-		"variant": "c"
+		"variant": "c",
+		"egcomponents.h": "c",
+		"egcameras.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

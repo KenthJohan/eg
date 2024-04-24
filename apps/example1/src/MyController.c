@@ -1,10 +1,10 @@
 #include "MyController.h"
 
-#include "egsokol/Sg.h"
-#include "eg/Components.h"
-#include "eg/Spatials.h"
-#include "eg/Cameras.h"
-#include "eg/Shapes.h"
+#include <egsokol.h>
+#include <egcomponents.h>
+#include <egspatials.h>
+#include <egcameras.h>
+#include <egshapes.h>
 #include "MiscLines.h"
 
 static void ControllerRotate(ecs_iter_t *it)
@@ -159,10 +159,10 @@ static void KeyActionToggleEntity_OnUpdate(ecs_iter_t *it)
 void MyControllerImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MyController);
-	ECS_IMPORT(world, Components);
-	ECS_IMPORT(world, Spatials);
-	ECS_IMPORT(world, Cameras);
-	ECS_IMPORT(world, Shapes);
+	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgSpatials);
+	ECS_IMPORT(world, EgCameras);
+	ECS_IMPORT(world, EgShapes);
 
 	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, KeyboardController, Rotate3, Window($));
 	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, KeyboardController, Velocity3, Window($));
