@@ -1,4 +1,4 @@
-#include "eg_can/eg_can.h"
+#include "eg_can.h"
 
 #include <stdio.h>
 #include <stdlib.h>
