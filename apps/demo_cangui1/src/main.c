@@ -22,11 +22,13 @@
 
 #include "GuiCan.h"
 #include "gui_signals.h"
+#include "gui_interfaces.h"
 
 typedef struct {
 	ecs_world_t * world;
 	ecs_query_t * q1;
 	ecs_query_t * q2;
+	ecs_query_t * q3;
 	ImFont * font;
 } app_t;
 
@@ -97,15 +99,15 @@ void frame(app_t * app) {
         igBegin("Signal window", &state.show_another_window, flags1);
 		igBeginTabBar("tabs", 0);
         //igText("Hello");
+		if (igBeginTabItem("Interfaces", NULL, 0)) {
+			gui_interfaces_progress(app->world, app->q3);
+			igEndTabItem();
+		};
 		if (igBeginTabItem("Signals", NULL, 0)) {
 			gui_signals_progress(app->world, app->q1);
 			igEndTabItem();
 		};
-		if (igBeginTabItem("Tab2", NULL, 0)) {
-			igText("Hello!");
-			igEndTabItem();
-		};
-		if (igBeginTabItem("Tab3", NULL, 0)) {
+		if (igBeginTabItem("CustomGUI", NULL, 0)) {
 			egimgui_progress1(app->world, app->q2);
 			igEndTabItem();
 		};
@@ -160,6 +162,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 	ecs_log_set_level(-1);
 	// clang-format off
 	app->q1 = gui_signals_query(app->world);
+	app->q3 = gui_interfaces_query(app->world);
 	app->q2 = egimgui_query1(app->world);
 	// clang-format on
 

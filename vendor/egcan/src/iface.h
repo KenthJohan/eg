@@ -16,8 +16,10 @@ typedef struct {
 
 
 typedef struct {
+	int index;
 	int clock;
 	int bitrate;
+	int mtu;
 } iface_info_t;
 
 

@@ -132,10 +132,30 @@ static void *thread_loop(thread_stuff_t *stuff)
 
 		// Check every event:
 		for (int i = 0; i < num_events; i++) {
+			if (events[i].events & EPOLLERR) {
+				printf("EPOLLERR\n");
+				// TODO: How to handle this error?
+				continue;
+			}
 			EgCanBusBook *book = events[i].data.ptr;
-			// printf("epoll event: %i\n", book->socket);
 			eg_can_frame_t frame = {0};
-			eg_can_recv(book->socket, &frame);
+			int rc = eg_can_recv(book->socket, &frame);
+			if (rc < 0) {
+				/*
+				if (epoll_ctl(stuff->fd_epoll, EPOLL_CTL_DEL, book->socket, NULL)) {
+					perror("failed to delete socket from epoll");
+					continue;
+				}
+				*/
+				/*
+				rc = close(book->socket);
+				if(rc < 0) {
+					perror("failed to close socket from epoll");
+					continue;
+				}
+				*/
+				continue;
+			}
 			ecs_os_mutex_lock(stuff->lock);
 			eg_can_book8_t *rx = book->rx + frame.can_id;
 			rx->dirty = 1;
@@ -259,7 +279,7 @@ void Tick(ecs_iter_t *it)
 		char buf[128];
 		snprintf(buf, sizeof(buf), "interfaces.%s", ifa->ifa_name);
 		ecs_entity_t a = ecs_new_entity(it->world, buf);
-		ecs_set(it->world, a, EgCanInterface, {.bitrate = info.bitrate, .clock = info.clock});
+		ecs_set(it->world, a, EgCanInterface, {.bitrate = info.bitrate, .clock = info.clock, .index = info.index, .mtu = info.mtu});
 	}
 	freeifaddrs(ifaddr);
 }
@@ -334,6 +354,7 @@ void EgCanImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(EgCanInterface),
 	.members = {
+	{.name = "index", .type = ecs_id(ecs_i32_t)},
 	{.name = "bitrate", .type = ecs_id(ecs_i32_t)},
 	{.name = "clock", .type = ecs_id(ecs_i32_t)},
 	}});

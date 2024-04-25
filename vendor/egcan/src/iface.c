@@ -30,8 +30,9 @@
 #include <unistd.h>
 #include <linux/if_link.h>
 #include <inttypes.h>
+#include <ctype.h>
 
-static int interface_index_from_name(int s, char const *interface)
+int interface_index_from_name(int s, char const *interface)
 {
 	int rc = 0;
 	struct ifreq ifr = {0};
@@ -79,8 +80,13 @@ void interface_details(char const *iname, iface_info_t *out)
 		exit(1);
 	}
 	while (fgets(buf, sizeof(buf), fp) != NULL) {
-		//printf("%s", buf);
+		printf("%s", buf);
 		char *p;
+		if (isdigit(buf[0])) {
+			char *endptr;
+			intmax_t m = strtoimax(buf, &endptr, 10);
+			out->index = (int)m;
+		}
 		p = strstr(buf, "bitrate");
 		if (p != NULL) {
 			char *endptr;
@@ -94,6 +100,13 @@ void interface_details(char const *iname, iface_info_t *out)
 			p += sizeof("clock");
 			intmax_t m = strtoimax(p, &endptr, 10);
 			out->clock = (int)m;
+		}
+		p = strstr(buf, " mtu ");
+		if (p != NULL) {
+			char *endptr;
+			p += sizeof(" mtu");
+			intmax_t m = strtoimax(p, &endptr, 10);
+			out->mtu = (int)m;
 		}
 	}
 	pclose(fp);

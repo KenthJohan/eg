@@ -110,7 +110,9 @@
 		"iface.h": "c",
 		"errno.h": "c",
 		"socket.h": "c",
-		"raw.h": "c"
+		"raw.h": "c",
+		"gui_interfaces.h": "c",
+		"inttypes.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

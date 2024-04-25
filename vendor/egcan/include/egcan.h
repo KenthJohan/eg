@@ -19,8 +19,10 @@ typedef struct {
 } EgCanBus;
 
 typedef struct {
+	int32_t index;
 	int32_t bitrate;
 	int32_t clock;
+	int32_t mtu;
 } EgCanInterface;
 
 
