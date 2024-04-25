@@ -1,9 +1,6 @@
 #pragma once
 
-// Fixes: error: variable ‘ifr’ has initializer but incomplete type
-#ifndef _DEFAULT_SOURCE
-#define _DEFAULT_SOURCE
-#endif
+
 
 #include <flecs.h>
 #include <stdint.h>
@@ -18,23 +15,17 @@ typedef struct {
 } EgCanBusDescription;
 
 typedef struct {
-	ecs_i32_t socket;
+	int32_t socket;
 } EgCanBus;
 
-
-
-#define EG_CAN_MAX_DLC 8
-#define EG_CAN_MAX_RAW_DLC 15
-#define EG_CAN_MAX_DLEN 8
-#define EG_CAN_MAX_ID 2031 // 0x7EF
 typedef struct {
-	uint32_t can_id;  // 32 bit CAN_ID + EFF/RTR/ERR flags
-	uint8_t len;      // CAN frame payload length in byte (0 .. EG_CAN_MAX_DLEN)
-	uint8_t __pad;    // padding
-	uint8_t __res0;   // reserve
-	uint8_t len8_dlc; // optional DLC for 8 byte payload length (9 .. 15)
-	uint8_t data[EG_CAN_MAX_DLEN] __attribute__((aligned(8)));
-} eg_can_frame_t;
+	int32_t bitrate;
+	int32_t clock;
+} EgCanInterface;
+
+
+
+
 
 
 #define EG_CAN_BOOK_CAP 1024
@@ -83,6 +74,7 @@ extern ECS_COMPONENT_DECLARE(EgCanBusDescription);
 extern ECS_COMPONENT_DECLARE(EgCanBus);
 extern ECS_COMPONENT_DECLARE(EgCanSignal);
 extern ECS_COMPONENT_DECLARE(EgCanBusBook);
+extern ECS_COMPONENT_DECLARE(EgCanInterface);
 
 void EgCanBusBook_prepare_send(EgCanBusBook * book, EgCanSignal * signal);
 

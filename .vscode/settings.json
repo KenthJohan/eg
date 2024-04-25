@@ -106,7 +106,11 @@
 		"egcomponents.h": "c",
 		"egcameras.h": "c",
 		"ioctl.h": "c",
-		"sockets.h": "c"
+		"sockets.h": "c",
+		"iface.h": "c",
+		"errno.h": "c",
+		"socket.h": "c",
+		"raw.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
