@@ -104,7 +104,8 @@
 		"egcolors.h": "c",
 		"variant": "c",
 		"egcomponents.h": "c",
-		"egcameras.h": "c"
+		"egcameras.h": "c",
+		"ioctl.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
