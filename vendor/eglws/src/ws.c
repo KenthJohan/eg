@@ -1,6 +1,6 @@
 #include "ws.h"
-#include "eglws/Websockets.h"
-#include "eg/Components.h"
+#include "eglws.h"
+#include "egcomponents.h"
 #include <assert.h>
 
 #include <libwebsockets.h>

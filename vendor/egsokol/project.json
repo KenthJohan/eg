@@ -5,7 +5,7 @@
 		"language": "c",
 		"public": true,
 		"use": [
-			"eg",
+			"egcomponents",
 			"sokol_gfx",
 			"sokol_debugtext",
 			"sokol_app",
@@ -19,7 +19,7 @@
 		"defines": [],
 		"cflags": [],
 		"lib": [
-			"eg",
+			"egcomponents",
 			"sokol_gfx",
 			"sokol_debugtext",
 			"sokol_app",

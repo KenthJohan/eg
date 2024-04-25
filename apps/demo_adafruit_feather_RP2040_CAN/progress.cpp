@@ -37,6 +37,16 @@ void progress_can_rx(Adafruit_MCP2515 &can, uint8_t rx[], int len, Adafruit_DS35
         can.write(w[3]);
         can.write(1);
         can.endPacket();
+        can.beginPacket(CANID_MOTORS);
+        can.write(w[0]);
+        can.write(w[1]);
+        can.write(w[2]);
+        can.write(w[3]);
+        can.write(1);
+        can.endPacket();
+
+
+        
       } else {
         Serial.printf("[warning] CANID_DIGIPOTS_WIPER packet not supported\n");
       }

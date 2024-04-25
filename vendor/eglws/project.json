@@ -5,17 +5,17 @@
 		"language": "c",
 		"public": true,
 		"use": [
-			"eg"
+			"egcomponents"
 		]
 	},
 	"lang.c": {
-		"c-standard": "c11",
+		"c-standard": "gnu99",
 		"export-symbols": true,
 		"static": true,
 		"defines": [],
 		"cflags": [],
 		"lib": [
-			"eg",
+			"egcomponents",
 			"websockets"
 		]
 	}

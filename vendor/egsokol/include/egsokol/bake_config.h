@@ -18,6 +18,7 @@
 #define EGSOKOL_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
+#include <egcomponents.h>
 #include <sokol_gfx.h>
 #include <sokol_debugtext.h>
 #include <sokol_app.h>

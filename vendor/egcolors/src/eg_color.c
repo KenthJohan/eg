@@ -1,4 +1,4 @@
-#include "eg/eg_color.h"
+#include "eg_color.h"
 
 void eg_color_hsv_to_rgb(uint8_t h, uint8_t s, uint8_t v, uint8_t *out_r, uint8_t *out_g, uint8_t *out_b)
 {

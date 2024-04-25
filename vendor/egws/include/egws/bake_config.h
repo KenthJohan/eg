@@ -18,7 +18,7 @@
 #define EGWS_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <egcomponents.h>
 
 /* Convenience macro for exporting symbols */
 #ifndef egws_STATIC

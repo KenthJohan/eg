@@ -1,7 +1,7 @@
-#include "egws/EgWebsockets.h"
-#include "eg/Components.h"
-#include "eg/EgFs.h"
-#include "eg/EgStr.h"
+#include "egws.h"
+#include "egcomponents.h"
+#include "egfs.h"
+#include "egstr.h"
 #include "ws.h"
 
 
@@ -79,7 +79,7 @@ void * ping_thread(void * arg) {
 void EgWebsocketsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgWebsockets);
-	ECS_IMPORT(world, Components);
+	ECS_IMPORT(world, EgComponents);
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgStr);
 
