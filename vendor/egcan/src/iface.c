@@ -69,6 +69,34 @@ int socket_from_interace(char const *interface)
 	return s;
 }
 
+
+int parse_int(char const * str, char const * needle, int size, intmax_t * out)
+{
+	char const *p = strstr(str, needle);
+	if (p != NULL) {
+		char const *endptr;
+		p += size;
+		intmax_t value = strtoimax(p, &endptr, 10);
+		if (endptr != p) {
+			(*out) = value;
+			return 0;
+		}
+	}
+	return -1;
+}
+
+
+int parse_i32(char const * str, char const * needle, int size, int32_t * out)
+{
+	intmax_t v = 0;
+	int rc = parse_int(str, needle, size, &v);
+	if(rc == 0) {
+		(*out) = (int32_t)v;
+	}
+	return rc;
+}
+
+
 void interface_details(char const *iname, iface_info_t *out)
 {
 	FILE *fp;
@@ -87,27 +115,15 @@ void interface_details(char const *iname, iface_info_t *out)
 			intmax_t m = strtoimax(buf, &endptr, 10);
 			out->index = (int)m;
 		}
-		p = strstr(buf, "bitrate");
-		if (p != NULL) {
-			char *endptr;
-			p += sizeof("bitrate");
-			intmax_t m = strtoimax(p, &endptr, 10);
-			out->bitrate = (int)m;
-		}
-		p = strstr(buf, "clock");
-		if (p != NULL) {
-			char *endptr;
-			p += sizeof("clock");
-			intmax_t m = strtoimax(p, &endptr, 10);
-			out->clock = (int)m;
-		}
-		p = strstr(buf, " mtu ");
-		if (p != NULL) {
-			char *endptr;
-			p += sizeof(" mtu");
-			intmax_t m = strtoimax(p, &endptr, 10);
-			out->mtu = (int)m;
-		}
+		parse_i32(buf, " mtu ", sizeof(" mtu"), &(out->mtu));
+		parse_i32(buf, "bitrate", sizeof("bitrate"), &(out->can_bitrate));
+		parse_i32(buf, "clock", sizeof("clock"), &(out->can_clock));
+		parse_i32(buf, "tso_max_size", sizeof("tso_max_size"), &(out->tso_max_size));
+		parse_i32(buf, "numtxqueues", sizeof("numtxqueues"), &(out->numtxqueues));
+		parse_i32(buf, "numrxqueues", sizeof("numrxqueues"), &(out->numrxqueues));
+		parse_i32(buf, "minmtu", sizeof("minmtu"), &(out->minmtu));
+		parse_i32(buf, "maxmtu", sizeof("maxmtu"), &(out->maxmtu));
+		
 	}
 	pclose(fp);
 }

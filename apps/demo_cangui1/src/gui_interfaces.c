@@ -41,12 +41,18 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
-	if (igBeginTable("Signals table", 5, flags2, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 10, flags2, (ImVec2){0, 0}, 0)) {
 		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("index", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("bitrate", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("clock", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("can_bitrate", ImGuiTableColumnFlags_WidthFixed, 60, 0);
+		igTableSetupColumn("can_clock", ImGuiTableColumnFlags_WidthFixed, 60, 0);
 		igTableSetupColumn("mtu", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("minmtu", ImGuiTableColumnFlags_WidthFixed, 80, 0);
+		igTableSetupColumn("maxmtu", ImGuiTableColumnFlags_WidthFixed, 80, 0);
+		igTableSetupColumn("tso_max_size", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("numtxqueues", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("numrxqueues", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		
 		igTableHeadersRow();
 
 		/*
@@ -65,12 +71,32 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 				igTableNextColumn();
 				igText("%i", iface->index);
 				igTableNextColumn();
-				igText("%i", iface->bitrate);
+				igText("%i", iface->can_bitrate);
 				igTableNextColumn();
-				igText("%i", iface->clock);
+				igText("%i", iface->can_clock);
 				igTableNextColumn();
 				igText("%i", iface->mtu);
+				igTableNextColumn();
+				igText("%i", iface->minmtu);
+				igTableNextColumn();
+				igText("%i", iface->maxmtu);
+				igTableNextColumn();
+				igText("%i", iface->tso_max_size);
+				igTableNextColumn();
+				igText("%i", iface->numtxqueues);
+				igTableNextColumn();
+				igText("%i", iface->numrxqueues);
 			} else {
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
 				igTableNextColumn();
 				igText("");
 				igTableNextColumn();

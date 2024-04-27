@@ -143,15 +143,15 @@ static void *thread_loop(thread_stuff_t *stuff)
 			if (rc < 0) {
 				/*
 				if (epoll_ctl(stuff->fd_epoll, EPOLL_CTL_DEL, book->socket, NULL)) {
-					perror("failed to delete socket from epoll");
-					continue;
+				    perror("failed to delete socket from epoll");
+				    continue;
 				}
 				*/
 				/*
 				rc = close(book->socket);
 				if(rc < 0) {
-					perror("failed to close socket from epoll");
-					continue;
+				    perror("failed to close socket from epoll");
+				    continue;
 				}
 				*/
 				continue;
@@ -279,7 +279,18 @@ void Tick(ecs_iter_t *it)
 		char buf[128];
 		snprintf(buf, sizeof(buf), "interfaces.%s", ifa->ifa_name);
 		ecs_entity_t a = ecs_new_entity(it->world, buf);
-		ecs_set(it->world, a, EgCanInterface, {.bitrate = info.bitrate, .clock = info.clock, .index = info.index, .mtu = info.mtu});
+		EgCanInterface ptr = {
+		.can_bitrate = info.can_bitrate,
+		.can_clock = info.can_clock,
+		.index = info.index,
+		.mtu = info.mtu,
+		.tso_max_size = info.tso_max_size,
+		.numtxqueues = info.numtxqueues,
+		.numrxqueues = info.numrxqueues,
+		.minmtu = info.minmtu,
+		.maxmtu = info.maxmtu,
+		};
+		ecs_set_ptr(it->world, a, EgCanInterface, &ptr);
 	}
 	freeifaddrs(ifaddr);
 }
@@ -357,6 +368,11 @@ void EgCanImport(ecs_world_t *world)
 	{.name = "index", .type = ecs_id(ecs_i32_t)},
 	{.name = "bitrate", .type = ecs_id(ecs_i32_t)},
 	{.name = "clock", .type = ecs_id(ecs_i32_t)},
+	{.name = "tso_max_size", .type = ecs_id(ecs_i32_t)},
+	{.name = "numtxqueues", .type = ecs_id(ecs_i32_t)},
+	{.name = "numrxqueues", .type = ecs_id(ecs_i32_t)},
+	{.name = "minmtu", .type = ecs_id(ecs_i32_t)},
+	{.name = "maxmtu", .type = ecs_id(ecs_i32_t)},
 	}});
 
     ecs_system(world, {

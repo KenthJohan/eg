@@ -20,9 +20,14 @@ typedef struct {
 
 typedef struct {
 	int32_t index;
-	int32_t bitrate;
-	int32_t clock;
+	int32_t can_bitrate;
+	int32_t can_clock;
 	int32_t mtu;
+	int32_t tso_max_size;
+	int32_t numtxqueues;
+	int32_t numrxqueues;
+	int32_t minmtu;
+	int32_t maxmtu;
 } EgCanInterface;
 
 
