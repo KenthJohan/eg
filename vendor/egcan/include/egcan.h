@@ -12,10 +12,27 @@ typedef struct {
 typedef struct {
 	char const * interface;
 	int32_t signals_amount;
+	int32_t error;
 } EgCanBusDescription;
+
+
+#define EG_CAN_BOOK_CAP 1024
+typedef struct {
+	int len;
+	int dirty;
+	uint8_t payload[8];
+} eg_can_book_packet8_t;
+
+typedef struct {
+	int32_t sock;
+	int32_t cap;
+	eg_can_book_packet8_t * tx;
+	eg_can_book_packet8_t * rx;
+} eg_can_book_t;
 
 typedef struct {
 	int32_t socket;
+	eg_can_book_t * ptr;
 } EgCanBus;
 
 typedef struct {
@@ -35,19 +52,7 @@ typedef struct {
 
 
 
-#define EG_CAN_BOOK_CAP 1024
-typedef struct {
-	int len;
-	int dirty;
-	uint8_t packet[8];
-} eg_can_book8_t;
 
-typedef struct {
-	int32_t socket;
-	int32_t cap;
-	eg_can_book8_t * tx;
-	eg_can_book8_t * rx;
-} EgCanBusBook;
 
 /*
 https://docs.openvehicles.com/en/latest/components/vehicle_dbc/docs/dbc-primer.html
@@ -80,9 +85,8 @@ extern ECS_COMPONENT_DECLARE(EgCanEpoll);
 extern ECS_COMPONENT_DECLARE(EgCanBusDescription);
 extern ECS_COMPONENT_DECLARE(EgCanBus);
 extern ECS_COMPONENT_DECLARE(EgCanSignal);
-extern ECS_COMPONENT_DECLARE(EgCanBusBook);
 extern ECS_COMPONENT_DECLARE(EgCanInterface);
 
-void EgCanBusBook_prepare_send(EgCanBusBook * book, EgCanSignal * signal);
+void eg_can_book_prepare_send(eg_can_book_t * book, EgCanSignal * signal);
 
 void EgCanImport(ecs_world_t *world);

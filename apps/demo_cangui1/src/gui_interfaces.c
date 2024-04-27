@@ -52,7 +52,7 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 		igTableSetupColumn("tso_max_size", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 		igTableSetupColumn("numtxqueues", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 		igTableSetupColumn("numrxqueues", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		
+
 		igTableHeadersRow();
 
 		/*
@@ -116,8 +116,10 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 
 ecs_query_t *gui_interfaces_query(ecs_world_t *world)
 {
+	// clang-format off
 	ecs_query_t *q = ecs_query(world, {.filter.terms = {
-	                                   {.id = ecs_id(EgCanInterface)},
-	                                   }});
+		{.id = ecs_id(EgCanInterface)},
+	}});
+	// clang-format on
 	return q;
 }

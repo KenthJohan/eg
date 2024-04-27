@@ -74,7 +74,7 @@ int parse_int(char const * str, char const * needle, int size, intmax_t * out)
 {
 	char const *p = strstr(str, needle);
 	if (p != NULL) {
-		char const *endptr;
+		char *endptr;
 		p += size;
 		intmax_t value = strtoimax(p, &endptr, 10);
 		if (endptr != p) {
@@ -108,8 +108,7 @@ void interface_details(char const *iname, iface_info_t *out)
 		exit(1);
 	}
 	while (fgets(buf, sizeof(buf), fp) != NULL) {
-		printf("%s", buf);
-		char *p;
+		//printf("%s", buf);
 		if (isdigit(buf[0])) {
 			char *endptr;
 			intmax_t m = strtoimax(buf, &endptr, 10);
@@ -173,45 +172,7 @@ void print_flags(unsigned int flags)
 	// printf("IFF_ECHO          : %i\n", !!(flags & IFF_ECHO       ));
 }
 
-void list_interfaces()
-{
-	struct ifaddrs *ifaddr;
-	int rc = getifaddrs(&ifaddr);
-	if (rc < 0) {
-		return;
-	}
-	for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-		//if (strcmp(ifa->ifa_name, "can0") == 0) {
-			//printf("%s\n", ifa->ifa_name);
-			iface_info_t info;
-			interface_details(ifa->ifa_name, &info);
-			//print_flags(ifa->ifa_flags);
-		//}
-		/*
-		if (ifa->ifa_addr == NULL)
-		    continue;
-		family = ifa->ifa_addr->sa_family;
-		printf("%-8s %s (%d)\n",ifa->ifa_name,(family == AF_PACKET) ? "AF_PACKET" :(family == AF_INET) ? "AF_INET":(family == AF_INET6) ? "AF_INET6": "???",family);
-		if (family == AF_INET || family == AF_INET6) {
-		    s = getnameinfo(ifa->ifa_addr,
-		    (family == AF_INET) ? sizeof(struct sockaddr_in) :sizeof(struct sockaddr_in6),host, NI_MAXHOST,
-		    NULL, 0, NI_NUMERICHOST);
 
-		    if (s != 0) {
-		        printf("getnameinfo() failed: %s\n", gai_strerror(s));
-		        exit(EXIT_FAILURE);
-		    }
-		    printf("\t\taddress: <%s>\n", host);
-		} else if (family == AF_PACKET && ifa->ifa_data != NULL) {
-		    struct rtnl_link_stats *stats = ifa->ifa_data;
-		    printf("\t\ttx_packets = %10u; rx_packets = %10u\n""\t\ttx_bytes   = %10u; rx_bytes   = %10u\n",
-		    stats->tx_packets, stats->rx_packets,
-		    stats->tx_bytes, stats->rx_bytes);
-		}
-		*/
-	}
-	freeifaddrs(ifaddr);
-}
 
 #define EG_CAN_CTRLMSG_LEN CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(3 * sizeof(struct timespec)) + CMSG_SPACE(sizeof(__u32))
 /* CAN CC/FD/XL frame union */
