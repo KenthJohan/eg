@@ -15,8 +15,8 @@ void Adafruit_DS3502_begin(SerialUSB& s, Adafruit_DS3502 &ds, uint8_t a) {
   s.printf("[begin] DS3502 %02X\n", a);
   if (!ds.begin(DS3502_I2CADDR_DEFAULT + a)) {
     Serial.printf("[error] DS3502 %02X\n", a);
-    while(1) {
-      delay(10);
+    while(0) {
+      delay(100);
     } 
   }
   s.printf("[found] DS3502 %02X\n", a);
@@ -27,7 +27,7 @@ void Adafruit_MCP2515_begin(SerialUSB& s, Adafruit_MCP2515 &m) {
   s.println("[begin] MCP2515");
   if (!m.begin(CAN_BAUDRATE)) {
     s.println("[error] MCP2515");
-    while(1) {
+    while(0) {
       delay(10);
     }
   }
@@ -44,6 +44,14 @@ void setup() {
   Adafruit_DS3502_begin(Serial, ds3502[2], 0x02);
   Adafruit_DS3502_begin(Serial, ds3502[3], 0x03);
   Adafruit_MCP2515_begin(Serial, mcp);
+  pinMode(MOTOR_L0_PIN, OUTPUT);
+  pinMode(MOTOR_L1_PIN, OUTPUT);
+  pinMode(MOTOR_R0_PIN, OUTPUT);
+  pinMode(MOTOR_R1_PIN, OUTPUT);
+  digitalWrite(MOTOR_L0_PIN, 0);
+  digitalWrite(MOTOR_L1_PIN, 0);
+  digitalWrite(MOTOR_R0_PIN, 0);
+  digitalWrite(MOTOR_R1_PIN, 0);
 
   Serial.println("[cansend] begin");
   mcp.beginPacket(CANID_BEGIN);
@@ -66,5 +74,12 @@ void loop() {
     mcp.beginPacket(CANID_MCU_TIME);
     mcp.write(inc2++);
     mcp.endPacket();
+    /*
+    digitalWrite(MOTOR_L0_PIN, !digitalRead(MOTOR_L0_PIN));
+    digitalWrite(MOTOR_L1_PIN, !digitalRead(MOTOR_L1_PIN));
+    digitalWrite(MOTOR_R0_PIN, !digitalRead(MOTOR_R0_PIN));
+    digitalWrite(MOTOR_R1_PIN, !digitalRead(MOTOR_R1_PIN));
+    Serial.printf("[TOGGLE] %i\n", digitalRead(MOTOR_L0_PIN));
+    */
   }
 }

@@ -139,6 +139,9 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			}
 
 			igTableNextColumn();
+
+			igText("%i", signal->rx);
+			/*
 			if (signal->min != signal->max) {
 				igBeginDisabled(true);
 				igPushItemWidth(-1);
@@ -148,6 +151,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			} else {
 				igText("");
 			}
+			*/
 
 			/*
 			igTableNextColumn();

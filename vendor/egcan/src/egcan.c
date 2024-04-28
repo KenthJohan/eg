@@ -241,7 +241,8 @@ static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t * book)
 		return;
 	}
 	// TODO: Support all types and bit offsets
-	int32_t value = book->rx[id].payload[o];
+	eg_can_book_packet8_t * rx = book->rx + id;
+	int32_t value = (int8_t)rx->payload[o];
 	signal->rx = value;
 }
 

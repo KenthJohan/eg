@@ -2,17 +2,20 @@
 #include <Adafruit_MCP2515.h>
 #include <Adafruit_DS3502.h>
 #include "config.h"
+#include "motor.hpp"
+#include "mixer.h"
 
-void progress_can_rx(Adafruit_MCP2515 &can, uint8_t rx[], int len, Adafruit_DS3502 pot[4])
+void progress_can_rx(Adafruit_MCP2515 &can, uint8_t rx[], int len, Adafruit_DS3502 dpot[4])
 {
   switch(can.packetId()) {
-    case CANID_DIGIPOTS:
+    case CANID_MOTORS:
       if(len >= 4) {
-        Serial.printf("setWiper %03i %03i %03i %03i\n", rx[0], rx[1], rx[2], rx[3]);
-        pot[0].setWiper(rx[0]);
-        pot[1].setWiper(rx[1]);
-        pot[2].setWiper(rx[2]);
-        pot[3].setWiper(rx[3]);
+        int8_t m[4];
+        m[MOTOR_L0] = rx[0];
+        m[MOTOR_L1] = rx[1];
+        m[MOTOR_R0] = rx[2];
+        m[MOTOR_R1] = rx[3];
+        motor_driver(can, dpot, m);
       } else {
         Serial.printf("[warning] CANID_DIGIPOTS packet not supported\n");
       }
@@ -20,33 +23,11 @@ void progress_can_rx(Adafruit_MCP2515 &can, uint8_t rx[], int len, Adafruit_DS35
 
     case CANID_MOVE:
       if(len == 2) {
-        uint8_t w[4];
-        w[0] = rx[0] + rx[1];
-        w[1] = rx[0];
-        w[2] = rx[0] + rx[1];
-        w[3] = rx[0];
-        Serial.printf("setWiper %03i %03i %03i %03i\n", w[0], w[1], w[2], w[3]);
-        pot[0].setWiper(w[0]);
-        pot[1].setWiper(w[1]);
-        pot[2].setWiper(w[2]);
-        pot[3].setWiper(w[3]);
-        can.beginPacket(CANID_DIGIPOTS);
-        can.write(w[0]);
-        can.write(w[1]);
-        can.write(w[2]);
-        can.write(w[3]);
-        can.write(1);
-        can.endPacket();
-        can.beginPacket(CANID_MOTORS);
-        can.write(w[0]);
-        can.write(w[1]);
-        can.write(w[2]);
-        can.write(w[3]);
-        can.write(1);
-        can.endPacket();
-
-
-        
+        int32_t f = (int8_t)rx[0];
+        int32_t r = (int8_t)rx[1];
+        int8_t m[4];
+        mixer(f, r, 127, m);
+        motor_driver(can, dpot, m);
       } else {
         Serial.printf("[warning] CANID_DIGIPOTS_WIPER packet not supported\n");
       }
@@ -69,9 +50,10 @@ void progress(Adafruit_MCP2515 &can, Adafruit_DS3502 pot[4])
 {
   // try to parse packet
   int len = can.parsePacket();
+  //Serial.printf("len:%03i\n", len);
   if (len) {
     // received a packet
-    Serial.printf("canid:%03X\n", can.packetId());
+    Serial.printf("canid:%03i\n", can.packetId());
 
     if (can.packetExtended()) {
       Serial.print("packetExtended(): ");

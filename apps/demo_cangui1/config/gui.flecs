@@ -1,20 +1,5 @@
 module app.gui
 
-a : app.signals.motor_1 {
-	- gui.can.GuiSlider{value:123, list_index:1}
-}
-
-b : app.signals.motor_2 {
-	- gui.can.GuiSlider{value:123, list_index:2}
-}
-
-c : app.signals.motor_3 {
-	- gui.can.GuiSlider{value:123, list_index:3}
-}
-
-d : app.signals.motor_4 {
-	- gui.can.GuiSlider{value:123, list_index:4}
-}
 
 
 const bar_thick = 40
@@ -24,25 +9,25 @@ const bar_y = 10
 const bot_w = 150
 const bot_h = 100
 
-m1 : app.signals.motor_1 {
+m1 : app.signals.motor_l0 {
 	- eg.spatials.Position2{x:$bar_x, y:$bar_y}
 	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
 	- eg.quantities.Progress{min:0, max:128, value:50}
 }
 
-m2 : app.signals.motor_2 {
+m2 : app.signals.motor_l1 {
 	- eg.spatials.Position2{x:$bar_x, y:$bar_y+$bot_h}
 	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
 	- eg.quantities.Progress{min:0, max:128, value:50}
 }
 
-m3 : app.signals.motor_3 {
+m3 : app.signals.motor_r0 {
 	- eg.spatials.Position2{x:$bar_x + $bot_w, y:$bar_y}
 	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
 	- eg.quantities.Progress{min:0, max:128, value:50}
 }
 
-m4 : app.signals.motor_4 {
+m4 : app.signals.motor_r1 {
 	- eg.spatials.Position2{x:$bar_x + $bot_w, y:$bar_y+$bot_h}
 	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
 	- eg.quantities.Progress{min:0, max:128, value:50}
