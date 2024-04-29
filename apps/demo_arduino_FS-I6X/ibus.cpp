@@ -36,7 +36,7 @@ void FlySkyIBus::loop(void)
     last = now;
     
     uint8_t v = stream->read();
-    Serial.println(v, HEX);
+    //Serial.println(v, HEX);
     switch (state)
     {
       case GET_LENGTH:

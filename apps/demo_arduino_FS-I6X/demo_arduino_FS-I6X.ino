@@ -9,6 +9,15 @@ void setup()
 void loop() 
 {
   IBus.loop();
-  //Serial.println(IBus.readChannel(0), HEX);
+  Serial.printf("%03i ", IBus.readChannel(0));
+  Serial.printf("%03i ", IBus.readChannel(1));
+  Serial.printf("%03i ", IBus.readChannel(2));
+  Serial.printf("%03i ", IBus.readChannel(3));
+  Serial.printf("%03i ", IBus.readChannel(4));
+  Serial.printf("%03i ", IBus.readChannel(5));
+  Serial.printf("%03i ", IBus.readChannel(6));
+  Serial.printf("%03i ", IBus.readChannel(7));
+  Serial.printf("%03i ", IBus.readChannel(8));
+  Serial.printf("%03i\n", IBus.readChannel(9));
 }
 
