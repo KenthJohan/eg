@@ -15,19 +15,19 @@ m1 : app.signals.motor_l0 {
 	- eg.quantities.Progress{min:0, max:128, value:50}
 }
 
-m2 : app.signals.motor_l1 {
+m2 : app.signals.motor_r1 {
 	- eg.spatials.Position2{x:$bar_x, y:$bar_y+$bot_h}
 	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
 	- eg.quantities.Progress{min:0, max:128, value:50}
 }
 
-m3 : app.signals.motor_r0 {
+m3 : app.signals.motor_l1 {
 	- eg.spatials.Position2{x:$bar_x + $bot_w, y:$bar_y}
 	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
 	- eg.quantities.Progress{min:0, max:128, value:50}
 }
 
-m4 : app.signals.motor_r1 {
+m4 : app.signals.motor_r0 {
 	- eg.spatials.Position2{x:$bar_x + $bot_w, y:$bar_y+$bot_h}
 	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
 	- eg.quantities.Progress{min:0, max:128, value:50}

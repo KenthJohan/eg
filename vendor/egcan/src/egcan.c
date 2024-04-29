@@ -267,7 +267,8 @@ static void System_Value(ecs_iter_t *it)
 void Tick(ecs_iter_t *it)
 {
 	iplink_info_t info[5] = {0};
-	int n = iplink_parse(info, 5);
+	int n = 0;
+	//n = iplink_parse(info, 5);
 
 	for (int i = 0; i < n; ++i) {
 		char buf[256];

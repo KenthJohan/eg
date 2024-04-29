@@ -28,7 +28,7 @@ void progress_can_rx(Adafruit_MCP2515 &can, uint8_t rx[], int len, Adafruit_DS35
         int32_t t[4];
         int8_t m[4];
         mixer(f, r, 127, t, m);
-        Serial.printf("setWiper %03i %03i %03i %03i\n", t[MOTOR_L0], t[MOTOR_L1], t[MOTOR_R0], t[MOTOR_R1]);
+        //Serial.printf("setWiper %03i %03i %03i %03i\n", t[MOTOR_L0], t[MOTOR_L1], t[MOTOR_R0], t[MOTOR_R1]);
         motor_driver(can, dpot, m);
       } else {
         Serial.printf("[warning] CANID_DIGIPOTS_WIPER packet not supported\n");
@@ -55,7 +55,7 @@ void progress(Adafruit_MCP2515 &can, Adafruit_DS3502 pot[4])
   //Serial.printf("len:%03i\n", len);
   if (len) {
     // received a packet
-    Serial.printf("canid:%03i\n", can.packetId());
+    //Serial.printf("canid:%03i\n", can.packetId());
 
     if (can.packetExtended()) {
       Serial.print("packetExtended(): ");

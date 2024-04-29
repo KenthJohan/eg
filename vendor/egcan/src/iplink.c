@@ -12,9 +12,14 @@ static char const *popen_to_string(char const *command)
 		return NULL;
 	}
 
-	char buf[1035];
+	char buf[4094];
 	ecs_strbuf_t b = ECS_STRBUF_INIT;
-	while (fgets(buf, sizeof(buf), fp) != NULL) {
+	while (1) {
+		int test = fgetc(fp);
+		char * rc = fgets(buf, sizeof(buf), fp);
+		if(rc == NULL) {
+			break;
+		}
 		ecs_strbuf_appendstr(&b, buf);
 	}
 	pclose(fp);

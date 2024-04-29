@@ -7,6 +7,8 @@
 #include "config.h"
 #include "progress.hpp"
 #include "ibus.hpp"
+#include "motor.hpp"
+#include "mixer.h"
 
 Adafruit_DS3502 ds3502[4];
 Adafruit_MCP2515 mcp(PIN_CAN_CS);
@@ -115,6 +117,17 @@ void loop() {
   mcp.write(rcval[8]);
   mcp.write(rcval[9]);
   mcp.endPacket();
+
+  if (rcval[9] == 127) {
+    int32_t f = (int8_t)rcval[1];
+    int32_t r = (int8_t)rcval[0];
+    int32_t t[4];
+    int8_t m[4];
+    mixer(f, r, 127, t, m);
+    //Serial.printf("setWiper %03i %03i %03i %03i\n", t[MOTOR_L0], t[MOTOR_L1], t[MOTOR_R0], t[MOTOR_R1]);
+    motor_driver(mcp, ds3502, m);
+  } 
+
 
 /*
   Serial.printf("%03i ", rcval[0]);
