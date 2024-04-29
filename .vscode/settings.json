@@ -116,7 +116,8 @@
 		"if_link.h": "c",
 		"unistd.h": "c",
 		"json.h": "c",
-		"jsmn.h": "c"
+		"jsmn.h": "c",
+		"eg_color.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
