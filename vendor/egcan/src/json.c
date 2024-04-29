@@ -81,13 +81,16 @@ int jsoneq(const char *json, jsmntok_t *t, const char *s)
 	return -1;
 }
 
-jsmntok_t *search(const char *json, jsmntok_t *t, const char *s)
+jsmntok_t *search(const char *json, jsmntok_t *t, int scope, const char *s)
 {
 	ecs_assert(json != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(t != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(s != NULL, ECS_INVALID_PARAMETER, NULL);
 	while (1) {
 		if (t->type == JSMN_UNDEFINED) {
+			return NULL;
+		}
+		if (t->parent < scope) {
 			return NULL;
 		}
 		if (jsoneq(json, t, s) == 0) {
@@ -98,7 +101,7 @@ jsmntok_t *search(const char *json, jsmntok_t *t, const char *s)
 	return NULL;
 }
 
-jsmntok_t *search1(const char *json, jsmntok_t *t, char const *path[])
+jsmntok_t *search1(const char *json, jsmntok_t *t, int scope, char const *path[])
 {
 	ecs_assert(json != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(t != NULL, ECS_INVALID_PARAMETER, NULL);
@@ -110,7 +113,7 @@ jsmntok_t *search1(const char *json, jsmntok_t *t, char const *path[])
 		if (path[0] == NULL) {
 			return t;
 		}
-		t = search(json, t, path[0]);
+		t = search(json, t, scope, path[0]);
 		if (t == NULL) {
 			return NULL;
 		}
@@ -119,13 +122,13 @@ jsmntok_t *search1(const char *json, jsmntok_t *t, char const *path[])
 	return t;
 }
 
-jsmntok_t *json_parse_vector(char const *json, jsmntok_t *t, char const *path[], void *out, int n, json_type_t type)
+jsmntok_t *json_parse_vector(char const *json, jsmntok_t *t, int scope, char const *path[], void *out, int n, json_type_t type)
 {
 	ecs_assert(json != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(t != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(path != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(out != NULL, ECS_INVALID_PARAMETER, NULL);
-	t = search1(json, t, path);
+	t = search1(json, t, scope, path);
 	if (t == NULL) {
 		return NULL;
 	}
@@ -133,13 +136,13 @@ jsmntok_t *json_parse_vector(char const *json, jsmntok_t *t, char const *path[],
 	return t;
 }
 
-jsmntok_t *json_parse_value(char const *json, jsmntok_t *t, char const *path[], void *out, json_type_t type)
+jsmntok_t *json_parse_value(char const *json, jsmntok_t *t, int scope, char const *path[], void *out, json_type_t type)
 {
 	ecs_assert(json != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(t != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(path != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(out != NULL, ECS_INVALID_PARAMETER, NULL);
-	t = search1(json, t, path);
+	t = search1(json, t, scope, path);
 	if (t == NULL) {
 		return NULL;
 	}
@@ -147,13 +150,13 @@ jsmntok_t *json_parse_value(char const *json, jsmntok_t *t, char const *path[], 
 	return t;
 }
 
-jsmntok_t *json_parse_string(char const *json, jsmntok_t *t, char const *path[], char *out, int n)
+jsmntok_t *json_parse_string(char const *json, jsmntok_t *t, int scope, char const *path[], char *out, int n)
 {
 	ecs_assert(json != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(t != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(path != NULL, ECS_INVALID_PARAMETER, NULL);
 	ecs_assert(out != NULL, ECS_INVALID_PARAMETER, NULL);
-	t = search1(json, t, path);
+	t = search1(json, t, scope, path);
 	if (t == NULL) {
 		return NULL;
 	}

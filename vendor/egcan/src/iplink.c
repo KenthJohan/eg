@@ -30,10 +30,10 @@ static jsmntok_t * parse1(char const *json, jsmntok_t * u, iplink_info_t * out)
 		printf("Array expected\n");
 	}
 	u++;
-	json_parse_value(json, u, (char const *[]){"ifindex", NULL}, &out->ifindex, JSON_TYPE_INT);
-	json_parse_string(json, u, (char const *[]){"ifname", NULL}, out->ifname, 128);
-	json_parse_value(json, u, (char const *[]){"mtu", NULL}, &out->mtu, JSON_TYPE_INT);
-	json_parse_value(json, u, (char const *[]){"linkinfo", "info_data", "bittiming", "bitrate", NULL}, &out->can_bitrate, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"ifindex", NULL}, &out->ifindex, JSON_TYPE_INT);
+	json_parse_string(json, u, u->parent, (char const *[]){"ifname", NULL}, out->ifname, 128);
+	json_parse_value(json, u, u->parent, (char const *[]){"mtu", NULL}, &out->mtu, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"linkinfo", "info_data", "bittiming", "bitrate", NULL}, &out->can_bitrate, JSON_TYPE_INT);
 	while(1) {
 		if (u->parent == 0) {
 			break;
