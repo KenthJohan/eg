@@ -65,8 +65,6 @@ ECS_MOVE(EgCanBusDescription, dst, src, {
 	src->interface = NULL;
 })
 
-
-
 static void System_EgCanBusDescription1(ecs_iter_t *it)
 {
 	EgCanBusDescription *d = ecs_field(it, EgCanBusDescription, 1);
@@ -106,8 +104,6 @@ static void CanBusDescription_System(ecs_iter_t *it)
 			d->error = sock;
 			continue;
 		}
-
-
 
 		EgCanBus *bus = ecs_ensure(world, e, EgCanBus);
 		bus->socket = sock;
@@ -156,8 +152,8 @@ static void *thread_loop(thread_stuff_t *stuff)
 				printf("EPOLLERR\n");
 				// TODO: How to handle this error?
 				int rc = close(book->sock);
-				if(rc < 0) {
-				    perror("failed to close socket from epoll");
+				if (rc < 0) {
+					perror("failed to close socket from epoll");
 				}
 				continue;
 			}
@@ -196,8 +192,7 @@ int eg_can_send(int s, eg_can_frame_t *frame)
 	return n;
 }
 
-
-static void eg_can_book_send(eg_can_book_t * book)
+static void eg_can_book_send(eg_can_book_t *book)
 {
 	for (int canid = 0; canid < book->cap; ++canid) {
 		if (book->tx[canid].dirty) {
@@ -230,8 +225,7 @@ static void EgCanBusBook_System_Sender(ecs_iter_t *it)
 	}
 }
 
-
-static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t * book)
+static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t *book)
 {
 	int id = signal->canid;
 	if (id >= book->cap) {
@@ -242,16 +236,15 @@ static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t * book)
 		return;
 	}
 	// TODO: Support all types and bit offsets
-	eg_can_book_packet8_t * rx = book->rx + id;
+	eg_can_book_packet8_t *rx = book->rx + id;
 	int32_t value = (int8_t)rx->payload[o];
 	signal->rx = value;
 }
 
-
 static void System_Rx(ecs_iter_t *it)
 {
 	thread_stuff_t *stuff = it->ctx;
-	EgCanBus *bus = ecs_field(it, EgCanBus, 1); // shared
+	EgCanBus *bus = ecs_field(it, EgCanBus, 1);          // shared
 	EgCanSignal *signal = ecs_field(it, EgCanSignal, 2); // self
 	for (int i = 0; i < it->count; ++i) {
 		ecs_os_mutex_lock(stuff->lock);
@@ -271,13 +264,12 @@ static void System_Value(ecs_iter_t *it)
 	}
 }
 
-
 void Tick(ecs_iter_t *it)
 {
 	iplink_info_t info[5] = {0};
 	int n = iplink_parse(info, 5);
 
-	for(int i = 0; i < n; ++i){
+	for (int i = 0; i < n; ++i) {
 		char buf[256];
 		snprintf(buf, sizeof(buf), "interfaces.%s", info[i].ifname);
 		ecs_entity_t a = ecs_new_entity(it->world, buf);
@@ -291,6 +283,12 @@ void Tick(ecs_iter_t *it)
 		.numrxqueues = info[i].numrxqueues,
 		.minmtu = info[i].minmtu,
 		.maxmtu = info[i].maxmtu,
+		.stats64_rx_bytes = info[i].stats64_rx_bytes,
+		.stats64_rx_packets = info[i].stats64_rx_packets,
+		.stats64_rx_errors = info[i].stats64_rx_errors,
+		.stats64_tx_bytes = info[i].stats64_tx_bytes,
+		.stats64_tx_packets = info[i].stats64_tx_packets,
+		.stats64_tx_errors = info[i].stats64_tx_errors,
 		};
 		ecs_set_ptr(it->world, a, EgCanInterface, &ptr);
 	}
@@ -300,9 +298,9 @@ void Tick(ecs_iter_t *it)
 
 void Observer(ecs_iter_t *it)
 {
-	//EgCanBook *b = ecs_field(it, EgCanBook, 1);
+	// EgCanBook *b = ecs_field(it, EgCanBook, 1);
 	for (int i = 0; i < it->count; ++i) {
-		//ecs_entity_t e = it->entities[i];
+		// ecs_entity_t e = it->entities[i];
 	}
 }
 
@@ -400,6 +398,12 @@ void EgCanImport(ecs_world_t *world)
 	{.name = "numrxqueues", .type = ecs_id(ecs_i32_t)},
 	{.name = "minmtu", .type = ecs_id(ecs_i32_t)},
 	{.name = "maxmtu", .type = ecs_id(ecs_i32_t)},
+	{.name = "stats64_rx_bytes", .type = ecs_id(ecs_i32_t)},
+	{.name = "stats64_rx_packets", .type = ecs_id(ecs_i32_t)},
+	{.name = "stats64_rx_errors", .type = ecs_id(ecs_i32_t)},
+	{.name = "stats64_tx_bytes", .type = ecs_id(ecs_i32_t)},
+	{.name = "stats64_tx_packets", .type = ecs_id(ecs_i32_t)},
+	{.name = "stats64_tx_errors", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_system(world, {

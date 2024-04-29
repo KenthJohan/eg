@@ -45,6 +45,12 @@ typedef struct {
 	int32_t numrxqueues;
 	int32_t minmtu;
 	int32_t maxmtu;
+	int32_t stats64_rx_bytes;
+	int32_t stats64_rx_packets;
+	int32_t stats64_rx_errors;
+	int32_t stats64_tx_bytes;
+	int32_t stats64_tx_packets;
+	int32_t stats64_tx_errors;
 } EgCanInterface;
 
 

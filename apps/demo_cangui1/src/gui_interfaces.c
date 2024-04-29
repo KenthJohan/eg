@@ -41,7 +41,7 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
-	if (igBeginTable("Signals table", 10, flags2, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 16, flags2, (ImVec2){0, 0}, 0)) {
 		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("index", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("can_bitrate", ImGuiTableColumnFlags_WidthFixed, 60, 0);
@@ -52,6 +52,13 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 		igTableSetupColumn("tso_max_size", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 		igTableSetupColumn("numtxqueues", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 		igTableSetupColumn("numrxqueues", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+
+		igTableSetupColumn("stats64_rx_bytes", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_rx_packets", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_rx_errors", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_tx_bytes", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_tx_packets", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_tx_errors", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 
 		igTableHeadersRow();
 
@@ -86,7 +93,31 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 				igText("%i", iface->numtxqueues);
 				igTableNextColumn();
 				igText("%i", iface->numrxqueues);
+				igTableNextColumn();
+				igText("%i", iface->stats64_rx_bytes);
+				igTableNextColumn();
+				igText("%i", iface->stats64_rx_packets);
+				igTableNextColumn();
+				igText("%i", iface->stats64_rx_errors);
+				igTableNextColumn();
+				igText("%i", iface->stats64_tx_bytes);
+				igTableNextColumn();
+				igText("%i", iface->stats64_tx_packets);
+				igTableNextColumn();
+				igText("%i", iface->stats64_tx_errors);
 			} else {
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
+				igTableNextColumn();
+				igText("");
 				igTableNextColumn();
 				igText("");
 				igTableNextColumn();
