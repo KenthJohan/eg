@@ -19,6 +19,7 @@
 #include <egimgui.h>
 #include <egspatials.h>
 #include <egshapes.h>
+#include <egcolors.h>
 
 #include "GuiCan.h"
 #include "gui_signals.h"
@@ -149,6 +150,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 	ECS_IMPORT(app->world, EgSpatials);
 	ECS_IMPORT(app->world, EgShapes);
 	ECS_IMPORT(app->world, EgImgui);
+	ECS_IMPORT(app->world, EgColors);
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
 

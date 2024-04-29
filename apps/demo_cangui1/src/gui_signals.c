@@ -3,8 +3,16 @@
 #include <egquantities.h>
 #include <egcan.h>
 
+#include <egcolors/eg_color.h>
+
+#define COLOR_RGBA(r,g,b,a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
+
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
+
+#include <stdlib.h>
+
+
 
 typedef struct {
 	char const *name;
@@ -114,7 +122,15 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igTableNextColumn();
 			igText("%i", bus->socket);
 			igTableNextColumn();
-			igText("%i", signal->canid);
+			{
+				uint8_t colr;
+				uint8_t colg;
+				uint8_t colb;
+				eg_color_hsv_to_rgb((signal->canid<<6) + (signal->canid << 16) - signal->canid, 255, 255, &colr, &colg, &colb);
+				igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(colr,colg,colb,255));
+				igText("%i", signal->canid);
+				igPopStyleColor(1);
+			}
 			igTableNextColumn();
 			igText("%i", signal->byte_offset);
 
