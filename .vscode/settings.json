@@ -112,7 +112,11 @@
 		"socket.h": "c",
 		"raw.h": "c",
 		"gui_interfaces.h": "c",
-		"inttypes.h": "c"
+		"inttypes.h": "c",
+		"if_link.h": "c",
+		"unistd.h": "c",
+		"json.h": "c",
+		"jsmn.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

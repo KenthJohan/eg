@@ -33,6 +33,7 @@
 #include <linux/if_link.h>
 
 #include "iface.h"
+#include "iplink.h"
 
 ECS_COMPONENT_DECLARE(EgCanEpoll);
 ECS_COMPONENT_DECLARE(EgCanBusDescription);
@@ -273,31 +274,28 @@ static void System_Value(ecs_iter_t *it)
 
 void Tick(ecs_iter_t *it)
 {
-	struct ifaddrs *ifaddr;
-	int rc = getifaddrs(&ifaddr);
-	if (rc < 0) {
-		return;
-	}
-	for (struct ifaddrs *ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-		iface_info_t info = {0};
-		interface_details(ifa->ifa_name, &info);
-		char buf[128];
-		snprintf(buf, sizeof(buf), "interfaces.%s", ifa->ifa_name);
+	iplink_info_t info[5] = {0};
+	int n = iplink_parse(info, 5);
+
+	for(int i = 0; i < n; ++i){
+		char buf[256];
+		snprintf(buf, sizeof(buf), "interfaces.%s", info[i].ifname);
 		ecs_entity_t a = ecs_new_entity(it->world, buf);
 		EgCanInterface ptr = {
-		.can_bitrate = info.can_bitrate,
-		.can_clock = info.can_clock,
-		.index = info.index,
-		.mtu = info.mtu,
-		.tso_max_size = info.tso_max_size,
-		.numtxqueues = info.numtxqueues,
-		.numrxqueues = info.numrxqueues,
-		.minmtu = info.minmtu,
-		.maxmtu = info.maxmtu,
+		.can_bitrate = info[i].can_bitrate,
+		.can_clock = info[i].can_clock,
+		.index = info[i].ifindex,
+		.mtu = info[i].mtu,
+		.tso_max_size = info[i].tso_max_size,
+		.numtxqueues = info[i].numtxqueues,
+		.numrxqueues = info[i].numrxqueues,
+		.minmtu = info[i].minmtu,
+		.maxmtu = info[i].maxmtu,
 		};
 		ecs_set_ptr(it->world, a, EgCanInterface, &ptr);
 	}
-	freeifaddrs(ifaddr);
+
+	return;
 }
 
 void Observer(ecs_iter_t *it)
