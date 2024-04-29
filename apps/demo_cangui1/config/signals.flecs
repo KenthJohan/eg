@@ -7,7 +7,8 @@ const CANID_BEGIN = 10
 const CANID_PING = 11
 const CANID_MOTORS = 24
 const CANID_MOVE = 30
-const CANID_RC = 40
+const CANID_RC_01234 = 40
+const CANID_RC_56789 = 41
 const CANID_MCU_TIME = 100
 
 const CANLEN_DIGIPOTS = 5
@@ -50,57 +51,68 @@ mcu_time0 : bus1 {
 	- eg.can.Signal{canid:$CANID_MCU_TIME, len:1, tx:0, byte_offset:0, gui_index:13}
 }
 
+rc_channel_0 : bus1 {
+	- eg.can.Signal{canid:$CANID_RC_01234, tx:100, byte_offset:0, min: $INT8_MIN, max: $INT8_MAX, gui_index:20}
+}
 
 rc_channel_1 : bus1 {
-	- eg.can.Signal{canid:$CANID_RC, tx:100, byte_offset:0, min: 0, max: 127, gui_index:20}
+	- eg.can.Signal{canid:$CANID_RC_01234, tx:100, byte_offset:1, min: $INT8_MIN, max: $INT8_MAX, gui_index:21}
 }
 
 rc_channel_2 : bus1 {
-	- eg.can.Signal{canid:$CANID_RC, tx:100, byte_offset:1, min: 0, max: 127, gui_index:21}
+	- eg.can.Signal{canid:$CANID_RC_01234, tx:100, byte_offset:2, min: $INT8_MIN, max: $INT8_MAX, gui_index:22}
 }
 
 rc_channel_3 : bus1 {
-	- eg.can.Signal{canid:$CANID_RC, tx:100, byte_offset:2, min: 0, max: 127, gui_index:22}
+	- eg.can.Signal{canid:$CANID_RC_01234, tx:100, byte_offset:3, min: $INT8_MIN, max: $INT8_MAX, gui_index:23}
 }
 
 rc_channel_4 : bus1 {
-	- eg.can.Signal{canid:$CANID_RC, tx:100, byte_offset:3, min: 0, max: 127, gui_index:23}
+	- eg.can.Signal{canid:$CANID_RC_01234, tx:100, byte_offset:4, min: $INT8_MIN, max: $INT8_MAX, gui_index:24}
 }
 
+
+
+
 rc_channel_5 : bus1 {
-	- eg.can.Signal{canid:$CANID_RC, tx:100, byte_offset:4, min: 0, max: 127, gui_index:24}
+	- eg.can.Signal{canid:$CANID_RC_56789, tx:100, byte_offset:0, min: $INT8_MIN, max: $INT8_MAX, gui_index:25}
 }
 
 rc_channel_6 : bus1 {
-	- eg.can.Signal{canid:$CANID_RC, tx:100, byte_offset:5, min: 0, max: 127, gui_index:25}
+	- eg.can.Signal{canid:$CANID_RC_56789, tx:100, byte_offset:1, min: $INT8_MIN, max: $INT8_MAX, gui_index:26}
 }
 
 rc_channel_7 : bus1 {
-	- eg.can.Signal{canid:$CANID_RC, tx:100, byte_offset:6, min: 0, max: 127, gui_index:26}
+	- eg.can.Signal{canid:$CANID_RC_56789, tx:100, byte_offset:2, min: $INT8_MIN, max: $INT8_MAX, gui_index:27}
 }
 
 rc_channel_8 : bus1 {
-	- eg.can.Signal{canid:$CANID_RC, tx:100, byte_offset:7, min: 0, max: 127, gui_index:27}
+	- eg.can.Signal{canid:$CANID_RC_56789, tx:100, byte_offset:3, min: $INT8_MIN, max: $INT8_MAX, gui_index:28}
 }
+
+rc_channel_9 : bus1 {
+	- eg.can.Signal{canid:$CANID_RC_56789, tx:100, byte_offset:4, min: $INT8_MIN, max: $INT8_MAX, gui_index:29}
+}
+
 
 
 battery_voltage : bus1, eg.quantities.Voltage {
-	- eg.can.Signal{canid:3, tx:100, gui_index:30}
+	- eg.can.Signal{canid:3, tx:100, gui_index:40}
 }
 
 battery_voltage_s1 : bus1 {
-	- eg.can.Signal{canid:3, tx:100, gui_index:31}
+	- eg.can.Signal{canid:3, tx:100, gui_index:41}
 }
 
 battery_voltage_s2 : bus1 {
-	- eg.can.Signal{canid:3, tx:100, gui_index:32}
+	- eg.can.Signal{canid:3, tx:100, gui_index:42}
 }
 
 battery_voltage_s3 : bus1 {
-	- eg.can.Signal{canid:3, tx:100, gui_index:33}
+	- eg.can.Signal{canid:3, tx:100, gui_index:43}
 }
 
 battery_voltage_s4 : bus1 {
-	- eg.can.Signal{canid:3, tx:100, gui_index:34}
+	- eg.can.Signal{canid:3, tx:100, gui_index:44}
 }
 
