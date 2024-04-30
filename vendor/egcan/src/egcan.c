@@ -94,6 +94,10 @@ static void CanBusDescription_System(ecs_iter_t *it)
 	EgCanBusDescription *d = ecs_field(it, EgCanBusDescription, 1);
 
 	for (int i = 0; i < it->count; ++i, ++d) {
+		if (stuff->fd_epoll <= 0) {
+			continue;
+		}
+
 		ecs_entity_t e = it->entities[i];
 		if (d->error != 0) {
 			continue;
@@ -266,9 +270,13 @@ static void System_Value(ecs_iter_t *it)
 
 void Tick(ecs_iter_t *it)
 {
+
+	//FILE * fp = popen("ip -d -s -j link show", "r");
+	//test_popen(fp);
+
 	iplink_info_t info[5] = {0};
 	int n = 0;
-	//n = iplink_parse(info, 5);
+	n = iplink_parse(info, 5);
 
 	for (int i = 0; i < n; ++i) {
 		char buf[256];
@@ -339,10 +347,10 @@ void EgCanImport(ecs_world_t *world)
 	stuff->lock = ecs_os_mutex_new();
 	stuff->fd_epoll = epoll_create(1);
 	if (stuff->fd_epoll < 0) {
-		perror("epoll_create()");
+	    perror("epoll_create()");
 	} else {
-		printf("Starting epoll thread!\n");
-		ecs_os_thread_new((ecs_os_thread_callback_t)thread_loop, stuff);
+	    printf("Starting epoll thread!\n");
+	    ecs_os_thread_new((ecs_os_thread_callback_t)thread_loop, stuff);
 	}
 
 	// clang-format off

@@ -1,9 +1,15 @@
+// popen() + read() causes crash without _DEFAULT_SOURCE
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+
 #include "iplink.h"
 #include "json.h"
 #include <stdio.h>
 #include <flecs.h>
 #include <stdlib.h>
 
+//
 static char const *popen_to_string(char const *command)
 {
 	FILE *fp = popen(command, "r");
@@ -12,15 +18,14 @@ static char const *popen_to_string(char const *command)
 		return NULL;
 	}
 
-	char buf[4094];
+	char buf[1024];
 	ecs_strbuf_t b = ECS_STRBUF_INIT;
 	while (1) {
-		int test = fgetc(fp);
-		char * rc = fgets(buf, sizeof(buf), fp);
-		if(rc == NULL) {
+		int n = fread(buf, 1, sizeof(buf), fp);
+		if (n <= 0) {
 			break;
 		}
-		ecs_strbuf_appendstr(&b, buf);
+		ecs_strbuf_appendstrn(&b, buf, n);
 	}
 	pclose(fp);
 	return ecs_strbuf_get(&b);
@@ -28,8 +33,7 @@ static char const *popen_to_string(char const *command)
 
 #define TOK_COUNT 1024
 
-
-static jsmntok_t * parse1(char const *json, jsmntok_t * u, iplink_info_t * out)
+static jsmntok_t *parse1(char const *json, jsmntok_t *u, iplink_info_t *out)
 {
 	if (u->type != JSMN_OBJECT) {
 		printf("Array expected\n");
@@ -46,7 +50,7 @@ static jsmntok_t * parse1(char const *json, jsmntok_t * u, iplink_info_t * out)
 	json_parse_value(json, u, u->parent, (char const *[]){"stats64", "tx", "packets", NULL}, &out->stats64_tx_packets, JSON_TYPE_INT);
 	json_parse_value(json, u, u->parent, (char const *[]){"stats64", "tx", "errors", NULL}, &out->stats64_tx_errors, JSON_TYPE_INT);
 
-	while(1) {
+	while (1) {
 		if (u->parent == 0) {
 			break;
 		}
@@ -54,6 +58,8 @@ static jsmntok_t * parse1(char const *json, jsmntok_t * u, iplink_info_t * out)
 	}
 	return u;
 }
+
+
 
 int iplink_parse(iplink_info_t out[], int out_length)
 {
@@ -71,8 +77,6 @@ int iplink_parse(iplink_info_t out[], int out_length)
 		goto error;
 	}
 
-	
-
 	/* Assume the top-level element is an object */
 	if (t[0].type != JSMN_ARRAY) {
 		printf("Array expected\n");
@@ -80,9 +84,9 @@ int iplink_parse(iplink_info_t out[], int out_length)
 		goto error;
 	}
 
-	jsmntok_t * u = t + 1;
+	jsmntok_t *u = t + 1;
 	n = ECS_MIN(t[0].size, out_length);
-	for(int i = 0; i < n; ++i) {
+	for (int i = 0; i < n; ++i) {
 		u = parse1(json, u, out + i);
 	}
 

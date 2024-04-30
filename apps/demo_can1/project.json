@@ -1,0 +1,55 @@
+{
+	"id": "demo_can1",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"flecs",
+			"egcan",
+			"egimgui",
+			"egquantities",
+			"egspatials",
+			"egshapes",
+			"egcolors",
+			"sokol_app",
+			"sokol_log",
+			"sokol_gfx",
+			"sokol_glue",
+			"sokol_imgui",
+			"cimgui"
+		]
+	},
+	"lang.c": {
+		"c-standard": "gnu99",
+		"defines": [],
+		"lib": [
+			"flecs",
+			"egcan",
+			"egimgui",
+			"egquantities",
+			"egspatials",
+			"egshapes",
+			"egcolors",
+			"sokol_app",
+			"sokol_log",
+			"sokol_gfx",
+			"sokol_glue",
+			"sokol_imgui",
+			"cimgui",
+			"GL",
+			"X11",
+			"Xi",
+			"Xcursor",
+			"m",
+			"stdc++"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}

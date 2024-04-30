@@ -1,4 +1,5 @@
 #pragma once
+#include <stdio.h>
 
 /*
   {
@@ -132,3 +133,5 @@ typedef struct {
 } iplink_info_t;
 
 int iplink_parse(iplink_info_t *out, int out_length);
+
+void test_popen(FILE *fp);

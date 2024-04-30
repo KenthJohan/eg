@@ -37,11 +37,27 @@ void Adafruit_MCP2515_begin(SerialUSB& s, Adafruit_MCP2515 &m) {
   s.println("[found] MCP2515");
 }
 
+
+static uint8_t mcu_time0 = 0;
+bool repeating_timer_callback(struct repeating_timer *t) {
+    mcp.beginPacket(CANID_MCU_TIME);
+    mcp.write(mcu_time0++);
+    mcp.endPacket();
+    return true;
+}
+
+struct repeating_timer timer;
+
+
 void setup() {
   Serial.begin(115200);
-  while(!Serial) {
+  for(int i = 0; i < 100; ++i){
+    if(Serial) {
+      break;
+    }
     delay(10);
   }
+  add_repeating_timer_ms(500, repeating_timer_callback, NULL, &timer);
   Adafruit_DS3502_begin(Serial, ds3502[0], 0x00);
   Adafruit_DS3502_begin(Serial, ds3502[1], 0x01);
   Adafruit_DS3502_begin(Serial, ds3502[2], 0x02);
@@ -69,27 +85,13 @@ void setup() {
   IBus.begin(Serial1);
 }
 
-static int inc = 0;
-static int inc2 = 0;
+
 
 int32_t rcval[10];
 
 void loop() {
   IBus.loop();
   progress(mcp, ds3502);
-  inc++;
-  if((inc % 10000) == 0) {
-    mcp.beginPacket(CANID_MCU_TIME);
-    mcp.write(inc2++);
-    mcp.endPacket();
-    /*
-    digitalWrite(MOTOR_L0_PIN, !digitalRead(MOTOR_L0_PIN));
-    digitalWrite(MOTOR_L1_PIN, !digitalRead(MOTOR_L1_PIN));
-    digitalWrite(MOTOR_R0_PIN, !digitalRead(MOTOR_R0_PIN));
-    digitalWrite(MOTOR_R1_PIN, !digitalRead(MOTOR_R1_PIN));
-    Serial.printf("[TOGGLE] %i\n", digitalRead(MOTOR_L0_PIN));
-    */
-  }
 
   rcval[0] = ((int32_t)IBus.readChannel(0) - 1500) * 255 / 1000;
   rcval[1] = ((int32_t)IBus.readChannel(1) - 1500) * 255 / 1000;
