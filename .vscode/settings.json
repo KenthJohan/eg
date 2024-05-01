@@ -119,7 +119,9 @@
 		"jsmn.h": "c",
 		"eg_color.h": "c",
 		"iplink.h": "c",
-		"egifaces.h": "c"
+		"egifaces.h": "c",
+		"inet.h": "c",
+		"if.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

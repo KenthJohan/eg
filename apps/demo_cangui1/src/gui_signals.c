@@ -148,7 +148,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			if (signal->min != signal->max) {
 				igPushItemWidth(-1);
 				if (igSliderScalar("##s1", ImGuiDataType_S32, &signal->tx, &signal->min, &signal->max, "%d", 0)) {
-					eg_can_book_prepare_send(book, signal);
+					EgCan_book_prepare_send(book, signal);
 				};
 				igPopItemWidth();
 			} else {

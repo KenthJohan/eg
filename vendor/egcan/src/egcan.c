@@ -6,122 +6,24 @@
 #endif
 
 #include "egcan.h"
-#include <egquantities.h>
+
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-
-#include <linux/can.h>
-#include <linux/can/raw.h>
 #include <sys/epoll.h>
-#include <errno.h>
-#include <assert.h>
-
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <ifaddrs.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <linux/if_link.h>
 
 
+#include <egquantities.h>
+#include "eg_can.h"
 
 
-int interface_index_from_name(int s, char const *interface)
-{
-	int rc = 0;
-	struct ifreq ifr = {0};
-	strcpy(ifr.ifr_name, interface);
-	rc = ioctl(s, SIOCGIFINDEX, &ifr);
-	if (rc < 0) {
-		return rc;
-	}
-	return ifr.ifr_ifindex;
-}
-
-int socket_from_interace(char const *interface)
-{
-	printf("CAN Sockets Demo\r\n");
-	int s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-	if (s < 0) {
-		perror("socket()");
-		return 1;
-	}
-
-	int index = interface_index_from_name(s, interface);
-	if (index < 0) {
-		return index;
-	}
-
-	struct sockaddr_can addr = {0};
-	addr.can_family = AF_CAN;
-	addr.can_ifindex = index;
-
-	if (bind(s, (struct sockaddr *)&addr, sizeof(struct sockaddr_can)) < 0) {
-		perror("bind()");
-		return 1;
-	}
-	return s;
-}
-
-
-
-
-
-#define EG_CAN_CTRLMSG_LEN CMSG_SPACE(sizeof(struct timeval)) + CMSG_SPACE(3 * sizeof(struct timespec)) + CMSG_SPACE(sizeof(__u32))
-/* CAN CC/FD/XL frame union */
-typedef union {
-	struct can_frame cc;
-	struct canfd_frame fd;
-	// struct canxl_frame xl;
-} cu_t;
-
-int eg_can_recv(int s, eg_can_frame_t *frame)
-{
-	cu_t cu = {0};
-	struct iovec iov[1] = {0};
-	struct msghdr msg = {0};
-	char ctrlmsg[EG_CAN_CTRLMSG_LEN] = {0};
-	struct sockaddr_can addr = {0};
-
-	iov[0].iov_base = &cu;
-
-	msg.msg_name = &addr;
-	msg.msg_iov = iov;
-	msg.msg_iovlen = 1;
-	msg.msg_control = &ctrlmsg;
-	/* these settings may be modified by recvmsg() */
-	msg.msg_iov[0].iov_len = sizeof(cu_t);
-	msg.msg_namelen = sizeof(struct sockaddr_can);
-	msg.msg_controllen = EG_CAN_CTRLMSG_LEN;
-	msg.msg_flags = 0;
-	int nbytes = recvmsg(s, &msg, 0);
-	if (nbytes < 0) {
-		perror("recvmsg()");
-		return nbytes;
-	}
-	// eg_can_print((cu_t *)msg.msg_iov->iov_base, nbytes);
-
-	frame->can_id = cu.cc.can_id;
-	frame->len = cu.cc.len;
-	memcpy(frame->data, cu.cc.data, CAN_MAX_DLEN);
-
-	return nbytes;
-}
 
 ECS_COMPONENT_DECLARE(EgCanEpoll);
 ECS_COMPONENT_DECLARE(EgCanBusDescription);
 ECS_COMPONENT_DECLARE(EgCanBus);
 ECS_COMPONENT_DECLARE(EgCanSignal);
-ECS_COMPONENT_DECLARE(EgCanInterface);
 
 ECS_CTOR(EgCanBusDescription, ptr, {
 	ptr->interface = NULL;
@@ -267,16 +169,7 @@ static void *thread_loop(thread_stuff_t *stuff)
 	return NULL;
 }
 
-int eg_can_send(int s, eg_can_frame_t *frame)
-{
-	assert(sizeof(eg_can_frame_t) == sizeof(struct can_frame));
-	int n = write(s, frame, sizeof(eg_can_frame_t));
-	if (n != sizeof(eg_can_frame_t)) {
-		perror("write()");
-		return n;
-	}
-	return n;
-}
+
 
 static void eg_can_book_send(eg_can_book_t *book)
 {
@@ -360,7 +253,7 @@ void Observer(ecs_iter_t *it)
 	}
 }
 
-void eg_can_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal)
+void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal)
 {
 	// printf("Send can packet canid=%i, value=%i\n", (int)signal->canid, signal->value);
 	uint32_t id = signal->canid;
@@ -441,26 +334,6 @@ void EgCanImport(ecs_world_t *world)
 	{.name = "max", .type = ecs_id(ecs_i32_t)},
 	{.name = "gui_index", .type = ecs_id(ecs_i32_t)},
 	}});
-
-	ecs_struct(world,
-	{.entity = ecs_id(EgCanInterface),
-	.members = {
-	{.name = "index", .type = ecs_id(ecs_i32_t)},
-	{.name = "bitrate", .type = ecs_id(ecs_i32_t)},
-	{.name = "clock", .type = ecs_id(ecs_i32_t)},
-	{.name = "tso_max_size", .type = ecs_id(ecs_i32_t)},
-	{.name = "numtxqueues", .type = ecs_id(ecs_i32_t)},
-	{.name = "numrxqueues", .type = ecs_id(ecs_i32_t)},
-	{.name = "minmtu", .type = ecs_id(ecs_i32_t)},
-	{.name = "maxmtu", .type = ecs_id(ecs_i32_t)},
-	{.name = "stats64_rx_bytes", .type = ecs_id(ecs_i32_t)},
-	{.name = "stats64_rx_packets", .type = ecs_id(ecs_i32_t)},
-	{.name = "stats64_rx_errors", .type = ecs_id(ecs_i32_t)},
-	{.name = "stats64_tx_bytes", .type = ecs_id(ecs_i32_t)},
-	{.name = "stats64_tx_packets", .type = ecs_id(ecs_i32_t)},
-	{.name = "stats64_tx_errors", .type = ecs_id(ecs_i32_t)},
-	}});
-
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
