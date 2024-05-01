@@ -63,14 +63,7 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 
 		igTableHeadersRow();
 
-		/*
-		ecs_os_mutex_lock(stuff->lock);
-		memcpy(book->tx, book->rx, sizeof(eg_can_book8_t) * book->cap);
-		ecs_os_mutex_unlock(stuff->lock);
-		*/
-
 		for (int i = 0; i <= n; ++i) {
-			// ecs_entity_t e = gui[i].e;
 			char const *name = gui[i].name;
 			EgIfacesDetails *iface = gui[i].iface;
 			if (name) {

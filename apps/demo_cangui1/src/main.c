@@ -1,9 +1,6 @@
-//------------------------------------------------------------------------------
-//  cimgui-sapp.c
-//
-//  Demonstrates Dear ImGui UI rendering in C via
-//  sokol_gfx.h + sokol_imgui.h + cimgui.h
-//------------------------------------------------------------------------------
+#include <stdlib.h>
+#include <flecs.h>
+
 #include <sokol_app.h>
 #include <sokol_gfx.h>
 #include <sokol_log.h>
@@ -11,9 +8,7 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
 #include <sokol_imgui.h>
-#include <flecs.h>
-#include <stdlib.h>
-#include <assert.h>
+
 #include <egcan.h>
 #include <egquantities.h>
 #include <egimgui.h>
@@ -26,11 +21,12 @@
 #include "gui_signals.h"
 #include "gui_interfaces.h"
 
+
 typedef struct {
 	ecs_world_t * world;
-	ecs_query_t * q1;
-	ecs_query_t * q2;
-	ecs_query_t * q3;
+	ecs_query_t * query_signals;
+	ecs_query_t * query_gui;
+	ecs_query_t * query_ifaces;
 	ImFont * font;
 } app_t;
 
@@ -101,16 +97,16 @@ void frame(app_t * app) {
         igBegin("Signal window", &state.show_another_window, flags1);
 		igBeginTabBar("tabs", 0);
         //igText("Hello");
-		if (igBeginTabItem("Interfaces", NULL, 0)) {
-			gui_interfaces_progress(app->world, app->q3);
+		if (igBeginTabItem("Ifaces", NULL, 0)) {
+			gui_interfaces_progress(app->world, app->query_ifaces);
 			igEndTabItem();
 		};
 		if (igBeginTabItem("Signals", NULL, 0)) {
-			gui_signals_progress(app->world, app->q1);
+			gui_signals_progress(app->world, app->query_signals);
 			igEndTabItem();
 		};
 		if (igBeginTabItem("CustomGUI", NULL, 0)) {
-			egimgui_progress1(app->world, app->q2);
+			egimgui_progress1(app->world, app->query_gui);
 			igEndTabItem();
 		};
 		igEndTabBar();
@@ -156,19 +152,15 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
 
-	//ecs_entity_t e_app = ecs_new_entity(app->world, "app");
-	//ecs_entity_t e_app_signals = ecs_new_entity(app->world, "app.signals");
-	//ecs_entity_t e_app_gui = ecs_new_entity(app->world, "app.gui");
-
 	ecs_log_set_level(1);
 	ecs_plecs_from_file(app->world, "config/signals.flecs");
 	ecs_plecs_from_file(app->world, "config/gui.flecs");
 	ecs_log_set_level(-1);
-	// clang-format off
-	app->q1 = gui_signals_query(app->world);
-	app->q3 = gui_interfaces_query(app->world);
-	app->q2 = egimgui_query1(app->world);
-	// clang-format on
+	
+	app->query_signals = gui_signals_query(app->world);
+	app->query_ifaces = gui_interfaces_query(app->world);
+	app->query_gui = egimgui_query1(app->world);
+
 
     return (sapp_desc) {
         .init_userdata_cb = init,
@@ -178,7 +170,7 @@ sapp_desc sokol_main(int argc, char* argv[]) {
 		.user_data = app,
         .width = 1024,
         .height = 768,
-        .window_title = "cimgui (sokol-app)",
+        .window_title = "CAN monitor",
         .ios_keyboard_resizes_canvas = false,
         .icon.sokol_default = true,
         .enable_clipboard = true,
