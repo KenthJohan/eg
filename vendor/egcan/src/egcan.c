@@ -20,6 +20,7 @@ ECS_COMPONENT_DECLARE(EgCanRxThread);
 ECS_COMPONENT_DECLARE(EgCanBusDescription);
 ECS_COMPONENT_DECLARE(EgCanBus);
 ECS_COMPONENT_DECLARE(EgCanSignal);
+ECS_COMPONENT_DECLARE(EgCanRxThreadMember);
 
 ECS_CTOR(EgCanBusDescription, ptr, {
 	ptr->interface = NULL;
@@ -70,19 +71,10 @@ typedef struct {
 static void CanBusDescription_System(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
-	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1);
-	EgCanBusDescription *desc = ecs_field(it, EgCanBusDescription, 2);
-	for (int i = 0; i < it->count; ++i, ++desc, ++rxt) {
-		thread_stuff_t *impl = rxt->impl;
-		if (impl <= 0) {
-			continue;
-		}
-
-		if (impl->fd_epoll <= 0) {
-			continue;
-		}
-
+	EgCanBusDescription *desc = ecs_field(it, EgCanBusDescription, 1);
+	for (int i = 0; i < it->count; ++i, ++desc) {
 		ecs_entity_t e = it->entities[i];
+
 		if (desc->error != 0) {
 			continue;
 		}
@@ -100,18 +92,6 @@ static void CanBusDescription_System(ecs_iter_t *it)
 		bus->ptr->tx = ecs_os_calloc_n(eg_can_book_packet8_t, EG_CAN_BOOK_CAP);
 		bus->ptr->rx = ecs_os_calloc_n(eg_can_book_packet8_t, EG_CAN_BOOK_CAP);
 		bus->ptr->cap = EG_CAN_BOOK_CAP;
-
-		// https://stackoverflow.com/questions/7058737/is-epoll-thread-safe
-		struct epoll_event event_setup = {
-		.events = EPOLLIN,
-		.data.ptr = bus->ptr};
-		if (epoll_ctl(impl->fd_epoll, EPOLL_CTL_ADD, bus->socket, &event_setup)) {
-			perror("failed to add socket to epoll");
-			continue;
-		}
-
-		// ecs_os_mutex_lock(stuff->lock);
-		// ecs_os_mutex_unlock(stuff->lock);
 	}
 }
 
@@ -239,11 +219,24 @@ static void System_Value(ecs_iter_t *it)
 	}
 }
 
-void Observer(ecs_iter_t *it)
+static void Observer(ecs_iter_t *it)
 {
-	// EgCanBook *b = ecs_field(it, EgCanBook, 1);
-	for (int i = 0; i < it->count; ++i) {
-		// ecs_entity_t e = it->entities[i];
+	ecs_world_t *world = it->world;
+	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1);
+	EgCanBus *bus = ecs_field(it, EgCanBus, 2);
+	for (int i = 0; i < it->count; ++i, ++bus) {
+		ecs_entity_t e = it->entities[i];
+		thread_stuff_t *impl = rxt->impl;
+		// https://stackoverflow.com/questions/7058737/is-epoll-thread-safe
+		struct epoll_event event_setup = {
+		.events = EPOLLIN,
+		.data.ptr = bus->ptr};
+		if (epoll_ctl(impl->fd_epoll, EPOLL_CTL_ADD, bus->socket, &event_setup)) {
+			perror("failed to add socket to epoll");
+			continue;
+		}
+		EgCanRxThreadMember *m = ecs_ensure(world, e, EgCanRxThreadMember);
+		m->dummy = 0;
 	}
 }
 
@@ -275,7 +268,7 @@ static ECS_MOVE(EgCanRxThread, dst, src, {
 })
 
 static ECS_DTOR(EgCanRxThread, ptr, {
-	thread_stuff_t *impl = ptr->impl;
+	// thread_stuff_t *impl = ptr->impl;
 	// TODO: fini thread stuff
 })
 
@@ -307,6 +300,7 @@ void EgCanImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgCanBusDescription);
 	ECS_COMPONENT_DEFINE(world, EgCanBus);
 	ECS_COMPONENT_DEFINE(world, EgCanSignal);
+	ECS_COMPONENT_DEFINE(world, EgCanRxThreadMember);
 
 	// clang-format off
 	ecs_set_hooks(world, EgCanRxThread, {
@@ -324,11 +318,12 @@ void EgCanImport(ecs_world_t *world)
 	.dtor = ecs_dtor(EgCanBusDescription)
 	});
 
-    ecs_observer(world, {
-        .filter = { .terms = {{ .id = ecs_id(EgCanBus) }}},
-        .events = { EcsOnAdd },
-        .callback = Observer
-    });
+	ecs_struct(world,
+	{.entity = ecs_id(EgCanRxThread),
+	.members = {
+	{.name = "dummy", .type = ecs_id(ecs_i32_t)},
+	{.name = "impl", .type = ecs_id(ecs_uptr_t)},
+	}});
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgCanBusDescription),
@@ -359,6 +354,19 @@ void EgCanImport(ecs_world_t *world)
 	{.name = "gui_index", .type = ecs_id(ecs_i32_t)},
 	}});
 
+
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = Observer,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsIsA},
+	{.id = ecs_id(EgCanBus)},
+	{.id = ecs_id(EgCanRxThreadMember), .oper = EcsNot}, // Adds this
+	}});
+
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
@@ -384,7 +392,6 @@ void EgCanImport(ecs_world_t *world)
 	.callback = CanBusDescription_System,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(EgCanRxThread), .src.flags = EcsSelf},
 	{.id = ecs_id(EgCanBusDescription), .src.flags = EcsSelf},
 	{.id = ecs_id(EgCanBus), .oper = EcsNot}, // Adds this
 	}});

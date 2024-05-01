@@ -6,9 +6,13 @@
 #include <stdint.h>
 
 typedef struct {
+	int32_t dummy;
 	void * impl;
-	int rc;
 } EgCanRxThread;
+
+typedef struct {
+	int32_t dummy;
+} EgCanRxThreadMember;
 
 typedef struct {
 	char const * interface;
@@ -70,6 +74,7 @@ typedef struct {
 } EgCanSignal;
 
 extern ECS_COMPONENT_DECLARE(EgCanRxThread);
+extern ECS_COMPONENT_DECLARE(EgCanRxThreadMember);
 extern ECS_COMPONENT_DECLARE(EgCanBusDescription);
 extern ECS_COMPONENT_DECLARE(EgCanBus);
 extern ECS_COMPONENT_DECLARE(EgCanSignal);

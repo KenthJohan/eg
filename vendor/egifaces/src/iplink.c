@@ -60,7 +60,10 @@ static jsmntok_t *parse1(char const *json, jsmntok_t *u, iplink_info_t *out)
 }
 
 
-
+/*
+https://docs.kernel.org/networking/statistics.html
+https://man7.org/linux/man-pages/man8/ip.8.html
+*/
 int iplink_parse(iplink_info_t out[], int out_length)
 {
 	int n = 0;

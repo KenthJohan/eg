@@ -43,24 +43,24 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
 	if (igBeginTable("Signals table", 16, flags2, (ImVec2){0, 0}, 0)) {
-		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("index", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("can_bitrate", ImGuiTableColumnFlags_WidthFixed, 60, 0);
-		igTableSetupColumn("can_clock", ImGuiTableColumnFlags_WidthFixed, 60, 0);
-		igTableSetupColumn("mtu", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("minmtu", ImGuiTableColumnFlags_WidthFixed, 80, 0);
-		igTableSetupColumn("maxmtu", ImGuiTableColumnFlags_WidthFixed, 80, 0);
-		igTableSetupColumn("tso_max_size", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		igTableSetupColumn("numtxqueues", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		igTableSetupColumn("numrxqueues", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("name", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("index", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("can_bitrate", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 60, 0);
+		igTableSetupColumn("can_clock", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 60, 0);
+		igTableSetupColumn("mtu", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("minmtu", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 80, 0);
+		igTableSetupColumn("maxmtu", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 80, 0);
+		igTableSetupColumn("tso_max_size", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("numtxqueues", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("numrxqueues", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_rx_bytes", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_rx_packets", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_rx_errors", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_tx_bytes", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_tx_packets", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("stats64_tx_errors", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 100, 0);
 
-		igTableSetupColumn("stats64_rx_bytes", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		igTableSetupColumn("stats64_rx_packets", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		igTableSetupColumn("stats64_rx_errors", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		igTableSetupColumn("stats64_tx_bytes", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		igTableSetupColumn("stats64_tx_packets", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		igTableSetupColumn("stats64_tx_errors", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-
+		igTableAngledHeadersRow();
 		igTableHeadersRow();
 
 		for (int i = 0; i <= n; ++i) {
