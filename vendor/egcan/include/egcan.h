@@ -6,8 +6,9 @@
 #include <stdint.h>
 
 typedef struct {
-	void * internal;
-} EgCanEpoll;
+	void * impl;
+	int rc;
+} EgCanRxThread;
 
 typedef struct {
 	char const * interface;
@@ -68,7 +69,7 @@ typedef struct {
 	*/
 } EgCanSignal;
 
-extern ECS_COMPONENT_DECLARE(EgCanEpoll);
+extern ECS_COMPONENT_DECLARE(EgCanRxThread);
 extern ECS_COMPONENT_DECLARE(EgCanBusDescription);
 extern ECS_COMPONENT_DECLARE(EgCanBus);
 extern ECS_COMPONENT_DECLARE(EgCanSignal);

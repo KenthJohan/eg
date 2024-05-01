@@ -15,7 +15,10 @@ const CANLEN_DIGIPOTS = 5
 const CANLEN_MOVE = 2
 const CANLEN_MOTORS = 4
 
+
+
 bus1 {
+	- eg.can.RxThread
 	- eg.can.BusDescription{interface:"can0"}
 }
 
