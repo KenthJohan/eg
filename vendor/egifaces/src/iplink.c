@@ -65,6 +65,9 @@ int iplink_parse(iplink_info_t out[], int out_length)
 {
 	int n = 0;
 	char const *json = popen_to_string("ip -d -s -j link show");
+	if(json == NULL) {
+		return -1;
+	}
 	printf("%s\n", json);
 
 	jsmn_parser p;
@@ -91,6 +94,6 @@ int iplink_parse(iplink_info_t out[], int out_length)
 	}
 
 error:
-	ecs_os_free(json);
+	ecs_os_free((void*)json);
 	return n;
 }

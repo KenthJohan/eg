@@ -2,13 +2,14 @@
 
 #include <egquantities.h>
 #include <egcan.h>
+#include <egifaces.h>
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
 
 typedef struct {
 	char const *name;
-	EgCanInterface *iface;
+	EgIfacesDetails *iface;
 	ecs_entity_t e;
 } gui_interface_table_t;
 
@@ -22,7 +23,7 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 	int n = 0;
 	ecs_iter_t it = ecs_query_iter(world, q);
 	while (ecs_query_next(&it)) {
-		EgCanInterface *iface = ecs_field(&it, EgCanInterface, 1);
+		EgIfacesDetails *iface = ecs_field(&it, EgIfacesDetails, 1);
 
 		for (int i = 0; i < it.count; ++i, ++iface) {
 			ecs_entity_t e = it.entities[i];
@@ -71,7 +72,7 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 		for (int i = 0; i <= n; ++i) {
 			// ecs_entity_t e = gui[i].e;
 			char const *name = gui[i].name;
-			EgCanInterface *iface = gui[i].iface;
+			EgIfacesDetails *iface = gui[i].iface;
 			if (name) {
 				igTableNextColumn();
 				igText("%s", name);
@@ -149,7 +150,7 @@ ecs_query_t *gui_interfaces_query(ecs_world_t *world)
 {
 	// clang-format off
 	ecs_query_t *q = ecs_query(world, {.filter.terms = {
-		{.id = ecs_id(EgCanInterface)},
+		{.id = ecs_id(EgIfacesDetails)},
 	}});
 	// clang-format on
 	return q;

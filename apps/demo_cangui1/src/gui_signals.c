@@ -123,11 +123,12 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igText("%i", bus->socket);
 			igTableNextColumn();
 			{
-				uint8_t colr;
-				uint8_t colg;
-				uint8_t colb;
-				eg_color_hsv_to_rgb((signal->canid<<6) + (signal->canid << 16) - signal->canid, 255, 255, &colr, &colg, &colb);
-				igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(colr,colg,colb,255));
+				uint8_t h = (signal->canid<<6) + (signal->canid << 16) - signal->canid;
+				uint8_t r;
+				uint8_t g;
+				uint8_t b;
+				eg_color_hsv_to_rgb(h, 255, 255, &r, &g, &b);
+				igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r,g,b,255));
 				igText("%i", signal->canid);
 				igPopStyleColor(1);
 			}

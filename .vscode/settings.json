@@ -118,7 +118,8 @@
 		"json.h": "c",
 		"jsmn.h": "c",
 		"eg_color.h": "c",
-		"iplink.h": "c"
+		"iplink.h": "c",
+		"egifaces.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
