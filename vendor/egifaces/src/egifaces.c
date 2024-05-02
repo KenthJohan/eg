@@ -38,15 +38,18 @@
 ECS_COMPONENT_DECLARE(EgIfacesDetails);
 
 ECS_CTOR(EgIfacesDetails, ptr, {
+	//printf("ECS_CTOR\n");
 	ecs_os_memset_t(ptr, 0, EgIfacesDetails);
 })
 
 ECS_DTOR(EgIfacesDetails, ptr, {
-	ecs_os_free(ptr->link_type);
+	//printf("ECS_DTOR\n");
+	ecs_os_free((void*)ptr->link_type);
 })
 
 ECS_MOVE(EgIfacesDetails, dst, src, {
-	ecs_os_free(dst->link_type);
+	//printf("ECS_MOVE\n");
+	ecs_os_free((void*)dst->link_type);
 	*dst = *src;
 	// This makes sure the value doesn't get deleted twice,
 	// as the destructor is still invoked after a move:
@@ -55,8 +58,8 @@ ECS_MOVE(EgIfacesDetails, dst, src, {
 
 // The copy hook should copy resources from one location to another.
 ECS_COPY(EgIfacesDetails, dst, src, {
-	ecs_trace("Copy");
-	ecs_os_free(dst->link_type);
+	//printf("ECS_COPY\n");
+	ecs_os_free((void*)dst->link_type);
 	*dst = *src;
 	dst->link_type = ecs_os_strdup(src->link_type);
 })
@@ -75,11 +78,17 @@ void Tick(ecs_iter_t *it)
 		char buf[256];
 		snprintf(buf, sizeof(buf), "interfaces.%s", info[i].ifname);
 		ecs_entity_t a = ecs_new_entity(it->world, buf);
+
+		// TODO: Find a better way to update this component.
+		//ecs_log_push_(3);
+		//EgIfacesDetails * det = ecs_ensure(it->world, a, EgIfacesDetails);
+		//det->index = info[i].ifindex;
+		
 		EgIfacesDetails ptr = {
+		.index = info[i].ifindex,
 		.link_type = info[i].link_type,
 		.can_bitrate = info[i].can_bitrate,
 		.can_clock = info[i].can_clock,
-		.index = info[i].ifindex,
 		.mtu = info[i].mtu,
 		.tso_max_size = info[i].tso_max_size,
 		.numtxqueues = info[i].num_tx_queues,
@@ -94,6 +103,7 @@ void Tick(ecs_iter_t *it)
 		.stats64_tx_errors = info[i].stats64_tx_errors,
 		};
 		ecs_set_ptr(it->world, a, EgIfacesDetails, &ptr);
+		//ecs_log_pop_(3);
 	}
 
 	return;
@@ -109,6 +119,14 @@ void EgIfacesImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgIfacesDetails);
 
 	// clang-format off
+
+    ecs_set_hooks(world, EgIfacesDetails, {
+        .ctor = ecs_ctor(EgIfacesDetails),
+        .move = ecs_move(EgIfacesDetails),
+        .copy = ecs_copy(EgIfacesDetails),
+        .dtor = ecs_dtor(EgIfacesDetails),
+    });
+
 	ecs_struct(world,
 	{.entity = ecs_id(EgIfacesDetails),
 	.members = {

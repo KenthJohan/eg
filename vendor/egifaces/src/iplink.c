@@ -82,7 +82,7 @@ int iplink_parse(iplink_info_t out[], int out_length)
 	if(json == NULL) {
 		return -1;
 	}
-	printf("%s\n", json);
+	//printf("%s\n", json);
 
 	jsmn_parser p;
 	jsmn_init(&p);

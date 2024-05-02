@@ -3,9 +3,32 @@
 #include <egquantities.h>
 #include <egcan.h>
 #include <egifaces.h>
+#include <egcolors/eg_color.h>
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
+
+
+#define COLOR_RGBA(r,g,b,a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
+
+static size_t djb_hash(const char *cp)
+{
+	size_t hash = 5381;
+	while (*cp)
+		hash = 33 * hash ^ (unsigned char)*cp++;
+	return hash;
+}
+
+static void igPushStyleColor_U32_HSV_strhash(ImGuiCol idx, const char *cp)
+{
+	size_t h = djb_hash(cp);
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	eg_color_hsv_to_rgb(h, h >> 16, 255, &r, &g, &b);
+	igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r,g,b,255));
+}
+
 
 typedef struct {
 	char const *name;
@@ -42,9 +65,10 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
-	if (igBeginTable("Signals table", 16, flags2, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 17, flags2, (ImVec2){0, 0}, 0)) {
 		igTableSetupColumn("name", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("index", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 20, 0);
+		igTableSetupColumn("link_type", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 60, 0);
 		igTableSetupColumn("can_bitrate", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 70, 0);
 		igTableSetupColumn("can_clock", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 70, 0);
 		igTableSetupColumn("mtu", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 50, 0);
@@ -71,6 +95,12 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 				igText("%s", name);
 				igTableNextColumn();
 				igText("%i", iface->index);
+				igTableNextColumn();
+
+				igPushStyleColor_U32_HSV_strhash(ImGuiCol_Text, iface->link_type);
+				igText("%s", iface->link_type);
+				igPopStyleColor(1);
+
 				igTableNextColumn();
 				igText("%i", iface->can_bitrate);
 				igTableNextColumn();
@@ -100,6 +130,8 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 				igTableNextColumn();
 				igText("%i", iface->stats64_tx_errors);
 			} else {
+				igTableNextColumn();
+				igText("");
 				igTableNextColumn();
 				igText("");
 				igTableNextColumn();
