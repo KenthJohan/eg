@@ -117,8 +117,8 @@ typedef struct {
 	int minmtu;
 	int maxmtu;
 	//addrgenmode eui64 
-	int numtxqueues;
-	int numrxqueues;
+	int num_tx_queues;
+	int num_rx_queues;
 	int gso_max_size;
 	int gso_max_segs;
 	int tso_max_size;
