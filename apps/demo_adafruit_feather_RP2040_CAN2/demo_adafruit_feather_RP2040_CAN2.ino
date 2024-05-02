@@ -9,6 +9,7 @@
 #include "ibus.hpp"
 #include "motor.hpp"
 #include "mixer.h"
+#include <hardware/watchdog.h>
 
 Adafruit_DS3502 ds3502[4];
 Adafruit_MCP2515 mcp(PIN_CAN_CS);
@@ -50,6 +51,8 @@ struct repeating_timer timer;
 
 
 void setup() {
+  bool watchrebooted = watchdog_caused_reboot();
+
   Serial.begin(115200);
   for(int i = 0; i < 100; ++i){
     if(Serial) {
@@ -57,6 +60,11 @@ void setup() {
     }
     delay(10);
   }
+
+  Serial.printf("[watchrebooted] %i\n", watchrebooted);
+
+  watchdog_enable((0x7fffff / 8) / 10, false);
+  watchdog_start_tick(12);
   add_repeating_timer_ms(500, repeating_timer_callback, NULL, &timer);
   Adafruit_DS3502_begin(Serial, ds3502[0], 0x00);
   Adafruit_DS3502_begin(Serial, ds3502[1], 0x01);
@@ -93,6 +101,7 @@ void loop() {
   IBus.loop();
   progress(mcp, ds3502);
 
+
   rcval[0] = ((int32_t)IBus.readChannel(0) - 1500) * 255 / 1000;
   rcval[1] = ((int32_t)IBus.readChannel(1) - 1500) * 255 / 1000;
   rcval[2] = ((int32_t)IBus.readChannel(2) - 1500) * 255 / 1000;
@@ -103,6 +112,10 @@ void loop() {
   rcval[7] = ((int32_t)IBus.readChannel(7) - 1500) * 255 / 1000;
   rcval[8] = ((int32_t)IBus.readChannel(8) - 1500) * 255 / 1000;
   rcval[9] = ((int32_t)IBus.readChannel(9) - 1500) * 255 / 1000;
+
+  if (rcval[8] < 0) {
+    watchdog_update();
+  }
 
   mcp.beginPacket(CANID_RC_01234);
   mcp.write(rcval[0]);

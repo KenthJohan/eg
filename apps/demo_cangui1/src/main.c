@@ -71,8 +71,8 @@ void init(void *user)
 		fontCfg.RasterizerMultiply = 1.5f;
 		*/
 		ImFontConfig config = *ImFontConfig_ImFontConfig();
-		ImFontAtlas_AddFontFromFileTTF(io->Fonts, "/usr/share/fonts/truetype/ubuntu/UbuntuMono[wght].ttf", 20, &config, NULL);
-	    //ImFontAtlas_AddFontFromFileTTF(io->Fonts, "font/roboto.ttf", 16, &config, NULL);
+		//ImFontAtlas_AddFontFromFileTTF(io->Fonts, "/usr/share/fonts/truetype/ubuntu/UbuntuMono[wght].ttf", 20, &config, NULL);
+	    ImFontAtlas_AddFontFromFileTTF(io->Fonts, "font/roboto.ttf", 20, &config, NULL);
 		//ImFontAtlas_AddFontFromMemoryTTF(io->Fonts, dump_font, sizeof(dump_font), 16.0f, &config, NULL);
 
 		// create font texture and linear-filtering sampler for the custom font
@@ -200,7 +200,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	desc.user_data = app,
     desc.width = 1024;
     desc.height = 768;
-    desc.fullscreen = true;
+    desc.fullscreen = false;
     desc.high_dpi = true;
     //desc.html5_ask_leave_site = html5_ask_leave_site;
     desc.ios_keyboard_resizes_canvas = false;

@@ -35,15 +35,37 @@
 #include "egifaces.h"
 #include "iplink.h"
 
-
 ECS_COMPONENT_DECLARE(EgIfacesDetails);
 
+ECS_CTOR(EgIfacesDetails, ptr, {
+	ecs_os_memset_t(ptr, 0, EgIfacesDetails);
+})
+
+ECS_DTOR(EgIfacesDetails, ptr, {
+	ecs_os_free(ptr->link_type);
+})
+
+ECS_MOVE(EgIfacesDetails, dst, src, {
+	ecs_os_free(dst->link_type);
+	*dst = *src;
+	// This makes sure the value doesn't get deleted twice,
+	// as the destructor is still invoked after a move:
+	src->link_type = NULL;
+})
+
+// The copy hook should copy resources from one location to another.
+ECS_COPY(EgIfacesDetails, dst, src, {
+	ecs_trace("Copy");
+	ecs_os_free(dst->link_type);
+	*dst = *src;
+	dst->link_type = ecs_os_strdup(src->link_type);
+})
 
 void Tick(ecs_iter_t *it)
 {
 
-	//FILE * fp = popen("ip -d -s -j link show", "r");
-	//test_popen(fp);
+	// FILE * fp = popen("ip -d -s -j link show", "r");
+	// test_popen(fp);
 
 	iplink_info_t info[5] = {0};
 	int n = 0;
@@ -54,6 +76,7 @@ void Tick(ecs_iter_t *it)
 		snprintf(buf, sizeof(buf), "interfaces.%s", info[i].ifname);
 		ecs_entity_t a = ecs_new_entity(it->world, buf);
 		EgIfacesDetails ptr = {
+		.link_type = info[i].link_type,
 		.can_bitrate = info[i].can_bitrate,
 		.can_clock = info[i].can_clock,
 		.index = info[i].ifindex,
@@ -76,8 +99,6 @@ void Tick(ecs_iter_t *it)
 	return;
 }
 
-
-
 void EgIfacesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgIfaces);
@@ -87,13 +108,12 @@ void EgIfacesImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, EgIfacesDetails);
 
-
-
 	// clang-format off
 	ecs_struct(world,
 	{.entity = ecs_id(EgIfacesDetails),
 	.members = {
 	{.name = "index", .type = ecs_id(ecs_i32_t)},
+	{.name = "link_type", .type = ecs_id(ecs_string_t)},
 	{.name = "bitrate", .type = ecs_id(ecs_i32_t)},
 	{.name = "clock", .type = ecs_id(ecs_i32_t)},
 	{.name = "tso_max_size", .type = ecs_id(ecs_i32_t)},

@@ -104,6 +104,7 @@
 */
 typedef struct {
 	char ifname[128];
+	char link_type[128];
 	int ifindex;
 	int can_clock; // CAN-bus
 	int can_bitrate; // CAN-bus

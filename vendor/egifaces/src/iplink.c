@@ -41,6 +41,7 @@ static jsmntok_t *parse1(char const *json, jsmntok_t *u, iplink_info_t *out)
 	u++;
 	json_parse_value(json, u, u->parent, (char const *[]){"ifindex", NULL}, &out->ifindex, JSON_TYPE_INT);
 	json_parse_string(json, u, u->parent, (char const *[]){"ifname", NULL}, out->ifname, 128);
+	json_parse_string(json, u, u->parent, (char const *[]){"link_type", NULL}, out->link_type, 128);
 	json_parse_value(json, u, u->parent, (char const *[]){"mtu", NULL}, &out->mtu, JSON_TYPE_INT);
 	json_parse_value(json, u, u->parent, (char const *[]){"linkinfo", "info_data", "clock", NULL}, &out->can_clock, JSON_TYPE_INT);
 	json_parse_value(json, u, u->parent, (char const *[]){"linkinfo", "info_data", "bittiming", "bitrate", NULL}, &out->can_bitrate, JSON_TYPE_INT);

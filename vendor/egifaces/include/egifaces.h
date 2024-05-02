@@ -9,6 +9,7 @@
 
 typedef struct {
 	int32_t index;
+	char const * link_type;
 	int32_t can_bitrate;
 	int32_t can_clock;
 	int32_t mtu;

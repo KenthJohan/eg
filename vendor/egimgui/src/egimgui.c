@@ -8,6 +8,9 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
 
+#include <float.h>
+
+
 
 ecs_query_t * egimgui_query1(ecs_world_t *world)
 {
@@ -43,14 +46,8 @@ void egimgui_progress1(ecs_world_t *world, ecs_query_t *q)
 			igGetCursorScreenPos(&sp);
 			float x = sp.x + p->x;
             float y = sp.y + p->y;
-			static float sz = 36.0f;
-			static float th = 3.0f;
-			//static int ngon_sides = 6;
-			//ImDrawList_AddCircle(a, (ImVec2){x + sz*0.5f, y + sz*0.5f}, sz*0.5f, 0xFFFFFFFF, 12, th);
-			//ImDrawList_AddCircle(a, (ImVec2){x + sz*1.5f - 20, y + sz*1.5f}, sz*1.5f, 0xFFFFFFFF, 12, th);
-			//ImDrawList_AddText_Vec2(a, (ImVec2){x + sz*1.5f - 20, y + sz*1.5f}, 0xFFFFFFFF, "Hej!", NULL);
 			float d = q->max - q->min;
-			if(d > __FLT32_MIN__) {
+			if(d > 0) {
 				float v = (q->value - q->min) / d;
 				float w = r->w * v;
 				uint32_t color = COLOR_RGBA(c->r, c->g, c->b, c->a);
