@@ -51,12 +51,21 @@ static jsmntok_t *parse1(char const *json, jsmntok_t *u, iplink_info_t *out)
 	json_parse_value(json, u, u->parent, (char const *[]){"stats64", "tx", "bytes", NULL}, &out->stats64_tx_bytes, JSON_TYPE_INT);
 	json_parse_value(json, u, u->parent, (char const *[]){"stats64", "tx", "packets", NULL}, &out->stats64_tx_packets, JSON_TYPE_INT);
 	json_parse_value(json, u, u->parent, (char const *[]){"stats64", "tx", "errors", NULL}, &out->stats64_tx_errors, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"promiscuity", NULL}, &out->promiscuity, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"allmulti", NULL}, &out->allmulti, JSON_TYPE_INT);
+
+	json_parse_value(json, u, u->parent, (char const *[]){"gso_max_size", NULL}, &out->gso_max_size, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"gso_max_segs", NULL}, &out->gso_max_segs, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"tso_max_size", NULL}, &out->tso_max_size, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"tso_max_segs", NULL}, &out->tso_max_segs, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"gro_max_size", NULL}, &out->gro_max_size, JSON_TYPE_INT);
+
 
 	json_parse_value(json, u, u->parent, (char const *[]){"num_tx_queues", NULL}, &out->num_tx_queues, JSON_TYPE_INT);
 	json_parse_value(json, u, u->parent, (char const *[]){"num_rx_queues", NULL}, &out->num_rx_queues, JSON_TYPE_INT);
 	json_parse_value(json, u, u->parent, (char const *[]){"tso_max_size", NULL}, &out->tso_max_size, JSON_TYPE_INT);
-	json_parse_value(json, u, u->parent, (char const *[]){"min_mtu", NULL}, &out->minmtu, JSON_TYPE_INT);
-	json_parse_value(json, u, u->parent, (char const *[]){"max_mtu", NULL}, &out->maxmtu, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"min_mtu", NULL}, &out->min_mtu, JSON_TYPE_INT);
+	json_parse_value(json, u, u->parent, (char const *[]){"max_mtu", NULL}, &out->max_mtu, JSON_TYPE_INT);
 
 
 	

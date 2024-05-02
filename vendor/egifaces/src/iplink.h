@@ -115,8 +115,8 @@ typedef struct {
 	//brd 00:00:00:00:00:00 
 	int promiscuity;
 	int allmulti;
-	int minmtu;
-	int maxmtu;
+	int min_mtu;
+	int max_mtu;
 	//addrgenmode eui64 
 	int num_tx_queues;
 	int num_rx_queues;

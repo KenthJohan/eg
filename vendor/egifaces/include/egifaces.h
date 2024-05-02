@@ -14,10 +14,10 @@ typedef struct {
 	int32_t can_clock;
 	int32_t mtu;
 	int32_t tso_max_size;
-	int32_t numtxqueues;
-	int32_t numrxqueues;
-	int32_t minmtu;
-	int32_t maxmtu;
+	int32_t num_tx_queues;
+	int32_t num_rx_queues;
+	int32_t min_mtu;
+	int32_t max_mtu;
 	int32_t stats64_rx_bytes;
 	int32_t stats64_rx_packets;
 	int32_t stats64_rx_errors;

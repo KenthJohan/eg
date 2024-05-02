@@ -203,7 +203,7 @@ static void System_Rx(ecs_iter_t *it)
 	EgCanBus *bus = ecs_field(it, EgCanBus, 2);           // shared
 	EgCanSignal *signal = ecs_field(it, EgCanSignal, 3);  // self
 	for (int i = 0; i < it->count; ++i) {
-		thread_stuff_t * impl = rxt->impl;
+		thread_stuff_t *impl = rxt->impl;
 		ecs_os_mutex_lock(impl->lock);
 		EgCanSignal_parse(signal + i, bus->ptr);
 		ecs_os_mutex_unlock(impl->lock);
@@ -221,11 +221,11 @@ static void System_Value(ecs_iter_t *it)
 	}
 }
 
-static void Observer(ecs_iter_t *it)
+static void System_EpollAdditions(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
-	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1);
-	EgCanBus *bus = ecs_field(it, EgCanBus, 2);
+	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1); // shared
+	EgCanBus *bus = ecs_field(it, EgCanBus, 2);           // self
 	for (int i = 0; i < it->count; ++i, ++bus) {
 		ecs_entity_t e = it->entities[i];
 		thread_stuff_t *impl = rxt->impl;
@@ -234,7 +234,7 @@ static void Observer(ecs_iter_t *it)
 		.events = EPOLLIN,
 		.data.ptr = bus->ptr};
 		if (epoll_ctl(impl->fd_epoll, EPOLL_CTL_ADD, bus->socket, &event_setup)) {
-			perror("failed to add socket to epoll");
+			ecs_warn("failed to add socket to epoll %s", ecs_get_name(world, e));
 			continue;
 		}
 		EgCanRxThreadMember *m = ecs_ensure(world, e, EgCanRxThreadMember);
@@ -270,15 +270,15 @@ static ECS_MOVE(EgCanRxThread, dst, src, {
 })
 
 static ECS_DTOR(EgCanRxThread, ptr, {
-	// thread_stuff_t *impl = ptr->impl;
-	// TODO: fini thread stuff
-})
+                                    // thread_stuff_t *impl = ptr->impl;
+                                    // TODO: fini thread stuff
+                                    })
 
 static void EgCanRxThread_on_add(ecs_iter_t *it)
 {
 	EgCanRxThread *t = it->ptrs[0];
 	for (int i = 0; i < it->count; ++i) {
-		thread_stuff_t * impl = ecs_os_calloc_t(thread_stuff_t);
+		thread_stuff_t *impl = ecs_os_calloc_t(thread_stuff_t);
 		impl->lock = ecs_os_mutex_new();
 		impl->fd_epoll = epoll_create(1);
 		if (impl->fd_epoll < 0) {
@@ -359,16 +359,6 @@ void EgCanImport(ecs_world_t *world)
 
 
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = Observer,
-	.query.filter.terms =
-	{
-	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsIsA},
-	{.id = ecs_id(EgCanBus)},
-	{.id = ecs_id(EgCanRxThreadMember), .oper = EcsNot}, // Adds this
-	}});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -385,7 +375,7 @@ void EgCanImport(ecs_world_t *world)
 	.callback = System_EgCanBusDescription2,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsIsA},
+	{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsChildOf},
 	{.id = ecs_id(EgCanSignal)}
 	}});
 
@@ -398,6 +388,18 @@ void EgCanImport(ecs_world_t *world)
 	{.id = ecs_id(EgCanBusDescription), .src.flags = EcsSelf},
 	{.id = ecs_id(EgCanBus), .oper = EcsNot}, // Adds this
 	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = System_EpollAdditions,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsChildOf},
+	{.id = ecs_id(EgCanBus), .src.flags = EcsSelf},
+	{.id = ecs_id(EgCanRxThreadMember), .oper = EcsNot}, // Adds this
+	}});
+
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -415,8 +417,8 @@ void EgCanImport(ecs_world_t *world)
 	.callback = System_Rx,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsIsA},
-	{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsIsA},
+	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsChildOf},
+	{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
 	{.id = ecs_id(EgCanSignal)}
 	}});
 
