@@ -30,7 +30,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 	// int n = ecs_query_entity_count(q);
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-	if (igBeginTable("Signals table", 11, flags2, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 12, flags2, (ImVec2){0, 0}, 0)) {
 		gui_can_table_t gui[128] = {0};
 		int n = 0;
 		ecs_iter_t it = ecs_query_iter(world, q);
@@ -64,6 +64,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("canid", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("idn", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("max", ImGuiTableColumnFlags_WidthFixed, 50, 0);
@@ -110,6 +111,8 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				igText("");
 				igTableNextColumn();
 				igText("");
+				igTableNextColumn();
+				igText("");
 				continue;
 			}
 			
@@ -132,6 +135,8 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				igText("%i", signal->canid);
 				igPopStyleColor(1);
 			}
+			igTableNextColumn();
+			igText("%i", signal->idn);
 			igTableNextColumn();
 			igText("%i", signal->byte_offset);
 

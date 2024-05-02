@@ -134,6 +134,7 @@ static void *thread_loop(thread_stuff_t *stuff)
 			eg_can_book_packet8_t *rx = book->rx + frame.can_id;
 			rx->dirty = 1;
 			rx->len = frame.len;
+			rx->stats_count++;
 			rx->payload[0] = frame.data[0];
 			rx->payload[1] = frame.data[1];
 			rx->payload[2] = frame.data[2];
@@ -193,6 +194,7 @@ static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t *book)
 	eg_can_book_packet8_t *rx = book->rx + id;
 	int32_t value = (int8_t)rx->payload[o];
 	signal->rx = value;
+	signal->idn = rx->stats_count;
 }
 
 static void System_Rx(ecs_iter_t *it)
@@ -345,6 +347,7 @@ void EgCanImport(ecs_world_t *world)
 	{.entity = ecs_id(EgCanSignal),
 	.members = {
 	{.name = "canid", .type = ecs_id(ecs_u32_t)},
+	{.name = "idn", .type = ecs_id(ecs_u32_t)},
 	{.name = "len", .type = ecs_id(ecs_i32_t)},
 	{.name = "rx", .type = ecs_id(ecs_i32_t)},
 	{.name = "tx", .type = ecs_id(ecs_i32_t)},

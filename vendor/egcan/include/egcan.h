@@ -23,8 +23,9 @@ typedef struct {
 
 #define EG_CAN_BOOK_CAP 1024
 typedef struct {
-	int len;
-	int dirty;
+	uint32_t len;
+	uint32_t dirty;
+	uint32_t stats_count;
 	uint8_t payload[8];
 } eg_can_book_packet8_t;
 
@@ -54,6 +55,7 @@ https://canlogger.csselectronics.com/dbc-editor/v129/dbc-editor.html
 
 typedef struct {
 	uint32_t canid;
+	uint32_t idn;
 	int32_t len;
 	int32_t rx;
 	int32_t tx;
