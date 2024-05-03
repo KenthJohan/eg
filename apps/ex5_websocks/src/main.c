@@ -1,9 +1,8 @@
 #include <flecs.h>
 #include <stdio.h>
-#include <eg/EgWebservers.h>
-#include <eg/EgStr.h>
-#include <eg/EgFs.h>
-#include <egws/EgWebsockets.h>
+#include <egwebservers.h>
+#include <egstr.h>
+#include <egfs.h>
 
 
 typedef struct {
@@ -46,7 +45,6 @@ int main(int argc, char const * argv[])
 	ECS_IMPORT(world, EgWebservers);
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgStr);
-	ECS_IMPORT(world, EgWebsockets);
 	
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});

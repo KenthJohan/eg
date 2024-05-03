@@ -19,6 +19,8 @@
 
 /* Headers of public dependencies */
 #include <flecs.h>
+#include <mks_servo.h>
+#include <egcan.h>
 
 #endif
 

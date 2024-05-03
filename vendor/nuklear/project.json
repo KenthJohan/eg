@@ -17,7 +17,8 @@
 			"-Wpedantic",
 			"-Wextra",
 			"-Wno-error=pedantic",
-			"-Wno-error=unused-variable"
+			"-Wno-error=unused-variable",
+			"-Wno-error=unused-function"
 		],
 		"lib": [
 			"m",

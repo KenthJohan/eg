@@ -19,6 +19,9 @@
 
 /* Headers of public dependencies */
 #include <flecs.h>
+#include <egwebservers.h>
+#include <egstr.h>
+#include <egfs.h>
 
 #endif
 

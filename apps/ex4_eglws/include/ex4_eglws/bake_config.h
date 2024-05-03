@@ -19,6 +19,7 @@
 
 /* Headers of public dependencies */
 #include <flecs.h>
+#include <eglws.h>
 
 #endif
 

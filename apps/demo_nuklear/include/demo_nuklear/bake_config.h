@@ -18,7 +18,7 @@
 #define DEMO_NUKLEAR_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <nuklear.h>
 
 #endif
 

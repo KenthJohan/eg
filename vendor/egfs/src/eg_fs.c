@@ -1,6 +1,4 @@
 #include "eg_fs.h"
-#include <egmisc/eg_assert.h>
-#include <egmisc/eg_log.h>
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
@@ -8,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <flecs.h>
 
 #define COLOR_FILENAME "\033[38;2;150;150;255m" // Blue
 #define COLOR_CWD "\033[38;2;150;150;255m"      // Blue
@@ -32,7 +32,7 @@ void eg_fs_pwd()
 	char cwd[1024] = {0};
 	char *rc = getcwd(cwd, sizeof(cwd));
 	if (rc == NULL) {
-		eg_log("getcwd error: %s\n", strerror(errno));
+		ecs_err("getcwd error: %s\n", strerror(errno));
 		return;
 	}
 	printf("Current working directory: %s%s%s\n", COLOR_CWD, cwd, COLOR_RST);
@@ -40,7 +40,7 @@ void eg_fs_pwd()
 
 char *eg_fs_readfile(char const *path)
 {
-	eg_assert_notnull(path);
+	ecs_assert(path != NULL, ECS_INVALID_PARAMETER, "");
 	char *content = NULL;
 
 	FILE *file = fopen(path, "r");
@@ -60,10 +60,10 @@ char *eg_fs_readfile(char const *path)
 	content[size] = '\0';
 	size_t n = fread(content, size, 1, file);
 	if (n != 1) {
-		eg_log("%s: could not read wholef file %d bytes\n", path, size);
+		ecs_err("%s: could not read wholef file %d bytes\n", path, size);
 		goto error;
 	}
-	eg_assert(content[size] == '\0', "Expected null terminator");
+	ecs_assert(content[size] == '\0', ECS_INTERNAL_ERROR, "Expected null terminator");
 	fclose(file);
 	return content;
 error:
@@ -77,7 +77,7 @@ error:
 
 char *eg_fs_readfile_and_size(const char *path, int32_t *out_size)
 {
-	eg_assert_notnull(path);
+	ecs_assert(path != NULL, ECS_INVALID_PARAMETER, "");
 	char *content = NULL;
 
 	FILE *file = fopen(path, "r");
@@ -98,10 +98,10 @@ char *eg_fs_readfile_and_size(const char *path, int32_t *out_size)
 	content[size] = '\0';
 	size_t n = fread(content, size, 1, file);
 	if (n != 1) {
-		eg_log("%s: could not read wholef file %d bytes\n", path, size);
+		ecs_err("%s: could not read wholef file %d bytes\n", path, size);
 		goto error;
 	}
-	eg_assert(content[size] == '\0', "Expected null terminator");
+	ecs_assert(content[size] == '\0', ECS_INTERNAL_ERROR, "Expected null terminator");
 	fclose(file);
 	return content;
 error:

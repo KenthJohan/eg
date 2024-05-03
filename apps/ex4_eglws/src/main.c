@@ -1,6 +1,6 @@
 #include <flecs.h>
 #include <stdio.h>
-#include <eglws/Websockets.h>
+#include <eglws.h>
 
 typedef struct {
 	int dummy;

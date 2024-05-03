@@ -1,4 +1,4 @@
-#include "eglws/Websockets.h"
+#include "eglws.h"
 #include "ws.h"
 
 ECS_COMPONENT_DECLARE(EglwsContext);

@@ -6,8 +6,9 @@
 		"public": false,
 		"use": [
 			"flecs",
-			"eg",
-			"egws"
+			"egwebservers",
+			"egstr",
+			"egfs"
 		]
 	},
 	"lang.c": {
@@ -17,8 +18,9 @@
 		],
 		"lib": [
 			"flecs",
-			"egws",
-			"eg"
+			"egwebservers",
+			"egstr",
+			"egfs"
 		],
 		"cflags": [
 			"-Werror",

@@ -1,3 +1,6 @@
+#define _GNU_SOURCE
+
+
 #include "egfs.h"
 #include <egstr.h>
 #include <stdlib.h>
@@ -105,7 +108,7 @@ static void LoadFile(ecs_iter_t *it)
 		{
 			// Try load content of the file
 			int32_t size;
-			char const *content = eg_fs_readfile_and_size(pathbuf, &size);
+			char *content = eg_fs_readfile_and_size(pathbuf, &size);
 			if (content) {
 				EgBuffer *cont = ecs_ensure(world, e, EgBuffer);
 				cont->data = content;

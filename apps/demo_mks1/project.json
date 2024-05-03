@@ -7,7 +7,7 @@
 		"use": [
 			"flecs",
 			"mks_servo",
-			"eg_can"
+			"egcan"
 		]
 	},
 	"lang.c": {
@@ -16,7 +16,7 @@
 		"lib": [
 			"flecs",
 			"mks_servo",
-			"eg_can"
+			"egcan"
 		],
 		"cflags": [
 			"-Werror",
