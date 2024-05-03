@@ -181,6 +181,51 @@ static void qf32_from_euler(float q[4], float pitch, float yaw, float roll)
 }
 
 
+static void v3f32_cross(int const a[3], int const b[], int p[])
+{
+	p[0] = a[1] * b[2] - a[2] * b[1];
+	p[1] = a[2] * b[0] - a[0] * b[2];
+	p[2] = a[0] * b[1] - a[1] * b[0];
+}
+ 
+
+static void qf32_rotate_vector(float const q[4], float const v[3], float output[3])
+{
+	assert(output != NULL);
+	float result[3];
+	float ww = q[3] * q[3];
+	float xx = q[0] * q[0];
+	float yy = q[1] * q[1];
+	float zz = q[2] * q[2];
+	float wx = q[3] * q[0];
+	float wy = q[3] * q[1];
+	float wz = q[3] * q[2];
+	float xy = q[0] * q[1];
+	float xz = q[0] * q[2];
+	float yz = q[1] * q[2];
+
+	// Formula from http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/transforms/index.htm
+	// p2.x = w*w*p1.x + 2*y*w*p1.z - 2*z*w*p1.y + x*x*p1.x + 2*y*x*p1.y + 2*z*x*p1.z - z*z*p1.x - y*y*p1.x;
+	// p2.y = 2*x*y*p1.x + y*y*p1.y + 2*z*y*p1.z + 2*w*z*p1.x - z*z*p1.y + w*w*p1.y - 2*x*w*p1.z - x*x*p1.y;
+	// p2.z = 2*x*z*p1.x + 2*y*z*p1.y + z*z*p1.z - 2*w*y*p1.x - y*y*p1.z + 2*w*x*p1.y - x*x*p1.z + w*w*p1.z;
+
+	result[0] = ww*v[0] + 2*wy*v[2] - 2*wz*v[1] +
+	            xx*v[0] + 2*xy*v[1] + 2*xz*v[2] -
+	            zz*v[0] - yy*v[0];
+	result[1] = 2*xy*v[0] + yy*v[1] + 2*yz*v[2] +
+	            2*wz*v[0] - zz*v[1] + ww*v[1] -
+	            2*wx*v[2] - xx*v[1];
+	result[2] = 2*xz*v[0] + 2*yz*v[1] + zz*v[2] -
+	            2*wy*v[0] - yy*v[2] + 2*wx*v[1] -
+	            xx*v[2] + ww*v[2];
+	// Copy result to output
+	output[0] = result[0];
+	output[1] = result[1];
+	output[2] = result[2];
+}
+
+
+
 static void v3f32_mul(float r[3], float const a[3], float b)
 {
 	r[0] = a[0] * b;

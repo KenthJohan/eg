@@ -197,7 +197,10 @@ cool {
 
 	- Position3{0, 0, 0}
 	- Position3World
-	- Sinewave{frequency:1, amplitude:0.1}
+	//- Sinewave{frequency:1, amplitude:0.1}
+
+	// Apply keyboard controll when pressing key
+	- KeyActionToggleEntity{keycode: $KEYCODE_F2, entity: SpaceShip}
 	
 	
 	xyz {
@@ -213,7 +216,7 @@ cool {
 		- (EgUse, vbuffers.lines)
 	}
 
-	the_lidar_cylinder {
+	c0 {
 		- Cylinder{radius: 0.1, height: 0.2, slices: 20, stacks: 2, random_colors: 1}
 		- Position3{x: 0, y: 0, z: 0}
 		- Position3World
@@ -228,10 +231,70 @@ cool {
 		- (EgUse, graphics.pipes.shapes)
 	}
 
-	// Apply keyboard controll when pressing key
-	- KeyActionToggleEntity{keycode: $KEYCODE_F2, entity: SpaceShip}
-}
+	c1 {
+		- Cylinder{radius: 0.1, height: 0.2, slices: 20, stacks: 2, random_colors: 1}
+		- Position3{x: -1, y: -1, z: 0}
+		- Position3World
+		- Color32{a: 255, r: 255, g: 255, b:255}
+		- EulerAngles{pitch:0, yaw:0, roll: 0}
+		- Orientation{0, 0, 0, 1}
+		- OrientationWorld
+		- Transformation
+		- ShapeElement
+		- (EgUse, vbuffers.shapes)
+		- (EgUse, cam)
+		- (EgUse, graphics.pipes.shapes)
+	}
 
+	c2 {
+		- Cylinder{radius: 0.1, height: 0.2, slices: 20, stacks: 2, random_colors: 1}
+		- Position3{x: -1, y: 1, z: 0}
+		- Position3World
+		- Color32{a: 255, r: 255, g: 255, b:255}
+		- EulerAngles{pitch:0, yaw:0, roll: 0}
+		- Orientation{0, 0, 0, 1}
+		- OrientationWorld
+		- Transformation
+		- ShapeElement
+		- (EgUse, vbuffers.shapes)
+		- (EgUse, cam)
+		- (EgUse, graphics.pipes.shapes)
+	}
+
+	c3 {
+		- Cylinder{radius: 0.1, height: 0.2, slices: 20, stacks: 2, random_colors: 1}
+		- Position3{x: 1, y: -1, z: 0}
+		- Position3World
+		- Color32{a: 255, r: 255, g: 255, b:255}
+		- EulerAngles{pitch:0, yaw:0, roll: 0}
+		- Orientation{0, 0, 0, 1}
+		- OrientationWorld
+		- Transformation
+		- ShapeElement
+		- (EgUse, vbuffers.shapes)
+		- (EgUse, cam)
+		- (EgUse, graphics.pipes.shapes)
+	}
+
+	c4 {
+		- Cylinder{radius: 0.1, height: 0.2, slices: 20, stacks: 2, random_colors: 1}
+		- Position3{x: 1, y: 1, z: 0}
+		- Position3World
+		- Color32{a: 255, r: 255, g: 255, b:255}
+		//- EulerAngles{pitch:0, yaw:0, roll: 0}
+		- Orientation{0, 0, 0, 1}
+		- OrientationWorld
+		- Transformation
+		- ShapeElement
+		- (EgUse, vbuffers.shapes)
+		- (EgUse, cam)
+		- (EgUse, graphics.pipes.shapes)
+
+		- EgRotateOrder1
+		- Rotate3{0,0.101,0}
+		- KeyActionToggleEntity{keycode: $KEYCODE_F3, entity: SpaceShip}
+	}
+}
 
 
 

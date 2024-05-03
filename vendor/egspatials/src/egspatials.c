@@ -46,12 +46,14 @@ static void Orientation_Cascade(ecs_iter_t *it)
 	OrientationWorld *g = ecs_field(it, OrientationWorld, 2); // self, out
 	OrientationWorld *p = ecs_field(it, OrientationWorld, 3); // parent, in
 	for (int i = 0; i < it->count; ++i, ++l, ++g) {
-		g[0].x = l[0].x;
-		g[0].y = l[0].y;
-		g[0].z = l[0].z;
-		g[0].w = l[0].w;
+		g->x = l->x;
+		g->y = l->y;
+		g->z = l->z;
+		g->w = l->w;
 		if (p) {
 			qf32_mul((float*)g, (float const*)p, (float const*)g);
+			//qf32_rotate_vector(g, pos, pos);
+			//qf32_mul((float*)g, (float const*)g, (float const*)p);
 		}
 	}
 }
@@ -61,10 +63,15 @@ static void Position3_Cascade(ecs_iter_t *it)
 	Position3 *l = ecs_field(it, Position3, 1); // self, in
 	Position3World *g = ecs_field(it, Position3World, 2); // self, out
 	Position3World *p = ecs_field(it, Position3World, 3); // parent, in
+	Orientation *qq = ecs_field(it, Orientation, 4); // parent, in
 	for (int i = 0; i < it->count; ++i, ++l, ++g) {
-		g[0].x += l[0].x;
-		g[0].y += l[0].y;
-		g[0].z += l[0].z;
+		float bb[3] = {l->x, l->y, l->z};
+		if (qq) {
+			qf32_rotate_vector((float const*)qq, (float const*)l, bb);
+		} 
+		g->x += bb[0];
+		g->y += bb[1];
+		g->z += bb[2];
 		if (p) {
 			g->x += p->x;
 			g->y += p->y;
@@ -334,6 +341,26 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.name = "amplitude", .type = ecs_id(ecs_f32_t)},
 	}});
 
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "RotateQuaternion1", .add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = RotateQuaternion1,
+	.query.filter.terms = {
+	{.id = ecs_id(Rotate3)},
+	{.id = ecs_id(Orientation)},
+	{.id = EgRotateOrder1},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "RotateQuaternion2", .add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = RotateQuaternion2,
+	.query.filter.terms = {
+	{.id = ecs_id(Rotate3)},
+	{.id = ecs_id(Orientation)},
+	{.id = EgRotateOrder2},
+	}});
+
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -365,25 +392,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.id = ecs_id(RotMat3), .inout = EcsOut},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "RotateQuaternion1", .add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = RotateQuaternion1,
-	.query.filter.terms = {
-	{.id = ecs_id(Rotate3)},
-	{.id = ecs_id(Orientation)},
-	{.id = EgRotateOrder1},
-	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "RotateQuaternion2", .add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = RotateQuaternion2,
-	.query.filter.terms = {
-	{.id = ecs_id(Rotate3)},
-	{.id = ecs_id(Orientation)},
-	{.id = EgRotateOrder2},
-	}});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -405,6 +414,9 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.id = ecs_id(Position3World), .inout = EcsOut},
 	}});
 
+
+
+	
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "Orientation_Cascade", .add = {ecs_dependson(EcsOnUpdate)}}),
@@ -415,6 +427,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.id = ecs_id(OrientationWorld), .inout = EcsOut},
 	{.id = ecs_id(OrientationWorld), .src.flags = EcsParent | EcsCascade, .inout = EcsIn, .oper = EcsOptional},
 	}});
+	
  
 
 
@@ -427,6 +440,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.id = ecs_id(Position3), .inout = EcsIn},
 	{.id = ecs_id(Position3World), .inout = EcsOut},
 	{.id = ecs_id(Position3World), .src.flags = EcsParent | EcsCascade, .inout = EcsIn, .oper = EcsOptional},
+	{.id = ecs_id(Orientation), .src.flags = EcsParent, .inout = EcsIn, .oper = EcsOptional},
 	}});
 
 
