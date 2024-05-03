@@ -69,7 +69,7 @@ static jsmntok_t *parse1(char const *json, jsmntok_t *u, iplink_info_t *out)
 
 
 	
-
+	// Search for next item at depth 0 then return it:
 	while (1) {
 		if (u->parent == 0) {
 			break;
@@ -87,6 +87,18 @@ https://man7.org/linux/man-pages/man8/ip.8.html
 int iplink_parse(iplink_info_t out[], int out_length)
 {
 	int n = 0;
+
+	/*
+    ip - show / manipulate routing, network devices, interfaces and tunnels
+	-d, -details
+		Output more detailed information.
+	-s, -stats, -statistics
+		Output more information. If the option appears twice or
+		more, the amount of information increases.  As a rule, the
+		information is statistics or some time values.
+    -j, -json
+		Output results in JavaScript Object Notation (JSON).
+	*/
 	char const *json = popen_to_string("ip -d -s -j link show");
 	if(json == NULL) {
 		return -1;
