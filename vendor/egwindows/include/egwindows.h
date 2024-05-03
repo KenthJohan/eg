@@ -19,7 +19,21 @@ typedef struct {
 } Window;
 
 typedef struct {
-	int32_t dummy;
+	uint16_t key_rotate_dx_plus;
+	uint16_t key_rotate_dx_minus;
+	uint16_t key_rotate_dy_plus;
+	uint16_t key_rotate_dy_minus;
+	uint16_t key_rotate_dz_plus;
+	uint16_t key_rotate_dz_minus;
+	uint16_t key_move_dx_plus;
+	uint16_t key_move_dx_minus;
+	uint16_t key_move_dy_plus;
+	uint16_t key_move_dy_minus;
+	uint16_t key_move_dz_plus;
+	uint16_t key_move_dz_minus;
+	uint16_t key_fov_reset;
+	uint16_t key_fov_plus;
+	uint16_t key_fov_minus;
 } KeyboardController;
 
 typedef struct {

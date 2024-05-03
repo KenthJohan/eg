@@ -39,5 +39,26 @@ void EgWindowsImport(ecs_world_t *world)
 	{.name = "entity", .type = ecs_id(ecs_entity_t)},
 	}});
 
+	ecs_struct(world,
+	{.entity = ecs_id(KeyboardController),
+	.members = {
+	{.name = "key_rotate_dx_plus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_rotate_dx_minus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_rotate_dy_plus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_rotate_dy_minus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_rotate_dz_plus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_rotate_dz_minus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_move_dx_plus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_move_dx_minus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_move_dy_plus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_move_dy_minus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_move_dz_plus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_move_dz_minus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_move_dz_minus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_fov_reset", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_fov_plus", .type = ecs_id(ecs_u16_t)},
+	{.name = "key_fov_minus", .type = ecs_id(ecs_u16_t)},
+	}});
+
 
 }

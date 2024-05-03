@@ -6,12 +6,8 @@ using eg.spatials
 using eg.cameras
 using eg.shapes
 
-// Rotate {Orientation} with keyboard
-Prefab SpaceShip {
-	- KeyboardController
-	- Rotate3
-	- Velocity3
-}
+
+
 
 const PI = 3.14159265358979323846
 // Sokol keyboard codes
@@ -138,7 +134,28 @@ const KEYCODE_RIGHT_ALT        = 346
 const KEYCODE_RIGHT_SUPER      = 347
 const KEYCODE_MENU             = 348
 
-
+// Rotate {Orientation} with keyboard
+Prefab SpaceShip {
+	- KeyboardController{
+		key_rotate_dx_plus:$KEYCODE_UP, 
+		key_rotate_dx_minus:$KEYCODE_DOWN, 
+		key_rotate_dy_plus:$KEYCODE_RIGHT, 
+		key_rotate_dy_minus:$KEYCODE_LEFT, 
+		key_rotate_dz_plus:$KEYCODE_E, 
+		key_rotate_dz_minus:$KEYCODE_Q,
+		key_move_dx_plus:$KEYCODE_A, 
+		key_move_dx_minus:$KEYCODE_D, 
+		key_move_dy_plus:$KEYCODE_LEFT_CONTROL, 
+		key_move_dy_minus:$KEYCODE_SPACE, 
+		key_move_dz_plus:$KEYCODE_W, 
+		key_move_dz_minus:$KEYCODE_S, 
+		key_fov_reset:$KEYCODE_KP_0, 
+		key_fov_plus:$KEYCODE_KP_1, 
+		key_fov_minus:$KEYCODE_KP_2, 
+		}
+	- Rotate3
+	- Velocity3
+}
 
 cam : SpaceShip {
 	- Camera

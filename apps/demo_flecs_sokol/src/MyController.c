@@ -15,9 +15,9 @@ static void ControllerRotate(ecs_iter_t *it)
 	uint8_t *keys = window->keys;
 	float k = 0.8f * it->delta_time;
 	for (int i = 0; i < it->count; ++i, ++rotate) {
-		rotate->dx = keys[SAPP_KEYCODE_UP] - keys[SAPP_KEYCODE_DOWN];
-		rotate->dy = keys[SAPP_KEYCODE_RIGHT] - keys[SAPP_KEYCODE_LEFT];
-		rotate->dz = keys[SAPP_KEYCODE_E] - keys[SAPP_KEYCODE_Q];
+		rotate->dx = keys[controller->key_rotate_dx_plus] - keys[controller->key_rotate_dx_minus];
+		rotate->dy = keys[controller->key_rotate_dy_plus] - keys[controller->key_rotate_dy_minus];
+		rotate->dz = keys[controller->key_rotate_dz_plus] - keys[controller->key_rotate_dz_minus];
 		v3f32_mul((float *)rotate, (float *)rotate, k);
 	}
 }
@@ -31,9 +31,9 @@ static void ControllerMove(ecs_iter_t *it)
 	float moving_speed = 1.1f;
 	float k = it->delta_time * moving_speed;
 	for (int i = 0; i < it->count; i++) {
-		vel->x = keys[SAPP_KEYCODE_A] - keys[SAPP_KEYCODE_D];
-		vel->y = keys[SAPP_KEYCODE_LEFT_CONTROL] - keys[SAPP_KEYCODE_SPACE];
-		vel->z = keys[SAPP_KEYCODE_W] - keys[SAPP_KEYCODE_S];
+		vel->x = keys[controller->key_move_dx_plus] - keys[controller->key_move_dx_minus];
+		vel->y = keys[controller->key_move_dy_plus] - keys[controller->key_move_dy_minus];
+		vel->z = keys[controller->key_move_dz_plus] - keys[controller->key_move_dz_minus];
 		v3f32_mul((float *)vel, (float *)vel, k);
 	}
 }
@@ -45,9 +45,9 @@ static void ControllerPerspective(ecs_iter_t *it)
 	Window *window = ecs_field(it, Window, 3);
 	uint8_t *keys = window->keys;
 	for (int i = 0; i < it->count; i++) {
-		camera->fov = keys[SAPP_KEYCODE_KP_0] ? 45 : camera->fov;
-		camera->fov -= keys[SAPP_KEYCODE_KP_1];
-		camera->fov += keys[SAPP_KEYCODE_KP_2];
+		camera->fov = keys[controller->key_fov_reset] ? 45 : camera->fov;
+		camera->fov -= keys[controller->key_fov_minus];
+		camera->fov += keys[controller->key_fov_plus];
 		// sdtx_printf("FOV: %f", camera->fov);
 	}
 }
