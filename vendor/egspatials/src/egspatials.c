@@ -142,11 +142,25 @@ static void Move(ecs_iter_t *it)
 		// Convert unit quaternion to rotation matrix (r)
 		m4f32 r = M4_IDENTITY;
 		qf32_unit_to_m4((float *)o, &r);
-		// Translate postion (pos) relative to direction of camera rotation
+
+
+		// Translate postion (pos) relative to direction of camera rotation:
 		float dir[3];
-		dir[0] = V3_DOT(r.c0, (float *)v);
-		dir[1] = V3_DOT(r.c1, (float *)v);
-		dir[2] = V3_DOT(r.c2, (float *)v);
+		dir[0] = V3_DOT((float *)v, r.c0);
+		dir[1] = V3_DOT((float *)v, r.c1);
+		dir[2] = V3_DOT((float *)v, r.c2);
+
+		/*
+		TODO:
+		Rotation matrix transposed is its inverse.
+		Figure out if we need a common move system for both camera and 3d objects.
+		*/
+
+		// Move 3D-objects releative to its own orientation:
+		// dir[0] = V3_DOTE((float *)v, M3_R0(r));
+		// dir[1] = V3_DOTE((float *)v, M3_R1(r));
+		// dir[2] = V3_DOTE((float *)v, M3_R2(r));
+
 		// v3f32_print((float*)dir);
 		v3f32_add((float *)p, (float *)p, dir);
 	}

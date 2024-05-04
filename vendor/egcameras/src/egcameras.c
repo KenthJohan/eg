@@ -12,7 +12,7 @@
 
 ECS_COMPONENT_DECLARE(Camera);
 
-void CameraUpdate(ecs_iter_t *it)
+static void CameraUpdate(ecs_iter_t *it)
 {
 	Camera *cam = ecs_field(it, Camera, 1);         // self
 	Position3 *pos = ecs_field(it, Position3, 2);   // self

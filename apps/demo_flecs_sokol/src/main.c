@@ -78,6 +78,7 @@ static void init_cb(app_t *app)
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
+	printf("https://www.flecs.dev/explorer/?remote=true\n");
 
 	ECS_SYSTEM(world, WindowLastFrame, EcsPostUpdate, Window($));
 
