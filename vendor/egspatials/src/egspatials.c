@@ -63,7 +63,7 @@ static void Position3_Cascade(ecs_iter_t *it)
 	Position3 *l = ecs_field(it, Position3, 1); // self, in
 	Position3World *g = ecs_field(it, Position3World, 2); // self, out
 	Position3World *p = ecs_field(it, Position3World, 3); // parent, in
-	Orientation *qq = ecs_field(it, Orientation, 4); // parent, in
+	OrientationWorld *qq = ecs_field(it, OrientationWorld, 4); // parent, in
 	for (int i = 0; i < it->count; ++i, ++l, ++g) {
 		float bb[3] = {l->x, l->y, l->z};
 		if (qq) {
@@ -440,7 +440,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.id = ecs_id(Position3), .inout = EcsIn},
 	{.id = ecs_id(Position3World), .inout = EcsOut},
 	{.id = ecs_id(Position3World), .src.flags = EcsParent | EcsCascade, .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(Orientation), .src.flags = EcsParent, .inout = EcsIn, .oper = EcsOptional},
+	{.id = ecs_id(OrientationWorld), .src.flags = EcsParent, .inout = EcsIn, .oper = EcsOptional},
 	}});
 
 

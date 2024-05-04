@@ -188,6 +188,11 @@ vbuffers {
 
 
 
+
+
+
+
+
 cool {
 	// Set the order of the operands, changes how {Orientation} rotates
 	- EgRotateOrder1
@@ -291,8 +296,27 @@ cool {
 		- (EgUse, graphics.pipes.shapes)
 
 		- EgRotateOrder1
-		- Rotate3{0,0.101,0}
-		- KeyActionToggleEntity{keycode: $KEYCODE_F3, entity: SpaceShip}
+		- Rotate3{0,0.011,0}
+		//- KeyActionToggleEntity{keycode: $KEYCODE_F3, entity: SpaceShip}
+
+
+		c4_child1 {
+			- Cylinder{radius: 0.1, height: 0.2, slices: 20, stacks: 2, random_colors: 1}
+			- Position3{x: 0.4, y: 0, z: 0}
+			- Position3World
+			- Color32{a: 255, r: 255, g: 255, b:255}
+			//- EulerAngles{pitch:0, yaw:0, roll: 0}
+			- Orientation{0, 0, 0, 1}
+			- OrientationWorld
+			- Transformation
+			- ShapeElement
+			- (EgUse, vbuffers.shapes)
+			- (EgUse, cam)
+			- (EgUse, graphics.pipes.shapes)
+			- EgRotateOrder1
+			- Rotate3{0,-0.111,0}
+		}
+
 	}
 }
 
