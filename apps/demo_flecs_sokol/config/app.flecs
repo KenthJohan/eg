@@ -193,6 +193,8 @@ vbuffers {
 
 
 
+
+
 cool {
 	// Set the order of the operands, changes how {Orientation} rotates
 	- EgRotateOrder1
@@ -420,7 +422,6 @@ origin_xyz {
 		- (EgUse, vbuffers.lines)
 	}
 }
-
 
 
 

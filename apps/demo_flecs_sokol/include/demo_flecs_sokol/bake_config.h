@@ -19,6 +19,7 @@
 
 /* Headers of public dependencies */
 #include <flecs.h>
+#include <egmath.h>
 #include <egsokol.h>
 #include <egcomponents.h>
 #include <egshapes.h>

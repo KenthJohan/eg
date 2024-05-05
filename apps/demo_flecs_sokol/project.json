@@ -6,6 +6,7 @@
 		"public": false,
 		"use": [
 			"flecs",
+			"egmath",
 			"egsokol",
 			"egcomponents",
 			"egshapes",
@@ -29,6 +30,7 @@
 		],
 		"lib": [
 			"flecs",
+			"egmath",
 			"egsokol",
 			"egcomponents",
 			"egshapes",

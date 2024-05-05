@@ -438,8 +438,8 @@ void EgSpatialsImport(ecs_world_t *world)
 	.entity = ecs_entity(world, {.name = "TransformationPosition", .add = {ecs_dependson(EcsOnUpdate)}}),
 	.callback = TransformationPosition,
 	.query.filter.terms = {
-	{.id = ecs_id(Transformation), .src.flags = EcsSelf, .inout = EcsOut},
-	{.id = ecs_id(Position3World), .src.flags = EcsSelf, .inout = EcsIn},
-	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(Transformation), .inout = EcsOut},
+	{.id = ecs_id(Position3World), .inout = EcsIn},
+	{.id = ecs_id(OrientationWorld), .inout = EcsIn},
 	}});
 }

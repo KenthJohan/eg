@@ -18,7 +18,7 @@
 #define EGSPATIALS_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <egmath.h>
 
 /* Convenience macro for exporting symbols */
 #ifndef egspatials_STATIC
