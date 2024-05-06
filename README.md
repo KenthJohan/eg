@@ -21,7 +21,13 @@ bake flecs
 ```
 
 
-## Build vendor/*
+## Build eg
+```bash
+cd ~/Documents
+git clone https://github.com/KenthJohan/eg
+```
+
+### Build vendor/*
 ```bash
 bake vendor
 ```
