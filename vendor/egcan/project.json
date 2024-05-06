@@ -4,7 +4,9 @@
 	"value": {
 		"language": "c",
 		"public": true,
-		"use": []
+		"use": [
+			"egcan"
+		]
 	},
 	"lang.c": {
 		"c-standard": "c11",
@@ -12,6 +14,8 @@
 		"static": true,
 		"defines": [],
 		"cflags": [],
-		"lib": []
+		"lib": [
+			"egcan"
+		]
 	}
 }
