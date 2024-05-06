@@ -26,6 +26,7 @@
 #include <egshapes.h>
 #include <egcolors.h>
 #include <egifaces.h>
+#include <egmath.h>
 #include <sokol_app.h>
 #include <sokol_log.h>
 #include <sokol_gfx.h>
