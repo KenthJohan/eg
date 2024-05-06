@@ -130,6 +130,9 @@ static void *thread_loop(thread_stuff_t *stuff)
 			if (rc < 0) {
 				continue;
 			}
+			if (frame.can_id >= book->cap) {
+				continue;
+			}
 			ecs_os_mutex_lock(stuff->lock);
 			eg_can_book_packet8_t *rx = book->rx + frame.can_id;
 			rx->dirty = 1;
