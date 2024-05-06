@@ -34,6 +34,7 @@ typedef struct {
 	char const *name;
 	EgIfacesDetails *iface;
 	ecs_entity_t e;
+	bool check;
 } gui_interface_table_t;
 
 void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
@@ -65,7 +66,10 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
-	if (igBeginTable("Signals table", 17, flags2, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 18, flags2, (ImVec2){0, 0}, 0)) {
+
+
+		igTableSetupColumn("select", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 30, 0);
 		igTableSetupColumn("name", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("index", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 20, 0);
 		igTableSetupColumn("link_type", ImGuiTableColumnFlags_AngledHeader | ImGuiTableColumnFlags_WidthFixed, 60, 0);
@@ -90,7 +94,25 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 		for (int i = 0; i <= n; ++i) {
 			char const *name = gui[i].name;
 			EgIfacesDetails *iface = gui[i].iface;
+			igPushID_Int(name);
 			if (name) {
+				igTableNextColumn();
+				{
+					char buf[128];
+					snprintf(buf, sizeof(buf), "ifselected.%s", name);
+					ecs_entity_t ee = ecs_lookup(world, buf);
+					bool checked = !!ee;
+					bool pressed = igCheckbox("", &checked);
+					if (pressed) {
+						printf("checked:%i\n", checked);
+					}
+					if (checked) {
+						ee = ecs_new_entity(world, buf);
+					} else if(ee) {
+						ecs_delete(world, ee);
+					}
+				}
+
 				igTableNextColumn();
 				igText("%s", name);
 				igTableNextColumn();
@@ -164,7 +186,10 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 				igText("");
 				igTableNextColumn();
 				igText("");
+				igTableNextColumn();
+				igText("");
 			}
+			igPopID();
 		}
 
 		igEndTable();
