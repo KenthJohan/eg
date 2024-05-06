@@ -17,7 +17,14 @@
 				},
 			],
 			"program": "${workspaceFolder}/apps/demo_can2udp/bin/x64-Linux-debug/demo_can2udp",
-			"args": [],
+			"args": [
+				"-f",
+				"-v",
+				"-i",
+				"can0",
+				"-b",
+				"192.168.1.228"
+			],
 			"osx": {
 				"MIMode": "lldb",
 				"targetArchitecture": "arm64",
