@@ -94,7 +94,7 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 		for (int i = 0; i <= n; ++i) {
 			char const *name = gui[i].name;
 			EgIfacesDetails *iface = gui[i].iface;
-			igPushID_Int(name);
+			igPushID_Ptr(name);
 			if (name) {
 				igTableNextColumn();
 				{
@@ -104,7 +104,7 @@ void gui_interfaces_progress(ecs_world_t *world, ecs_query_t *q)
 					bool checked = !!ee;
 					bool pressed = igCheckbox("", &checked);
 					if (pressed) {
-						printf("checked:%i\n", checked);
+						printf("checked:%i:%s\n", checked, name);
 					}
 					if (checked) {
 						ee = ecs_new_entity(world, buf);

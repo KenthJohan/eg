@@ -117,20 +117,22 @@ static void *thread_loop(thread_stuff_t *stuff)
 		for (int i = 0; i < num_events; i++) {
 			eg_can_book_t *book = events[i].data.ptr;
 			if (events[i].events & EPOLLERR) {
-				printf("EPOLLERR\n");
+				ecs_err("EPOLLERR");
 				// TODO: How to handle this error?
 				int rc = close(book->sock);
 				if (rc < 0) {
-					perror("failed to close socket from epoll");
+					ecs_err("close(): %i: %s", rc, strerror(rc));
 				}
 				continue;
 			}
 			eg_can_frame_t frame = {0};
 			int rc = eg_can_recv(book->sock, &frame);
 			if (rc < 0) {
+				ecs_err("eg_can_recv(): %i", rc);
 				continue;
 			}
 			if (frame.can_id >= book->cap) {
+				ecs_warn("canid=%i must be less than cap=%i", frame.can_id, book->cap);
 				continue;
 			}
 			ecs_os_mutex_lock(stuff->lock);
@@ -155,23 +157,36 @@ static void *thread_loop(thread_stuff_t *stuff)
 
 static void eg_can_book_send(eg_can_book_t *book)
 {
-	for (int canid = 0; canid < book->cap; ++canid) {
-		if (book->tx[canid].dirty) {
-			eg_can_frame_t frame = {0};
-			frame.can_id = canid;
-			frame.len = book->tx[canid].len;
-			frame.data[0] = book->tx[canid].payload[0];
-			frame.data[1] = book->tx[canid].payload[1];
-			frame.data[2] = book->tx[canid].payload[2];
-			frame.data[3] = book->tx[canid].payload[3];
-			frame.data[4] = book->tx[canid].payload[4];
-			frame.data[5] = book->tx[canid].payload[5];
-			frame.data[6] = book->tx[canid].payload[6];
-			frame.data[7] = book->tx[canid].payload[7];
-			eg_can_send(book->sock, &frame);
-			printf("Send can packet socket=%i\n", book->sock);
-			book->tx[canid].dirty = 0;
+	eg_can_book_packet8_t * tx = book->tx;
+	for (int canid = 0; canid < book->cap; ++canid, ++tx) {
+		if (tx->dirty == 0) {
+			continue;
 		}
+		tx->dirty = 0;
+		if (tx->len == 0) {
+			ecs_warn("can frame len=%i must be larger than 0 bytes", tx->len);
+			continue;
+		}
+		if (tx->len > 8) {
+			ecs_warn("can frame len=%i must not be larger than 8 bytes", tx->len);
+			continue;
+		}
+		eg_can_frame_t frame = {0};
+		frame.can_id = canid;
+		frame.len = tx->len;
+		frame.data[0] = tx->payload[0];
+		frame.data[1] = tx->payload[1];
+		frame.data[2] = tx->payload[2];
+		frame.data[3] = tx->payload[3];
+		frame.data[4] = tx->payload[4];
+		frame.data[5] = tx->payload[5];
+		frame.data[6] = tx->payload[6];
+		frame.data[7] = tx->payload[7];
+		eg_can_send(book->sock, &frame);
+		int lvl = ecs_log_get_level();
+		ecs_log_set_level(0);
+		ecs_trace("cansend: socket=%i, id=%i, len=%i, data=[%02X %02X %02X %02X %02X %02X %02X %02X]", book->sock, frame.can_id, frame.len, frame.data[0], frame.data[1], frame.data[2], frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
+		ecs_log_set_level(lvl);
 	}
 }
 
@@ -185,16 +200,18 @@ static void EgCanBusBook_System_Sender(ecs_iter_t *it)
 
 static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t *book)
 {
-	int id = signal->canid;
-	if (id >= book->cap) {
+	int canid = signal->canid;
+	if (canid >= book->cap) {
+		ecs_warn("canid=%i must be less than cap=%i", canid, book->cap);
 		return;
 	}
 	int o = signal->byte_offset;
 	if ((o >= 8) || (o < 0)) {
+		ecs_warn("offset=%i must be in range of 0..8", o);
 		return;
 	}
 	// TODO: Support all types and bit offsets
-	eg_can_book_packet8_t *rx = book->rx + id;
+	eg_can_book_packet8_t *rx = book->rx + canid;
 	int32_t value = (int8_t)rx->payload[o];
 	signal->rx = value;
 	signal->idn = rx->stats_count;

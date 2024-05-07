@@ -121,7 +121,8 @@
 		"iplink.h": "c",
 		"egifaces.h": "c",
 		"inet.h": "c",
-		"if.h": "c"
+		"if.h": "c",
+		"thread": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

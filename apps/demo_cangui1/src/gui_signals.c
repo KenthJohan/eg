@@ -198,8 +198,8 @@ ecs_query_t *gui_signals_query(ecs_world_t *world)
 	// clang-format off
 	ecs_query_t * q = ecs_query(world, {
 		.filter.terms = {
-			{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsIsA},
-			{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsIsA},
+			{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
+			{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsChildOf},
 			{.id = ecs_id(EgCanSignal), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
 			//{.id = ecs_id(EgCanSignal)},
 			{.id = ecs_id(EgQuantitiesIsq), .oper = EcsOptional},
