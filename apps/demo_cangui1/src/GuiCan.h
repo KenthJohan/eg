@@ -4,15 +4,14 @@
 typedef struct {
 	int32_t value;
 	int32_t list_index;
-} GuiSlider;
+} GuiCanSlider;
 
 typedef struct {
-	int32_t value;
-} GuiCanSignalInfo;
+	ecs_vec_t v;
+	uint32_t last_index;
+} GuiCanPlot;
 
-extern ECS_COMPONENT_DECLARE(GuiSlider);
-extern ECS_COMPONENT_DECLARE(GuiCanSignalInfo);
-
-void gui_can_progress1(ecs_world_t *world, ecs_query_t *q);
+extern ECS_COMPONENT_DECLARE(GuiCanSlider);
+extern ECS_COMPONENT_DECLARE(GuiCanPlot);
 
 void GuiCanImport(ecs_world_t *world);

@@ -21,12 +21,14 @@
 #include "gui_signals.h"
 #include "gui_interfaces.h"
 #include "imgui_font.h"
+#include "gui_plot.h"
 
 typedef struct {
 	ecs_world_t *world;
 	ecs_query_t *query_signals;
 	ecs_query_t *query_gui;
 	ecs_query_t *query_ifaces;
+	ecs_query_t *query_plots;
 	ImFont *font;
 } app_t;
 
@@ -138,6 +140,10 @@ void frame(app_t *app)
 			egimgui_progress1(app->world, app->query_gui);
 			igEndTabItem();
 		};
+		if (igBeginTabItem("Plots", NULL, 0)) {
+			gui_plot_progress(app->world, app->query_plots);
+			igEndTabItem();
+		};
 		igEndTabBar();
 		igEnd();
 	}
@@ -186,6 +192,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	app->query_signals = gui_signals_query(app->world);
 	app->query_ifaces = gui_interfaces_query(app->world);
 	app->query_gui = egimgui_query1(app->world);
+	app->query_plots = gui_plot_query(app->world);
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
@@ -198,8 +205,8 @@ sapp_desc sokol_main(int argc, char *argv[])
     desc.cleanup_userdata_cb = cleanup,
     desc.event_userdata_cb = input,
 	desc.user_data = app,
-    desc.width = 1024;
-    desc.height = 768;
+    desc.width = 1400;
+    desc.height = 800;
     desc.fullscreen = false;
     desc.high_dpi = true;
     //desc.html5_ask_leave_site = html5_ask_leave_site;

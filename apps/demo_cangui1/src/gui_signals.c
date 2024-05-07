@@ -11,6 +11,7 @@
 #include <cimgui.h>
 
 #include <stdlib.h>
+#include "GuiCan.h"
 
 
 
@@ -30,7 +31,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 	// int n = ecs_query_entity_count(q);
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-	if (igBeginTable("Signals table", 12, flags2, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 13, flags2, (ImVec2){0, 0}, 0)) {
 		gui_can_table_t gui[128] = {0};
 		int n = 0;
 		ecs_iter_t it = ecs_query_iter(world, q);
@@ -72,6 +73,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("q", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("u", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("plot", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableHeadersRow();
 
 		/*
@@ -89,6 +91,8 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			EgCanBusDescription *desc = gui[i].desc;
 
 			if (name == NULL) {
+				igTableNextColumn();
+				igText("");
 				igTableNextColumn();
 				igText("");
 				igTableNextColumn();
@@ -186,6 +190,21 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igText(quant ? quant->symbol : "");
 			igTableNextColumn();
 			igText("");
+			
+			igTableNextColumn();
+			{
+				bool checked = ecs_has(world, gui[i].e, GuiCanPlot);
+				bool pressed = igCheckbox("", &checked);
+				if (pressed) {
+					printf("checked:%i:%s\n", checked, name);
+					if (checked) {
+						ecs_add(world, gui[i].e, GuiCanPlot);
+					} else {
+						ecs_remove(world, gui[i].e, GuiCanPlot);
+					}
+				}
+			}
+
 			igPopID();
 		}
 

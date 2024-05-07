@@ -122,7 +122,9 @@
 		"egifaces.h": "c",
 		"inet.h": "c",
 		"if.h": "c",
-		"thread": "c"
+		"thread": "c",
+		"imgui_font.h": "c",
+		"gui_plot.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
