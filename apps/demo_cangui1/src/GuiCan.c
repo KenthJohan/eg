@@ -29,8 +29,9 @@ ECS_COPY(GuiCanPlot, dst, src, {
 
 ECS_MOVE(GuiCanPlot, dst, src, {
 	printf("GuiCanPlot MOVE\n");
+	ecs_vec_fini_t(NULL, &dst->v, ecs_f32_t);
 	*dst = *src;
-	ecs_vec_fini_t(NULL, &src->v, ecs_f32_t);
+	ecs_os_memset_t(src, 0, GuiCanPlot);
 })
 
 
