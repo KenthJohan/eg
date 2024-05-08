@@ -5,9 +5,11 @@
 #include <Adafruit_MCP2515.h>
 #include <Adafruit_DS3502.h>
 #include "config.h"
-#include "progress.hpp"
+#include "progress_can.hpp"
+#include "progress_rc.hpp"
+#include "progress_motor.hpp"
+#include "progress_mixer.hpp"
 #include "ibus.hpp"
-#include "motor.hpp"
 #include "mixer.h"
 #include <hardware/watchdog.h>
 
@@ -53,6 +55,7 @@ struct repeating_timer timer;
 void setup() {
   bool watchrebooted = watchdog_caused_reboot();
 
+  // Wait for serial connection:
   Serial.begin(115200);
   for(int i = 0; i < 100; ++i){
     if(Serial) {
@@ -63,9 +66,16 @@ void setup() {
 
   Serial.printf("[watchrebooted] %i\n", watchrebooted);
 
+
+  // Restart MCU if watchdog is not updated
   watchdog_enable((0x7fffff / 8) / 10, false);
   watchdog_start_tick(12);
-  add_repeating_timer_ms(500, repeating_timer_callback, NULL, &timer);
+
+
+  add_repeating_timer_ms(1000, repeating_timer_callback, NULL, &timer);
+
+
+
   Adafruit_DS3502_begin(Serial, ds3502[0], 0x00);
   Adafruit_DS3502_begin(Serial, ds3502[1], 0x01);
   Adafruit_DS3502_begin(Serial, ds3502[2], 0x02);
@@ -94,68 +104,17 @@ void setup() {
 }
 
 
+app_t app = {0};
 
-int32_t rcval[10];
 
 void loop() {
   IBus.loop();
-  progress(mcp, ds3502);
-
-
-  rcval[0] = ((int32_t)IBus.readChannel(0) - 1500) * 255 / 1000;
-  rcval[1] = ((int32_t)IBus.readChannel(1) - 1500) * 255 / 1000;
-  rcval[2] = ((int32_t)IBus.readChannel(2) - 1500) * 255 / 1000;
-  rcval[3] = ((int32_t)IBus.readChannel(3) - 1500) * 255 / 1000;
-  rcval[4] = ((int32_t)IBus.readChannel(4) - 1500) * 255 / 1000;
-  rcval[5] = ((int32_t)IBus.readChannel(5) - 1500) * 255 / 1000;
-  rcval[6] = ((int32_t)IBus.readChannel(6) - 1500) * 255 / 1000;
-  rcval[7] = ((int32_t)IBus.readChannel(7) - 1500) * 255 / 1000;
-  rcval[8] = ((int32_t)IBus.readChannel(8) - 1500) * 255 / 1000;
-  rcval[9] = ((int32_t)IBus.readChannel(9) - 1500) * 255 / 1000;
-
-  if (rcval[8] < 0) {
+  progress_can(&app, mcp);
+  progress_rc(&app);
+  progress_mixer(&app);
+  progress_motor(&app, ds3502);
+  // Test if watchdog by triggering it from RC handcontroller:
+  if (app.rcvals[8] < 0) {
     watchdog_update();
   }
-
-  mcp.beginPacket(CANID_RC_01234);
-  mcp.write(rcval[0]);
-  mcp.write(rcval[1]);
-  mcp.write(rcval[2]);
-  mcp.write(rcval[3]);
-  mcp.write(rcval[4]);
-  mcp.endPacket();
-
-  mcp.beginPacket(CANID_RC_56789);
-  mcp.write(rcval[5]);
-  mcp.write(rcval[6]);
-  mcp.write(rcval[7]);
-  mcp.write(rcval[8]);
-  mcp.write(rcval[9]);
-  mcp.endPacket();
-
-  if (rcval[9] == 127) {
-    int32_t f = (int8_t)rcval[1];
-    int32_t r = (int8_t)rcval[0];
-    int32_t t[4];
-    int8_t m[4];
-    mixer(f, r, 127, t, m);
-    //Serial.printf("setWiper %03i %03i %03i %03i\n", t[MOTOR_L0], t[MOTOR_L1], t[MOTOR_R0], t[MOTOR_R1]);
-    motor_driver(mcp, ds3502, m);
-  } 
-
-
-/*
-  Serial.printf("%03i ", rcval[0]);
-  Serial.printf("%03i ", rcval[1]);
-  Serial.printf("%03i ", rcval[2]);
-  Serial.printf("%03i ", rcval[3]);
-  Serial.printf("%03i ", rcval[4]);
-  Serial.printf("%03i ", rcval[5]);
-  Serial.printf("%03i ", rcval[6]);
-  Serial.printf("%03i ", rcval[7]);
-  Serial.printf("%03i ", rcval[8]);
-  Serial.printf("%03i ", rcval[9]);
-  Serial.printf("\n");
-  */
-
 }

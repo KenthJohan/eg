@@ -3,8 +3,9 @@
  */
 
 #include <inttypes.h>
+#include <HardwareSerial.h>
 
-#define HardwareSerial arduino::HardwareSerial
+//#define HardwareSerial arduino::HardwareSerial
 
 
 class FlySkyIBus
