@@ -299,6 +299,9 @@ void Pip_Create(ecs_iter_t *it)
 		.index_type = index_type->value,
 		.primitive_type = primitive_type->value,
 		.cull_mode = cull_mode->value,
+		// TODO: Use 1 when for offscreen rendering
+		// Use 4 when render directly
+		.sample_count = 1,
 		};
 		iterate_vertex_attrs(world, entity_attrs, desc.layout.attrs);
 		set_vertex_buffers(world, e, desc.layout.buffers);

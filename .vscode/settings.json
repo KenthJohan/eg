@@ -124,7 +124,8 @@
 		"if.h": "c",
 		"thread": "c",
 		"imgui_font.h": "c",
-		"gui_plot.h": "c"
+		"gui_plot.h": "c",
+		"sokol_gl.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
