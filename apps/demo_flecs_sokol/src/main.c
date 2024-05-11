@@ -170,21 +170,32 @@ static void frame_cb(app_t *app)
 			// igText("dear imgui says hello!");
 			if (igBeginMenuBar()) {
 				if (igBeginMenu("Menu", true)) {
-					igMenuItem_BoolPtr("Main menu bar", NULL, &show_app_main_menu_bar, true);
-					igSeparatorText("Mini apps");
-					igMenuItem_BoolPtr("Console", NULL, &show_app_console, true);
+					igMenuItem_BoolPtr("Menu1", NULL, &show_app_main_menu_bar, true);
+					igSeparatorText("Separator");
+					igMenuItem_BoolPtr("Menu2", NULL, &show_app_console, true);
 					igEndMenu();
 				}
 				if (igBeginMenu("Examples", true)) {
-					igMenuItem_BoolPtr("Main menu bar", NULL, &show_app_main_menu_bar, true);
+					igMenuItem_BoolPtr("Menu3", NULL, &show_app_main_menu_bar, true);
 					igEndMenu();
 				}
-				if (igMenuItem_BoolPtr("MenuItem", NULL, &show_app_console123, true)) {
-				} // You can also use MenuItem() inside a menu bar!
 				if (igBeginMenu("Tools", true)) {
-					igMenuItem_BoolPtr("Main menu bar", NULL, &show_app_main_menu_bar, true);
+					igMenuItem_BoolPtr("Menu4", NULL, &show_app_main_menu_bar, true);
 					igEndMenu();
 				}
+
+				Window *window = ecs_get_mut(app->world, ecs_id(Window), Window);
+				char buf[128];
+				snprintf(buf, sizeof(buf), "[%5.3f %5.3f %5.3f]", window->pos[0], window->pos[1], window->pos[2]);
+				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
+				}
+				snprintf(buf, sizeof(buf), "[%5.3fms %5.3fHz]", window->dt*1000.0f, window->fps);
+				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
+				}
+				snprintf(buf, sizeof(buf), "[%5.3f %5.3f]", window->mouse_x, window->mouse_y);
+				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
+				}
+
 				igEndMenuBar();
 			}
 
@@ -200,7 +211,7 @@ static void frame_cb(app_t *app)
 	}
 
 	{
-		sg_color_attachment_action color0 = {.load_action = SG_LOADACTION_CLEAR,.clear_value = {0.1f, 0.1f, 0.1f, 1.0f}};
+		sg_color_attachment_action color0 = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.1f, 0.1f, 0.1f, 1.0f}};
 		sg_pass_action action = {.colors[0] = color0};
 		sg_pass pass = {.action = action, .attachments = global_offscreen_attachments};
 		sg_begin_pass(&pass);
@@ -214,23 +225,21 @@ static void frame_cb(app_t *app)
 		sg_pass_action action = {.colors[0] = color0};
 		sg_begin_pass(&(sg_pass){.action = action, .swapchain = sglue_swapchain()});
 		simgui_render();
-		sdtx_draw();
+		// sdtx_draw();
 		sg_end_pass();
 	}
 
 	/*
 	{
-		sg_color_attachment_action color0 = {.load_action = SG_LOADACTION_DONTCARE,.clear_value = {0.1f, 0.1f, 0.1f, 1.0f}};
-		sg_pass_action action = {.colors[0] = color0};
-		sg_pass pass = {.action = action, .swapchain = sglue_swapchain()};
-		sg_begin_pass(&pass);
-		//sdtx_draw();
-		//__dbgui_draw();
-		sg_end_pass();
+	    sg_color_attachment_action color0 = {.load_action = SG_LOADACTION_DONTCARE,.clear_value = {0.1f, 0.1f, 0.1f, 1.0f}};
+	    sg_pass_action action = {.colors[0] = color0};
+	    sg_pass pass = {.action = action, .swapchain = sglue_swapchain()};
+	    sg_begin_pass(&pass);
+	    //sdtx_draw();
+	    //__dbgui_draw();
+	    sg_end_pass();
 	}
 	*/
-
-
 
 	sg_commit();
 }

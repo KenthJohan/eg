@@ -6,6 +6,8 @@ typedef struct {
 	float w;
 	float h;
 	float dt;
+	float pos[3];
+	float fps;
 	float mouse_x;
 	float mouse_y;
 	float mouse_dx;

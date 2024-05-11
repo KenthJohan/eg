@@ -20,6 +20,9 @@ void EgWindowsImport(ecs_world_t *world)
 	.members = {
 	{.name = "w", .type = ecs_id(ecs_f32_t)},
 	{.name = "h", .type = ecs_id(ecs_f32_t)},
+	{.name = "dt", .type = ecs_id(ecs_f32_t)},
+	{.name = "pos", .type = ecs_id(ecs_f32_t), .count = 3},
+	{.name = "fps", .type = ecs_id(ecs_f32_t)},
 	{.name = "mouse_x", .type = ecs_id(ecs_f32_t)},
 	{.name = "mouse_y", .type = ecs_id(ecs_f32_t)},
 	{.name = "mouse_dx", .type = ecs_id(ecs_f32_t)},

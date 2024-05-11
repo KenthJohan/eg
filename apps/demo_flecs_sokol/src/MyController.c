@@ -59,6 +59,11 @@ static void PrintMousePos(ecs_iter_t *it)
 	Position3 *pos = ecs_field(it, Position3, 3);
 	Orientation *rot = ecs_field(it, Orientation, 4);
 
+	win->dt = it->delta_time;
+	win->fps = 1.0f / it->delta_time;
+	win->pos[0] = pos->x;
+	win->pos[1] = pos->y;
+	win->pos[2] = pos->z;
 	
 	sdtx_canvas(win->w/ 2.0f, win->h/ 2.0f);
 	sdtx_origin(1.0f, 1.0f);
