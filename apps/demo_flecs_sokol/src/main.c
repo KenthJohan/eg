@@ -200,30 +200,37 @@ static void frame_cb(app_t *app)
 	}
 
 	{
-		// then the display pass with the Dear ImGui scene
-		sg_pass_action action2 = (sg_pass_action){
-		.colors[0] = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.5f, 0.5f, 1.0f, 1.0f}},
-		};
-		sg_begin_pass(&(sg_pass){.action = action2, .swapchain = sglue_swapchain()});
-		simgui_render();
+		sg_color_attachment_action color0 = {.load_action = SG_LOADACTION_CLEAR,.clear_value = {0.1f, 0.1f, 0.1f, 1.0f}};
+		sg_pass_action action = {.colors[0] = color0};
+		sg_pass pass = {.action = action, .attachments = global_offscreen_attachments};
+		sg_begin_pass(&pass);
+		ecs_progress(app->world, 0.0f);
 		sg_end_pass();
 	}
 
 	{
-		sg_pass_action action1 = {
-		.colors[0] = {
-		.load_action = SG_LOADACTION_CLEAR,
-		.clear_value = {0.1f, 0.1f, 0.1f, 1.0f}}};
-		sg_pass pass = {
-		.action = action1,
-		//.swapchain = sglue_swapchain(),
-		.attachments = global_offscreen_attachments
-		};
-		sg_begin_pass(&pass);
-		ecs_progress(app->world, 0.0f);
-		// sdtx_draw();
+		// then the display pass with the Dear ImGui scene
+		sg_color_attachment_action color0 = {.load_action = SG_LOADACTION_CLEAR, .clear_value = {0.5f, 0.5f, 1.0f, 1.0f}};
+		sg_pass_action action = {.colors[0] = color0};
+		sg_begin_pass(&(sg_pass){.action = action, .swapchain = sglue_swapchain()});
+		simgui_render();
+		sdtx_draw();
 		sg_end_pass();
 	}
+
+	/*
+	{
+		sg_color_attachment_action color0 = {.load_action = SG_LOADACTION_DONTCARE,.clear_value = {0.1f, 0.1f, 0.1f, 1.0f}};
+		sg_pass_action action = {.colors[0] = color0};
+		sg_pass pass = {.action = action, .swapchain = sglue_swapchain()};
+		sg_begin_pass(&pass);
+		//sdtx_draw();
+		//__dbgui_draw();
+		sg_end_pass();
+	}
+	*/
+
+
 
 	sg_commit();
 }
