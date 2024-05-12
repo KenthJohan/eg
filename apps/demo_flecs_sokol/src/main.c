@@ -30,6 +30,38 @@
 
 #include "argparse.h"
 
+
+#define IM_COL32(r,g,b,a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
+
+//https://github.com/lyte2d/lyte2d/blob/2110025f51246c82a15b42d2dee0842f639515b5/deps/sokol/sokol_gfx_ext.h#L86
+static void _sg_gl_query_pixels(int x, int y, int w, int h, bool origin_top_left, void *pixels) {
+	/*
+    (void)x; (void)y; (void)w; (void)h; (void)origin_top_left; (void)pixels;
+#ifdef _WIN32
+    printf("This API is not yet supported on Windows.\n");
+    exit(1);
+#else
+    SOKOL_ASSERT(pixels);
+    GLuint gl_fb;
+    GLint dims[4];
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, (GLint*)&gl_fb);
+    _SG_GL_CHECK_ERROR();
+    glGetIntegerv(GL_VIEWPORT, dims);
+    int cur_height = dims[3];
+    y = origin_top_left ? (cur_height - (y+h)) : y;
+    _SG_GL_CHECK_ERROR();
+#if defined(SOKOL_GLES2) // use NV extension instead
+    glReadBufferNV(gl_fb == 0 ? GL_BACK : GL_COLOR_ATTACHMENT0);
+#else
+    glReadBuffer(gl_fb == 0 ? GL_BACK : GL_COLOR_ATTACHMENT0);
+#endif
+    _SG_GL_CHECK_ERROR();
+    glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    _SG_GL_CHECK_ERROR();
+#endif
+*/
+}
+
 static void WindowLastFrame(ecs_iter_t *it)
 {
 	Window *window = ecs_field(it, Window, 1);
@@ -42,8 +74,8 @@ typedef struct {
 	ecs_world_t *world;
 } app_t;
 
-#define OFFSCREEN_WIDTH (256)
-#define OFFSCREEN_HEIGHT (256)
+#define OFFSCREEN_WIDTH (512)
+#define OFFSCREEN_HEIGHT (512)
 #define OFFSCREEN_COLOR_FORMAT (SG_PIXELFORMAT_RGBA8)
 // #define OFFSCREEN_DEPTH_FORMAT (SG_PIXELFORMAT_DEPTH)
 #define OFFSCREEN_DEPTH_FORMAT SG_PIXELFORMAT_DEPTH_STENCIL
@@ -52,6 +84,8 @@ typedef struct {
 
 static sg_attachments global_offscreen_attachments;
 static simgui_image_t global_simg;
+static ImVec2 wpos;
+
 
 static void init_cb(app_t *app)
 {
@@ -164,6 +198,7 @@ static void frame_cb(app_t *app)
 		bool show_app_main_menu_bar;
 		bool show_app_console;
 		bool show_app_console123;
+		Window *window = ecs_get_mut(app->world, ecs_id(Window), Window);
 		// igPushStyleVar_Float(ImGuiStyleVar_WindowRounding, 0.0f);
 		// igPushItemWidth(igGetFontSize() * -12);
 		if (igBegin("demo_flecs_sokol", 0, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoDecoration)) {
@@ -184,7 +219,6 @@ static void frame_cb(app_t *app)
 					igEndMenu();
 				}
 
-				Window *window = ecs_get_mut(app->world, ecs_id(Window), Window);
 				char buf[128];
 				snprintf(buf, sizeof(buf), "[%5.3f %5.3f %5.3f]", window->pos[0], window->pos[1], window->pos[2]);
 				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
@@ -193,6 +227,9 @@ static void frame_cb(app_t *app)
 				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
 				}
 				snprintf(buf, sizeof(buf), "[%5.3f %5.3f]", window->mouse_x, window->mouse_y);
+				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
+				}
+				snprintf(buf, sizeof(buf), "[%5.3f %5.3f]", wpos.x, wpos.y);
 				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
 				}
 
@@ -204,6 +241,26 @@ static void frame_cb(app_t *app)
 			size.x -= 20;
 			size.y -= 40;
 			igImage(simgui_imtextureid(global_simg), size, (ImVec2){0, 1}, (ImVec2){1, 0}, (ImVec4){1, 1, 1, 1}, (ImVec4){0, 0, 0, 0});
+
+
+			// Yellow is content region min/max
+			{
+				ImVec2 vMin;
+				igGetWindowContentRegionMin(&vMin);
+				ImVec2 vMax;
+				igGetWindowContentRegionMax(&vMax);
+				ImVec2 p;
+				igGetWindowPos(&p);
+				ImVec2 c[2] = {{vMin.x + p.x, vMin.y + p.y},{vMax.x + p.x, vMax.y + p.y}};
+				ImDrawList * dl = igGetForegroundDrawList_Nil();
+				ImDrawList_AddRect(dl, c[0], c[1], IM_COL32( 255, 255, 0, 255 ), 0, 0, 1);
+				ImVec2 d = {vMax.x - vMin.x, vMax.y - vMin.y};
+				wpos.x = (window->mouse_x - vMin.x) * OFFSCREEN_WIDTH / d.x;
+				wpos.y = (window->mouse_y - vMin.y) * OFFSCREEN_HEIGHT / d.y;
+			}
+
+
+
 		}
 		igEnd();
 		// igPopStyleVar(1);
