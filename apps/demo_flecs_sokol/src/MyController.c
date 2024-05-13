@@ -7,6 +7,64 @@
 #include <egshapes.h>
 #include "MiscLines.h"
 
+
+/*
+
+https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
+
+bool solveQuadratic(const float &a, const float &b, const float &c, float &x0, float &x1)
+{
+    float discr = b * b - 4 * a * c;
+    if (discr < 0) return false;
+    else if (discr == 0) x0 = x1 = - 0.5 * b / a;
+    else {
+        float q = (b > 0) ?
+            -0.5 * (b + sqrt(discr)) :
+            -0.5 * (b - sqrt(discr));
+        x0 = q / a;
+        x1 = c / q;
+    }
+    if (x0 > x1) std::swap(x0, x1);
+    
+    return true;
+}
+
+bool intersect(const Ray &ray) const
+{
+        float t0, t1; // solutions for t if the ray intersects
+#if 0
+        // Geometric solution
+        Vec3f L = center - ray.orig;
+        float tca = L.dotProduct(ray.dir);
+        // if (tca < 0) return false;
+        float d2 = L.dotProduct(L) - tca * tca;
+        if (d2 > radius * radius) return false;
+        float thc = sqrt(radius * radius - d2);
+        t0 = tca - thc;
+        t1 = tca + thc;
+#else
+        // Analytic solution
+        Vec3f L = ray.orig - center;
+        float a = ray.dir.dotProduct(ray.dir);
+        float b = 2 * ray.dir.dotProduct(L);
+        float c = L.dotProduct(L) - radius * radius;
+        if (!solveQuadratic(a, b, c, t0, t1)) return false;
+#endif
+        if (t0 > t1) std::swap(t0, t1);
+
+        if (t0 < 0) {
+            t0 = t1; // If t0 is negative, let's use t1 instead.
+            if (t0 < 0) return false; // Both t0 and t1 are negative.
+        }
+
+        t = t0;
+
+        return true;
+}
+
+*/
+
+
 static void ControllerRotate(ecs_iter_t *it)
 {
 	KeyboardController *controller = ecs_field(it, KeyboardController, 1);
