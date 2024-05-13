@@ -241,14 +241,10 @@ static void frame_cb(app_t *app)
 				igEndMenuBar();
 			}
 
-			ImVec2 size;
-			igGetWindowSize(&size);
-			size.x -= 160;
-			size.y -= 100;
-			igImage(simgui_imtextureid(global_simg), size, (ImVec2){0, 1}, (ImVec2){1, 0}, (ImVec4){1, 1, 1, 1}, (ImVec4){0, 0, 0, 0});
+			//igSetNextWindowPos((ImVec2){0, 0}, ImGuiCond_Once, (ImVec2){0, 0});
+			//igSetNextWindowSize((ImVec2){OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT}, ImGuiCond_Once);
 
 
-			// Yellow is content region min/max
 			{
 				ImVec2 vMin;
 				igGetWindowContentRegionMin(&vMin);
@@ -256,6 +252,8 @@ static void frame_cb(app_t *app)
 				igGetWindowContentRegionMax(&vMax);
 				ImVec2 p;
 				igGetWindowPos(&p);
+				ImVec2 size;
+				igGetWindowSize(&size);
 				ImVec2 c[2] = {{vMin.x + p.x, vMin.y + p.y},{vMax.x + p.x, vMax.y + p.y}};
 				ImDrawList * dl = igGetForegroundDrawList_Nil();
 				ImDrawList_AddRect(dl, c[0], c[1], IM_COL32( 255, 255, 0, 255 ), 0, 0, 1);
@@ -264,6 +262,7 @@ static void frame_cb(app_t *app)
 				window->canvas_mouse_y = (window->mouse_y - vMin.y) * OFFSCREEN_HEIGHT / d.y;
 				window->canvas_width = OFFSCREEN_WIDTH;
 				window->canvas_height = OFFSCREEN_HEIGHT;
+				igImage(simgui_imtextureid(global_simg), d, (ImVec2){0, 1}, (ImVec2){1, 0}, (ImVec4){1, 1, 1, 1}, (ImVec4){0, 0, 0, 0});
 			}
 
 

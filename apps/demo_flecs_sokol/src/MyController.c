@@ -57,7 +57,7 @@ static void PrintMousePos(ecs_iter_t *it)
 	Window *win = ecs_field(it, Window, 1);
 	Camera *cam = ecs_field(it, Camera, 2);
 	Position3 *pos = ecs_field(it, Position3, 3);
-	Orientation *rot = ecs_field(it, Orientation, 4);
+	//Orientation *rot = ecs_field(it, Orientation, 4);
 
 	win->dt = it->delta_time;
 	win->fps = 1.0f / it->delta_time;
@@ -129,7 +129,9 @@ static void PrintMousePos(ecs_iter_t *it)
 		float length = 1000.0f;
 		ecs_entity_t e = ecs_lookup_fullpath(it->world, "app.line1");
 		Line line = {
+			// TODO:
 			// Camera position flipped, hmm?
+			// Shoot ray from mouse position or camera position?
 			.a = {-pos->x, -pos->y, -pos->z},
 			.b = {-pos->x+ ray_world[0]*length, -pos->y+ ray_world[1]*length, -pos->z+ ray_world[2]*length}
 		};
