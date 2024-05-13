@@ -64,26 +64,28 @@ static void PrintMousePos(ecs_iter_t *it)
 	win->pos[0] = pos->x;
 	win->pos[1] = pos->y;
 	win->pos[2] = pos->z;
+
+	float mouse_pos[2] = {win->canvas_mouse_x, win->canvas_mouse_y};
+	float rectangle[2] = {win->canvas_width, win->canvas_height};
 	
+	/*
 	sdtx_canvas(win->w/ 2.0f, win->h/ 2.0f);
 	sdtx_origin(1.0f, 1.0f);
 	sdtx_color3f(1.0f, 1.0f, 1.0f);
-
 	sdtx_pos(0, 0);
 	sdtx_printf("FPS: %f", 1.0f / it->delta_time);
 	sdtx_pos(0, 1);
 	sdtx_printf("Pos: %f %f %f", pos->x, pos->y, pos->z);
 	sdtx_pos(0, 2);
 	sdtx_printf("Rot: %f %f %f %f", rot->x, rot->y, rot->z, rot->w);
-	
-
 	sdtx_canvas(win->w / 2.0f, win->h / 2.0f);
 	sdtx_origin(win->mouse_x / 16.0f, win->mouse_y / 16.0f);
 	sdtx_color3f(1.0f, 1.0f, 1.0f);
+	*/
 
 	float r[4];
-	r[0] = 2.0f * (win->mouse_x / win->w) - 1.0f;
-	r[1] = 2.0f * (win->mouse_y / win->h) - 1.0f;
+	r[0] = 2.0f * (mouse_pos[0] / rectangle[0]) - 1.0f;
+	r[1] = 2.0f * (mouse_pos[1] / rectangle[1]) - 1.0f;
 	r[1] *= -1.0f; //Why flip, hmm?
 	r[2] = -1.0;
 	r[3] = 1.0;

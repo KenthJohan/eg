@@ -8,6 +8,10 @@ typedef struct {
 	float dt;
 	float pos[3];
 	float fps;
+	float canvas_mouse_x;
+	float canvas_mouse_y;
+	float canvas_width;
+	float canvas_height;
 	float mouse_x;
 	float mouse_y;
 	float mouse_dx;

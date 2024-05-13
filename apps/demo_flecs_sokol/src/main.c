@@ -22,6 +22,7 @@
 #include <egcomponents.h>
 #include <egspatials.h>
 #include <egsokol.h>
+#include <egwindows.h>
 
 #include "MiscShapes.h"
 #include "MiscLines.h"
@@ -84,7 +85,6 @@ typedef struct {
 
 static sg_attachments global_offscreen_attachments;
 static simgui_image_t global_simg;
-static ImVec2 wpos;
 
 
 static void init_cb(app_t *app)
@@ -140,14 +140,19 @@ static void init_cb(app_t *app)
 		});
 	}
 
+	ECS_IMPORT(world, EgWindows);
+	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, EgComponents);
 	ECS_IMPORT(world, EgSpatials);
-	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, MiscShapes);
 	ECS_IMPORT(world, MiscLines);
 	ECS_IMPORT(world, MiscPoints);
 	ECS_IMPORT(world, Sg);
 	ECS_IMPORT(world, MyController);
+
+
+
+
 
 	ecs_log_set_level(1);
 	ecs_plecs_from_file(app->world, "config/keycode_sokol.flecs");
@@ -220,16 +225,16 @@ static void frame_cb(app_t *app)
 				}
 
 				char buf[128];
-				snprintf(buf, sizeof(buf), "[%5.3f %5.3f %5.3f]", window->pos[0], window->pos[1], window->pos[2]);
+				snprintf(buf, sizeof(buf), "[%+5.3f %+5.3f %+5.3f]", window->pos[0], window->pos[1], window->pos[2]);
 				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
 				}
 				snprintf(buf, sizeof(buf), "[%5.3fms %5.3fHz]", window->dt*1000.0f, window->fps);
 				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
 				}
-				snprintf(buf, sizeof(buf), "[%5.3f %5.3f]", window->mouse_x, window->mouse_y);
+				snprintf(buf, sizeof(buf), "[%+5.3f %+5.3f]", window->mouse_x, window->mouse_y);
 				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
 				}
-				snprintf(buf, sizeof(buf), "[%5.3f %5.3f]", wpos.x, wpos.y);
+				snprintf(buf, sizeof(buf), "[%+5.3f %+5.3f]", window->canvas_mouse_x, window->canvas_mouse_y);
 				if (igMenuItem_BoolPtr(buf, NULL, &show_app_console123, true)) {
 				}
 
@@ -238,8 +243,8 @@ static void frame_cb(app_t *app)
 
 			ImVec2 size;
 			igGetWindowSize(&size);
-			size.x -= 20;
-			size.y -= 40;
+			size.x -= 160;
+			size.y -= 100;
 			igImage(simgui_imtextureid(global_simg), size, (ImVec2){0, 1}, (ImVec2){1, 0}, (ImVec4){1, 1, 1, 1}, (ImVec4){0, 0, 0, 0});
 
 
@@ -255,8 +260,10 @@ static void frame_cb(app_t *app)
 				ImDrawList * dl = igGetForegroundDrawList_Nil();
 				ImDrawList_AddRect(dl, c[0], c[1], IM_COL32( 255, 255, 0, 255 ), 0, 0, 1);
 				ImVec2 d = {vMax.x - vMin.x, vMax.y - vMin.y};
-				wpos.x = (window->mouse_x - vMin.x) * OFFSCREEN_WIDTH / d.x;
-				wpos.y = (window->mouse_y - vMin.y) * OFFSCREEN_HEIGHT / d.y;
+				window->canvas_mouse_x = (window->mouse_x - vMin.x) * OFFSCREEN_WIDTH / d.x;
+				window->canvas_mouse_y = (window->mouse_y - vMin.y) * OFFSCREEN_HEIGHT / d.y;
+				window->canvas_width = OFFSCREEN_WIDTH;
+				window->canvas_height = OFFSCREEN_HEIGHT;
 			}
 
 
