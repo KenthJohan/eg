@@ -367,10 +367,12 @@ void EgCanImport(ecs_world_t *world)
 	{.entity = ecs_id(EgCanSignal),
 	.members = {
 	{.name = "canid", .type = ecs_id(ecs_u32_t)},
+	{.name = "type", .type = ecs_id(ecs_u32_t)},
 	{.name = "idn", .type = ecs_id(ecs_u32_t)},
 	{.name = "len", .type = ecs_id(ecs_i32_t)},
 	{.name = "rx", .type = ecs_id(ecs_i32_t)},
 	{.name = "tx", .type = ecs_id(ecs_i32_t)},
+	{.name = "tx_float", .type = ecs_id(ecs_i32_t)},
 	{.name = "byte_offset", .type = ecs_id(ecs_i32_t)},
 	{.name = "min", .type = ecs_id(ecs_i32_t)},
 	{.name = "max", .type = ecs_id(ecs_i32_t)},

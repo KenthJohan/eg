@@ -55,10 +55,12 @@ https://canlogger.csselectronics.com/dbc-editor/v129/dbc-editor.html
 
 typedef struct {
 	uint32_t canid;
+	uint32_t type;
 	uint32_t idn;
 	int32_t len;
 	int32_t rx;
 	int32_t tx;
+	float tx_float;
 	int32_t byte_offset;
 	int32_t min;
 	int32_t max;

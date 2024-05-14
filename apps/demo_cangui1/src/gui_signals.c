@@ -55,7 +55,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				gui[list_index].q = quant;
 				gui[list_index].desc = desc;
 				gui[list_index].bus = bus;
-				n = ECS_MAX(list_index, n);
+				n = ECS_MAX(list_index+1, n);
 			}
 		}
 
