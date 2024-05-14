@@ -1,0 +1,22 @@
+{
+	"id": "demo_can2",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": []
+	},
+	"lang.c": {
+		"c-standard": "gnu99",
+		"defines": [],
+		"lib": [],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable",
+			"-Wno-error=unused-function"
+		]
+	}
+}
