@@ -89,6 +89,7 @@ void GuiCanImport(ecs_world_t *world)
 	.query.filter.terms = {
 		{.id = ecs_id(GuiCanPlot), .src.flags = EcsSelf},
 		{.id = ecs_id(EgCanSignal), .src.flags = EcsSelf},
+		{.id = ecs_id(EgQuantitiesRangedF32), .src.flags = EcsSelf},
 	},
 	.callback = System_GuiCanPlot
 	});

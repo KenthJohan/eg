@@ -211,8 +211,7 @@ static void EgCanSignal_parse(EgCanSignal *signal, EgQuantitiesRangedF32 * range
 	}
 	// TODO: Support all types and bit offsets
 	eg_can_book_packet8_t *rx = book->rx + canid;
-	int32_t value = (int8_t)rx->payload[o];
-	ranged->rx = value;
+	memcpy(&ranged->rx, rx->payload + o, 4);
 	signal->idn = rx->stats_count;
 }
 
@@ -273,10 +272,10 @@ void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgQuantit
 	if ((o >= 8) || (o < 0)) {
 		return;
 	}
-	uint8_t value = ranged_f32->tx;
-	book->tx[id].len = signal->len;
-	book->tx[id].payload[o] = value;
-	book->tx[id].dirty = 1;
+	eg_can_book_packet8_t * tx = book->tx + id;
+	memcpy(tx->payload + o, &ranged_f32->tx, 4);
+	tx->len = signal->len;
+	tx->dirty = 1;
 }
 
 static ECS_COPY(EgCanRxThread, dst, src, {
