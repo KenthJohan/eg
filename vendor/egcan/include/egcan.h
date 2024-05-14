@@ -4,6 +4,7 @@
 
 #include <flecs.h>
 #include <stdint.h>
+#include <egquantities.h>
 
 typedef struct {
 	int32_t dummy;
@@ -55,15 +56,9 @@ https://canlogger.csselectronics.com/dbc-editor/v129/dbc-editor.html
 
 typedef struct {
 	uint32_t canid;
-	uint32_t type;
 	uint32_t idn;
 	int32_t len;
-	int32_t rx;
-	int32_t tx;
-	float tx_float;
 	int32_t byte_offset;
-	int32_t min;
-	int32_t max;
 	int32_t gui_index;
 	/*
 	uint8_t type;
@@ -83,7 +78,7 @@ extern ECS_COMPONENT_DECLARE(EgCanBusDescription);
 extern ECS_COMPONENT_DECLARE(EgCanBus);
 extern ECS_COMPONENT_DECLARE(EgCanSignal);
 
-void EgCan_book_prepare_send(eg_can_book_t * book, EgCanSignal * signal);
+void EgCan_book_prepare_send(eg_can_book_t * book, EgCanSignal * signal, EgQuantitiesRangedF32 * ranged_f32);
 
 void EgCanImport(ecs_world_t *world);
 

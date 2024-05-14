@@ -13,7 +13,6 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 
-#include <egquantities.h>
 #include "eg_can.h"
 
 ECS_COMPONENT_DECLARE(EgCanRxThread);
@@ -198,7 +197,7 @@ static void EgCanBusBook_System_Sender(ecs_iter_t *it)
 	}
 }
 
-static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t *book)
+static void EgCanSignal_parse(EgCanSignal *signal, EgQuantitiesRangedF32 * ranged, eg_can_book_t *book)
 {
 	int canid = signal->canid;
 	if (canid >= book->cap) {
@@ -213,7 +212,7 @@ static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t *book)
 	// TODO: Support all types and bit offsets
 	eg_can_book_packet8_t *rx = book->rx + canid;
 	int32_t value = (int8_t)rx->payload[o];
-	signal->rx = value;
+	ranged->rx = value;
 	signal->idn = rx->stats_count;
 }
 
@@ -222,10 +221,11 @@ static void System_Rx(ecs_iter_t *it)
 	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1); // shared
 	EgCanBus *bus = ecs_field(it, EgCanBus, 2);           // shared
 	EgCanSignal *signal = ecs_field(it, EgCanSignal, 3);  // self
+	EgQuantitiesRangedF32 *ranged = ecs_field(it, EgQuantitiesRangedF32, 4);  // self
 	for (int i = 0; i < it->count; ++i) {
 		thread_stuff_t *impl = rxt->impl;
 		ecs_os_mutex_lock(impl->lock);
-		EgCanSignal_parse(signal + i, bus->ptr);
+		EgCanSignal_parse(signal + i, ranged, bus->ptr);
 		ecs_os_mutex_unlock(impl->lock);
 	}
 }
@@ -235,9 +235,9 @@ static void System_Value(ecs_iter_t *it)
 	EgCanSignal *s = ecs_field(it, EgCanSignal, 1);
 	EgQuantitiesProgress *q = ecs_field(it, EgQuantitiesProgress, 2);
 	for (int i = 0; i < it->count; ++i, ++s, ++q) {
-		q->value = (float)s->rx;
-		q->min = (float)s->min;
-		q->max = (float)s->max;
+		//q->value = (float)s->rx;
+		//q->min = (float)s->min;
+		//q->max = (float)s->max;
 	}
 }
 
@@ -262,7 +262,7 @@ static void System_EpollAdditions(ecs_iter_t *it)
 	}
 }
 
-void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal)
+void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedF32 * ranged_f32)
 {
 	// printf("Send can packet canid=%i, value=%i\n", (int)signal->canid, signal->value);
 	uint32_t id = signal->canid;
@@ -273,7 +273,7 @@ void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal)
 	if ((o >= 8) || (o < 0)) {
 		return;
 	}
-	uint8_t value = signal->tx;
+	uint8_t value = ranged_f32->tx;
 	book->tx[id].len = signal->len;
 	book->tx[id].payload[o] = value;
 	book->tx[id].dirty = 1;
@@ -367,15 +367,9 @@ void EgCanImport(ecs_world_t *world)
 	{.entity = ecs_id(EgCanSignal),
 	.members = {
 	{.name = "canid", .type = ecs_id(ecs_u32_t)},
-	{.name = "type", .type = ecs_id(ecs_u32_t)},
 	{.name = "idn", .type = ecs_id(ecs_u32_t)},
 	{.name = "len", .type = ecs_id(ecs_i32_t)},
-	{.name = "rx", .type = ecs_id(ecs_i32_t)},
-	{.name = "tx", .type = ecs_id(ecs_i32_t)},
-	{.name = "tx_float", .type = ecs_id(ecs_i32_t)},
 	{.name = "byte_offset", .type = ecs_id(ecs_i32_t)},
-	{.name = "min", .type = ecs_id(ecs_i32_t)},
-	{.name = "max", .type = ecs_id(ecs_i32_t)},
 	{.name = "gui_index", .type = ecs_id(ecs_i32_t)},
 	}});
 
@@ -441,7 +435,8 @@ void EgCanImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsChildOf},
 	{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
-	{.id = ecs_id(EgCanSignal)}
+	{.id = ecs_id(EgCanSignal)},
+	{.id = ecs_id(EgQuantitiesRangedF32)}
 	}});
 
 	ecs_system_init(world,

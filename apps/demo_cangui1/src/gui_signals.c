@@ -19,6 +19,7 @@ typedef struct {
 	char const *name;
 	EgCanBusDescription *desc;
 	EgCanBus *bus;
+	EgQuantitiesRangedF32 *ranged_f32;
 	EgCanSignal *signal;
 	EgQuantitiesIsq *q;
 	ecs_entity_t e;
@@ -38,8 +39,9 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		while (ecs_query_next(&it)) {
 			EgCanBus *bus = ecs_field(&it, EgCanBus, 1); // shared
 			EgCanBusDescription *desc = ecs_field(&it, EgCanBusDescription, 2); // shared
-			EgCanSignal *signal = ecs_field(&it, EgCanSignal, 3);  // self
-			EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 4); // self
+			EgQuantitiesRangedF32 *ranged_f32 = ecs_field(&it, EgQuantitiesRangedF32, 3);  // self
+			EgCanSignal *signal = ecs_field(&it, EgCanSignal, 4);  // self
+			EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 5); // self
 
 			for (int i = 0; i < it.count; ++i, ++signal, ++quant) {
 				ecs_entity_t e = it.entities[i];
@@ -52,6 +54,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				gui[list_index].e = e;
 				gui[list_index].name = name;
 				gui[list_index].signal = signal;
+				gui[list_index].ranged_f32 = ranged_f32;
 				gui[list_index].q = quant;
 				gui[list_index].desc = desc;
 				gui[list_index].bus = bus;
@@ -87,6 +90,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			char const *name = gui[i].name;
 			EgQuantitiesIsq *quant = gui[i].q;
 			EgCanSignal *signal = gui[i].signal;
+			EgQuantitiesRangedF32 *ranged_f32 = gui[i].ranged_f32;
 			EgCanBus *bus = gui[i].bus;
 			EgCanBusDescription *desc = gui[i].desc;
 
@@ -146,27 +150,26 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 
 			igTableNextColumn();
 			igPushItemWidth(-1);
-			igInputInt("#1", &signal->min, 0, 0, 0);
+			igInputFloat("#1", &ranged_f32->min, 0, 0, "%f", 0);
 			igPopItemWidth();
 			igTableNextColumn();
 			igPushItemWidth(-1);
-			igInputInt("#2", &signal->max, 0, 0, 0);
+			igInputFloat("#2", &ranged_f32->max, 0, 0, "%f", 0);
 			igPopItemWidth();
 
 			igTableNextColumn();
-			if (signal->min != signal->max) {
+			if (ranged_f32->min != ranged_f32->max) {
 				igPushItemWidth(-1);
-				if (igSliderScalar("##s1", ImGuiDataType_S32, &signal->tx, &signal->min, &signal->max, "%d", 0)) {
-					EgCan_book_prepare_send(book, signal);
+				if (igSliderScalar("##s1", ImGuiDataType_Float, &ranged_f32->tx, &ranged_f32->min, &ranged_f32->max, "%f", 0)) {
+					EgCan_book_prepare_send(book, signal, ranged_f32);
 				};
 				igPopItemWidth();
 			} else {
 				igText("");
 			}
-
 			igTableNextColumn();
 
-			igText("%i", signal->rx);
+			igText("%f", ranged_f32->rx);
 			/*
 			if (signal->min != signal->max) {
 				igBeginDisabled(true);
@@ -219,6 +222,7 @@ ecs_query_t *gui_signals_query(ecs_world_t *world)
 		.filter.terms = {
 			{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
 			{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsChildOf},
+			{.id = ecs_id(EgQuantitiesRangedF32), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
 			{.id = ecs_id(EgCanSignal), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
 			//{.id = ecs_id(EgCanSignal)},
 			{.id = ecs_id(EgQuantitiesIsq), .oper = EcsOptional},

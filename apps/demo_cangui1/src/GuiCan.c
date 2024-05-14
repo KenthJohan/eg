@@ -39,9 +39,10 @@ static void System_GuiCanPlot(ecs_iter_t *it)
 {
 	GuiCanPlot *d = ecs_field(it, GuiCanPlot, 1);
 	EgCanSignal *s = ecs_field(it, EgCanSignal, 2);
+	EgQuantitiesRangedF32 *ranged_f32 = ecs_field(it, EgQuantitiesRangedF32, 3);
 	for (int i = 0; i < it->count; ++i, ++d, ++s) {
 		if (s->idn != d->last_index) {
-			ecs_vec_append_t(NULL, &d->v, ecs_f32_t)[0] = s->rx;
+			ecs_vec_append_t(NULL, &d->v, ecs_f32_t)[0] = ranged_f32->rx;
 			d->last_index = s->idn;
 		}
 	}

@@ -3,6 +3,9 @@
 
 ECS_COMPONENT_DECLARE(EgQuantitiesIsq);
 ECS_COMPONENT_DECLARE(EgQuantitiesProgress);
+ECS_COMPONENT_DECLARE(EgQuantitiesRangedU32);
+ECS_COMPONENT_DECLARE(EgQuantitiesRangedF32);
+
 ECS_TAG_DECLARE(EgQuantitiesVoltage);
 
 
@@ -13,6 +16,8 @@ void EgQuantitiesImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, EgQuantitiesIsq);
 	ECS_COMPONENT_DEFINE(world, EgQuantitiesProgress);
+	ECS_COMPONENT_DEFINE(world, EgQuantitiesRangedU32);
+	ECS_COMPONENT_DEFINE(world, EgQuantitiesRangedF32);
 	ECS_TAG_DEFINE(world, EgQuantitiesVoltage);
 
 	ecs_struct(world,
@@ -34,6 +39,24 @@ void EgQuantitiesImport(ecs_world_t *world)
 	{.name = "min", .type = ecs_id(ecs_f32_t)},
 	{.name = "max", .type = ecs_id(ecs_f32_t)},
 	{.name = "value", .type = ecs_id(ecs_f32_t)}
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgQuantitiesRangedU32),
+	.members = {
+	{.name = "min", .type = ecs_id(ecs_u32_t)},
+	{.name = "max", .type = ecs_id(ecs_u32_t)},
+	{.name = "tx", .type = ecs_id(ecs_u32_t)},
+	{.name = "rx", .type = ecs_id(ecs_u32_t)}
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgQuantitiesRangedF32),
+	.members = {
+	{.name = "min", .type = ecs_id(ecs_f32_t)},
+	{.name = "max", .type = ecs_id(ecs_f32_t)},
+	{.name = "tx", .type = ecs_id(ecs_f32_t)},
+	{.name = "rx", .type = ecs_id(ecs_f32_t)}
 	}});
 
 
