@@ -49,6 +49,9 @@ static void *thread_loop(thread_data_t * arg)
 				fprintf(stderr, "eg_can_recv(): %i: %s", rc, strerror(errno));
 				continue;
 			}
+
+			printf("nodeod: %i, cmd:0x%03X\n", (frame.can_id >> 5), (frame.can_id & 0x01F));
+
 		}
 	}
 
@@ -98,7 +101,7 @@ int main(int argc, char const * argv[])
 		tdata.socks[index].s = s;
 		//send_command(s);
 		send_vel(s, 1.0f, 1.0f);
-		return 0;
+		//return 0;
 		
 	}
 
