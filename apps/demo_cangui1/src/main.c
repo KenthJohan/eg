@@ -186,7 +186,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ECS_IMPORT(app->world, EgIfaces);
 	ECS_IMPORT(app->world, EgOdrives);
 
-	ecs_log_set_level(1);
+	ecs_log_set_level(2);
 	ecs_plecs_from_file(app->world, "config/signals.flecs");
 	ecs_plecs_from_file(app->world, "config/gui.flecs");
 	ecs_log_set_level(-1);

@@ -33,41 +33,46 @@ typedef struct {
 	float value;
 } EgQuantitiesProgress;
 
-typedef struct {
-	uint8_t min;
-	uint8_t max;
-	uint8_t tx;
-	uint8_t rx;
-} EgQuantitiesRangedU8;
+
+typedef union {
+	float val_f32;
+	double val_f64;
+	int8_t val_i8;
+	uint8_t val_u8;
+	int16_t val_i16;
+	uint16_t val_u16;
+	int32_t val_i32;
+	uint32_t val_u32;
+	int64_t val_i64;
+	uint64_t val_u64;
+} eg_generic_number_t;
 
 typedef struct {
-	uint16_t min;
-	uint16_t max;
-	uint16_t tx;
-	uint16_t rx;
-} EgQuantitiesRangedU16;
+	ecs_primitive_kind_t kind;
+	eg_generic_number_t min;
+	eg_generic_number_t max;
+	eg_generic_number_t rx;
+	eg_generic_number_t tx;
 
-typedef struct {
-	uint32_t min;
-	uint32_t max;
-	uint32_t tx;
-	uint32_t rx;
-} EgQuantitiesRangedU32;
+	// TODO: Remove these:
+	float min_f32;
+	float max_f32;
 
-typedef struct {
-	float min;
-	float max;
-	float tx;
-	float rx;
-} EgQuantitiesRangedF32;
+	double min_f64;
+	double max_f64;
+
+	int64_t min_i64;
+	int64_t max_i64;
+
+	uint64_t min_u64;
+	uint64_t max_u64;
+} EgQuantitiesRangedGeneric;
+
 
 
 extern ECS_COMPONENT_DECLARE(EgQuantitiesIsq);
 extern ECS_COMPONENT_DECLARE(EgQuantitiesProgress);
-extern ECS_COMPONENT_DECLARE(EgQuantitiesRangedU8);
-extern ECS_COMPONENT_DECLARE(EgQuantitiesRangedU16);
-extern ECS_COMPONENT_DECLARE(EgQuantitiesRangedU32);
-extern ECS_COMPONENT_DECLARE(EgQuantitiesRangedF32);
+extern ECS_COMPONENT_DECLARE(EgQuantitiesRangedGeneric);
 
 extern ECS_TAG_DECLARE(EgQuantitiesVoltage);
 

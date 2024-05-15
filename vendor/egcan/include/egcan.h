@@ -72,13 +72,15 @@ typedef struct {
 	*/
 } EgCanSignal;
 
+extern ECS_DECLARE(EgCanRx);
+extern ECS_DECLARE(EgCanTx);
 extern ECS_COMPONENT_DECLARE(EgCanRxThread);
 extern ECS_COMPONENT_DECLARE(EgCanRxThreadMember);
 extern ECS_COMPONENT_DECLARE(EgCanBusDescription);
 extern ECS_COMPONENT_DECLARE(EgCanBus);
 extern ECS_COMPONENT_DECLARE(EgCanSignal);
 
-void EgCan_book_prepare_send(eg_can_book_t * book, EgCanSignal * signal, EgQuantitiesRangedF32 * ranged_f32);
+void EgCan_book_prepare_send(eg_can_book_t * book, EgCanSignal * signal, EgQuantitiesRangedGeneric * value);
 
 void EgCanImport(ecs_world_t *world);
 

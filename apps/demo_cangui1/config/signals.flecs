@@ -9,6 +9,10 @@ const INT8_MAX = 127
 // 0x0d
 const ODRIVE_CMD_SET_VEL = 13
 
+// https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#set-input-vel
+// 0x0e
+const ODRIVE_CMD_SET_TOR = 14
+
 
 // https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#get-encoder-estimates
 // 0x09
@@ -29,53 +33,59 @@ rxt {
 }
 
 
+
+
+
+
+
+
+
+
+
 rxt.bus1.motor_velocity {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
-	- eg.quantities.RangedF32{min: -1, max: 1, tx:0, tx:0}
+	- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
 	- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:6}
 }
 
 rxt.bus1.motor_torque {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
-	- eg.quantities.RangedF32{min: -1, max: 1, tx:0, tx:0}
+	- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
 	- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:7}
 }
 
 rxt.bus1.encoder_estimate_pos {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_ENCODER_ESTIMATE}
-	- eg.quantities.RangedF32{min: -1, max: 1, tx:0, tx:0}
+	- eg.quantities.RangedGeneric{kind:F32}
 	- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:9}
 }
 
 rxt.bus1.encoder_estimate_vel {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_ENCODER_ESTIMATE}
-	- eg.quantities.RangedF32{min: -1, max: 1, tx:0, tx:0}
+	- eg.quantities.RangedGeneric{kind:F32}
 	- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:10}
 }
 
 rxt.bus1.axis_error {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
-	- eg.quantities.RangedU32{min: -1, max: 1, tx:0, tx:0}
+	- eg.quantities.RangedGeneric{kind:U32}
 	- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:1}
 }
 
 rxt.bus1.axis_state {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
-	- eg.quantities.RangedU8{min: -1, max: 1, tx:0, tx:0}
+	- eg.quantities.RangedGeneric{kind:U8}
 	- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:2}
 }
 
 rxt.bus1.Procedure_Result {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
-	- eg.quantities.RangedU8{min: -1, max: 1, tx:0, tx:0}
-	- eg.can.Signal{canid:0, len:8, byte_offset:5, gui_index:2}
+	- eg.quantities.RangedGeneric{kind:U8}
+	- eg.can.Signal{canid:0, len:8, byte_offset:5, gui_index:3}
 }
 
 rxt.bus1.Trajectory_Done_Flag {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
-	- eg.quantities.RangedU8{min: -1, max: 1, tx:0, tx:0}
-	- eg.can.Signal{canid:0, len:8, byte_offset:6, gui_index:2}
+	- eg.quantities.RangedGeneric{kind:U8}
+	- eg.can.Signal{canid:0, len:8, byte_offset:6, gui_index:4}
 }
-
-
-

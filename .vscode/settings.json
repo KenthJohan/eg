@@ -129,7 +129,8 @@
 		"egsokol.h": "c",
 		"limits": "c",
 		"semaphore": "c",
-		"egodrives.h": "c"
+		"egodrives.h": "c",
+		"float.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
