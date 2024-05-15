@@ -108,6 +108,27 @@ static void igPushStyleColor_U32_HSV_strhash(const char *cp)
 	igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r,g,b,255));
 }
 
+static void igPushStyleColor_U32_HSV_hash32(uint32_t value)
+{
+	size_t hash;
+	hash = 5381;
+	hash = 14 * hash ^ value;
+	hash = 546567 * hash ^ value;
+	uint8_t h = hash;
+	hash = 5381;
+	hash = 33 * hash ^ value;
+	hash = 33333 * hash ^ value;
+	uint8_t s = hash;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	eg_color_hsv_to_rgb(h, s, 255, &r, &g, &b);
+	igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r, g, b, 255));
+}
+
+
+
+
 
 
 void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
@@ -219,16 +240,9 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igTableNextColumn();
 			igText("%i", bus->socket);
 			igTableNextColumn();
-			{
-				uint8_t h = (signal->canid << 6) + (signal->canid << 16) - signal->canid;
-				uint8_t r;
-				uint8_t g;
-				uint8_t b;
-				eg_color_hsv_to_rgb(h, 255, 255, &r, &g, &b);
-				igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r, g, b, 255));
-				igText("%i (0x%03X)", signal->canid, signal->canid);
-				igPopStyleColor(1);
-			}
+			igPushStyleColor_U32_HSV_hash32(signal->canid);
+			igText("%i (0x%03X)", signal->canid, signal->canid);
+			igPopStyleColor(1);
 			igTableNextColumn();
 			igText("%i", signal->idn);
 			igTableNextColumn();
