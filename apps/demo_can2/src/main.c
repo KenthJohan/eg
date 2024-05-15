@@ -6,6 +6,10 @@
 #include <string.h>
 #include "eg_can.h"
 
+/*
+https://github.com/belovictor/odrive_can_ros_driver/blob/main/src/odrive_axis.hpp
+https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#cyclic-messages
+*/
 typedef enum {
 	CANOPEN_NMT_MESSAGE = 0x000,
 	HEARTBEAT_MESSAGE = 0x001,

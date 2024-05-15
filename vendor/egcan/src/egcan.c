@@ -220,7 +220,10 @@ static void System_Rx(ecs_iter_t *it)
 	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1); // shared
 	EgCanBus *bus = ecs_field(it, EgCanBus, 2);           // shared
 	EgCanSignal *signal = ecs_field(it, EgCanSignal, 3);  // self
-	EgQuantitiesRangedF32 *ranged = ecs_field(it, EgQuantitiesRangedF32, 4);  // self
+	EgQuantitiesRangedU8 *ranged = ecs_field(it, EgQuantitiesRangedU8, 4);  // self
+	EgQuantitiesRangedU16 *ranged = ecs_field(it, EgQuantitiesRangedU16, 5);  // self
+	EgQuantitiesRangedF32 *ranged = ecs_field(it, EgQuantitiesRangedF32, 6);  // self
+	EgQuantitiesRangedF32 *ranged = ecs_field(it, EgQuantitiesRangedF32, 7);  // self
 	for (int i = 0; i < it->count; ++i) {
 		thread_stuff_t *impl = rxt->impl;
 		ecs_os_mutex_lock(impl->lock);
@@ -435,7 +438,10 @@ void EgCanImport(ecs_world_t *world)
 	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsChildOf},
 	{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
 	{.id = ecs_id(EgCanSignal)},
-	{.id = ecs_id(EgQuantitiesRangedF32)}
+	{.id = ecs_id(EgQuantitiesRangedU8), .flags = EcsOptional},
+	{.id = ecs_id(EgQuantitiesRangedU16), .flags = EcsOptional},
+	{.id = ecs_id(EgQuantitiesRangedU32), .flags = EcsOptional},
+	{.id = ecs_id(EgQuantitiesRangedF32), .flags = EcsOptional},
 	}});
 
 	ecs_system_init(world,

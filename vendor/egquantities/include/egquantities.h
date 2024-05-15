@@ -33,6 +33,19 @@ typedef struct {
 	float value;
 } EgQuantitiesProgress;
 
+typedef struct {
+	uint8_t min;
+	uint8_t max;
+	uint8_t tx;
+	uint8_t rx;
+} EgQuantitiesRangedU8;
+
+typedef struct {
+	uint16_t min;
+	uint16_t max;
+	uint16_t tx;
+	uint16_t rx;
+} EgQuantitiesRangedU16;
 
 typedef struct {
 	uint32_t min;
@@ -51,6 +64,8 @@ typedef struct {
 
 extern ECS_COMPONENT_DECLARE(EgQuantitiesIsq);
 extern ECS_COMPONENT_DECLARE(EgQuantitiesProgress);
+extern ECS_COMPONENT_DECLARE(EgQuantitiesRangedU8);
+extern ECS_COMPONENT_DECLARE(EgQuantitiesRangedU16);
 extern ECS_COMPONENT_DECLARE(EgQuantitiesRangedU32);
 extern ECS_COMPONENT_DECLARE(EgQuantitiesRangedF32);
 
