@@ -1,0 +1,88 @@
+module odrives
+using flecs.meta
+
+
+
+assembly Odrive {
+	prop NODE_ID: u32 = 2
+	prop gui_index_start: u32 = 0
+
+	// https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#set-input-vel
+	// 0x0d
+	const ODRIVE_CMD_SET_VEL = 13
+
+	// https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#set-input-vel
+	// 0x0e
+	const ODRIVE_CMD_SET_TOR = 14
+
+	// https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#get-encoder-estimates
+	// 0x09
+	const ODRIVE_CMD_ENCODER_ESTIMATE = 9
+
+	//https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#heartbeat
+	// 0x01
+	const ODRIVE_CMD_HEARTBEAT = 1
+
+
+	const I8_MIN = -128
+	const I8_MAX = 127
+
+	const U8_MIN = 0
+	const U8_MAX = 255
+
+
+	const U32_MIN = 0
+	const U32_MAX = 4294967295
+
+	const ODRIVE_FLT_MIN = -1000
+	const ODRIVE_FLT_MAX = 1000
+
+
+	motor_velocity {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
+		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+1}
+	}
+	motor_torque {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
+		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+2}
+	}
+
+	encoder_estimate_pos {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_ENCODER_ESTIMATE}
+		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+3}
+	}
+
+	encoder_estimate_vel {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_ENCODER_ESTIMATE}
+		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+4}
+	}
+
+	axis_error {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
+		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX/2}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+5}
+	}
+
+	axis_state {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
+		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+6}
+	}
+
+	Procedure_Result {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
+		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:5, gui_index:$gui_index_start+7}
+	}
+
+	Trajectory_Done_Flag {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
+		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:6, gui_index:$gui_index_start+8}
+	}
+
+}
