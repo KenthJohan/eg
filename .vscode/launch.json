@@ -5,18 +5,18 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch demo_can2",
+			"name": "Launch demo_odrive_can",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_can2",
+			"cwd": "${workspaceFolder}/apps/demo_odrive_can",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_can2/bin/x64-Linux-debug/demo_can2",
+			"program": "${workspaceFolder}/apps/demo_odrive_can/bin/x64-Linux-debug/demo_odrive_can",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",

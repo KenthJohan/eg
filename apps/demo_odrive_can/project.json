@@ -1,5 +1,5 @@
 {
-	"id": "demo_can2",
+	"id": "demo_odrive_can",
 	"type": "application",
 	"value": {
 		"language": "c",
