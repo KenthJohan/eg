@@ -1,7 +1,15 @@
 module app.signals
 
-const INT8_MIN = -128
-const INT8_MAX = 127
+const I8_MIN = -128
+const I8_MAX = 127
+
+const U8_MIN = 0
+const U8_MAX = 255
+
+
+const U32_MIN = 0
+const U32_MAX = 4294967295
+
 
 
 
@@ -23,6 +31,11 @@ const ODRIVE_CMD_ENCODER_ESTIMATE = 9
 const ODRIVE_CMD_HEARTBEAT = 1
 
 const ODRIVE_NODE_ID = 2
+
+
+const ODRIVE_FLT_MIN = -1000
+const ODRIVE_FLT_MAX = 1000
+
 
 
 rxt {
@@ -56,36 +69,36 @@ rxt.bus1.motor_torque {
 
 rxt.bus1.encoder_estimate_pos {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_ENCODER_ESTIMATE}
-	- eg.quantities.RangedGeneric{kind:F32}
+	- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
 	- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:9}
 }
 
 rxt.bus1.encoder_estimate_vel {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_ENCODER_ESTIMATE}
-	- eg.quantities.RangedGeneric{kind:F32}
+	- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
 	- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:10}
 }
 
 rxt.bus1.axis_error {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
-	- eg.quantities.RangedGeneric{kind:U32}
+	- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX/2}
 	- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:1}
 }
 
 rxt.bus1.axis_state {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
-	- eg.quantities.RangedGeneric{kind:U8}
+	- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
 	- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:2}
 }
 
 rxt.bus1.Procedure_Result {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
-	- eg.quantities.RangedGeneric{kind:U8}
+	- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
 	- eg.can.Signal{canid:0, len:8, byte_offset:5, gui_index:3}
 }
 
 rxt.bus1.Trajectory_Done_Flag {
 	- eg.odrives.Cmd{nodeid:$ODRIVE_NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
-	- eg.quantities.RangedGeneric{kind:U8}
+	- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
 	- eg.can.Signal{canid:0, len:8, byte_offset:6, gui_index:4}
 }

@@ -25,18 +25,32 @@ typedef struct {
 	ecs_entity_t e;
 } gui_can_table_t;
 
-static void sender(const char *label, eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
+static void igSlider_flecs(const char *label, eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
 {
 	ImGuiDataType type = 0;
 	bool modified = false;
 	switch (value->kind) {
 	case EcsF32:
 		if (isfinite(value->tx.val_f32) && isfinite(value->min.val_f32) && isfinite(value->max.val_f32)) {
+			igPushItemWidth(-1);
 			modified = igSliderScalar(label, ImGuiDataType_Float, &value->tx.val_f32, &value->min.val_f32, &value->max.val_f32, "%f", 0);
+			igPopItemWidth();
 		}
 		break;
 	case EcsU8:
+		igPushItemWidth(-1);
 		modified = igSliderScalar(label, ImGuiDataType_U8, &value->tx.val_u8, &value->min.val_u8, &value->max.val_u8, "%u", 0);
+		igPopItemWidth();
+		break;
+	case EcsU16:
+		igPushItemWidth(-1);
+		modified = igSliderScalar(label, ImGuiDataType_U16, &value->tx.val_u16, &value->min.val_u16, &value->max.val_u16, "%u", 0);
+		igPopItemWidth();
+		break;
+	case EcsU32:
+		igPushItemWidth(-1);
+		modified = igSliderScalar(label, ImGuiDataType_U32, &value->tx.val_u32, &value->min.val_u32, &value->max.val_u32, "%u", 0);
+		igPopItemWidth();
 		break;
 
 	default:
@@ -44,6 +58,40 @@ static void sender(const char *label, eg_can_book_t *book, EgCanSignal *signal, 
 	}
 	if (modified) {
 		EgCan_book_prepare_send(book, signal, value);
+	}
+}
+
+
+static void igInput_flecs(const char *label, eg_generic_number_t * val, ecs_primitive_kind_t kind)
+{
+	switch (kind) {
+	case EcsF64:
+		igPushItemWidth(-1);
+		igInputDouble("#1", &val->val_f64, 0, 0, "%f", 0);
+		igPopItemWidth();
+		break;
+	case EcsF32:
+		igPushItemWidth(-1);
+		igInputFloat("#1", &val->val_f32, 0, 0, "%f", 0);
+		igPopItemWidth();
+		break;
+	case EcsU8:
+		igPushItemWidth(-1);
+		igInputScalar("#1", ImGuiDataType_U8, &val->val_u8, 0, 0, "%u", 0);
+		igPopItemWidth();
+	break;
+	case EcsU16:
+		igPushItemWidth(-1);
+		igInputScalar("#1", ImGuiDataType_U16, &val->val_u16, 0, 0, "%u", 0);
+		igPopItemWidth();
+	break;
+	case EcsU32:
+		igPushItemWidth(-1);
+		igInputScalar("#1", ImGuiDataType_U32, &val->val_u32, 0, 0, "%u", 0);
+		igPopItemWidth();
+	break;
+	default:
+		break;
 	}
 }
 
@@ -255,18 +303,13 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			
 
 			igTableNextColumn();
-			igPushItemWidth(-1);
-			igInputFloat("#1", &value->min.val_f32, 0, 0, "%f", 0);
-			igPopItemWidth();
-			igTableNextColumn();
-			igPushItemWidth(-1);
-			igInputFloat("#2", &value->max.val_f32, 0, 0, "%f", 0);
-			igPopItemWidth();
+			igInput_flecs("#1", &value->min, value->kind);
 
 			igTableNextColumn();
-			igPushItemWidth(-1);
+			igInput_flecs("#2", &value->max, value->kind);
 
-			sender("##s1", book, signal, value);
+			igTableNextColumn();
+			igSlider_flecs("##s1", book, signal, value);
 
 			/*
 			if (igSliderScalar("##s1", ImGuiDataType_Float, &value->tx.val_f32, &value->min.val_f32, &value->max.val_f32, "%f", 0)) {
@@ -274,7 +317,6 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			};
 			*/
 
-			igPopItemWidth();
 			igTableNextColumn();
 			switch (value->kind) {
 			case EcsU8:
