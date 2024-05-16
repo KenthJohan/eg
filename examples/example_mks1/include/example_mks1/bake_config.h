@@ -14,12 +14,13 @@
  * dependencies will automatically show up in this file. Include bake_config.h
  * in your main project file. Do not edit! */
 
-#ifndef EX4_EGLWS_BAKE_CONFIG_H
-#define EX4_EGLWS_BAKE_CONFIG_H
+#ifndef EXAMPLE_MKS1_BAKE_CONFIG_H
+#define EXAMPLE_MKS1_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
 #include <flecs.h>
-#include <eglws.h>
+#include <mks_servo.h>
+#include <egcan.h>
 
 #endif
 

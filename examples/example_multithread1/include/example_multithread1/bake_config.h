@@ -14,11 +14,11 @@
  * dependencies will automatically show up in this file. Include bake_config.h
  * in your main project file. Do not edit! */
 
-#ifndef DEMO_ODRIVE_CAN_BAKE_CONFIG_H
-#define DEMO_ODRIVE_CAN_BAKE_CONFIG_H
+#ifndef EXAMPLE_MULTITHREAD1_BAKE_CONFIG_H
+#define EXAMPLE_MULTITHREAD1_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <flecs.h>
 
 #endif
 
