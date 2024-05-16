@@ -1,5 +1,5 @@
 {
-	"id": "demo_can1",
+	"id": "example_can1",
 	"type": "application",
 	"value": {
 		"language": "c",

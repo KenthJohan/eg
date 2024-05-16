@@ -1,5 +1,5 @@
 {
-	"id": "demo_microui",
+	"id": "example_microui",
 	"type": "application",
 	"value": {
 		"language": "c",

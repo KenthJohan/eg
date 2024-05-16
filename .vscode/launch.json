@@ -5,18 +5,18 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch demo_odrive_can",
+			"name": "Launch example_odrive_can",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_odrive_can",
+			"cwd": "${workspaceFolder}/examples/example_odrive_can",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_odrive_can/bin/x64-Linux-debug/demo_odrive_can",
+			"program": "${workspaceFolder}/examples/example_odrive_can/bin/x64-Linux-debug/example_odrive_can",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -58,18 +58,18 @@
 			}
 		},
 		{
-			"name": "Launch demo_can1",
+			"name": "Launch example_can1",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_can1",
+			"cwd": "${workspaceFolder}/examples/example_can1",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_can1/bin/x64-Linux-debug/demo_can1",
+			"program": "${workspaceFolder}/examples/example_can1/bin/x64-Linux-debug/example_can1",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -104,18 +104,18 @@
 			}
 		},
 		{
-			"name": "Launch demo_cimgui2",
+			"name": "Launch example_cimgui2",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_cimgui2",
+			"cwd": "${workspaceFolder}/examples/example_cimgui2",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_cimgui2/bin/x64-Linux-debug/demo_cimgui2",
+			"program": "${workspaceFolder}/examples/example_cimgui2/bin/x64-Linux-debug/example_cimgui2",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -127,18 +127,18 @@
 			}
 		},
 		{
-			"name": "Launch demo_cimgui",
+			"name": "Launch example_cimgui",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_cimgui",
+			"cwd": "${workspaceFolder}/examples/example_cimgui",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_cimgui/bin/x64-Linux-debug/demo_cimgui",
+			"program": "${workspaceFolder}/examples/example_cimgui/bin/x64-Linux-debug/example_cimgui",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -150,18 +150,18 @@
 			}
 		},
 		{
-			"name": "Launch demo_imgui",
+			"name": "Launch example_imgui",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_imgui",
+			"cwd": "${workspaceFolder}/examples/example_imgui",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_imgui/bin/x64-Linux-debug/demo_imgui",
+			"program": "${workspaceFolder}/examples/example_imgui/bin/x64-Linux-debug/example_imgui",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -173,18 +173,18 @@
 			}
 		},
 		{
-			"name": "Launch demo_microui",
+			"name": "Launch example_microui",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_microui",
+			"cwd": "${workspaceFolder}/examples/example_microui",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_microui/bin/x64-Linux-debug/demo_microui",
+			"program": "${workspaceFolder}/examples/example_microui/bin/x64-Linux-debug/example_microui",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -196,18 +196,18 @@
 			}
 		},
 		{
-			"name": "Launch demo_mks1",
+			"name": "Launch example_mks1",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_mks1",
+			"cwd": "${workspaceFolder}/examples/example_mks1",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_mks1/bin/x64-Linux-debug/demo_mks1",
+			"program": "${workspaceFolder}/examples/example_mks1/bin/x64-Linux-debug/example_mks1",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -219,18 +219,18 @@
 			}
 		},
 		{
-			"name": "Launch demo_nuklear",
+			"name": "Launch example_nuklear",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_nuklear",
+			"cwd": "${workspaceFolder}/examples/example_nuklear",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_nuklear/bin/x64-Linux-debug/demo_nuklear",
+			"program": "${workspaceFolder}/examples/example_nuklear/bin/x64-Linux-debug/example_nuklear",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -242,18 +242,18 @@
 			}
 		},
 		{
-			"name": "Launch demo_webserver",
+			"name": "Launch example_webserver",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_webserver",
+			"cwd": "${workspaceFolder}/examples/example_webserver",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/demo_webserver/bin/x64-Linux-debug/demo_webserver",
+			"program": "${workspaceFolder}/examples/example_webserver/bin/x64-Linux-debug/example_webserver",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -265,18 +265,18 @@
 			}
 		},
 		{
-			"name": "Launch ex4_eglws",
+			"name": "Launch example_eglws",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/ex4_eglws",
+			"cwd": "${workspaceFolder}/examples/example_eglws",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/ex4_eglws/bin/x64-Linux-debug/ex4_eglws",
+			"program": "${workspaceFolder}/examples/example_eglws/bin/x64-Linux-debug/example_eglws",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -288,18 +288,18 @@
 			}
 		},
 		{
-			"name": "Launch ex5_websocks",
+			"name": "Launch example_websocks",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/ex5_websocks",
+			"cwd": "${workspaceFolder}/examples/example_websocks",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/ex5_websocks/bin/x64-Linux-debug/ex5_websocks",
+			"program": "${workspaceFolder}/examples/example_websocks/bin/x64-Linux-debug/example_websocks",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -334,18 +334,18 @@
 			}
 		},
 		{
-			"name": "Launch multithread1",
+			"name": "Launch example_multithread1",
 			"type": "cppdbg",
 			"request": "launch",
 			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/multithread1",
+			"cwd": "${workspaceFolder}/examples/example_multithread1",
 			"environment": [
 				{
 					"name": "LD_LIBRARY_PATH",
 					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
 				},
 			],
-			"program": "${workspaceFolder}/apps/multithread1/bin/x64-Linux-debug/multithread1",
+			"program": "${workspaceFolder}/examples/example_multithread1/bin/x64-Linux-debug/example_multithread1",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",

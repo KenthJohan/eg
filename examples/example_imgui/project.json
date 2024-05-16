@@ -1,5 +1,5 @@
 {
-	"id": "demo_imgui",
+	"id": "example_imgui",
 	"type": "application",
 	"value": {
 		"language": "cpp",

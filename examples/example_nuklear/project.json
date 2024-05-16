@@ -1,5 +1,5 @@
 {
-	"id": "demo_nuklear",
+	"id": "example_nuklear",
 	"type": "application",
 	"value": {
 		"language": "c",

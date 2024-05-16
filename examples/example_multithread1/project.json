@@ -1,5 +1,5 @@
 {
-	"id": "multithread1",
+	"id": "example_multithread1",
 	"type": "application",
 	"value": {
 		"language": "c",

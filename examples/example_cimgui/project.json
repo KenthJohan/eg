@@ -1,5 +1,5 @@
 {
-	"id": "demo_cimgui",
+	"id": "example_cimgui",
 	"type": "application",
 	"value": {
 		"language": "c",
