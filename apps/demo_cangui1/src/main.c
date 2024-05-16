@@ -188,6 +188,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 
 	ecs_log_set_level(2);
 	ecs_plecs_from_file(app->world, "config/assembly_rc.flecs");
+	ecs_plecs_from_file(app->world, "config/assembly_vision.flecs");
 	//ecs_plecs_from_file(app->world, "config/assembly_bms.flecs");
 	ecs_plecs_from_file(app->world, "config/assembly_odrives.flecs");
 	ecs_plecs_from_file(app->world, "config/signals.flecs");
