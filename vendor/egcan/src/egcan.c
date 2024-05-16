@@ -291,12 +291,36 @@ static void System_Rx(ecs_iter_t *it)
 
 static void System_Value(ecs_iter_t *it)
 {
-	EgCanSignal *s = ecs_field(it, EgCanSignal, 1);
+	EgQuantitiesRangedGeneric *s = ecs_field(it, EgQuantitiesRangedGeneric, 1);
 	EgQuantitiesProgress *q = ecs_field(it, EgQuantitiesProgress, 2);
 	for (int i = 0; i < it->count; ++i, ++s, ++q) {
-		// q->value = (float)s->rx;
-		// q->min = (float)s->min;
-		// q->max = (float)s->max;
+		switch (s->kind)
+		{
+		case EcsU8:
+			q->value = (float)s->rx.val_u8;
+			q->min = (float)s->min.val_u8;
+			q->max = (float)s->max.val_u8;
+			break;
+		case EcsU16:
+			q->value = (float)s->rx.val_u16;
+			q->min = (float)s->min.val_u16;
+			q->max = (float)s->max.val_u16;
+			break;
+		case EcsU32:
+			q->value = (float)s->rx.val_u32;
+			q->min = (float)s->min.val_u32;
+			q->max = (float)s->max.val_u32;
+			break;
+		case EcsF32:
+			q->value = (float)s->rx.val_f32;
+			q->min = (float)s->min.val_f32;
+			q->max = (float)s->max.val_f32;
+			break;
+		
+		default:
+			break;
+		}
+
 	}
 }
 
@@ -517,7 +541,7 @@ void EgCanImport(ecs_world_t *world)
 	.callback = System_Value,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(EgCanSignal)},
+	{.id = ecs_id(EgQuantitiesRangedGeneric)},
 	{.id = ecs_id(EgQuantitiesProgress)}
 	}
 	});

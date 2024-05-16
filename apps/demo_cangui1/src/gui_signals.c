@@ -213,7 +213,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				gui[list_index].desc = desc;
 				gui[list_index].bus = bus;
 				n = ECS_MAX(list_index + 1, n);
-			}6
+			}
 		}
 
 		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);
