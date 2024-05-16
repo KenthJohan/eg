@@ -9,20 +9,20 @@ rxt {
 	bus1 {
 		- eg.can.BusDescription{interface:"can0"}
 		o1 {
-			- odrives.Odrive{NODE_ID:1, gui_index_start: 10}
+			- odrives.Odrive{NODE_ID:1, gui_index_start: 10, gui_scope_name_parent: rxt.bus1}
 		}
 		o2 {
-			- odrives.Odrive{NODE_ID:2, gui_index_start: 20}
+			- odrives.Odrive{NODE_ID:2, gui_index_start: 20, gui_scope_name_parent: rxt.bus1}
 		}
 		o3 {
-			- odrives.Odrive{NODE_ID:3, gui_index_start: 30}
+			- odrives.Odrive{NODE_ID:3, gui_index_start: 30, gui_scope_name_parent: rxt.bus1}
 		}
 		o4 {
-			- odrives.Odrive{NODE_ID:4, gui_index_start: 40}
+			- odrives.Odrive{NODE_ID:4, gui_index_start: 40, gui_scope_name_parent: rxt.bus1}
 		}
 
 		rc {
-			- rcs.Rc{CANID:0}
+			- rcs.Rc{CANID:0, gui_scope_name_parent: rxt.bus1}
 		}
 	}
 }

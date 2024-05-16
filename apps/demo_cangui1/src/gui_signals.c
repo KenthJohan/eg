@@ -203,7 +203,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				if (list_index >= 128) {
 					continue;
 				}
-				char const *name = ecs_get_name(world, e);
+				char const *name = ecs_get_path_w_sep(world, signal->gui_scope_name_parent, e, ".", NULL);
 				// printf("e: %s, from : %s\n", name, name1 ? name1 : "?");
 				gui[list_index].e = e;
 				gui[list_index].name = name;
@@ -213,7 +213,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				gui[list_index].desc = desc;
 				gui[list_index].bus = bus;
 				n = ECS_MAX(list_index + 1, n);
-			}
+			}6
 		}
 
 		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);

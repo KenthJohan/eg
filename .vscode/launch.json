@@ -5,29 +5,6 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch example_odrive_can",
-			"type": "cppdbg",
-			"request": "launch",
-			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/examples/example_odrive_can",
-			"environment": [
-				{
-					"name": "LD_LIBRARY_PATH",
-					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
-				},
-			],
-			"program": "${workspaceFolder}/examples/example_odrive_can/bin/x64-Linux-debug/example_odrive_can",
-			"args": [],
-			"osx": {
-				"MIMode": "lldb",
-				"targetArchitecture": "arm64",
-				"externalConsole": false,
-			},
-			"linux": {
-				"externalConsole": false,
-			}
-		},
-		{
 			"name": "Launch demo_can2udp",
 			"type": "cppdbg",
 			"request": "launch",
@@ -58,29 +35,6 @@
 			}
 		},
 		{
-			"name": "Launch example_can1",
-			"type": "cppdbg",
-			"request": "launch",
-			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/examples/example_can1",
-			"environment": [
-				{
-					"name": "LD_LIBRARY_PATH",
-					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
-				},
-			],
-			"program": "${workspaceFolder}/examples/example_can1/bin/x64-Linux-debug/example_can1",
-			"args": [],
-			"osx": {
-				"MIMode": "lldb",
-				"targetArchitecture": "arm64",
-				"externalConsole": false,
-			},
-			"linux": {
-				"externalConsole": false,
-			}
-		},
-		{
 			"name": "Launch demo_cangui1",
 			"type": "cppdbg",
 			"request": "launch",
@@ -93,6 +47,75 @@
 				},
 			],
 			"program": "${workspaceFolder}/apps/demo_cangui1/bin/x64-Linux-debug/demo_cangui1",
+			"args": [],
+			"osx": {
+				"MIMode": "lldb",
+				"targetArchitecture": "arm64",
+				"externalConsole": false,
+			},
+			"linux": {
+				"externalConsole": false,
+			}
+		},
+		{
+			"name": "Launch demo_flecs_sokol",
+			"type": "cppdbg",
+			"request": "launch",
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}/apps/demo_flecs_sokol",
+			"environment": [
+				{
+					"name": "LD_LIBRARY_PATH",
+					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
+				},
+			],
+			"program": "${workspaceFolder}/apps/demo_flecs_sokol/bin/x64-Linux-debug/demo_flecs_sokol",
+			"args": [],
+			"osx": {
+				"MIMode": "lldb",
+				"targetArchitecture": "arm64",
+				"externalConsole": false,
+			},
+			"linux": {
+				"externalConsole": false,
+			}
+		},
+		{
+			"name": "Launch example_odrive_can",
+			"type": "cppdbg",
+			"request": "launch",
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}/examples/example_odrive_can",
+			"environment": [
+				{
+					"name": "LD_LIBRARY_PATH",
+					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
+				},
+			],
+			"program": "${workspaceFolder}/examples/example_odrive_can/bin/x64-Linux-debug/example_odrive_can",
+			"args": [],
+			"osx": {
+				"MIMode": "lldb",
+				"targetArchitecture": "arm64",
+				"externalConsole": false,
+			},
+			"linux": {
+				"externalConsole": false,
+			}
+		},
+		{
+			"name": "Launch example_can1",
+			"type": "cppdbg",
+			"request": "launch",
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}/examples/example_can1",
+			"environment": [
+				{
+					"name": "LD_LIBRARY_PATH",
+					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
+				},
+			],
+			"program": "${workspaceFolder}/examples/example_can1/bin/x64-Linux-debug/example_can1",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",
@@ -300,29 +323,6 @@
 				},
 			],
 			"program": "${workspaceFolder}/examples/example_websocks/bin/x64-Linux-debug/example_websocks",
-			"args": [],
-			"osx": {
-				"MIMode": "lldb",
-				"targetArchitecture": "arm64",
-				"externalConsole": false,
-			},
-			"linux": {
-				"externalConsole": false,
-			}
-		},
-		{
-			"name": "Launch demo_flecs_sokol",
-			"type": "cppdbg",
-			"request": "launch",
-			"stopAtEntry": false,
-			"cwd": "${workspaceFolder}/apps/demo_flecs_sokol",
-			"environment": [
-				{
-					"name": "LD_LIBRARY_PATH",
-					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/"
-				},
-			],
-			"program": "${workspaceFolder}/apps/demo_flecs_sokol/bin/x64-Linux-debug/demo_flecs_sokol",
 			"args": [],
 			"osx": {
 				"MIMode": "lldb",

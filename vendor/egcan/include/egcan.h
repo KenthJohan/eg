@@ -60,6 +60,7 @@ typedef struct {
 	int32_t len;
 	int32_t byte_offset;
 	int32_t gui_index;
+	ecs_entity_t gui_scope_name_parent;
 	/*
 	uint8_t type;
 	uint8_t order;

@@ -432,6 +432,7 @@ void EgCanImport(ecs_world_t *world)
 	{.name = "len", .type = ecs_id(ecs_i32_t)},
 	{.name = "byte_offset", .type = ecs_id(ecs_i32_t)},
 	{.name = "gui_index", .type = ecs_id(ecs_i32_t)},
+	{.name = "gui_scope_name_parent", .type = ecs_id(ecs_entity_t)},	
 	}});
 
 
