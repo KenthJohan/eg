@@ -20,6 +20,10 @@ rxt {
 		o4 {
 			- odrives.Odrive{NODE_ID:4, gui_index_start: 40}
 		}
+
+		rc {
+			- rcs.Rc{CANID:0}
+		}
 	}
 }
 

@@ -1,0 +1,26 @@
+module bmss
+using flecs.meta
+
+
+
+assembly Bms {
+	prop CANID: u32 = 2
+	prop gui_index_start: u32 = 0
+
+	const I8_MIN = -128
+	const I8_MAX = 127
+
+	const U8_MIN = 0
+	const U8_MAX = 255
+
+
+	const U32_MIN = 0
+	const U32_MAX = 4294967295
+
+
+	voltage_s1 {
+		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
+		- eg.can.Signal{canid:$CANID, len:8, byte_offset:0, gui_index:$gui_index_start+0}
+	}
+
+}
