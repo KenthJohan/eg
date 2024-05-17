@@ -27,7 +27,6 @@ typedef struct {
 
 static void igSlider_flecs(const char *label, eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
 {
-	ImGuiDataType type = 0;
 	bool modified = false;
 	switch (value->kind) {
 	case EcsF32:
