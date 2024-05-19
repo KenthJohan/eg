@@ -186,7 +186,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ECS_IMPORT(app->world, EgIfaces);
 	ECS_IMPORT(app->world, EgOdrives);
 
-	ecs_log_set_level(2);
+	ecs_log_set_level(0);
 	ecs_plecs_from_file(app->world, "config/assembly_rc.flecs");
 	ecs_plecs_from_file(app->world, "config/assembly_vision.flecs");
 	//ecs_plecs_from_file(app->world, "config/assembly_bms.flecs");

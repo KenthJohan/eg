@@ -60,8 +60,7 @@ static void igSlider_flecs(const char *label, eg_can_book_t *book, EgCanSignal *
 	}
 }
 
-
-static void igInput_flecs(const char *label, eg_generic_number_t * val, ecs_primitive_kind_t kind)
+static void igInput_flecs(const char *label, eg_generic_number_t *val, ecs_primitive_kind_t kind)
 {
 	switch (kind) {
 	case EcsF64:
@@ -78,17 +77,17 @@ static void igInput_flecs(const char *label, eg_generic_number_t * val, ecs_prim
 		igPushItemWidth(-1);
 		igInputScalar("#1", ImGuiDataType_U8, &val->val_u8, 0, 0, "%u", 0);
 		igPopItemWidth();
-	break;
+		break;
 	case EcsU16:
 		igPushItemWidth(-1);
 		igInputScalar("#1", ImGuiDataType_U16, &val->val_u16, 0, 0, "%u", 0);
 		igPopItemWidth();
-	break;
+		break;
 	case EcsU32:
 		igPushItemWidth(-1);
 		igInputScalar("#1", ImGuiDataType_U32, &val->val_u32, 0, 0, "%u", 0);
 		igPopItemWidth();
-	break;
+		break;
 	default:
 		break;
 	}
@@ -152,7 +151,7 @@ static void igPushStyleColor_U32_HSV_strhash(const char *cp)
 	uint8_t g;
 	uint8_t b;
 	eg_color_hsv_to_rgb(h, h >> 16, 255, &r, &g, &b);
-	igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r,g,b,255));
+	igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r, g, b, 255));
 }
 
 static void igPushStyleColor_U32_HSV_hash32(uint32_t value)
@@ -173,10 +172,47 @@ static void igPushStyleColor_U32_HSV_hash32(uint32_t value)
 	igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r, g, b, 255));
 }
 
+static bool igCombo_flecs(ecs_world_t *world, ecs_entity_t parent, int * parent_val)
+{
+	char const * names[100];
+	int j = 0;
+	ecs_iter_t it = ecs_children(world, parent);
 
 
+	ecs_entity_t eselected = 0;
+	while (ecs_children_next(&it)) {
+		for (int i = 0; i < it.count; i++) {
+			ecs_entity_t child = it.entities[i];
+			char const *path = ecs_get_name(world, child);
+ 			const ecs_i32_t *constant = ecs_get_pair_object(world, child, EcsConstant, ecs_i32_t);
 
-
+			if (*parent_val == *constant) {
+				eselected = child;
+			}
+			if (j >= 100) {
+				goto next;
+			}
+			names[j] = path;
+			j++;
+		}
+	}
+next:
+	bool selected = false;
+	char const * selected_name = eselected ? ecs_get_name(world, eselected) : NULL;
+	igPushItemWidth(-1);
+	if (igBeginCombo("##Hello", selected_name, 0)) {
+		for(int i = 0; i < j; ++i) {
+			selected = igSelectable_Bool(names[i], selected, 0, (ImVec2){0, 0});
+			if (selected) {
+				*parent_val = 3;
+				break;
+			}
+		}
+		igEndCombo();
+	}
+	igPopItemWidth();
+	return selected;
+}
 
 void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 {
@@ -246,6 +282,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			EgQuantitiesRangedGeneric *value = gui[i].value;
 			EgCanBus *bus = gui[i].bus;
 			EgCanBusDescription *desc = gui[i].desc;
+			ecs_entity_t e = gui[i].e;
 
 			if (name == NULL) {
 				igTableNextColumn();
@@ -306,8 +343,6 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igText("%s", get_type(value->kind));
 			igPopStyleColor(1);
 
-			
-
 			igTableNextColumn();
 			igInput_flecs("#1", &value->min, value->kind);
 
@@ -315,7 +350,19 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igInput_flecs("#2", &value->max, value->kind);
 
 			igTableNextColumn();
-			igSlider_flecs("##s1", book, signal, value);
+			if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
+				if (value == NULL) {
+					//printf("e: %s\n", ecs_get_name(world, value));
+					return;
+				}
+				int selected = (int)value->tx.val_u64;
+				bool changed = igCombo_flecs(world, signal->component_rep, &selected);
+				if (changed) {
+					value->tx.val_u64 = (int32_t)selected;
+				}
+			} else {
+				igSlider_flecs("##s1", book, signal, value);
+			}
 
 			/*
 			if (igSliderScalar("##s1", ImGuiDataType_Float, &value->tx.val_f32, &value->min.val_f32, &value->max.val_f32, "%f", 0)) {

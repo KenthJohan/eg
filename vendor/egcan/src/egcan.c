@@ -199,7 +199,7 @@ static void EgCanBusBook_System_Sender(ecs_iter_t *it)
 	}
 }
 
-static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t const *book, EgQuantitiesRangedGeneric * val)
+static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *signal, eg_can_book_t const *book, EgQuantitiesRangedGeneric * val)
 {
 	int canid = signal->canid;
 	if (canid >= book->cap) {
@@ -232,6 +232,15 @@ static void EgCanSignal_parse(EgCanSignal *signal, eg_can_book_t const *book, Eg
 	default:
 		break;
 	}
+
+	if (signal->component_rep) {
+		EcsComponent const * com = ecs_get(world, signal->component_rep, EcsComponent);
+		ecs_set_id(world, e, signal->component_rep, com->size, out);
+	}
+
+
+
+
 	// TODO: This is temporary code:
 	memset(&val->max, 0, sizeof(val->max));
 	memset(&val->min, 0, sizeof(val->min));
@@ -276,7 +285,7 @@ static void System_Rx(ecs_iter_t *it)
 	eg_can_book_t const *book = bus->ptr;
 	ecs_os_mutex_lock(impl->lock);
 	for (int i = 0; i < it->count; ++i, ++val, ++signal) {
-		EgCanSignal_parse(signal, book, val);
+		EgCanSignal_parse(it->world, it->entities[i], signal, book, val);
 	}
 	ecs_os_mutex_unlock(impl->lock);
 }
@@ -457,6 +466,7 @@ void EgCanImport(ecs_world_t *world)
 	{.name = "byte_offset", .type = ecs_id(ecs_i32_t)},
 	{.name = "gui_index", .type = ecs_id(ecs_i32_t)},
 	{.name = "gui_scope_name_parent", .type = ecs_id(ecs_entity_t)},	
+	{.name = "component_rep", .type = ecs_id(ecs_entity_t)},	
 	}});
 
 
