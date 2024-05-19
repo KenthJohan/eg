@@ -172,45 +172,29 @@ static void igPushStyleColor_U32_HSV_hash32(uint32_t value)
 	igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r, g, b, 255));
 }
 
-static bool igCombo_flecs(ecs_world_t *world, ecs_entity_t parent, int * parent_val)
+static bool igCombo_flecs(ecs_world_t *world, ecs_entity_t parent, int *parent_val)
 {
-	char const * names[100];
-	int j = 0;
-	ecs_iter_t it = ecs_children(world, parent);
-
-
-	ecs_entity_t eselected = 0;
-	while (ecs_children_next(&it)) {
-		for (int i = 0; i < it.count; i++) {
-			ecs_entity_t child = it.entities[i];
-			char const *path = ecs_get_name(world, child);
- 			const ecs_i32_t *constant = ecs_get_pair_object(world, child, EcsConstant, ecs_i32_t);
-
-			if (*parent_val == *constant) {
-				eselected = child;
-			}
-			if (j >= 100) {
-				goto next;
-			}
-			names[j] = path;
-			j++;
-		}
-	}
-next:
 	bool selected = false;
-	char const * selected_name = eselected ? ecs_get_name(world, eselected) : NULL;
+	const EcsEnum *enum_type = ecs_get(world, parent, EcsEnum);
+	ecs_enum_constant_t *c0 = ecs_map_get_deref(&enum_type->constants, ecs_enum_constant_t, (ecs_map_key_t)*parent_val);
 	igPushItemWidth(-1);
-	if (igBeginCombo("##Hello", selected_name, 0)) {
-		for(int i = 0; i < j; ++i) {
-			selected = igSelectable_Bool(names[i], selected, 0, (ImVec2){0, 0});
-			if (selected) {
-				*parent_val = 3;
+	igPushID_Ptr((void *)(intptr_t)parent);
+	if (igBeginCombo("", c0 ? c0->name : NULL, 0)) {
+		ecs_map_iter_t it = ecs_map_iter(&enum_type->constants);
+		while (ecs_map_next(&it)) {
+			ecs_enum_constant_t *c = ecs_map_ptr(&it);
+			selected = c->value == c0->value;
+			selected = igSelectable_Bool(c->name, selected, 0, (ImVec2){0, 0});
+			if(selected) {
+				*parent_val = c->value;
 				break;
 			}
 		}
 		igEndCombo();
 	}
+	igPopID();
 	igPopItemWidth();
+
 	return selected;
 }
 
@@ -352,7 +336,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igTableNextColumn();
 			if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
 				if (value == NULL) {
-					//printf("e: %s\n", ecs_get_name(world, value));
+					// printf("e: %s\n", ecs_get_name(world, value));
 					return;
 				}
 				int selected = (int)value->tx.val_u64;
