@@ -1,18 +1,67 @@
 module odrives
 using flecs.meta
 
+// https://github.com/siddarthiyer/ODrive-STM32-CAN-Driver/blob/392b65a2aca4b6e4255cec8cd7f92f5e3404baf6/ODrive/ODrive.h#L78C1-L88C14
 Enum InputMode {
-	// https://github.com/siddarthiyer/ODrive-STM32-CAN-Driver/blob/392b65a2aca4b6e4255cec8cd7f92f5e3404baf6/ODrive/ODrive.h#L78C1-L88C14
-	ODRIVE_INPUT_MODE_INACTIVE
-	ODRIVE_INPUT_MODE_PASSTHROUGH
-	ODRIVE_INPUT_MODE_VEL_RAMP
-	ODRIVE_INPUT_MODE_POS_FILTER
-	ODRIVE_INPUT_MODE_MIX_CHANNELS
-	ODRIVE_INPUT_MODE_TRAP_TRAJ
-	ODRIVE_INPUT_MODE_TORQUE_RAMP
-	ODRIVE_INPUT_MODE_MIRROR
-	ODRIVE_INPUT_MODE_TUNING
+	INACTIVE
+	PASSTHROUGH
+	VEL_RAMP
+	POS_FILTER
+	MIX_CHANNELS
+	TRAP_TRAJ
+	TORQUE_RAMP
+	MIRROR
+	TUNING
 }
+
+
+// https://github.com/siddarthiyer/ODrive-STM32-CAN-Driver/blob/392b65a2aca4b6e4255cec8cd7f92f5e3404baf6/ODrive/ODrive.h#L78C1-L88C14
+Enum ControlMode {
+	VOLTAGE
+	TORQUE
+	VELOCITY
+	POSITION
+}
+
+
+Enum AxisState {
+	UNDEFINED
+	IDLE
+	STARTUP_SEQUENCE
+	FULL_CALIBRATION_SEQUENCE
+	MOTOR_CALIBRATION
+	ENCODER_INDEX_SEARCH
+	RESERVED_5
+	ENCODER_OFFSET_CALIBRATION
+	CLOSED_LOOP_CONTROL
+	LOCKIN_SPIN
+	ENCODER_DIR_FIND
+	HOMING
+	ENCODER_HALL_POLARITY_CALIBRATION
+	ENCODER_HALL_PHASE_CALIBRATION
+}
+
+
+Enum ProcedureResult {
+	SUCCESS
+	BUSY
+	CANCELLED
+	DISARMED
+	NO_RESPONSE
+	POLE_PAIR_CPR_MISMATCH
+	PHASE_RESISTANCE_OUT_OF_RANGE
+	PHASE_INDUCTANCE_OUT_OF_RANGE
+	UNBALANCED_PHASES
+	INVALID_MOTOR_TYPE
+	ILLEGAL_HALL_STATE
+	TIMEOUT
+	HOMING_WITHOUT_ENDSTOP
+	INVALID_STATE
+	NOT_CALIBRATED
+	NOT_CONVERGING
+}
+
+
 
 assembly Odrive {
 	prop NODE_ID: u32 = 2
@@ -96,13 +145,13 @@ assembly Odrive {
 	axis_state {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
 		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
-		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+6, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+6, gui_scope_name_parent:$gui_scope_name_parent, component_rep: AxisState}
 	}
 
 	Procedure_Result {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
 		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
-		- eg.can.Signal{canid:0, len:8, byte_offset:5, gui_index:$gui_index_start+7, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:0, len:8, byte_offset:5, gui_index:$gui_index_start+7, gui_scope_name_parent:$gui_scope_name_parent, component_rep: ProcedureResult}
 	}
 
 	Trajectory_Done_Flag {
@@ -114,8 +163,14 @@ assembly Odrive {
 
 	Set_Control_Mode {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_CONTROLLER_MODES}
-		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
-		- eg.can.Signal{canid:0, len:4, byte_offset:6, gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, component_rep: InputMode}
+		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
+		- eg.can.Signal{canid:0, len:4, byte_offset:0, gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, component_rep: ControlMode}
+	}
+
+	Set_Input_Mode {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_CONTROLLER_MODES}
+		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
+		- eg.can.Signal{canid:0, len:4, byte_offset:4, gui_index:$gui_index_start+10, gui_scope_name_parent:$gui_scope_name_parent, component_rep: InputMode}
 	}
 
 }

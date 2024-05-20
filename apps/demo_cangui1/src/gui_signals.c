@@ -193,23 +193,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			*/
 
 			igTableNextColumn();
-			switch (value->kind) {
-			case EcsU8:
-				igText("%i", value->rx.val_u8);
-				break;
-			case EcsU16:
-				igText("%i", value->rx.val_u16);
-				break;
-			case EcsU32:
-				igText("%i", value->rx.val_u32);
-				break;
-			case EcsF32:
-				igText("%f", value->rx.val_f32);
-				break;
-
-			default:
-				break;
-			}
+			igText_flecs(world, signal->component_rep, &value->rx, value->kind);
 			/*
 			if (signal->min != signal->max) {
 			    igBeginDisabled(true);

@@ -188,3 +188,37 @@ void igInput_flecs(const char *label, eg_generic_number_t *val, ecs_primitive_ki
 		break;
 	}
 }
+
+
+void igText_flecs(ecs_world_t * world, ecs_entity_t type, eg_generic_number_t *value, ecs_primitive_kind_t kind)
+{
+	if (type && ecs_has(world, type, EcsEnum)) {
+		int val = value->val_u64;
+		const EcsEnum *enum_type = ecs_get(world, type, EcsEnum);
+		ecs_enum_constant_t *c0 = ecs_map_get_deref(&enum_type->constants, ecs_enum_constant_t, (ecs_map_key_t)val);
+		if (c0) {
+			igText("%s (%i)", c0->name, c0->value);
+		} else {
+			igText("? (%i)", val);
+		}
+		return;
+	}
+
+
+	switch (kind) {
+	case EcsU8:
+		igText("%i", value->val_u8);
+		break;
+	case EcsU16:
+		igText("%i", value->val_u16);
+		break;
+	case EcsU32:
+		igText("%i", value->val_u32);
+		break;
+	case EcsF32:
+		igText("%f", value->val_f32);
+		break;
+	default:
+		break;
+	}
+}
