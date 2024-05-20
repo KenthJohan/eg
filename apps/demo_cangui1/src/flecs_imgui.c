@@ -190,7 +190,7 @@ void igInput_flecs(const char *label, eg_generic_number_t *val, ecs_primitive_ki
 }
 
 
-void igText_flecs(ecs_world_t * world, ecs_entity_t type, eg_generic_number_t *value, ecs_primitive_kind_t kind)
+void igText_flecs_enum(ecs_world_t * world, ecs_entity_t type, eg_generic_number_t *value, ecs_primitive_kind_t kind)
 {
 	if (type && ecs_has(world, type, EcsEnum)) {
 		int val = value->val_u64;
@@ -214,6 +214,28 @@ void igText_flecs(ecs_world_t * world, ecs_entity_t type, eg_generic_number_t *v
 		break;
 	case EcsU32:
 		igText("%i", value->val_u32);
+		break;
+	case EcsF32:
+		igText("%f", value->val_f32);
+		break;
+	default:
+		break;
+	}
+}
+
+
+
+void igText_flecs(eg_generic_number_t *value, ecs_primitive_kind_t kind)
+{
+	switch (kind) {
+	case EcsU8:
+		igText("%u", value->val_u8);
+		break;
+	case EcsU16:
+		igText("%u", value->val_u16);
+		break;
+	case EcsU32:
+		igText("%u", value->val_u32);
 		break;
 	case EcsF32:
 		igText("%f", value->val_f32);

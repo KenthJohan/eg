@@ -116,61 +116,61 @@ assembly Odrive {
 	motor_velocity {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2}
 	}
 	motor_torque {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+2, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+2, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2}
 	}
 
 	encoder_estimate_pos {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_ENCODER_ESTIMATE}
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
-		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+3, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+3, gui_scope_name_parent:$gui_scope_name_parent, rxtx:1}
 	}
 
 	encoder_estimate_vel {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_ENCODER_ESTIMATE}
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
-		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+4, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+4, gui_scope_name_parent:$gui_scope_name_parent, rxtx:1}
 	}
 
 	axis_error {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
 		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX/2}
-		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+5, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+5, gui_scope_name_parent:$gui_scope_name_parent, rxtx:1}
 	}
 
 	axis_state {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
 		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
-		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+6, gui_scope_name_parent:$gui_scope_name_parent, component_rep: AxisState}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+6, gui_scope_name_parent:$gui_scope_name_parent, rxtx:1, component_rep: AxisState}
 	}
 
 	Procedure_Result {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
 		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
-		- eg.can.Signal{canid:0, len:8, byte_offset:5, gui_index:$gui_index_start+7, gui_scope_name_parent:$gui_scope_name_parent, component_rep: ProcedureResult}
+		- eg.can.Signal{canid:0, len:8, byte_offset:5, gui_index:$gui_index_start+7, gui_scope_name_parent:$gui_scope_name_parent, rxtx:1, component_rep: ProcedureResult}
 	}
 
 	Trajectory_Done_Flag {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
 		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
-		- eg.can.Signal{canid:0, len:8, byte_offset:6, gui_index:$gui_index_start+8, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:0, len:8, byte_offset:6, gui_index:$gui_index_start+8, gui_scope_name_parent:$gui_scope_name_parent, rxtx:1}
 	}
 
 
 	Set_Control_Mode {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_CONTROLLER_MODES}
 		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
-		- eg.can.Signal{canid:0, len:4, byte_offset:0, gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, component_rep: ControlMode}
+		- eg.can.Signal{canid:0, len:4, byte_offset:0, gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2, component_rep: ControlMode}
 	}
 
 	Set_Input_Mode {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_CONTROLLER_MODES}
 		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
-		- eg.can.Signal{canid:0, len:4, byte_offset:4, gui_index:$gui_index_start+10, gui_scope_name_parent:$gui_scope_name_parent, component_rep: InputMode}
+		- eg.can.Signal{canid:0, len:4, byte_offset:4, gui_index:$gui_index_start+10, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3, component_rep: InputMode}
 	}
 
 }

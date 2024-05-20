@@ -20,4 +20,7 @@ bool igSlider_flecs(const char *label, EgQuantitiesRangedGeneric *value);
 
 void igInput_flecs(const char *label, eg_generic_number_t *val, ecs_primitive_kind_t kind);
 
-void igText_flecs(ecs_world_t * world, ecs_entity_t type, eg_generic_number_t *value, ecs_primitive_kind_t kind);
+void igText_flecs_enum(ecs_world_t * world, ecs_entity_t type, eg_generic_number_t *value, ecs_primitive_kind_t kind);
+void igText_flecs(eg_generic_number_t *value, ecs_primitive_kind_t kind);
+
+

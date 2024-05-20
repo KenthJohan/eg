@@ -69,21 +69,37 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				n = ECS_MAX(list_index + 1, n);
 			}
 		}
-
+		/*
+		igTableSetColumnEnabled(0, false);
+		igTableSetColumnEnabled(1, false);
+		igTableSetColumnEnabled(2, false);
+		igTableSetColumnEnabled(3, false);
+		igTableSetColumnEnabled(4, true);
+		igTableSetColumnEnabled(5, true);
+		igTableSetColumnEnabled(6, false);
+		igTableSetColumnEnabled(7, true);
+		igTableSetColumnEnabled(8, false);
+		igTableSetColumnEnabled(9, false);
+		igTableSetColumnEnabled(10, true);
+		igTableSetColumnEnabled(11, true);
+		igTableSetColumnEnabled(12, false);
+		igTableSetColumnEnabled(13, false);
+		igTableSetColumnEnabled(14, true);
+		*/
 		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);
-		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
+		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("idn", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("kind", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		igTableSetupColumn("max", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+		igTableSetupColumn("max", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("tx", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 200, 0);
-		igTableSetupColumn("q", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("u", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("q", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
+		igTableSetupColumn("u", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("plot", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableHeadersRow();
 
@@ -163,26 +179,28 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igPopStyleColor(1);
 
 			igTableNextColumn();
-			igInput_flecs("#1", &value->min, value->kind);
+			igText_flecs(&value->min, value->kind);
 
 			igTableNextColumn();
-			igInput_flecs("#2", &value->max, value->kind);
+			igText_flecs(&value->max, value->kind);
 
 			igTableNextColumn();
-			if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
-				if (value == NULL) {
-					// printf("e: %s\n", ecs_get_name(world, value));
-					return;
-				}
-				int selected = (int)value->tx.val_u64;
-				bool changed = igCombo_flecs(world, signal->component_rep, &selected);
-				if (changed) {
-					value->tx.val_u64 = (int32_t)selected;
-				}
-			} else {
-				bool modifed = igSlider_flecs("##s1", value);
-				if (modifed) {
-					EgCan_book_prepare_send(book, signal, value);
+			if (signal->rxtx & 0x02) {
+				if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
+					if (value == NULL) {
+						// printf("e: %s\n", ecs_get_name(world, value));
+						return;
+					}
+					int selected = (int)value->tx.val_u64;
+					bool changed = igCombo_flecs(world, signal->component_rep, &selected);
+					if (changed) {
+						value->tx.val_u64 = (int32_t)selected;
+					}
+				} else {
+					bool modifed = igSlider_flecs("##s1", value);
+					if (modifed) {
+						EgCan_book_prepare_send(book, signal, value);
+					}
 				}
 			}
 
@@ -193,7 +211,9 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			*/
 
 			igTableNextColumn();
-			igText_flecs(world, signal->component_rep, &value->rx, value->kind);
+			if (signal->rxtx & 0x01) {
+				igText_flecs_enum(world, signal->component_rep, &value->rx, value->kind);
+			}
 			/*
 			if (signal->min != signal->max) {
 			    igBeginDisabled(true);

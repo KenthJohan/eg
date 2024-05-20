@@ -60,6 +60,7 @@ typedef struct {
 	int32_t len;
 	int32_t byte_offset;
 	int32_t gui_index;
+	int32_t rxtx;
 	ecs_entity_t gui_scope_name_parent;
 	ecs_entity_t component_rep;
 	/*
