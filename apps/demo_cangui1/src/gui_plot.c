@@ -22,11 +22,12 @@ void gui_plot_progress(ecs_world_t *world, ecs_query_t *q)
 	assert(q);
 	ecs_iter_t it = ecs_query_iter(world, q);
 	while (ecs_query_next(&it)) {
-		EgCanSignal *s = ecs_field(&it, EgCanSignal, 1);
-		GuiCanPlot *plot = ecs_field(&it, GuiCanPlot, 2);
+		EgCanSignal *s = ecs_field(&it, EgCanSignal, 1); // self
+		GuiCanPlot *plot = ecs_field(&it, GuiCanPlot, 2); // self
 		for (int i = 0; i < it.count; ++i, ++plot, ++s) {
 			char const * name = ecs_get_name(world, it.entities[i]);
-			igPlotLines_FloatPtr(name, plot->v.array, plot->v.count, 0, NULL, -255, 255, (ImVec2){0,200}, sizeof(float));
+			// TODO: Support all types:
+			igPlotLines_FloatPtr(name, plot->v.array, plot->v.count, 0, NULL, plot->min, plot->max, (ImVec2){0,200}, sizeof(float));
 			igSeparator();
 			if (plot->v.count > 1000) {
 				plot->v.count = 0;

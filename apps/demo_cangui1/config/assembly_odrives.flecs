@@ -172,12 +172,12 @@ assembly Odrive {
 	motor_velocity {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 	}
 	motor_torque {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+2, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+2, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 	}
 
 	encoder_estimate_pos {

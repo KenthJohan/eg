@@ -9,6 +9,8 @@ typedef struct {
 typedef struct {
 	ecs_vec_t v;
 	uint32_t last_index;
+	float min;
+	float max;
 } GuiCanPlot;
 
 extern ECS_COMPONENT_DECLARE(GuiCanSlider);
