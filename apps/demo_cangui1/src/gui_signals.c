@@ -5,7 +5,6 @@
 
 #include <egcolors/eg_color.h>
 
-
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
 
@@ -24,14 +23,6 @@ typedef struct {
 	EgQuantitiesIsq *q;
 	ecs_entity_t e;
 } gui_can_table_t;
-
-
-
-
-
-
-
-
 
 void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 {
@@ -186,21 +177,23 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 
 			igTableNextColumn();
 			if (signal->rxtx & 0x02) {
+				bool modifed = false;
 				if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
 					if (value == NULL) {
 						// printf("e: %s\n", ecs_get_name(world, value));
 						return;
 					}
-					int selected = (int)value->tx.val_u64;
-					bool changed = igCombo_flecs(world, signal->component_rep, &selected);
-					if (changed) {
-						value->tx.val_u64 = (int32_t)selected;
+					int v = (int)value->tx.val_u64;
+					modifed = igCombo_flecs(world, signal->component_rep, &v);
+					if (modifed) {
+						value->tx.val_u64 = (int32_t)v;
 					}
 				} else {
-					bool modifed = igSlider_flecs("##s1", value);
-					if (modifed) {
-						EgCan_book_prepare_send(book, signal, value);
-					}
+					modifed = igSlider_flecs("##s1", value);
+				}
+
+				if (modifed) {
+					EgCan_book_prepare_send(book, signal, value);
 				}
 			}
 

@@ -63,6 +63,58 @@ Enum ProcedureResult {
 
 
 
+// https://discord.com/channels/633826290415435777/1242211648740261970/1242321576477720586
+Enum Error {
+	INITIALIZING :- (Constant, i32){1}
+	SYSTEM_LEVEL :- (Constant, i32){2}
+	TIMING_ERROR :- (Constant, i32){4}
+	MISSING_ESTIMATE :- (Constant, i32){8}
+	BAD_CONFIG :- (Constant, i32){16}
+	DRV_FAULT :- (Constant, i32){32}
+	MISSING_INPUT :- (Constant, i32){64}
+	DC_BUS_OVER_VOLTAGE :- (Constant, i32){256}
+	DC_BUS_UNDER_VOLTAGE :- (Constant, i32){512}
+	DC_BUS_OVER_CURRENT :- (Constant, i32){1024}
+	DC_BUS_OVER_REGEN_CURRENT :- (Constant, i32){2048}
+	CURRENT_LIMIT_VIOLATION :- (Constant, i32){4096}
+	MOTOR_OVER_TEMP :- (Constant, i32){8192}
+	INVERTER_OVER_TEMP :- (Constant, i32){16384}
+	VELOCITY_LIMIT_VIOLATION :- (Constant, i32){32768}
+	POSITION_LIMIT_VIOLATION :- (Constant, i32){65536}
+	WATCHDOG_TIMER_EXPIRED :- (Constant, i32){16777216}
+	ESTOP_REQUESTED :- (Constant, i32){33554432}
+	SPINOUT_DETECTED :- (Constant, i32){67108864}
+	BRAKE_RESISTOR_DISARMED :- (Constant, i32){134217728}
+	THERMISTOR_DISCONNECTED :- (Constant, i32){268435456}
+	CALIBRATION_ERROR :- (Constant, i32){1073741824}
+}
+
+
+
+Enum Identify {
+	CLEAR0 :- (Constant, i32){0}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 assembly Odrive {
 	prop NODE_ID: u32 = 2
 	prop gui_index_start: u32 = 0
@@ -86,6 +138,10 @@ assembly Odrive {
 
  	// 0x00B
 	const ODRIVE_CMD_SET_CONTROLLER_MODES = 11
+
+	// https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#clear-errors
+ 	// 0x018
+	const ODRIVE_CMD_CLEAR_ERROR = 24
 
 	//https://github.com/siddarthiyer/ODrive-STM32-CAN-Driver/blob/392b65a2aca4b6e4255cec8cd7f92f5e3404baf6/ODrive/ODrive.h#L70
 	const ODRIVE_CONTROL_MODE_VOLTAGE = 0
@@ -139,7 +195,7 @@ assembly Odrive {
 	axis_error {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_HEARTBEAT}
 		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX/2}
-		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+5, gui_scope_name_parent:$gui_scope_name_parent, rxtx:1}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+5, gui_scope_name_parent:$gui_scope_name_parent, rxtx:1, component_rep: Error}
 	}
 
 	axis_state {
@@ -164,13 +220,19 @@ assembly Odrive {
 	Set_Control_Mode {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_CONTROLLER_MODES}
 		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
-		- eg.can.Signal{canid:0, len:4, byte_offset:0, gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2, component_rep: ControlMode}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2, component_rep: ControlMode}
 	}
 
 	Set_Input_Mode {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_CONTROLLER_MODES}
 		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
-		- eg.can.Signal{canid:0, len:4, byte_offset:4, gui_index:$gui_index_start+10, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3, component_rep: InputMode}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+10, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3, component_rep: InputMode}
+	}
+
+	Clear_Error {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_CLEAR_ERROR}
+		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
+		- eg.can.Signal{canid:0, len:1, byte_offset:0, gui_index:$gui_index_start+11, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2, component_rep: Identify}
 	}
 
 }
