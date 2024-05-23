@@ -14,12 +14,17 @@ bool igCombo_flecs(ecs_world_t *world, ecs_entity_t parent, int *parent_val)
 	ecs_enum_constant_t *c0 = ecs_map_get_deref(&enum_type->constants, ecs_enum_constant_t, (ecs_map_key_t)*parent_val);
 	igPushItemWidth(-1);
 	igPushID_Ptr((void *)(intptr_t)parent);
-	if (igBeginCombo("", c0 ? c0->name : NULL, 0)) {
+	char buf[128] = {0};
+	if (c0) {
+		snprintf(buf, sizeof(buf), "%s (%i)", c0->name, c0->value);
+	}
+	if (igBeginCombo("", buf, 0)) {
 		ecs_map_iter_t it = ecs_map_iter(&enum_type->constants);
 		while (ecs_map_next(&it)) {
 			ecs_enum_constant_t *c = ecs_map_ptr(&it);
 			selected = c->value == c0->value;
-			selected = igSelectable_Bool(c->name, selected, 0, (ImVec2){0, 0});
+			snprintf(buf, sizeof(buf), "%s (%i)", c->name, c->value);
+			selected = igSelectable_Bool(buf, selected, 0, (ImVec2){0, 0});
 			if(selected) {
 				*parent_val = c->value;
 				break;
@@ -242,5 +247,22 @@ void igText_flecs(eg_generic_number_t *value, ecs_primitive_kind_t kind)
 		break;
 	default:
 		break;
+	}
+}
+
+
+
+
+void igCheckbox_flecs(ecs_world_t * world, ecs_entity_t e, ecs_id_t tag)
+{
+	bool checked = ecs_has_id(world, e, tag);
+	bool pressed = igCheckbox("", &checked);
+	if (pressed) {
+		//printf("checked:%i:%s\n", checked, name);
+		if (checked) {
+			ecs_add_id(world, e, tag);
+		} else {
+			ecs_remove_id(world, e, tag);
+		}
 	}
 }

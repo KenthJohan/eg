@@ -130,7 +130,8 @@
 		"limits": "c",
 		"semaphore": "c",
 		"egodrives.h": "c",
-		"float.h": "c"
+		"float.h": "c",
+		"flecs_imgui.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

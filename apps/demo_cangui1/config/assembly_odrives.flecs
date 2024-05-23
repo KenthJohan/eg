@@ -120,6 +120,10 @@ assembly Odrive {
 	prop gui_index_start: u32 = 0
 	prop gui_scope_name_parent: entity = 0
 
+	// https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#set-axis-state
+	// 0x07
+	const ODRIVE_CMD_SET_AXIS_STATE = 7
+
 	// https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#set-input-vel
 	// 0x0d
 	const ODRIVE_CMD_SET_VEL = 13
@@ -216,23 +220,28 @@ assembly Odrive {
 		- eg.can.Signal{canid:0, len:8, byte_offset:6, gui_index:$gui_index_start+8, gui_scope_name_parent:$gui_scope_name_parent, rxtx:1}
 	}
 
+	Set_Axis_State  {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_AXIS_STATE}
+		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3, component_rep: AxisState}
+	}
 
 	Set_Control_Mode {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_CONTROLLER_MODES}
 		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
-		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2, component_rep: ControlMode}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+10, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3, component_rep: ControlMode}
 	}
 
 	Set_Input_Mode {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_CONTROLLER_MODES}
 		- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
-		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+10, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3, component_rep: InputMode}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+11, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3, component_rep: InputMode}
 	}
 
 	Clear_Error {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_CLEAR_ERROR}
 		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
-		- eg.can.Signal{canid:0, len:1, byte_offset:0, gui_index:$gui_index_start+11, gui_scope_name_parent:$gui_scope_name_parent, rxtx:2, component_rep: Identify}
+		- eg.can.Signal{canid:0, len:1, byte_offset:0, gui_index:$gui_index_start+12, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3, component_rep: Identify}
 	}
 
 }

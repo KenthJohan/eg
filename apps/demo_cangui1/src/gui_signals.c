@@ -179,10 +179,6 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			if (signal->rxtx & 0x02) {
 				bool modifed = false;
 				if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
-					if (value == NULL) {
-						// printf("e: %s\n", ecs_get_name(world, value));
-						return;
-					}
 					int v = (int)value->tx.val_u64;
 					modifed = igCombo_flecs(world, signal->component_rep, &v);
 					if (modifed) {
@@ -232,18 +228,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igText("");
 
 			igTableNextColumn();
-			{
-				bool checked = ecs_has(world, gui[i].e, GuiCanPlot);
-				bool pressed = igCheckbox("", &checked);
-				if (pressed) {
-					printf("checked:%i:%s\n", checked, name);
-					if (checked) {
-						ecs_add(world, gui[i].e, GuiCanPlot);
-					} else {
-						ecs_remove(world, gui[i].e, GuiCanPlot);
-					}
-				}
-			}
+			igCheckbox_flecs(world, e, ecs_id(GuiCanPlot));
 
 			igPopID();
 		}

@@ -24,3 +24,4 @@ void igText_flecs_enum(ecs_world_t * world, ecs_entity_t type, eg_generic_number
 void igText_flecs(eg_generic_number_t *value, ecs_primitive_kind_t kind);
 
 
+void igCheckbox_flecs(ecs_world_t * world, ecs_entity_t e, ecs_id_t tag);
