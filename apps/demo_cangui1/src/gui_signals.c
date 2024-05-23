@@ -192,6 +192,13 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 					EgCan_book_prepare_send(book, signal, value);
 				}
 			}
+			
+			if (signal->rxtx & 0x04) {
+				bool m = igButton("RTR", (ImVec2){0,0});
+				if (m) {
+					EgCan_book_prepare_send(book, signal, value);
+				}
+			}
 
 			/*
 			if (igSliderScalar("##s1", ImGuiDataType_Float, &value->tx.val_f32, &value->min.val_f32, &value->max.val_f32, "%f", 0)) {

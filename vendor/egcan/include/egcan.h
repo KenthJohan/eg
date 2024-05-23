@@ -25,6 +25,7 @@ typedef struct {
 #define EG_CAN_BOOK_CAP 1024
 typedef struct {
 	uint32_t len;
+	uint32_t can_id;
 	uint32_t dirty;
 	uint32_t stats_count;
 	uint8_t payload[8];

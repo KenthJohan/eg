@@ -164,16 +164,12 @@ static void eg_can_book_send(eg_can_book_t *book)
 			continue;
 		}
 		tx->dirty = 0;
-		if (tx->len == 0) {
-			ecs_warn("can frame len=%i must be larger than 0 bytes", tx->len);
-			continue;
-		}
 		if (tx->len > 8) {
 			ecs_warn("can frame len=%i must not be larger than 8 bytes", tx->len);
 			continue;
 		}
 		eg_can_frame_t frame = {0};
-		frame.can_id = canid;
+		frame.can_id = tx->can_id;
 		frame.len = tx->len;
 		frame.data[0] = tx->payload[0];
 		frame.data[1] = tx->payload[1];
@@ -354,6 +350,7 @@ static void System_EpollAdditions(ecs_iter_t *it)
 	}
 }
 
+#define CAN_RTR_FLAG 0x40000000U /* remote transmission request */
 void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
 {
 	// printf("Send can packet canid=%i, value=%i\n", (int)signal->canid, signal->value);
@@ -367,8 +364,16 @@ void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgQuantit
 	}
 	eg_can_book_packet8_t *tx = book->tx + id;
 	memcpy(tx->payload + o, &value->tx, 4);
-	tx->len = signal->len;
+	tx->can_id = signal->canid;
 	tx->dirty = 1;
+	if (signal->rxtx == 5) {
+		tx->len = 0;
+		tx->can_id |= CAN_RTR_FLAG;
+	} else {
+		tx->can_id = signal->canid;
+		tx->len = signal->len;
+	}
+
 }
 
 static ECS_COPY(EgCanRxThread, dst, src, {

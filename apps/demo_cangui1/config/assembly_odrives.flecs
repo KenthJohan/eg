@@ -147,6 +147,11 @@ assembly Odrive {
  	// 0x018
 	const ODRIVE_CMD_CLEAR_ERROR = 24
 
+	// https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#get-bus-voltage-current
+	// 0x17
+	const ODRIVE_CMD_GET_VBUS = 23
+
+
 	//https://github.com/siddarthiyer/ODrive-STM32-CAN-Driver/blob/392b65a2aca4b6e4255cec8cd7f92f5e3404baf6/ODrive/ODrive.h#L70
 	const ODRIVE_CONTROL_MODE_VOLTAGE = 0
 	const ODRIVE_CONTROL_MODE_TORQ = 1
@@ -171,6 +176,14 @@ assembly Odrive {
 
 	const ODRIVE_FLT_MIN = -1000
 	const ODRIVE_FLT_MAX = 1000
+
+
+	const RXTX_NONE = 0
+	const RXTX_R = 1
+	const RXTX_W = 2
+	const RXTX_RW = 3
+	const RXTX_RTR = 5
+
 
 
 	motor_velocity {
@@ -242,6 +255,18 @@ assembly Odrive {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_CLEAR_ERROR}
 		- eg.quantities.RangedGeneric{kind:U8, min_u64:$U8_MIN, max_u64:$U8_MAX}
 		- eg.can.Signal{canid:0, len:1, byte_offset:0, gui_index:$gui_index_start+12, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3, component_rep: Identify}
+	}
+
+
+	Voltage {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_GET_VBUS}
+		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+13, gui_scope_name_parent:$gui_scope_name_parent, rxtx:$RXTX_RTR}
+	}
+	Current {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_GET_VBUS}
+		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+14, gui_scope_name_parent:$gui_scope_name_parent, rxtx:$RXTX_RTR}
 	}
 
 }
