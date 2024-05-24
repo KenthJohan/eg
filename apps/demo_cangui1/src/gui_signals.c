@@ -40,9 +40,9 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			EgCanBusDescription *desc = ecs_field(&it, EgCanBusDescription, 2);              // shared
 			EgCanSignal *signal = ecs_field(&it, EgCanSignal, 3);                            // self
 			EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 4);                     // self, optional
-			EgQuantitiesRangedGeneric *value = ecs_field(&it, EgQuantitiesRangedGeneric, 5); // self
+			EgQuantitiesRangedGeneric *value = ecs_field(&it, EgQuantitiesRangedGeneric, 5); // self, optional
 
-			for (int i = 0; i < it.count; ++i, ++signal, ++quant, ++value) {
+			for (int i = 0; i < it.count; ++i, ++signal, quant += (quant!=NULL), value += (value!=NULL)) {
 				ecs_entity_t e = it.entities[i];
 				int list_index = signal->gui_index;
 				if (list_index >= 128) {
@@ -154,10 +154,12 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igText("%i", bus->socket);
 
 			igPushStyleColor_U32_HSV_hash32(signal->canid);
-			igTableNextColumn();
-			igText("%i", signal->canid);
-			igTableNextColumn();
-			igText("%03X", signal->canid);
+			{
+				igTableNextColumn();
+				igText("%i", signal->canid);
+				igTableNextColumn();
+				igText("%03X", signal->canid);
+			}
 			igPopStyleColor(1);
 
 			igTableNextColumn();
@@ -165,36 +167,51 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igTableNextColumn();
 			igText("%i", signal->byte_offset);
 			igTableNextColumn();
-			igPushStyleColor_U32_HSV_strhash(flecs_get_type(value->kind));
-			igText("%s", flecs_get_type(value->kind));
-			igPopStyleColor(1);
-
-			igTableNextColumn();
-			igText_flecs(&value->min, value->kind);
-
-			igTableNextColumn();
-			igText_flecs(&value->max, value->kind);
-
-			igTableNextColumn();
-			if (signal->rxtx & 0x02) {
-				bool modifed = false;
-				if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
-					int v = (int)value->tx.val_u64;
-					modifed = igCombo_flecs(world, signal->component_rep, &v);
-					if (modifed) {
-						value->tx.val_u64 = (int32_t)v;
-					}
-				} else {
-					modifed = igSlider_flecs("##s1", value);
+			if (value) {
+				igPushStyleColor_U32_HSV_strhash(flecs_get_type(value->kind));
+				{
+					igText("%s", flecs_get_type(value->kind));
 				}
-
-				if (modifed) {
-					EgCan_book_prepare_send(book, signal, value);
-				}
+				igPopStyleColor(1);
 			}
-			
-			if (signal->rxtx & 0x04) {
-				bool m = igButton("RTR", (ImVec2){0,0});
+
+			igTableNextColumn();
+			if (value) {
+				igText_flecs(&value->min, value->kind);
+			}
+
+			igTableNextColumn();
+			if (value) {
+				igText_flecs(&value->max, value->kind);
+			}
+
+			igTableNextColumn();
+			if (value) {
+				if (signal->rxtx & 0x02) {
+					bool modifed = false;
+					if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
+						int v = (int)value->tx.val_u64;
+						modifed = igCombo_flecs(world, signal->component_rep, &v);
+						if (modifed) {
+							value->tx.val_u64 = (int32_t)v;
+						}
+					} else {
+						modifed = igSlider_flecs("##s1", value);
+					}
+
+					if (modifed) {
+						EgCan_book_prepare_send(book, signal, value);
+					}
+				}
+				
+				if (signal->rxtx & 0x04) {
+					bool m = igButton("RTR", (ImVec2){0,0});
+					if (m) {
+						EgCan_book_prepare_send(book, signal, value);
+					}
+				}
+			} else {
+				bool m = igButton("Send", (ImVec2){0,0});
 				if (m) {
 					EgCan_book_prepare_send(book, signal, value);
 				}
@@ -207,8 +224,10 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			*/
 
 			igTableNextColumn();
-			if (signal->rxtx & 0x01) {
-				igText_flecs_enum(world, signal->component_rep, &value->rx, value->kind);
+			if (value) {
+				if (signal->rxtx & 0x01) {
+					igText_flecs_enum(world, signal->component_rep, &value->rx, value->kind);
+				}
 			}
 			/*
 			if (signal->min != signal->max) {
@@ -253,7 +272,7 @@ ecs_query_t *gui_signals_query(ecs_world_t *world)
 			{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsChildOf},
 			{.id = ecs_id(EgCanSignal), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
 			{.id = ecs_id(EgQuantitiesIsq), .oper = EcsOptional},
-			{.id = ecs_id(EgQuantitiesRangedGeneric), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
+			{.id = ecs_id(EgQuantitiesRangedGeneric), .oper = EcsOptional, .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
 			//{.id = ecs_id(EgCanSignal)},
 			// TODO: Only query entities from "app.signals"
 			//{.id = EcsModule, .src.id = e_app_signals},

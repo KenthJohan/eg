@@ -97,6 +97,12 @@ Enum Identify {
 
 
 
+Enum OpCode {
+	Read :- (Constant, i32){0}
+	Write :- (Constant, i32){1}
+}
+
+
 
 
 
@@ -151,6 +157,9 @@ assembly Odrive {
 	// 0x17
 	const ODRIVE_CMD_GET_VBUS = 23
 
+	// https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#get-temperature
+	// 0x15
+	const ODRIVE_CMD_GET_TEMP = 21
 
 	//https://github.com/siddarthiyer/ODrive-STM32-CAN-Driver/blob/392b65a2aca4b6e4255cec8cd7f92f5e3404baf6/ODrive/ODrive.h#L70
 	const ODRIVE_CONTROL_MODE_VOLTAGE = 0
@@ -263,10 +272,27 @@ assembly Odrive {
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
 		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+13, gui_scope_name_parent:$gui_scope_name_parent, rxtx:$RXTX_RTR}
 	}
+
 	Current {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_GET_VBUS}
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
 		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+14, gui_scope_name_parent:$gui_scope_name_parent, rxtx:$RXTX_RTR}
 	}
 
+	FET_Temperature {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_GET_TEMP}
+		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+15, gui_scope_name_parent:$gui_scope_name_parent, rxtx:$RXTX_RTR}
+	}
+
+	Motor_Temperature {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_GET_TEMP}
+		- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+		- eg.can.Signal{canid:0, len:8, byte_offset:4, gui_index:$gui_index_start+16, gui_scope_name_parent:$gui_scope_name_parent, rxtx:$RXTX_RTR}
+	}
+
+	Estop {
+		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:2}
+		- eg.can.Signal{canid:0, len:0, byte_offset:0, gui_index:$gui_index_start+17, gui_scope_name_parent:$gui_scope_name_parent, rxtx:$RXTX_W}
+	}
 }

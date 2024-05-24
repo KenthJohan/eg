@@ -363,7 +363,9 @@ void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgQuantit
 		return;
 	}
 	eg_can_book_packet8_t *tx = book->tx + id;
-	memcpy(tx->payload + o, &value->tx, 4);
+	if (value) {
+		memcpy(tx->payload + o, &value->tx, signal->len);
+	}
 	tx->can_id = signal->canid;
 	tx->dirty = 1;
 	if (signal->rxtx == 5) {
