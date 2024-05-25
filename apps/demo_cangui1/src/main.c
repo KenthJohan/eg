@@ -176,6 +176,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	app_t *app = malloc(sizeof(app_t));
 	app->world = ecs_init();
 	ECS_IMPORT(app->world, FlecsUnits);
+	ECS_IMPORT(app->world, FlecsDoc);
 	ECS_IMPORT(app->world, EgCan);
 	ECS_IMPORT(app->world, GuiCan);
 	ECS_IMPORT(app->world, EgQuantities);

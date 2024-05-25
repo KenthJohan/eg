@@ -199,6 +199,7 @@ assembly Odrive {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
 		- eg.can.Signal{canid:0, len:8, byte_offset:0, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+		- (flecs.doc.Description, flecs.doc.Link){"https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#set-input-vel"}
 	}
 	motor_torque {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:$ODRIVE_CMD_SET_VEL}
@@ -294,5 +295,8 @@ assembly Odrive {
 	Estop {
 		- eg.odrives.Cmd{nodeid:$NODE_ID, cmd:2}
 		- eg.can.Signal{canid:0, len:0, byte_offset:0, gui_index:$gui_index_start+17, gui_scope_name_parent:$gui_scope_name_parent, rxtx:$RXTX_W}
+		- (flecs.doc.Description, flecs.doc.Brief){"Causes the axis to disarm with ESTOP_REQUESTED"}
+		- (flecs.doc.Description, flecs.doc.Link){"https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#estop"}
+		- (flecs.doc.Description, flecs.doc.Color){"#FF3333"}
 	}
 }
