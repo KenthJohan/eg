@@ -14,6 +14,9 @@
 #include "GuiCan.h"
 #include "flecs_imgui.h"
 
+
+#define COLOR_RGBA(r, g, b, a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
+
 typedef struct {
 	char const *name;
 	EgCanBusDescription *desc;
@@ -23,6 +26,49 @@ typedef struct {
 	EgQuantitiesIsq *q;
 	ecs_entity_t e;
 } gui_can_table_t;
+
+
+
+static void gui_tx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
+{
+	bool modifed = false;
+	if (value) {
+		if (signal->rxtx & 0x02) {
+			if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
+				int v = (int)value->tx.val_u64;
+				modifed = igCombo_flecs(world, signal->component_rep, &v);
+				if (modifed) {
+					value->tx.val_u64 = (int32_t)v;
+				}
+			} else {
+				modifed = igSlider_flecs("##s1", value);
+			}
+		}
+		
+		if (signal->rxtx & 0x04) {
+			modifed = igButton("RTR", (ImVec2){0,0});
+		}
+	} else {
+		modifed = igButton("Send", (ImVec2){0,0});
+	}
+
+	if (modifed) {
+		EgCan_book_prepare_send(book, signal, value);
+	}
+}
+
+static void gui_rx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
+{
+	if (value) {
+		if (signal->rxtx & 0x01) {
+			igText_flecs_enum(world, signal->component_rep, &value->rx, value->kind);
+		}
+	}
+}
+
+
+
+
 
 void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 {
@@ -60,23 +106,6 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				n = ECS_MAX(list_index + 1, n);
 			}
 		}
-		/*
-		igTableSetColumnEnabled(0, false);
-		igTableSetColumnEnabled(1, false);
-		igTableSetColumnEnabled(2, false);
-		igTableSetColumnEnabled(3, false);
-		igTableSetColumnEnabled(4, true);
-		igTableSetColumnEnabled(5, true);
-		igTableSetColumnEnabled(6, false);
-		igTableSetColumnEnabled(7, true);
-		igTableSetColumnEnabled(8, false);
-		igTableSetColumnEnabled(9, false);
-		igTableSetColumnEnabled(10, true);
-		igTableSetColumnEnabled(11, true);
-		igTableSetColumnEnabled(12, false);
-		igTableSetColumnEnabled(13, false);
-		igTableSetColumnEnabled(14, true);
-		*/
 		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
@@ -94,14 +123,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		igTableSetupColumn("plot", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableHeadersRow();
 
-		/*
-		ecs_os_mutex_lock(stuff->lock);
-		memcpy(book->tx, book->rx, sizeof(eg_can_book8_t) * book->cap);
-		ecs_os_mutex_unlock(stuff->lock);
-		*/
-
 		for (int i = 0; i < n; ++i) {
-			// ecs_entity_t e = gui[i].e;
 			char const *name = gui[i].name;
 			EgQuantitiesIsq *quant = gui[i].q;
 			EgCanSignal *signal = gui[i].signal;
@@ -112,44 +134,36 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 
 			if (name == NULL) {
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				igTableNextColumn();
-				igText("");
 				continue;
 			}
 
+
 			eg_can_book_t *book = bus->ptr;
+
+
 			igPushID_Ptr(signal);
+			//igTableSetBgColor(ImGuiTableBgTarget_RowBg0, COLOR_RGBA(0xFF, 0xFF, 0xFF, 0xFF), -1);
+
 			igTableNextColumn();
 			igText("%s", name);
+
 			igTableNextColumn();
 			igText(desc->interface);
+
 			igTableNextColumn();
 			igText("%i", bus->socket);
 
@@ -164,8 +178,10 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 
 			igTableNextColumn();
 			igText("%i", signal->idn);
+
 			igTableNextColumn();
 			igText("%i", signal->byte_offset);
+
 			igTableNextColumn();
 			if (value) {
 				igPushStyleColor_U32_HSV_strhash(flecs_get_type(value->kind));
@@ -186,70 +202,15 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			}
 
 			igTableNextColumn();
-			if (value) {
-				if (signal->rxtx & 0x02) {
-					bool modifed = false;
-					if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
-						int v = (int)value->tx.val_u64;
-						modifed = igCombo_flecs(world, signal->component_rep, &v);
-						if (modifed) {
-							value->tx.val_u64 = (int32_t)v;
-						}
-					} else {
-						modifed = igSlider_flecs("##s1", value);
-					}
-
-					if (modifed) {
-						EgCan_book_prepare_send(book, signal, value);
-					}
-				}
-				
-				if (signal->rxtx & 0x04) {
-					bool m = igButton("RTR", (ImVec2){0,0});
-					if (m) {
-						EgCan_book_prepare_send(book, signal, value);
-					}
-				}
-			} else {
-				bool m = igButton("Send", (ImVec2){0,0});
-				if (m) {
-					EgCan_book_prepare_send(book, signal, value);
-				}
-			}
-
-			/*
-			if (igSliderScalar("##s1", ImGuiDataType_Float, &value->tx.val_f32, &value->min.val_f32, &value->max.val_f32, "%f", 0)) {
-			    EgCan_book_prepare_send(book, signal, value);
-			};
-			*/
+			gui_tx(world, book, signal, value);
 
 			igTableNextColumn();
-			if (value) {
-				if (signal->rxtx & 0x01) {
-					igText_flecs_enum(world, signal->component_rep, &value->rx, value->kind);
-				}
-			}
-			/*
-			if (signal->min != signal->max) {
-			    igBeginDisabled(true);
-			    igPushItemWidth(-1);
-			    igSliderScalar("##s2", ImGuiDataType_S32, &signal->rx, &signal->min, &signal->max, "%d", 0);
-			    igPopItemWidth();
-			    igEndDisabled();
-			} else {
-			    igText("");
-			}
-			*/
+			gui_rx(world, book, signal, value);
 
-			/*
-			igTableNextColumn();
-			igBeginDisabled(true);
-			igText("%i", signal->rx);
-			igEndDisabled();
-			*/
 
 			igTableNextColumn();
 			igText(quant ? quant->symbol : "");
+			
 			igTableNextColumn();
 			igText("");
 
@@ -257,6 +218,8 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igCheckbox_flecs(world, e, ecs_id(GuiCanPlot));
 
 			igPopID();
+
+
 		}
 
 		igEndTable();
