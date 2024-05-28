@@ -33,7 +33,7 @@ typedef struct {
 
 typedef struct {
 	int32_t sock;
-	int32_t cap;
+	uint32_t cap;
 	eg_can_book_packet8_t * tx;
 	eg_can_book_packet8_t * rx;
 } eg_can_book_t;

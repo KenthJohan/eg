@@ -159,7 +159,7 @@ static void *thread_loop(thread_stuff_t *stuff)
 static void eg_can_book_send(eg_can_book_t *book)
 {
 	eg_can_book_packet8_t *tx = book->tx;
-	for (int canid = 0; canid < book->cap; ++canid, ++tx) {
+	for (uint32_t canid = 0; canid < book->cap; ++canid, ++tx) {
 		if (tx->dirty == 0) {
 			continue;
 		}
@@ -197,7 +197,7 @@ static void EgCanBusBook_System_Sender(ecs_iter_t *it)
 
 static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *signal, eg_can_book_t const *book, EgQuantitiesRangedGeneric * val)
 {
-	int canid = signal->canid;
+	uint32_t canid = signal->canid;
 	if (canid >= book->cap) {
 		ecs_warn("canid=%i must be less than cap=%i", canid, book->cap);
 		return;
@@ -352,6 +352,34 @@ static void System_EpollAdditions(ecs_iter_t *it)
 }
 
 #define CAN_RTR_FLAG 0x40000000U /* remote transmission request */
+
+
+static int ecs_primitive_kind_size(ecs_primitive_kind_t kind)
+{
+	switch (kind)
+	{
+    case EcsBool: return sizeof(ecs_bool_t);
+    case EcsChar: return sizeof(ecs_char_t);
+    case EcsByte: return sizeof(ecs_byte_t);
+    case EcsU8: return sizeof(ecs_u8_t);
+    case EcsU16: return sizeof(ecs_u16_t);
+    case EcsU32: return sizeof(ecs_u32_t);
+    case EcsU64: return sizeof(ecs_u64_t);
+    case EcsI8: return sizeof(ecs_i8_t);
+    case EcsI16: return sizeof(ecs_i16_t);
+    case EcsI32: return sizeof(ecs_i32_t);
+    case EcsI64: return sizeof(ecs_i64_t);
+    case EcsF32: return sizeof(ecs_f32_t);
+    case EcsF64: return sizeof(ecs_f64_t);
+    case EcsUPtr: return sizeof(ecs_uptr_t);
+    case EcsIPtr: return sizeof(ecs_iptr_t);
+    case EcsString: return sizeof(ecs_string_t);
+    case EcsEntity: return sizeof(ecs_entity_t);
+    case EcsId: return sizeof(ecs_id_t);
+	}
+	return 0;
+}
+
 void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
 {
 	// printf("Send can packet canid=%i, value=%i\n", (int)signal->canid, signal->value);
@@ -365,7 +393,7 @@ void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgQuantit
 	}
 	eg_can_book_packet8_t *tx = book->tx + id;
 	if (value) {
-		memcpy(tx->payload + o, &value->tx, signal->len);
+		memcpy(tx->payload + o, &value->tx, ecs_primitive_kind_size(value->kind));
 	}
 	tx->can_id = signal->canid;
 	tx->dirty = 1;
