@@ -402,9 +402,9 @@ static void EgCanRxThread_on_add(ecs_iter_t *it)
 		impl->lock = ecs_os_mutex_new();
 		impl->fd_epoll = epoll_create(1);
 		if (impl->fd_epoll < 0) {
-			perror("epoll_create()");
+			ecs_err(0, "epoll_create");
 		} else {
-			printf("Starting epoll thread!\n");
+			ecs_log(0, "Starting epoll thread!\n");
 			ecs_os_thread_new((ecs_os_thread_callback_t)thread_loop, impl);
 		}
 		t[i].impl = impl;

@@ -23,6 +23,7 @@
 #include "gui_interfaces.h"
 #include "imgui_font.h"
 #include "gui_plot.h"
+#include "dirlists.h"
 
 typedef struct {
 	ecs_world_t *world;
@@ -173,7 +174,9 @@ sapp_desc sokol_main(int argc, char *argv[])
 {
 	(void)argc;
 	(void)argv;
-	app_t *app = malloc(sizeof(app_t));
+
+	ecs_os_set_api_defaults();
+	app_t *app = ecs_os_calloc_t(app_t);
 	app->world = ecs_init();
 	ECS_IMPORT(app->world, FlecsUnits);
 	ECS_IMPORT(app->world, FlecsDoc);
@@ -188,6 +191,8 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ECS_IMPORT(app->world, EgOdrives);
 
 	ecs_log_set_level(0);
+	ecs_plecs_from_dir(app->world, "config");
+	/*
 	ecs_plecs_from_file(app->world, "config/assembly_rc.flecs");
 	ecs_plecs_from_file(app->world, "config/assembly_vision.flecs");
 	//ecs_plecs_from_file(app->world, "config/assembly_bms.flecs");
@@ -195,6 +200,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ecs_plecs_from_file(app->world, "config/assembly_odrives.flecs");
 	ecs_plecs_from_file(app->world, "config/signals.flecs");
 	ecs_plecs_from_file(app->world, "config/gui.flecs");
+	*/
 	ecs_log_set_level(-1);
 
 	app->query_signals = gui_signals_query(app->world);
@@ -219,7 +225,7 @@ sapp_desc sokol_main(int argc, char *argv[])
     desc.high_dpi = true;
     //desc.html5_ask_leave_site = html5_ask_leave_site;
     desc.ios_keyboard_resizes_canvas = false;
-    desc.window_title = "CAN GUI Station";
+    desc.window_title = "CAN GUI Station 2024";
     desc.icon.sokol_default = true;
     desc.enable_clipboard = true;
     desc.logger.func = slog_func;
