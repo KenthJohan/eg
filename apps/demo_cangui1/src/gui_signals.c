@@ -78,7 +78,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 	if (igBeginTable("Signals table", 15, flags2, (ImVec2){0, 0}, 0)) {
-		gui_can_table_t gui[128] = {0};
+		gui_can_table_t gui[256] = {0};
 		int n = 0;
 		ecs_iter_t it = ecs_query_iter(world, q);
 		while (ecs_query_next(&it)) {

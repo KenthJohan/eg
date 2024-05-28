@@ -32,6 +32,7 @@ typedef struct {
 	ecs_query_t *query_ifaces;
 	ecs_query_t *query_plots;
 	ImFont *font;
+	double gui_time_seconds;
 } app_t;
 
 typedef struct {
@@ -45,10 +46,10 @@ static state_t state;
 void init(void *user)
 {
 	// setup sokol-gfx, sokol-time and sokol-imgui
-    sg_desc desc = {0};
-    desc.environment = sglue_environment();
-    desc.logger.func = slog_func;
-    sg_setup(&desc);
+	sg_desc desc = {0};
+	desc.environment = sglue_environment();
+	desc.logger.func = slog_func;
+	sg_setup(&desc);
 
 	// use sokol-imgui with all default-options (we're not doing
 	// multi-sampled rendering or using non-default pixel formats)
@@ -75,9 +76,9 @@ void init(void *user)
 		fontCfg.RasterizerMultiply = 1.5f;
 		*/
 		ImFontConfig config = *ImFontConfig_ImFontConfig();
-		//ImFontAtlas_AddFontFromFileTTF(io->Fonts, "/usr/share/fonts/truetype/ubuntu/UbuntuMono[wght].ttf", 20, &config, NULL);
-	    ImFontAtlas_AddFontFromFileTTF(io->Fonts, "font/roboto.ttf", 20, &config, NULL);
-		//ImFontAtlas_AddFontFromMemoryTTF(io->Fonts, dump_font, sizeof(dump_font), 16.0f, &config, NULL);
+		// ImFontAtlas_AddFontFromFileTTF(io->Fonts, "/usr/share/fonts/truetype/ubuntu/UbuntuMono[wght].ttf", 20, &config, NULL);
+		ImFontAtlas_AddFontFromFileTTF(io->Fonts, "font/roboto.ttf", 20, &config, NULL);
+		// ImFontAtlas_AddFontFromMemoryTTF(io->Fonts, dump_font, sizeof(dump_font), 16.0f, &config, NULL);
 
 		// create font texture and linear-filtering sampler for the custom font
 		// NOTE: linear filtering looks better on low-dpi displays, while
@@ -108,19 +109,8 @@ void frame(app_t *app)
 	.delta_time = sapp_frame_duration(),
 	.dpi_scale = sapp_dpi_scale()});
 
-	// 1. Show a simple window
-	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-	/*
-	static float f = 0.0f;
-	igText("Hello, world!");
-	igSliderFloat("float", &f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_None);
-	igColorEdit3("clear color", (float*)&state.pass_action.colors[0].clear_value, 0);
-	if (igButton("Test Window", (ImVec2) { 0.0f, 0.0f})) state.show_test_window ^= 1;
-	if (igButton("Another Window", (ImVec2) { 0.0f, 0.0f })) state.show_another_window ^= 1;
-	igText("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / igGetIO()->Framerate, igGetIO()->Framerate);
-	*/
-
-	// 2. Show another simple window, this time using an explicit Begin/End pair
+	ecs_time_t gui_time_sec;
+	ecs_time_measure(&gui_time_sec);
 	if (state.show_another_window || 1) {
 		ImGuiViewport *viewport = igGetMainViewport();
 		igSetNextWindowPos(viewport->Pos, 0, (ImVec2){0, 0});
@@ -128,27 +118,36 @@ void frame(app_t *app)
 		// igSetNextWindowViewport(viewport->ID);
 		ImGuiWindowFlags flags1 = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 		igBegin("Signal window", &state.show_another_window, flags1);
+		{
+		char buf[128];
+		ecs_os_snprintf(buf, 128, "GUI-delay %f µs", app->gui_time_seconds * 1000.0f * 1000.0f);
+		igText(buf);
+		}
 		igBeginTabBar("tabs", 0);
 		// igText("Hello");
 		if (igBeginTabItem("Ifaces", NULL, 0)) {
 			gui_interfaces_progress(app->world, app->query_ifaces);
 			igEndTabItem();
-		};
+		}
 		if (igBeginTabItem("Signals", NULL, 0)) {
 			gui_signals_progress(app->world, app->query_signals);
 			igEndTabItem();
-		};
+		}
 		if (igBeginTabItem("CustomGUI", NULL, 0)) {
 			egimgui_progress1(app->world, app->query_gui);
 			igEndTabItem();
-		};
+		}
 		if (igBeginTabItem("Plots", NULL, 0)) {
 			gui_plot_progress(app->world, app->query_plots);
 			igEndTabItem();
-		};
+		}
+		if (igBeginTabItem("Hej!", NULL, 0)) {
+			igEndTabItem();
+		}
 		igEndTabBar();
 		igEnd();
 	}
+	app->gui_time_seconds = (app->gui_time_seconds * 0.99) + (ecs_time_measure(&gui_time_sec) * 0.01);
 
 	ecs_progress(app->world, 0.0f);
 
@@ -212,22 +211,21 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
 	printf("Remote: %s\n", "https://www.flecs.dev/explorer/?remote=true");
 
-
-    sapp_desc desc = { };
-    desc.init_userdata_cb = init,
-    desc.frame_userdata_cb = (void (*)(void *))frame,
-    desc.cleanup_userdata_cb = cleanup,
-    desc.event_userdata_cb = input,
+	sapp_desc desc = {};
+	desc.init_userdata_cb = init,
+	desc.frame_userdata_cb = (void (*)(void *))frame,
+	desc.cleanup_userdata_cb = cleanup,
+	desc.event_userdata_cb = input,
 	desc.user_data = app,
-    desc.width = 1400;
-    desc.height = 800;
-    desc.fullscreen = false;
-    desc.high_dpi = true;
-    //desc.html5_ask_leave_site = html5_ask_leave_site;
-    desc.ios_keyboard_resizes_canvas = false;
-    desc.window_title = "CAN GUI Station 2024";
-    desc.icon.sokol_default = true;
-    desc.enable_clipboard = true;
-    desc.logger.func = slog_func;
-    return desc;
+	desc.width = 1400;
+	desc.height = 800;
+	desc.fullscreen = false;
+	desc.high_dpi = true;
+	// desc.html5_ask_leave_site = html5_ask_leave_site;
+	desc.ios_keyboard_resizes_canvas = false;
+	desc.window_title = "CAN GUI Station 2024";
+	desc.icon.sokol_default = true;
+	desc.enable_clipboard = true;
+	desc.logger.func = slog_func;
+	return desc;
 }
