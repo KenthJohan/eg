@@ -10,27 +10,27 @@ assembly Vision {
 
 	position_x {
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:$CANID+0, len:8, byte_offset:0, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:$CANID+0, len:8, byte_offset:0, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 	}
 	position_y {
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:$CANID+0, len:8, byte_offset:4, gui_index:$gui_index_start+2, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:$CANID+0, len:8, byte_offset:4, gui_index:$gui_index_start+2, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 	}
 	error_x {
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:$CANID+1, len:8, byte_offset:0, gui_index:$gui_index_start+3, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:$CANID+1, len:8, byte_offset:0, gui_index:$gui_index_start+3, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 	}
 	error_y {
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:$CANID+1, len:8, byte_offset:4, gui_index:$gui_index_start+4, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:$CANID+1, len:8, byte_offset:4, gui_index:$gui_index_start+4, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 	}
 	target_x {
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:$CANID+2, len:8, byte_offset:0, gui_index:$gui_index_start+5, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:$CANID+2, len:8, byte_offset:0, gui_index:$gui_index_start+5, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 	}
 	target_y {
 		- eg.quantities.RangedGeneric{kind:F32, min_f32:-1, max_f32:1}
-		- eg.can.Signal{canid:$CANID+2, len:8, byte_offset:4, gui_index:$gui_index_start+6, gui_scope_name_parent:$gui_scope_name_parent}
+		- eg.can.Signal{canid:$CANID+2, len:8, byte_offset:4, gui_index:$gui_index_start+6, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 	}
 
 }

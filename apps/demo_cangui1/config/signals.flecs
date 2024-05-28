@@ -25,9 +25,16 @@ rxt {
 			- rcs.Rc{CANID:0, gui_scope_name_parent: rxt.bus1}
 		}
 
+
+
 		movement {
 			- movements.Movement{CANID:10, gui_index_start: 10, gui_scope_name_parent: rxt.bus1}
 		}
+
+		vision {
+			- visions.Vision{CANID:2, gui_index_start: 14, gui_scope_name_parent: rxt.bus1}
+		}
+
 	}
 }
 
