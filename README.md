@@ -81,3 +81,15 @@ cd build
 make
 sudo make install
 ```
+
+
+
+## clang format
+
+```c
+int formatted_code;
+// clang-format off
+    void    unformatted_code  ;
+// clang-format on
+void formatted_code_again;
+```
