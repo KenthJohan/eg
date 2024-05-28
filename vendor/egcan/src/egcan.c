@@ -213,6 +213,7 @@ static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *
 	void * out = &val->rx;
 	switch (val->kind)
 	{
+	case EcsI8:
 	case EcsU8:
 		memcpy(out, rx->payload + o, 1);
 		break;

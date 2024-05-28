@@ -136,6 +136,15 @@ bool igSlider_flecs(const char *label, EgQuantitiesRangedGeneric *value)
 			igPopItemWidth();
 		}
 		break;
+	case EcsI8:
+		igPushItemWidth(-1);
+		int32_t min = value->min_i64;
+		int32_t max = value->max_i64;
+		int32_t v = value->tx.val_i8;
+		modified = igSliderScalar(label, ImGuiDataType_S32, &v, &min, &max, "%i", 0);
+		value->tx.val_i8 = v;
+		igPopItemWidth();
+		break;
 	case EcsU8:
 		igPushItemWidth(-1);
 		modified = igSliderScalar(label, ImGuiDataType_U8, &value->tx.val_u8, &value->min.val_u8, &value->max.val_u8, "%u", 0);
@@ -211,6 +220,9 @@ void igText_flecs_enum(ecs_world_t * world, ecs_entity_t type, eg_generic_number
 
 
 	switch (kind) {
+	case EcsI8:
+		igText("%i", value->val_i8);
+		break;
 	case EcsU8:
 		igText("%i", value->val_u8);
 		break;

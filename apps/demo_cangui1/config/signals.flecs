@@ -7,7 +7,7 @@ using flecs.meta
 rxt {
 	- eg.can.RxThread{dummy:0}
 	bus1 {
-		- eg.can.BusDescription{interface:"can0"}
+		- eg.can.BusDescription{interface:"vcan0"}
 		o1 {
 			- odrives.Odrive{NODE_ID:1, gui_index_start: 20, gui_scope_name_parent: rxt.bus1}
 		}
@@ -25,8 +25,8 @@ rxt {
 			- rcs.Rc{CANID:0, gui_scope_name_parent: rxt.bus1}
 		}
 
-		vision {
-			- visions.Vision{CANID:10, gui_index_start: 10, gui_scope_name_parent: rxt.bus1}
+		movement {
+			- movements.Movement{CANID:10, gui_index_start: 10, gui_scope_name_parent: rxt.bus1}
 		}
 	}
 }

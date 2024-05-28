@@ -1,0 +1,33 @@
+module movements
+using flecs.meta
+
+
+
+assembly Movement {
+	prop CANID: u32 = 20
+	prop gui_index_start: u32 = 20
+	prop gui_scope_name_parent: entity = 0
+
+	const I8_MIN = -128
+	const I8_MAX = 127
+
+	const U8_MIN = 0
+	const U8_MAX = 255
+
+
+	const U32_MIN = 0
+	const U32_MAX = 4294967295
+
+	const u8signal : eg.quantities.RangedGeneric = {kind:I8, min_i64:$I8_MIN, max_i64:$I8_MAX}
+
+	with $u8signal {
+		forward {
+			- eg.can.Signal{canid:$CANID+0, byte_offset:0, len:2, gui_index:$gui_index_start+0, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+		}
+		turn {
+			- eg.can.Signal{canid:$CANID+0, byte_offset:1, len:2, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+		}
+	}
+
+
+}
