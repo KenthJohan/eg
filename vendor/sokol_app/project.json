@@ -12,8 +12,7 @@
 		"export-symbols": true,
 		"static": true,
 		"defines": [
-			"SOKOL_GLCORE33",
-			"HEJ_SOKOL_NO_ENTRY"
+			"SOKOL_GLCORE"
 		],
 		"cflags": [
 			"-Werror",
@@ -21,7 +20,8 @@
 			"-Wpedantic",
 			"-Wextra",
 			"-Wno-error=pedantic",
-			"-Wno-error=unused-variable"
+			"-Wno-error=unused-variable",
+			"-fmax-errors=2"
 		],
 		"lib": [
 			"m",

@@ -1,5 +1,5 @@
 {
-	"id": "demo_cangui1",
+	"id": "canbahn",
 	"type": "application",
 	"value": {
 		"language": "c",
@@ -58,7 +58,8 @@
 			"-Wno-pedantic",
 			"-Wextra",
 			"-Wno-error=unused-variable",
-			"-Wno-error=unused-function"
+			"-Wno-error=unused-function",
+			"-fmax-errors=2"
 		]
 	}
 }

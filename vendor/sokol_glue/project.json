@@ -20,7 +20,8 @@
 			"-Wpedantic",
 			"-Wextra",
 			"-Wno-error=pedantic",
-			"-Wno-error=unused-variable"
+			"-Wno-error=unused-variable",
+			"-fmax-errors=2"
 		],
 		"lib": [
 			"m",
