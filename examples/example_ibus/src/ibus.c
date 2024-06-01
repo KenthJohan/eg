@@ -106,12 +106,14 @@ int ibus_open(char const * path)
 	rc = cfsetispeed(&tty, B115200);
 	if (rc != 0) {
 		printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+		fflush(stdout);
 		return rc;
 	}
 
 	rc = cfsetospeed(&tty, B115200);
 	if (rc != 0) {
 		printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+		fflush(stdout);
 		return rc;
 	}
 
@@ -134,10 +136,10 @@ int ibus_close(int fd)
 int ibus_parse(char const buf[32], uint16_t ch[10])
 {
 	if (buf[IBUS_OFFSET_LEN] != 32) {
-		return -1;
+		return IBUS_ERROR_OFFSET;
 	}
 	if (buf[IBUS_OFFSET_CMD] != IBUS_PROTOCOL_COMMAND40) {
-		return -1;
+		return IBUS_ERROR_OFFSET;
 	}
 	uint16_t sum = 0xFFFF;
 	for(int i = 0; i < 30; ++i) {
@@ -204,11 +206,13 @@ int ibus_read(int fd, uint16_t ch[IBUS_CHANNEL_COUNT])
 	int n = read(fd, buf, IBUS_PROTOCOL_LENGTH);
 	// n is the number of bytes read. n may be 0 if no bytes were received, and can also be -1 to signal an error.
 	if (n < 0) {
-		printf("Error reading: %s", strerror(errno));
+		printf("Error reading (%i): %s", n, strerror(errno));
+		fflush(stdout);
 		return IBUS_ERROR_READ1;
 	}
 	if (n != IBUS_PROTOCOL_LENGTH) {
-		printf("Error reading not 32 bytes\n");
+		printf("Error reading not 32 bytes (%i)\n", n);
+		fflush(stdout);
 		return IBUS_ERROR_READ2;
 	}
 
@@ -218,12 +222,12 @@ int ibus_read(int fd, uint16_t ch[IBUS_CHANNEL_COUNT])
 		rc = ibus_read_sync(fd, buf);
 		if (rc == 0) {
 			printf("synced\n");
+			fflush(stdout);
 			assert(ibus_read_sync(fd, buf) != IBUS_ERROR_OFFSET);
 			goto synced;
 		}
-	} else if (rc == IBUS_ERROR_CHKSUM) {
-		printf("IBUS_ERROR_CHKSUM \n");
-		return IBUS_ERROR_CHKSUM;
+	} else if (rc != 0) {
+		return rc;
 	}
 
 	// Test if sync is working by intruducing offset reading:
