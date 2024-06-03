@@ -68,7 +68,7 @@ static void gui_rx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal
 
 
 
-
+#define MAX_ROWS 256
 
 void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 {
@@ -78,7 +78,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 	if (igBeginTable("Signals table", 15, flags2, (ImVec2){0, 0}, 0)) {
-		gui_can_table_t gui[256] = {0};
+		gui_can_table_t gui[MAX_ROWS] = {0};
 		int n = 0;
 		ecs_iter_t it = ecs_query_iter(world, q);
 		while (ecs_query_next(&it)) {
@@ -91,7 +91,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			for (int i = 0; i < it.count; ++i, ++signal, quant += (quant!=NULL), value += (value!=NULL)) {
 				ecs_entity_t e = it.entities[i];
 				int list_index = signal->gui_index;
-				if (list_index >= 128) {
+				if (list_index >= MAX_ROWS) {
 					continue;
 				}
 				char const *name = ecs_get_path_w_sep(world, signal->gui_scope_name_parent, e, ".", NULL);
