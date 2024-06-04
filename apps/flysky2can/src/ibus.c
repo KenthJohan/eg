@@ -63,7 +63,7 @@ int ibus_open(char const * path)
 	// pi4: /dev/serial0
 	// pi5: /dev/ttyAMA0
 	//int serial_port = open("/dev/ttyAMA0", O_RDONLY | O_NOCTTY | O_NONBLOCK);
-	int fd = open(path, O_RDONLY);
+	int fd = open(path, O_RDONLY | O_NONBLOCK);
 	if (fd < 0) {
 		printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
 		return fd;
