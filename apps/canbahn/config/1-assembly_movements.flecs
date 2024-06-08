@@ -18,14 +18,14 @@ assembly Movement {
 	const U32_MIN = 0
 	const U32_MAX = 4294967295
 
-	const u8signal : eg.quantities.RangedGeneric = {kind:I8, min_i64:$I8_MIN, max_i64:$I8_MAX}
+	const f32signal : eg.quantities.RangedGeneric = {kind:F32, min_f32:-10, max_f32:10}
 
-	with $u8signal {
+	with $f32signal {
 		forward {
-			- eg.can.Signal{canid:$CANID+0, byte_offset:0, len:2, gui_index:$gui_index_start+0, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+0, byte_offset:0, len:8, gui_index:$gui_index_start+0, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		turn {
-			- eg.can.Signal{canid:$CANID+0, byte_offset:1, len:2, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+0, byte_offset:4, len:8, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 	}
 

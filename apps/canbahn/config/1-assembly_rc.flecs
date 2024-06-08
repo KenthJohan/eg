@@ -22,38 +22,38 @@ assembly Rc {
 	const U32_MIN = 0
 	const U32_MAX = 4294967295
 
-	const u16signal : eg.quantities.RangedGeneric = {kind:U16, min_u64:$U16_MIN, max_u64:$U16_MAX}
+	const u16signal : eg.quantities.RangedGeneric = {kind:U16, min_u64:1000, max_u64:2000}
 
 	with $u16signal {
 		ch0 {
-			- eg.can.Signal{canid:$CANID+0, byte_offset:0, gui_index:$gui_index_start+0, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+0, len:8, byte_offset:0, gui_index:$gui_index_start+0, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		ch1 {
-			- eg.can.Signal{canid:$CANID+0, byte_offset:2, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+0, len:8, byte_offset:2, gui_index:$gui_index_start+1, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		ch2 {
-			- eg.can.Signal{canid:$CANID+0, byte_offset:4, gui_index:$gui_index_start+2, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+0, len:8, byte_offset:4, gui_index:$gui_index_start+2, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		ch3 {
-			- eg.can.Signal{canid:$CANID+0, byte_offset:6, gui_index:$gui_index_start+3, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+0, len:8, byte_offset:6, gui_index:$gui_index_start+3, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		ch4 {
-			- eg.can.Signal{canid:$CANID+1, byte_offset:0 gui_index:$gui_index_start+4, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+1, len:8, byte_offset:0 gui_index:$gui_index_start+4, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		ch5 {
-			- eg.can.Signal{canid:$CANID+1, byte_offset:2 gui_index:$gui_index_start+5, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+1, len:8, byte_offset:2 gui_index:$gui_index_start+5, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		ch6 {
-			- eg.can.Signal{canid:$CANID+1, byte_offset:4 gui_index:$gui_index_start+6, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+1, len:8, byte_offset:4 gui_index:$gui_index_start+6, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		ch7 {
-			- eg.can.Signal{canid:$CANID+1, byte_offset:6 gui_index:$gui_index_start+7, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+1, len:8, byte_offset:6 gui_index:$gui_index_start+7, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		ch8 {
-			- eg.can.Signal{canid:$CANID+2, byte_offset:0 gui_index:$gui_index_start+8, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+2, len:4, byte_offset:0 gui_index:$gui_index_start+8, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 		ch9 {
-			- eg.can.Signal{canid:$CANID+2, byte_offset:2 gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
+			- eg.can.Signal{canid:$CANID+2, len:4, byte_offset:2 gui_index:$gui_index_start+9, gui_scope_name_parent:$gui_scope_name_parent, rxtx:3}
 		}
 	}
 
