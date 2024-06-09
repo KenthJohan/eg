@@ -19,6 +19,7 @@
 
 /* Headers of public dependencies */
 #include <flecs.h>
+#include <flecs_extra.h>
 #include <egquantities.h>
 
 #endif
