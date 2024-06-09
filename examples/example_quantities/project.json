@@ -1,0 +1,29 @@
+{
+	"id": "example_quantities",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"flecs",
+			"flecs_extra",
+			"egquantities"
+		]
+	},
+	"lang.c": {
+		"c-standard": "gnu99",
+		"defines": [],
+		"lib": [
+			"flecs",
+			"flecs_extra",
+			"egquantities"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}

@@ -14,28 +14,12 @@
  * dependencies will automatically show up in this file. Include bake_config.h
  * in your main project file. Do not edit! */
 
-#ifndef CANBAHN_BAKE_CONFIG_H
-#define CANBAHN_BAKE_CONFIG_H
+#ifndef EXAMPLE_QUANTITIES_BAKE_CONFIG_H
+#define EXAMPLE_QUANTITIES_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
 #include <flecs.h>
-#include <flecs_extra.h>
-#include <egcan.h>
-#include <egimgui.h>
 #include <egquantities.h>
-#include <egspatials.h>
-#include <egshapes.h>
-#include <egcolors.h>
-#include <egifaces.h>
-#include <egodrives.h>
-#include <egmath.h>
-#include <sokol_app.h>
-#include <sokol_gl.h>
-#include <sokol_log.h>
-#include <sokol_gfx.h>
-#include <sokol_glue.h>
-#include <sokol_imgui.h>
-#include <cimgui.h>
 
 #endif
 

@@ -5,7 +5,7 @@
 #define _DEFAULT_SOURCE
 #endif
 
-#include "dirlists.h"
+#include "flecs_extra.h"
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +48,7 @@ int ecs_plecs_from_dir(ecs_world_t *world, char const *dirpath)
 			ecs_log(0, "ecs_plecs_from_file: %s", buf);
 			rc = ecs_plecs_from_file(world, buf);
 		}
-		free(namelist[n]);
+		free(namelist[i]);
 	}
 	ecs_log_pop();
 	free(namelist);

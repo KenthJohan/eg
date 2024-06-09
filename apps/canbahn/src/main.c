@@ -1,5 +1,7 @@
 #include <stdlib.h>
+
 #include <flecs.h>
+#include <flecs_extra.h>
 
 #include <sokol_app.h>
 #include <sokol_gfx.h>
@@ -23,7 +25,6 @@
 #include "gui_interfaces.h"
 #include "imgui_font.h"
 #include "gui_plot.h"
-#include "dirlists.h"
 
 typedef struct {
 	ecs_world_t *world;

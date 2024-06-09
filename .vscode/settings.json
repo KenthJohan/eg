@@ -132,7 +132,8 @@
 		"egodrives.h": "c",
 		"float.h": "c",
 		"flecs_imgui.h": "c",
-		"dirlists.h": "c"
+		"dirlists.h": "c",
+		"flecs_extra.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

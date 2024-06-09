@@ -14,28 +14,26 @@
  * dependencies will automatically show up in this file. Include bake_config.h
  * in your main project file. Do not edit! */
 
-#ifndef CANBAHN_BAKE_CONFIG_H
-#define CANBAHN_BAKE_CONFIG_H
+#ifndef FLECS_EXTRA_BAKE_CONFIG_H
+#define FLECS_EXTRA_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
 #include <flecs.h>
-#include <flecs_extra.h>
-#include <egcan.h>
-#include <egimgui.h>
-#include <egquantities.h>
-#include <egspatials.h>
-#include <egshapes.h>
-#include <egcolors.h>
-#include <egifaces.h>
-#include <egodrives.h>
-#include <egmath.h>
-#include <sokol_app.h>
-#include <sokol_gl.h>
-#include <sokol_log.h>
-#include <sokol_gfx.h>
-#include <sokol_glue.h>
-#include <sokol_imgui.h>
-#include <cimgui.h>
+
+/* Convenience macro for exporting symbols */
+#ifndef flecs_extra_STATIC
+#if defined(flecs_extra_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+  #define FLECS_EXTRA_API __declspec(dllexport)
+#elif defined(flecs_extra_EXPORTS)
+  #define FLECS_EXTRA_API __attribute__((__visibility__("default")))
+#elif defined(_MSC_VER)
+  #define FLECS_EXTRA_API __declspec(dllimport)
+#else
+  #define FLECS_EXTRA_API
+#endif
+#else
+  #define FLECS_EXTRA_API
+#endif
 
 #endif
 

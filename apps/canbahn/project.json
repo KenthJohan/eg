@@ -6,6 +6,7 @@
 		"public": false,
 		"use": [
 			"flecs",
+			"flecs_extra",
 			"egcan",
 			"egimgui",
 			"egquantities",
@@ -29,6 +30,7 @@
 		"defines": [],
 		"lib": [
 			"flecs",
+			"flecs_extra",
 			"egcan",
 			"egimgui",
 			"egquantities",
