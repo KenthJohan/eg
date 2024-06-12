@@ -34,11 +34,14 @@ static void gui_tx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal
 	bool modifed = false;
 	if (value) {
 		if (signal->rxtx & 0x02) {
-			if (signal->component_rep && ecs_has(world, signal->component_rep, EcsEnum)) {
-				int v = (int)value->tx.val_u64;
-				modifed = igCombo_flecs(world, signal->component_rep, &v);
-				if (modifed) {
-					value->tx.val_u64 = (int32_t)v;
+			if (signal->component_rep) {
+				EcsEnum const *enum_type = ecs_get(world, signal->component_rep, EcsEnum);
+				if (enum_type) {
+					int v = (int)value->tx.val_u64;
+					modifed = igCombo_flecs(world, enum_type, &v);
+					if (modifed) {
+						value->tx.val_u64 = (int32_t)v;
+					}
 				}
 			} else {
 				modifed = igSlider_flecs("##s1", value);

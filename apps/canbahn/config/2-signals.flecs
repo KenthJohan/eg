@@ -1,6 +1,10 @@
 module app.signals
 using flecs.meta
 
+Enum NavMode {
+	Moving :- (Constant, i32){1}
+	Docking :- (Constant, i32){2}
+}
 
 
 
@@ -8,33 +12,10 @@ rxt {
 	- eg.can.RxThread{dummy:0}
 	bus1 {
 		- eg.can.BusDescription{interface:"can0"}
-		o1 {
-			- odrives.Odrive{NODE_ID:1, gui_index_start: 20, gui_scope_name_parent: rxt.bus1}
+		navmode {
+			- eg.quantities.RangedGeneric{kind:U32, min_u64:0, max_u64:10}
+			- eg.can.Signal{canid:20, len:8, byte_offset:4, gui_index:4, gui_scope_name_parent:rxt.bus1, rxtx:3, component_rep: NavMode}
 		}
-		o2 {
-			- odrives.Odrive{NODE_ID:2, gui_index_start: 40, gui_scope_name_parent: rxt.bus1}
-		}
-		o3 {
-			- odrives.Odrive{NODE_ID:3, gui_index_start: 60, gui_scope_name_parent: rxt.bus1}
-		}
-		o4 {
-			- odrives.Odrive{NODE_ID:4, gui_index_start: 80, gui_scope_name_parent: rxt.bus1}
-		}
-
-		rc {
-			- rcs.Rc{CANID:200, gui_index_start: 200, gui_scope_name_parent: rxt.bus1}
-		}
-
-
-
-		movement {
-			- movements.Movement{CANID:10, gui_index_start: 10, gui_scope_name_parent: rxt.bus1}
-		}
-
-		vision {
-			- visions.Vision{CANID:2, gui_index_start: 14, gui_scope_name_parent: rxt.bus1}
-		}
-
 	}
 }
 

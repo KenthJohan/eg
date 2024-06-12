@@ -5,7 +5,7 @@
 #include <egquantities.h>
 
 
-bool igCombo_flecs(ecs_world_t *world, ecs_entity_t parent, int *parent_val);
+bool igCombo_flecs(ecs_world_t *world, EcsEnum const *enum_type, int *parent_val);
 
 
 char const *flecs_get_type(ecs_primitive_kind_t kind);

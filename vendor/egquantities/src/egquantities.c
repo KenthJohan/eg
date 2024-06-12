@@ -42,6 +42,7 @@ void EgQuantitiesImport(ecs_world_t *world)
 	{.entity = ecs_id(EgQuantitiesRangedGeneric),
 	.members = {
 	{.name = "kind", .type = ecs_lookup(world, "flecs.meta.PrimitiveKind")},
+	//{.name = "kind", .type = ecs_id(EcsPrimitive)},
 	{.name = "min", .type = ecs_id(ecs_u64_t)},
 	{.name = "max", .type = ecs_id(ecs_u64_t)},
 	{.name = "rx", .type = ecs_id(ecs_u64_t)},
@@ -57,6 +58,6 @@ void EgQuantitiesImport(ecs_world_t *world)
 	{.name = "min_u64", .type = ecs_id(ecs_u64_t)},
 	{.name = "max_u64", .type = ecs_id(ecs_u64_t)}}});
 	
-
+	
 	ecs_set(world, EgQuantitiesVoltage, EgQuantitiesIsq, {.symbol = "V", .length = 2, .mass = 1, .time = -3, .current = -1});
 }

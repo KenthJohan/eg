@@ -7,13 +7,12 @@
 
 #define COLOR_RGBA(r, g, b, a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
 
-bool igCombo_flecs(ecs_world_t *world, ecs_entity_t parent, int *parent_val)
+bool igCombo_flecs(ecs_world_t *world, EcsEnum const *enum_type, int *parent_val)
 {
 	bool selected = false;
-	const EcsEnum *enum_type = ecs_get(world, parent, EcsEnum);
-	ecs_enum_constant_t *c0 = ecs_map_get_deref(&enum_type->constants, ecs_enum_constant_t, (ecs_map_key_t)*parent_val);
+	ecs_enum_constant_t *c0 = ecs_map_get_deref(&enum_type->constants, ecs_enum_constant_t, (ecs_map_key_t)(*parent_val));
 	igPushItemWidth(-1);
-	igPushID_Ptr((void *)(intptr_t)parent);
+	igPushID_Ptr((void *)(intptr_t)enum_type);
 	char buf[128] = {0};
 	if (c0) {
 		snprintf(buf, sizeof(buf), "%s (%i)", c0->name, c0->value);
@@ -22,11 +21,11 @@ bool igCombo_flecs(ecs_world_t *world, ecs_entity_t parent, int *parent_val)
 		ecs_map_iter_t it = ecs_map_iter(&enum_type->constants);
 		while (ecs_map_next(&it)) {
 			ecs_enum_constant_t *c = ecs_map_ptr(&it);
-			selected = c->value == c0->value;
+			selected = c0 && (c->value == c0->value);
 			snprintf(buf, sizeof(buf), "%s (%i)", c->name, c->value);
 			selected = igSelectable_Bool(buf, selected, 0, (ImVec2){0, 0});
 			if(selected) {
-				*parent_val = c->value;
+				(*parent_val) = c->value;
 				break;
 			}
 		}
