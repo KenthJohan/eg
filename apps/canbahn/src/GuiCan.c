@@ -7,7 +7,7 @@
 #include <cimgui.h>
 #include <assert.h>
 
-ECS_COMPONENT_DECLARE(GuiCanSlider);
+ECS_COMPONENT_DECLARE(GuiCanTableRow);
 ECS_COMPONENT_DECLARE(GuiCanPlot);
 
 ECS_CTOR(GuiCanPlot, ptr, {
@@ -52,14 +52,17 @@ void GuiCanImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, GuiCan);
 	ECS_IMPORT(world, EgCan);
-	ECS_COMPONENT_DEFINE(world, GuiCanSlider);
+	ecs_set_name_prefix(world, "GuiCan");
+
+	ECS_COMPONENT_DEFINE(world, GuiCanTableRow);
 	ECS_COMPONENT_DEFINE(world, GuiCanPlot);
 
 	ecs_struct(world,
-	{.entity = ecs_id(GuiCanSlider),
+	{.entity = ecs_id(GuiCanTableRow),
 	.members = {
-	{.name = "value", .type = ecs_id(ecs_i32_t)},
-	{.name = "list_index", .type = ecs_id(ecs_i32_t)},
+	{.name = "index", .type = ecs_id(ecs_i32_t)},
+	{.name = "parent", .type = ecs_id(ecs_entity_t)},
+	{.name = "representation", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_struct(world,

@@ -58,22 +58,9 @@ https://canlogger.csselectronics.com/dbc-editor/v129/dbc-editor.html
 typedef struct {
 	uint32_t canid;
 	uint32_t idn;
-	int32_t len;
-	int32_t byte_offset;
-	int32_t gui_index;
-	int32_t rxtx;
-	ecs_entity_t gui_scope_name_parent;
-	ecs_entity_t component_rep;
-	/*
-	uint8_t type;
-	uint8_t order;
-	uint8_t mode;
-	uint8_t start;
-	uint8_t length;
-	float factor;
-	uint8_t offset;
-	uint8_t min;
-	*/
+	uint8_t len;
+	uint8_t byte_offset;
+	uint8_t rxtx;
 } EgCanSignal;
 
 extern ECS_DECLARE(EgCanRx);

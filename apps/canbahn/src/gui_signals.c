@@ -22,6 +22,7 @@ typedef struct {
 	EgCanBusDescription *desc;
 	EgCanBus *bus;
 	EgCanSignal *signal;
+	GuiCanTableRow *row;
 	EgQuantitiesRangedGeneric *value;
 	EgQuantitiesIsq *q;
 	ecs_entity_t e;
@@ -29,13 +30,13 @@ typedef struct {
 
 
 
-static void gui_tx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
+static void gui_tx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal, GuiCanTableRow * row, EgQuantitiesRangedGeneric *value)
 {
 	bool modifed = false;
 	if (value) {
 		if (signal->rxtx & 0x02) {
-			if (signal->component_rep) {
-				EcsEnum const *enum_type = ecs_get(world, signal->component_rep, EcsEnum);
+			if (row->parent) {
+				EcsEnum const *enum_type = ecs_get(world, row->representation, EcsEnum);
 				if (enum_type) {
 					int v = (int)value->tx.val_u64;
 					modifed = igCombo_flecs(world, enum_type, &v);
@@ -60,11 +61,11 @@ static void gui_tx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal
 	}
 }
 
-static void gui_rx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
+static void gui_rx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal, GuiCanTableRow * row, EgQuantitiesRangedGeneric *value)
 {
 	if (value) {
 		if (signal->rxtx & 0x01) {
-			igText_flecs_enum(world, signal->component_rep, &value->rx, value->kind);
+			igText_flecs_enum(world, row->representation, &value->rx, value->kind);
 		}
 	}
 }
@@ -88,25 +89,26 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			EgCanBus *bus = ecs_field(&it, EgCanBus, 1);                                     // shared
 			EgCanBusDescription *desc = ecs_field(&it, EgCanBusDescription, 2);              // shared
 			EgCanSignal *signal = ecs_field(&it, EgCanSignal, 3);                            // self
-			EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 4);                     // self, optional
-			EgQuantitiesRangedGeneric *value = ecs_field(&it, EgQuantitiesRangedGeneric, 5); // self, optional
+			GuiCanTableRow *row = ecs_field(&it, GuiCanTableRow, 4);                            // self
+			EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 5);                     // self, optional
+			EgQuantitiesRangedGeneric *value = ecs_field(&it, EgQuantitiesRangedGeneric, 6); // self, optional
 
-			for (int i = 0; i < it.count; ++i, ++signal, quant += (quant!=NULL), value += (value!=NULL)) {
+			for (int i = 0; i < it.count; ++i, ++signal, ++row, quant += (quant!=NULL), value += (value!=NULL)) {
 				ecs_entity_t e = it.entities[i];
-				int list_index = signal->gui_index;
-				if (list_index >= MAX_ROWS) {
+				if (row->index >= MAX_ROWS) {
 					continue;
 				}
-				char const *name = ecs_get_path_w_sep(world, signal->gui_scope_name_parent, e, ".", NULL);
+				char const *name = ecs_get_path_w_sep(world, row->parent, e, ".", NULL);
 				// printf("e: %s, from : %s\n", name, name1 ? name1 : "?");
-				gui[list_index].e = e;
-				gui[list_index].name = name;
-				gui[list_index].signal = signal;
-				gui[list_index].value = value;
-				gui[list_index].q = quant;
-				gui[list_index].desc = desc;
-				gui[list_index].bus = bus;
-				n = ECS_MAX(list_index + 1, n);
+				gui[row->index].e = e;
+				gui[row->index].name = name;
+				gui[row->index].signal = signal;
+				gui[row->index].value = value;
+				gui[row->index].q = quant;
+				gui[row->index].desc = desc;
+				gui[row->index].bus = bus;
+				gui[row->index].row = row;
+				n = ECS_MAX(row->index + 1, n);
 			}
 		}
 		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);
@@ -130,6 +132,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			char const *name = gui[i].name;
 			EgQuantitiesIsq *quant = gui[i].q;
 			EgCanSignal *signal = gui[i].signal;
+			GuiCanTableRow *row = gui[i].row;
 			EgQuantitiesRangedGeneric *value = gui[i].value;
 			EgCanBus *bus = gui[i].bus;
 			EgCanBusDescription *desc = gui[i].desc;
@@ -205,10 +208,10 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			}
 
 			igTableNextColumn();
-			gui_tx(world, book, signal, value);
+			gui_tx(world, book, signal, row, value);
 
 			igTableNextColumn();
-			gui_rx(world, book, signal, value);
+			gui_rx(world, book, signal, row, value);
 
 
 			igTableNextColumn();
@@ -237,6 +240,7 @@ ecs_query_t *gui_signals_query(ecs_world_t *world)
 			{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
 			{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsChildOf},
 			{.id = ecs_id(EgCanSignal), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
+			{.id = ecs_id(GuiCanTableRow), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
 			{.id = ecs_id(EgQuantitiesIsq), .oper = EcsOptional},
 			{.id = ecs_id(EgQuantitiesRangedGeneric), .oper = EcsOptional, .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
 			//{.id = ecs_id(EgCanSignal)},

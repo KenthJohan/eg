@@ -2,9 +2,10 @@
 
 
 typedef struct {
-	int32_t value;
-	int32_t list_index;
-} GuiCanSlider;
+	int32_t index;
+	ecs_entity_t parent;
+	ecs_entity_t representation;
+} GuiCanTableRow;
 
 typedef struct {
 	ecs_vec_t v;
@@ -13,7 +14,7 @@ typedef struct {
 	float max;
 } GuiCanPlot;
 
-extern ECS_COMPONENT_DECLARE(GuiCanSlider);
+extern ECS_COMPONENT_DECLARE(GuiCanTableRow);
 extern ECS_COMPONENT_DECLARE(GuiCanPlot);
 
 void GuiCanImport(ecs_world_t *world);

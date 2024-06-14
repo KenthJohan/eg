@@ -14,7 +14,15 @@ rxt {
 		- eg.can.BusDescription{interface:"can0"}
 		navmode {
 			- eg.quantities.RangedGeneric{kind:U32, min_u64:0, max_u64:10}
-			- eg.can.Signal{canid:20, len:8, byte_offset:4, gui_index:4, gui_scope_name_parent:rxt.bus1, rxtx:3, component_rep: NavMode}
+			- gui.can.TableRow{index:4, parent:rxt.bus1, representation: NavMode}
+			- eg.can.Signal{canid:20, len:8, byte_offset:4, rxtx:3}
+			- NavMode
+		}
+
+		encoder_estimate_pos {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:-10, max_f32:10}
+			- gui.can.TableRow{index:6, parent:rxt.bus1, representation: NavMode}
+			- eg.can.Signal{canid:0, len:8, byte_offset:0, rxtx:3}
 		}
 	}
 }

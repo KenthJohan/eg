@@ -230,10 +230,12 @@ static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *
 		break;
 	}
 
+	/*
 	if (signal->component_rep) {
 		EcsComponent const * com = ecs_get(world, signal->component_rep, EcsComponent);
 		ecs_set_id(world, e, signal->component_rep, com->size, out);
 	}
+	*/
 
 
 
@@ -498,12 +500,9 @@ void EgCanImport(ecs_world_t *world)
 	.members = {
 	{.name = "canid", .type = ecs_id(ecs_u32_t)},
 	{.name = "idn", .type = ecs_id(ecs_u32_t)},
-	{.name = "len", .type = ecs_id(ecs_i32_t)},
-	{.name = "byte_offset", .type = ecs_id(ecs_i32_t)},
-	{.name = "gui_index", .type = ecs_id(ecs_i32_t)},
-	{.name = "rxtx", .type = ecs_id(ecs_i32_t)},
-	{.name = "gui_scope_name_parent", .type = ecs_id(ecs_entity_t)},	
-	{.name = "component_rep", .type = ecs_id(ecs_entity_t)},	
+	{.name = "len", .type = ecs_id(ecs_u8_t)},
+	{.name = "byte_offset", .type = ecs_id(ecs_u8_t)},
+	{.name = "rxtx", .type = ecs_id(ecs_u8_t)}
 	}});
 
 
