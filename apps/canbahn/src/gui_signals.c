@@ -21,6 +21,7 @@ typedef struct {
 	char const *name;
 	EgCanBusDescription *desc;
 	EgCanBus *bus;
+	EgCanId *channel;
 	EgCanSignal *signal;
 	GuiCanTableRow *row;
 	EgQuantitiesRangedGeneric *value;
@@ -30,7 +31,7 @@ typedef struct {
 
 
 
-static void gui_tx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal, GuiCanTableRow * row, EgQuantitiesRangedGeneric *value)
+static void gui_tx(ecs_world_t * world, eg_can_book_t *book, EgCanId *channel, EgCanSignal *signal, GuiCanTableRow * row, EgQuantitiesRangedGeneric *value)
 {
 	bool modifed = false;
 	if (value) {
@@ -57,7 +58,7 @@ static void gui_tx(ecs_world_t * world, eg_can_book_t *book, EgCanSignal *signal
 	}
 
 	if (modifed) {
-		EgCan_book_prepare_send(book, signal, value);
+		EgCan_book_prepare_send(book, signal, channel, value);
 	}
 }
 
@@ -88,10 +89,11 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		while (ecs_query_next(&it)) {
 			EgCanBus *bus = ecs_field(&it, EgCanBus, 1);                                     // shared
 			EgCanBusDescription *desc = ecs_field(&it, EgCanBusDescription, 2);              // shared
-			EgCanSignal *signal = ecs_field(&it, EgCanSignal, 3);                            // self
-			GuiCanTableRow *row = ecs_field(&it, GuiCanTableRow, 4);                            // self
-			EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 5);                     // self, optional
-			EgQuantitiesRangedGeneric *value = ecs_field(&it, EgQuantitiesRangedGeneric, 6); // self, optional
+			EgCanId *channel = ecs_field(&it, EgCanId, 3);                            // shared
+			EgCanSignal *signal = ecs_field(&it, EgCanSignal, 4);                            // self
+			GuiCanTableRow *row = ecs_field(&it, GuiCanTableRow, 5);                            // self
+			EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 6);                     // self, optional
+			EgQuantitiesRangedGeneric *value = ecs_field(&it, EgQuantitiesRangedGeneric, 7); // self, optional
 
 			for (int i = 0; i < it.count; ++i, ++signal, ++row, quant += (quant!=NULL), value += (value!=NULL)) {
 				ecs_entity_t e = it.entities[i];
@@ -102,6 +104,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				// printf("e: %s, from : %s\n", name, name1 ? name1 : "?");
 				gui[row->index].e = e;
 				gui[row->index].name = name;
+				gui[row->index].channel = channel;
 				gui[row->index].signal = signal;
 				gui[row->index].value = value;
 				gui[row->index].q = quant;
@@ -131,6 +134,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		for (int i = 0; i < n; ++i) {
 			char const *name = gui[i].name;
 			EgQuantitiesIsq *quant = gui[i].q;
+			EgCanId *channel = gui[i].channel;
 			EgCanSignal *signal = gui[i].signal;
 			GuiCanTableRow *row = gui[i].row;
 			EgQuantitiesRangedGeneric *value = gui[i].value;
@@ -173,17 +177,17 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			igTableNextColumn();
 			igText("%i", bus->socket);
 
-			igPushStyleColor_U32_HSV_hash32(signal->canid);
+			igPushStyleColor_U32_HSV_hash32(channel->id);
 			{
 				igTableNextColumn();
-				igText("%i", signal->canid);
+				igText("%i", channel->id);
 				igTableNextColumn();
-				igText("%03X", signal->canid);
+				igText("%03X", channel->id);
 			}
 			igPopStyleColor(1);
 
 			igTableNextColumn();
-			igText("%i", signal->idn);
+			igText("%i", channel->n);
 
 			igTableNextColumn();
 			igText("%i", signal->byte_offset);
@@ -208,7 +212,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			}
 
 			igTableNextColumn();
-			gui_tx(world, book, signal, row, value);
+			gui_tx(world, book, channel, signal, row, value);
 
 			igTableNextColumn();
 			gui_rx(world, book, signal, row, value);
@@ -239,6 +243,7 @@ ecs_query_t *gui_signals_query(ecs_world_t *world)
 		.filter.terms = {
 			{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
 			{.id = ecs_id(EgCanBusDescription), .src.flags = EcsUp, .src.trav = EcsChildOf},
+			{.id = ecs_id(EgCanId), .src.flags = EcsUp, .src.trav = EcsChildOf},
 			{.id = ecs_id(EgCanSignal), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
 			{.id = ecs_id(GuiCanTableRow), .src.flags = EcsSelf}, // EcsSelf is temporary fix to only query from "app.signals".
 			{.id = ecs_id(EgQuantitiesIsq), .oper = EcsOptional},

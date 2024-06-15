@@ -35,13 +35,14 @@ ECS_MOVE(GuiCanPlot, dst, src, {
 static void System_GuiCanPlot(ecs_iter_t *it)
 {
 	GuiCanPlot *d = ecs_field(it, GuiCanPlot, 1);                               // self
-	EgCanSignal *s = ecs_field(it, EgCanSignal, 2);                             // self
-	EgQuantitiesRangedGeneric *v = ecs_field(it, EgQuantitiesRangedGeneric, 3); // self
-	for (int i = 0; i < it->count; ++i, ++d, ++s, ++v) {
-		if (s->idn != d->last_index) {
+	EgCanId *c = ecs_field(it, EgCanId, 2);                                     // self
+	EgCanSignal *s = ecs_field(it, EgCanSignal, 3);                             // self
+	EgQuantitiesRangedGeneric *v = ecs_field(it, EgQuantitiesRangedGeneric, 4); // self
+	for (int i = 0; i < it->count; ++i, ++d, ++c, ++s, ++v) {
+		if (c->n != d->last_index) {
 			// TODO: Support all types:
 			ecs_vec_append_t(NULL, &d->v, ecs_f32_t)[0] = v->rx.val_f32;
-			d->last_index = s->idn;
+			d->last_index = c->n;
 			d->min = v->min.val_f32;
 			d->max = v->max.val_f32;
 		}
@@ -81,14 +82,17 @@ void GuiCanImport(ecs_world_t *world)
 
 	ecs_set_hooks(world, GuiCanPlot, {.ctor = ecs_ctor(GuiCanPlot), .move = ecs_move(GuiCanPlot), .copy = ecs_copy(GuiCanPlot), .dtor = ecs_dtor(GuiCanPlot)});
 
+	// clang-format off
 	ecs_system(world, {.entity = ecs_entity(world, {.name = "System_GuiCanPlot",
-	                                               .add = {ecs_dependson(EcsOnUpdate)}}),
-	                  .query.filter.terms = {
-	                  {.id = ecs_id(GuiCanPlot), .src.flags = EcsSelf},
-	                  {.id = ecs_id(EgCanSignal), .src.flags = EcsSelf},
-	                  {.id = ecs_id(EgQuantitiesRangedGeneric), .src.flags = EcsSelf},
-	                  },
-	                  .callback = System_GuiCanPlot});
+		.add = {ecs_dependson(EcsOnUpdate)}}),
+		.query.filter.terms = {
+		{.id = ecs_id(GuiCanPlot), .src.flags = EcsSelf},
+		{.id = ecs_id(EgCanId), .src.flags = EcsSelf},
+		{.id = ecs_id(EgCanSignal), .src.flags = EcsSelf},
+		{.id = ecs_id(EgQuantitiesRangedGeneric), .src.flags = EcsSelf},
+		},
+		.callback = System_GuiCanPlot});
+	// clang-format on
 
 	/*
 

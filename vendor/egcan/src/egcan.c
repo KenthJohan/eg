@@ -21,6 +21,7 @@ ECS_COMPONENT_DECLARE(EgCanRxThread);
 ECS_COMPONENT_DECLARE(EgCanBusDescription);
 ECS_COMPONENT_DECLARE(EgCanBus);
 ECS_COMPONENT_DECLARE(EgCanSignal);
+ECS_COMPONENT_DECLARE(EgCanId);
 ECS_COMPONENT_DECLARE(EgCanRxThreadMember);
 
 ECS_CTOR(EgCanBusDescription, ptr, {
@@ -195,11 +196,11 @@ static void EgCanBusBook_System_Sender(ecs_iter_t *it)
 	}
 }
 
-static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *signal, eg_can_book_t const *book, EgQuantitiesRangedGeneric * val)
+static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *signal, EgCanId *channel, eg_can_book_t const *book, EgQuantitiesRangedGeneric * val)
 {
-	uint32_t canid = signal->canid;
-	if (canid >= book->cap) {
-		ecs_warn("canid=%i must be less than cap=%i", canid, book->cap);
+	uint32_t id = channel->id;
+	if (id >= book->cap) {
+		ecs_warn("canid=%i must be less than cap=%i", id, book->cap);
 		return;
 	}
 	int o = signal->byte_offset;
@@ -208,8 +209,8 @@ static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *
 		return;
 	}
 	// TODO: Support all types and bit offsets
-	eg_can_book_packet8_t *rx = book->rx + canid;
-	signal->idn = rx->stats_count;
+	eg_can_book_packet8_t *rx = book->rx + id;
+	channel->n = rx->stats_count;
 	void * out = &val->rx;
 	switch (val->kind)
 	{
@@ -278,13 +279,14 @@ static void System_Rx(ecs_iter_t *it)
 {
 	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1);              // shared
 	EgCanBus *bus = ecs_field(it, EgCanBus, 2);                        // shared
-	EgCanSignal *signal = ecs_field(it, EgCanSignal, 3);               // self
+	EgCanId *channel = ecs_field(it, EgCanId, 3);               // self
+	EgCanSignal *signal = ecs_field(it, EgCanSignal, 4);               // self
 	EgQuantitiesRangedGeneric *val = ecs_field(it, EgQuantitiesRangedGeneric, 4); // self
 	thread_stuff_t const *impl = rxt->impl;
 	eg_can_book_t const *book = bus->ptr;
 	ecs_os_mutex_lock(impl->lock);
 	for (int i = 0; i < it->count; ++i, ++val, ++signal) {
-		EgCanSignal_parse(it->world, it->entities[i], signal, book, val);
+		EgCanSignal_parse(it->world, it->entities[i], signal, channel, book, val);
 	}
 	ecs_os_mutex_unlock(impl->lock);
 }
@@ -382,10 +384,10 @@ static int ecs_primitive_kind_size(ecs_primitive_kind_t kind)
 	return 0;
 }
 
-void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgQuantitiesRangedGeneric *value)
+void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgCanId *channel, EgQuantitiesRangedGeneric *value)
 {
 	// printf("Send can packet canid=%i, value=%i\n", (int)signal->canid, signal->value);
-	uint32_t id = signal->canid;
+	uint32_t id = channel->id;
 	int32_t o = signal->byte_offset;
 	if (id > EG_CAN_BOOK_CAP) {
 		return;
@@ -397,13 +399,13 @@ void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgQuantit
 	if (value) {
 		memcpy(tx->payload + o, &value->tx, ecs_primitive_kind_size(value->kind));
 	}
-	tx->can_id = signal->canid;
+	tx->can_id = id;
 	tx->dirty = 1;
 	if (signal->rxtx == 5) {
 		tx->len = 0;
 		tx->can_id |= CAN_RTR_FLAG;
 	} else {
-		tx->can_id = signal->canid;
+		tx->can_id = id;
 		tx->len = signal->len;
 	}
 
@@ -454,6 +456,7 @@ void EgCanImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgCanBusDescription);
 	ECS_COMPONENT_DEFINE(world, EgCanBus);
 	ECS_COMPONENT_DEFINE(world, EgCanSignal);
+	ECS_COMPONENT_DEFINE(world, EgCanId);
 	ECS_COMPONENT_DEFINE(world, EgCanRxThreadMember);
 
 	// clang-format off
@@ -498,14 +501,17 @@ void EgCanImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(EgCanSignal),
 	.members = {
-	{.name = "canid", .type = ecs_id(ecs_u32_t)},
-	{.name = "idn", .type = ecs_id(ecs_u32_t)},
 	{.name = "len", .type = ecs_id(ecs_u8_t)},
 	{.name = "byte_offset", .type = ecs_id(ecs_u8_t)},
 	{.name = "rxtx", .type = ecs_id(ecs_u8_t)}
 	}});
 
-
+	ecs_struct(world,
+	{.entity = ecs_id(EgCanId),
+	.members = {
+	{.name = "id", .type = ecs_id(ecs_u32_t)},
+	{.name = "n", .type = ecs_id(ecs_u32_t)},
+	}});
 
 
 	ecs_system_init(world,
@@ -570,6 +576,7 @@ void EgCanImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsChildOf},
 	{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
+	{.id = ecs_id(EgCanId)},
 	{.id = ecs_id(EgCanSignal)},
 	{.id = ecs_id(EgQuantitiesRangedGeneric)}
 	}});

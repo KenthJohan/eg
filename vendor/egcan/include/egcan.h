@@ -56,12 +56,15 @@ https://canlogger.csselectronics.com/dbc-editor/v129/dbc-editor.html
 */
 
 typedef struct {
-	uint32_t canid;
-	uint32_t idn;
 	uint8_t len;
 	uint8_t byte_offset;
 	uint8_t rxtx;
 } EgCanSignal;
+
+typedef struct {
+	uint32_t id;
+	uint32_t n;
+} EgCanId;
 
 extern ECS_DECLARE(EgCanRx);
 extern ECS_DECLARE(EgCanTx);
@@ -70,8 +73,9 @@ extern ECS_COMPONENT_DECLARE(EgCanRxThreadMember);
 extern ECS_COMPONENT_DECLARE(EgCanBusDescription);
 extern ECS_COMPONENT_DECLARE(EgCanBus);
 extern ECS_COMPONENT_DECLARE(EgCanSignal);
+extern ECS_COMPONENT_DECLARE(EgCanId);
 
-void EgCan_book_prepare_send(eg_can_book_t * book, EgCanSignal * signal, EgQuantitiesRangedGeneric * value);
+void EgCan_book_prepare_send(eg_can_book_t * book, EgCanSignal * signal, EgCanId * channel, EgQuantitiesRangedGeneric * value);
 
 void EgCanImport(ecs_world_t *world);
 

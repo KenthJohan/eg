@@ -1,4 +1,4 @@
-module app.signals
+module app
 using flecs.meta
 
 Enum NavMode {
@@ -12,23 +12,31 @@ rxt {
 	- eg.can.RxThread{dummy:0}
 	bus1 {
 		- eg.can.BusDescription{interface:"can0"}
-		navmode {
-			- eg.quantities.RangedGeneric{kind:U32, min_u64:0, max_u64:10}
-			- gui.can.TableRow{index:4, parent:rxt.bus1, representation: NavMode}
-			- eg.can.Signal{canid:20, len:8, byte_offset:4, rxtx:3}
-			- NavMode
-		}
-
-		encoder_estimate_pos {
-			- eg.quantities.RangedGeneric{kind:F32, min_f32:-10, max_f32:10}
-			- gui.can.TableRow{index:6, parent:rxt.bus1, representation: NavMode}
-			- eg.can.Signal{canid:0, len:8, byte_offset:0, rxtx:3}
-		}
+		- CanIds {}
 	}
+}
+
+rxt.bus1 {
+	RC0123 {
+	- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
+	}
+	//- flysky.fsi6{gui_index_start: 200, gui_scope_name_parent: rxt.bus1}
 }
 
 
 
+rxt.bus1.RC0123.navmode {
+	- eg.quantities.RangedGeneric{kind:U32, min_u64:0, max_u64:10}
+	- gui.can.TableRow{index:4, parent:rxt.bus1, representation: NavMode}
+	- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
+}
+
+
+rxt.bus1.encoder_estimate_pos {
+	- eg.quantities.RangedGeneric{kind:F32, min_f32:-10, max_f32:10}
+	- gui.can.TableRow{index:6, parent:rxt.bus1, representation: NavMode}
+	- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
+}
 
 
 
