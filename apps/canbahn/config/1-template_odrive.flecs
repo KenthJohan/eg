@@ -216,12 +216,12 @@ assembly s1 {
 		- eg.can.Id{id : $canid_start + 9}
 		Pos_Estimate {
 			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
-			- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
+			- eg.can.Signal{len:8, byte_offset:0, rxtx:5}
 			- gui.can.TableRow{index:$gui_start+7}
 		}
 		Vel_Estimate {
 			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
-			- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
+			- eg.can.Signal{len:8, byte_offset:4, rxtx:5}
 			- gui.can.TableRow{index:$gui_start+8}
 		}
 	}
@@ -314,12 +314,12 @@ assembly s1 {
 		- eg.can.Id{id : $canid_start + 21}
 		Bus_Voltage {
 			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
-			- eg.can.Signal{len:4, byte_offset:0, rxtx:3}
+			- eg.can.Signal{len:4, byte_offset:0, rxtx:5}
 			- gui.can.TableRow{index:$gui_start+17}
 		}
 		Bus_Current {
 			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
-			- eg.can.Signal{len:4, byte_offset:4, rxtx:3}
+			- eg.can.Signal{len:4, byte_offset:4, rxtx:5}
 			- gui.can.TableRow{index:$gui_start+18}
 		}
 	}
@@ -344,13 +344,13 @@ assembly s1 {
 		- eg.can.Id{id : $canid_start + 26}
 		Electrical_Power {
 			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
-			- eg.can.Signal{len:4, byte_offset:0, rxtx:3}
+			- eg.can.Signal{len:4, byte_offset:0, rxtx:5}
 			- gui.can.TableRow{index:$gui_start+19}
 		}
 
 		Mechanical_Power {
 			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
-			- eg.can.Signal{len:4, byte_offset:4, rxtx:3}
+			- eg.can.Signal{len:4, byte_offset:4, rxtx:5}
 			- gui.can.TableRow{index:$gui_start+20}
 		}
 	}
