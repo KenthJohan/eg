@@ -115,11 +115,11 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		}
 		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
-		igTableSetupColumn("idname", ImGuiTableColumnFlags_WidthFixed, 150, 0);
+		igTableSetupColumn("idname", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("idn", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("signame", ImGuiTableColumnFlags_WidthFixed, 150, 0);
+		igTableSetupColumn("signame", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("kind", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 200, 0);

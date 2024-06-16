@@ -179,6 +179,16 @@ assembly s1 {
 
 	GET_ERROR {
 		- eg.can.Id{id : $canid_start + 3}
+		Active_Errors {
+			- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
+			- eg.can.Signal{len:1, byte_offset:0, rxtx:5}
+			- gui.can.TableRow{index:$gui_start+4}
+		}
+		Disarm_Reason {
+			- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
+			- eg.can.Signal{len:1, byte_offset:0, rxtx:5}
+			- gui.can.TableRow{index:$gui_start+5}
+		}
 	}
 
 	RXSDO {
@@ -195,18 +205,58 @@ assembly s1 {
 
 	SET_AXIS_STATE {
 		- eg.can.Id{id : $canid_start + 7}
+		Axis_Requested_State {
+			- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
+			- eg.can.Signal{len:4, byte_offset:0, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+6, kind: AxisState}
+		}
 	}
 
 	GET_ENCODER_ESTIMATES {
 		- eg.can.Id{id : $canid_start + 9}
+		Pos_Estimate {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+7}
+		}
+		Vel_Estimate {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+8}
+		}
 	}
 
 	SET_CONTROLLER_MODE {
 		- eg.can.Id{id : $canid_start + 11}
+		Control_Mode {
+			- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
+			- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+9, kind: ControlMode}
+		}
+		Input_Mode {
+			- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
+			- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+10, kind: InputMode}
+		}
 	}
 
 	SET_INPUT_POS {
 		- eg.can.Id{id : $canid_start + 12}
+		Input_Pos {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+11}
+		}
+		Vel_FF {
+			- eg.quantities.RangedGeneric{kind:I16, min_i64:-100, max_i64:100}
+			- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+12}
+		}
+		Torque_FF {
+			- eg.quantities.RangedGeneric{kind:I16, min_i64:-100, max_i64:100}
+			- eg.can.Signal{len:8, byte_offset:6, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+13}
+		}
 	}
 
 	SET_INPUT_VEL {

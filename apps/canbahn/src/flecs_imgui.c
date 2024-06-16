@@ -149,6 +149,11 @@ bool igSlider_flecs(const char *label, EgQuantitiesRangedGeneric *value)
 		modified = igSliderScalar(label, ImGuiDataType_U8, &value->tx.val_u8, &value->min.val_u8, &value->max.val_u8, "%u", 0);
 		igPopItemWidth();
 		break;
+	case EcsI16:
+		igPushItemWidth(-1);
+		modified = igSliderScalar(label, ImGuiDataType_S16, &value->tx.val_i16, &value->min.val_i16, &value->max.val_i16, "%i", 0);
+		igPopItemWidth();
+		break;
 	case EcsU16:
 		igPushItemWidth(-1);
 		modified = igSliderScalar(label, ImGuiDataType_U16, &value->tx.val_u16, &value->min.val_u16, &value->max.val_u16, "%u", 0);
@@ -187,6 +192,11 @@ void igInput_flecs(const char *label, eg_generic_number_t *val, ecs_primitive_ki
 		igInputScalar("#1", ImGuiDataType_U8, &val->val_u8, 0, 0, "%u", 0);
 		igPopItemWidth();
 		break;
+	case EcsI16:
+		igPushItemWidth(-1);
+		igInputScalar("#1", ImGuiDataType_S16, &val->val_i16, 0, 0, "%i", 0);
+		igPopItemWidth();
+		break;
 	case EcsU16:
 		igPushItemWidth(-1);
 		igInputScalar("#1", ImGuiDataType_U16, &val->val_u16, 0, 0, "%u", 0);
@@ -220,16 +230,19 @@ void igText_flecs_enum(ecs_world_t * world, ecs_entity_t type, eg_generic_number
 
 	switch (kind) {
 	case EcsI8:
-		igText("%i", value->val_i8);
+		igText("%u", value->val_i8);
 		break;
 	case EcsU8:
-		igText("%i", value->val_u8);
+		igText("%u", value->val_u8);
+		break;
+	case EcsI16:
+		igText("%i", value->val_i16);
 		break;
 	case EcsU16:
-		igText("%i", value->val_u16);
+		igText("%u", value->val_u16);
 		break;
 	case EcsU32:
-		igText("%i", value->val_u32);
+		igText("%u", value->val_u32);
 		break;
 	case EcsF32:
 		igText("%f", value->val_f32);
@@ -244,8 +257,14 @@ void igText_flecs_enum(ecs_world_t * world, ecs_entity_t type, eg_generic_number
 void igText_flecs(eg_generic_number_t *value, ecs_primitive_kind_t kind)
 {
 	switch (kind) {
+	case EcsI8:
+		igText("%u", value->val_i8);
+		break;
 	case EcsU8:
 		igText("%u", value->val_u8);
+		break;
+	case EcsI16:
+		igText("%i", value->val_i16);
 		break;
 	case EcsU16:
 		igText("%u", value->val_u16);

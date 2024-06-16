@@ -249,6 +249,10 @@ static void EgCanSignal_parse(ecs_world_t *world, ecs_entity_t e, EgCanSignal *s
 		val->max.val_u16 = val->max_u64;
 		val->min.val_u16 = val->min_u64;
 		break;
+	case EcsI16:
+		val->max.val_i16 = val->max_i64;
+		val->min.val_i16 = val->min_i64;
+		break;
 	case EcsU32:
 		val->max.val_u32 = val->max_u64;
 		val->min.val_u32 = val->min_u64;
