@@ -15,21 +15,19 @@ canpool {
 	- eg.can.RxThread{dummy:0}
 	can0 {
 		- eg.can.BusDescription{interface:"can0"}
-		- flysky.fsi6{gui_parent:canpool.can0}
-	}
-}
-
-
-canpool {
-	can0 {
-		RC0123 {
-			- eg.can.Id{id:20}
+		- flysky.fsi6{canid_start: 200, gui_parent:canpool.can0}
+		o1 {
+			- odrives.s1{canid_start: 1*32, gui_start: 20, gui_parent:canpool.can0}
 		}
-		RC4567 {
-			- eg.can.Id{id:21}
+		o2 {
+			- odrives.s1{canid_start: 2*32, gui_start: 40, gui_parent:canpool.can0}
 		}
-		RC89 {
-			- eg.can.Id{id:22}
+		o3 {
+			- odrives.s1{canid_start: 3*32, gui_start: 60, gui_parent:canpool.can0}
+		}
+		o4 {
+			- odrives.s1{canid_start: 4*32, gui_start: 80, gui_parent:canpool.can0}
 		}
 	}
 }
+

@@ -18,7 +18,6 @@
 #include <egshapes.h>
 #include <egcolors.h>
 #include <egifaces.h>
-#include <egodrives.h>
 
 #include "GuiCan.h"
 #include "gui_signals.h"
@@ -178,7 +177,6 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ECS_IMPORT(app->world, EgImgui);
 	ECS_IMPORT(app->world, EgColors);
 	ECS_IMPORT(app->world, EgIfaces);
-	ECS_IMPORT(app->world, EgOdrives);
 
 	ecs_log_set_level(0);
 	ecs_plecs_from_dir(app->world, "config");

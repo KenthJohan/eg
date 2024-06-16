@@ -3,8 +3,7 @@
 
 typedef struct {
 	int32_t index;
-	ecs_entity_t parent;
-	ecs_entity_t representation;
+	ecs_entity_t kind;
 } GuiCanTableRow;
 
 typedef struct {

@@ -62,8 +62,7 @@ void GuiCanImport(ecs_world_t *world)
 	{.entity = ecs_id(GuiCanTableRow),
 	.members = {
 	{.name = "index", .type = ecs_id(ecs_i32_t)},
-	{.name = "parent", .type = ecs_id(ecs_entity_t)},
-	{.name = "representation", .type = ecs_id(ecs_entity_t)},
+	{.name = "kind", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_struct(world,

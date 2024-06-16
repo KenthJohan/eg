@@ -4,6 +4,7 @@ using flecs.meta
 
 
 assembly fsi6 {
+	prop canid_start: u32 = 0
 	prop gui_start: u32 = 0
 	prop gui_parent: entity = 0
 
@@ -24,43 +25,45 @@ assembly fsi6 {
 	const channel_type : eg.quantities.RangedGeneric = {kind:U16, min_u64:1000, max_u64:2000}
 
 	RC0123 {
+		- eg.can.Id{id : $canid_start + 0}
 		with $channel_type {
 			ch0_rh {
 				- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+0, parent:$gui_parent}
+				- gui.can.TableRow{index:$gui_start+0}
 			}
 			ch1_rv {
 				- eg.can.Signal{len:8, byte_offset:2, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+1, parent:$gui_parent}
+				- gui.can.TableRow{index:$gui_start+1}
 			}
 			ch2_lv {
 				- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+2, parent:$gui_parent}
+				- gui.can.TableRow{index:$gui_start+2}
 			}
 			ch3_lh {
 				- eg.can.Signal{len:8, byte_offset:6, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+3, parent:$gui_parent}
+				- gui.can.TableRow{index:$gui_start+3}
 			}
 		}
 	}
 
 	RC4567 {
+		- eg.can.Id{id : $canid_start + 1}
 		with $channel_type {
 			ch4_trim_r {
 				- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+4, parent:$gui_parent}
+				- gui.can.TableRow{index:$gui_start+4}
 			}
 			ch5_trim_l {
 				- eg.can.Signal{len:8, byte_offset:2, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+5, parent:$gui_parent}
+				- gui.can.TableRow{index:$gui_start+5}
 			}
 			ch6_0001 {
 				- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+6, parent:$gui_parent}
+				- gui.can.TableRow{index:$gui_start+6}
 			}
 			ch7_0010_3steps {
 				- eg.can.Signal{len:8, byte_offset:6, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+7, parent:$gui_parent}
+				- gui.can.TableRow{index:$gui_start+7}
 			}
 		}
 	}
@@ -68,12 +71,15 @@ assembly fsi6 {
 
 
 	RC89 {
+		- eg.can.Id{id : $canid_start + 2}
 		with $channel_type {
 			ch8_0100  {
 				- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
+				- gui.can.TableRow{index:$gui_start+8}
 			}
 			ch9_1000 {
 				- eg.can.Signal{len:8, byte_offset:2, rxtx:3}
+				- gui.can.TableRow{index:$gui_start+9}
 			}
 		}
 	}

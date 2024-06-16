@@ -196,7 +196,7 @@ static void EgCanBusBook_System_Sender(ecs_iter_t *it)
 	}
 }
 
-static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *signal, EgCanId *channel, eg_can_book_t const *book, EgQuantitiesRangedGeneric * val)
+static void EgCanSignal_parse(ecs_world_t *world, ecs_entity_t e, EgCanSignal *signal, EgCanId *channel, eg_can_book_t const *book, EgQuantitiesRangedGeneric *val)
 {
 	uint32_t id = channel->id;
 	if (id >= book->cap) {
@@ -211,9 +211,8 @@ static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *
 	// TODO: Support all types and bit offsets
 	eg_can_book_packet8_t *rx = book->rx + id;
 	channel->n = rx->stats_count;
-	void * out = &val->rx;
-	switch (val->kind)
-	{
+	void *out = &val->rx;
+	switch (val->kind) {
 	case EcsI8:
 	case EcsU8:
 		memcpy(out, rx->payload + o, 1);
@@ -233,19 +232,15 @@ static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *
 
 	/*
 	if (signal->component_rep) {
-		EcsComponent const * com = ecs_get(world, signal->component_rep, EcsComponent);
-		ecs_set_id(world, e, signal->component_rep, com->size, out);
+	    EcsComponent const * com = ecs_get(world, signal->component_rep, EcsComponent);
+	    ecs_set_id(world, e, signal->component_rep, com->size, out);
 	}
 	*/
-
-
-
 
 	// TODO: This is temporary code:
 	memset(&val->max, 0, sizeof(val->max));
 	memset(&val->min, 0, sizeof(val->min));
-	switch (val->kind)
-	{
+	switch (val->kind) {
 	case EcsU8:
 		val->max.val_u8 = val->max_u64;
 		val->min.val_u8 = val->min_u64;
@@ -277,11 +272,11 @@ static void EgCanSignal_parse(ecs_world_t * world, ecs_entity_t e, EgCanSignal *
 
 static void System_Rx(ecs_iter_t *it)
 {
-	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1);              // shared
-	EgCanBus *bus = ecs_field(it, EgCanBus, 2);                        // shared
-	EgCanId *channel = ecs_field(it, EgCanId, 3);               // self
-	EgCanSignal *signal = ecs_field(it, EgCanSignal, 4);               // self
-	EgQuantitiesRangedGeneric *val = ecs_field(it, EgQuantitiesRangedGeneric, 4); // self
+	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1);                         // shared
+	EgCanBus *bus = ecs_field(it, EgCanBus, 2);                                   // shared
+	EgCanId *channel = ecs_field(it, EgCanId, 3);                                 // shared
+	EgCanSignal *signal = ecs_field(it, EgCanSignal, 4);                          // self
+	EgQuantitiesRangedGeneric *val = ecs_field(it, EgQuantitiesRangedGeneric, 5); // self
 	thread_stuff_t const *impl = rxt->impl;
 	eg_can_book_t const *book = bus->ptr;
 	ecs_os_mutex_lock(impl->lock);
@@ -291,21 +286,12 @@ static void System_Rx(ecs_iter_t *it)
 	ecs_os_mutex_unlock(impl->lock);
 }
 
-
-
-
-
-
-
-
-
 static void System_Value(ecs_iter_t *it)
 {
 	EgQuantitiesRangedGeneric *s = ecs_field(it, EgQuantitiesRangedGeneric, 1);
 	EgQuantitiesProgress *q = ecs_field(it, EgQuantitiesProgress, 2);
 	for (int i = 0; i < it->count; ++i, ++s, ++q) {
-		switch (s->kind)
-		{
+		switch (s->kind) {
 		case EcsU8:
 			q->value = (float)s->rx.val_u8;
 			q->min = (float)s->min.val_u8;
@@ -326,11 +312,10 @@ static void System_Value(ecs_iter_t *it)
 			q->min = (float)s->min.val_f32;
 			q->max = (float)s->max.val_f32;
 			break;
-		
+
 		default:
 			break;
 		}
-
 	}
 }
 
@@ -357,29 +342,45 @@ static void System_EpollAdditions(ecs_iter_t *it)
 
 #define CAN_RTR_FLAG 0x40000000U /* remote transmission request */
 
-
 static int ecs_primitive_kind_size(ecs_primitive_kind_t kind)
 {
-	switch (kind)
-	{
-    case EcsBool: return sizeof(ecs_bool_t);
-    case EcsChar: return sizeof(ecs_char_t);
-    case EcsByte: return sizeof(ecs_byte_t);
-    case EcsU8: return sizeof(ecs_u8_t);
-    case EcsU16: return sizeof(ecs_u16_t);
-    case EcsU32: return sizeof(ecs_u32_t);
-    case EcsU64: return sizeof(ecs_u64_t);
-    case EcsI8: return sizeof(ecs_i8_t);
-    case EcsI16: return sizeof(ecs_i16_t);
-    case EcsI32: return sizeof(ecs_i32_t);
-    case EcsI64: return sizeof(ecs_i64_t);
-    case EcsF32: return sizeof(ecs_f32_t);
-    case EcsF64: return sizeof(ecs_f64_t);
-    case EcsUPtr: return sizeof(ecs_uptr_t);
-    case EcsIPtr: return sizeof(ecs_iptr_t);
-    case EcsString: return sizeof(ecs_string_t);
-    case EcsEntity: return sizeof(ecs_entity_t);
-    case EcsId: return sizeof(ecs_id_t);
+	switch (kind) {
+	case EcsBool:
+		return sizeof(ecs_bool_t);
+	case EcsChar:
+		return sizeof(ecs_char_t);
+	case EcsByte:
+		return sizeof(ecs_byte_t);
+	case EcsU8:
+		return sizeof(ecs_u8_t);
+	case EcsU16:
+		return sizeof(ecs_u16_t);
+	case EcsU32:
+		return sizeof(ecs_u32_t);
+	case EcsU64:
+		return sizeof(ecs_u64_t);
+	case EcsI8:
+		return sizeof(ecs_i8_t);
+	case EcsI16:
+		return sizeof(ecs_i16_t);
+	case EcsI32:
+		return sizeof(ecs_i32_t);
+	case EcsI64:
+		return sizeof(ecs_i64_t);
+	case EcsF32:
+		return sizeof(ecs_f32_t);
+	case EcsF64:
+		return sizeof(ecs_f64_t);
+	case EcsUPtr:
+		return sizeof(ecs_uptr_t);
+	case EcsIPtr:
+		return sizeof(ecs_iptr_t);
+	case EcsString:
+		return sizeof(ecs_string_t);
+	case EcsEntity:
+		return sizeof(ecs_entity_t);
+	case EcsId:
+		return sizeof(ecs_id_t);
 	}
 	return 0;
 }
@@ -408,7 +409,6 @@ void EgCan_book_prepare_send(eg_can_book_t *book, EgCanSignal *signal, EgCanId *
 		tx->can_id = id;
 		tx->len = signal->len;
 	}
-
 }
 
 static ECS_COPY(EgCanRxThread, dst, src, {
@@ -576,7 +576,7 @@ void EgCanImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsChildOf},
 	{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
-	{.id = ecs_id(EgCanId)},
+	{.id = ecs_id(EgCanId), .src.flags = EcsUp, .src.trav = EcsChildOf},
 	{.id = ecs_id(EgCanSignal)},
 	{.id = ecs_id(EgQuantitiesRangedGeneric)}
 	}});

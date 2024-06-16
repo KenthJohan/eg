@@ -1,0 +1,272 @@
+module odrives
+using flecs.meta
+
+// https://github.com/siddarthiyer/ODrive-STM32-CAN-Driver/blob/392b65a2aca4b6e4255cec8cd7f92f5e3404baf6/ODrive/ODrive.h#L78C1-L88C14
+Enum InputMode {
+	INACTIVE
+	PASSTHROUGH
+	VEL_RAMP
+	POS_FILTER
+	MIX_CHANNELS
+	TRAP_TRAJ
+	TORQUE_RAMP
+	MIRROR
+	TUNING
+}
+
+
+// https://github.com/siddarthiyer/ODrive-STM32-CAN-Driver/blob/392b65a2aca4b6e4255cec8cd7f92f5e3404baf6/ODrive/ODrive.h#L78C1-L88C14
+Enum ControlMode {
+	VOLTAGE
+	TORQUE
+	VELOCITY
+	POSITION
+}
+
+
+Enum AxisState {
+	UNDEFINED
+	IDLE
+	STARTUP_SEQUENCE
+	FULL_CALIBRATION_SEQUENCE
+	MOTOR_CALIBRATION
+	ENCODER_INDEX_SEARCH
+	RESERVED_5
+	ENCODER_OFFSET_CALIBRATION
+	CLOSED_LOOP_CONTROL
+	LOCKIN_SPIN
+	ENCODER_DIR_FIND
+	HOMING
+	ENCODER_HALL_POLARITY_CALIBRATION
+	ENCODER_HALL_PHASE_CALIBRATION
+}
+
+
+Enum ProcedureResult {
+	SUCCESS
+	BUSY
+	CANCELLED
+	DISARMED
+	NO_RESPONSE
+	POLE_PAIR_CPR_MISMATCH
+	PHASE_RESISTANCE_OUT_OF_RANGE
+	PHASE_INDUCTANCE_OUT_OF_RANGE
+	UNBALANCED_PHASES
+	INVALID_MOTOR_TYPE
+	ILLEGAL_HALL_STATE
+	TIMEOUT
+	HOMING_WITHOUT_ENDSTOP
+	INVALID_STATE
+	NOT_CALIBRATED
+	NOT_CONVERGING
+}
+
+
+
+// https://discord.com/channels/633826290415435777/1242211648740261970/1242321576477720586
+Enum Error {
+	INITIALIZING :- (Constant, i32){1}
+	SYSTEM_LEVEL :- (Constant, i32){2}
+	TIMING_ERROR :- (Constant, i32){4}
+	MISSING_ESTIMATE :- (Constant, i32){8}
+	BAD_CONFIG :- (Constant, i32){16}
+	DRV_FAULT :- (Constant, i32){32}
+	MISSING_INPUT :- (Constant, i32){64}
+	DC_BUS_OVER_VOLTAGE :- (Constant, i32){256}
+	DC_BUS_UNDER_VOLTAGE :- (Constant, i32){512}
+	DC_BUS_OVER_CURRENT :- (Constant, i32){1024}
+	DC_BUS_OVER_REGEN_CURRENT :- (Constant, i32){2048}
+	CURRENT_LIMIT_VIOLATION :- (Constant, i32){4096}
+	MOTOR_OVER_TEMP :- (Constant, i32){8192}
+	INVERTER_OVER_TEMP :- (Constant, i32){16384}
+	VELOCITY_LIMIT_VIOLATION :- (Constant, i32){32768}
+	POSITION_LIMIT_VIOLATION :- (Constant, i32){65536}
+	WATCHDOG_TIMER_EXPIRED :- (Constant, i32){16777216}
+	ESTOP_REQUESTED :- (Constant, i32){33554432}
+	SPINOUT_DETECTED :- (Constant, i32){67108864}
+	BRAKE_RESISTOR_DISARMED :- (Constant, i32){134217728}
+	THERMISTOR_DISCONNECTED :- (Constant, i32){268435456}
+	CALIBRATION_ERROR :- (Constant, i32){1073741824}
+}
+
+
+
+Enum Identify {
+	CLEAR0 :- (Constant, i32){0}
+}
+
+
+
+Enum OpCode {
+	Read :- (Constant, i32){0}
+	Write :- (Constant, i32){1}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+assembly s1 {
+	prop canid_start: u32 = 0
+	prop gui_start: u32 = 0
+	prop gui_parent: entity = 0
+
+	const I8_MIN = -128
+	const I8_MAX = 127
+
+	const U8_MIN = 0
+	const U8_MAX = 255
+
+	const U32_MIN = 0
+	const U32_MAX = 4294967295
+
+	const ODRIVE_FLT_MIN = -10
+	const ODRIVE_FLT_MAX = 10
+
+
+	GET_VERSION {
+		- eg.can.Id{id : $canid_start + 0}
+	}
+
+	HEARTBEAT {
+		- eg.can.Id{id : $canid_start + 1}
+		Axis_Error {
+			- eg.quantities.RangedGeneric{kind:U32, min_u64:$U32_MIN, max_u64:$U32_MAX}
+			- eg.can.Signal{len:8, byte_offset:0, rxtx:1}
+			- gui.can.TableRow{index:$gui_start+0, kind: Error}
+		}
+		Axis_State {
+			- eg.quantities.RangedGeneric{kind:U8, min_u64:$U32_MIN, max_u64:$U32_MAX}
+			- eg.can.Signal{len:8, byte_offset:4, rxtx:1}
+			- gui.can.TableRow{index:$gui_start+1, kind: AxisState}
+		}
+		Procedure_Result {
+			- eg.quantities.RangedGeneric{kind:U8, min_u64:$U32_MIN, max_u64:$U32_MAX}
+			- eg.can.Signal{len:8, byte_offset:5, rxtx:1}
+			- gui.can.TableRow{index:$gui_start+2, kind: ProcedureResult}
+		}
+		Trajectory_Done_Flag {
+			- eg.quantities.RangedGeneric{kind:U8, min_u64:$U32_MIN, max_u64:$U32_MAX}
+			- eg.can.Signal{len:8, byte_offset:6, rxtx:1}
+			- gui.can.TableRow{index:$gui_start+3}
+		}
+	}
+
+	ESTOP {
+		- eg.can.Id{id : $canid_start + 2}
+		estop {
+			- eg.can.Signal{len:0, byte_offset:0, rxtx:2}
+			- gui.can.TableRow{index:$gui_start+4}
+			- (flecs.doc.Description, flecs.doc.Brief){"Causes the axis to disarm with ESTOP_REQUESTED"}
+			- (flecs.doc.Description, flecs.doc.Link){"https://docs.odriverobotics.com/v/latest/manual/can-protocol.html#estop"}
+			- (flecs.doc.Description, flecs.doc.Color){"#FF3333"}
+		}
+	}
+
+	GET_ERROR {
+		- eg.can.Id{id : $canid_start + 3}
+	}
+
+	RXSDO {
+		- eg.can.Id{id : $canid_start + 4}
+	}
+
+	TXSDO {
+		- eg.can.Id{id : $canid_start + 5}
+	}
+
+	ADDRESS {
+		- eg.can.Id{id : $canid_start + 6}
+	}
+
+	SET_AXIS_STATE {
+		- eg.can.Id{id : $canid_start + 7}
+	}
+
+	GET_ENCODER_ESTIMATES {
+		- eg.can.Id{id : $canid_start + 9}
+	}
+
+	SET_CONTROLLER_MODE {
+		- eg.can.Id{id : $canid_start + 11}
+	}
+
+	SET_INPUT_POS {
+		- eg.can.Id{id : $canid_start + 12}
+	}
+
+	SET_INPUT_VEL {
+		- eg.can.Id{id : $canid_start + 13}
+	}
+
+	SET_INPUT_TORQUE {
+		- eg.can.Id{id : $canid_start + 14}
+	}
+
+	SET_LIMITS {
+		- eg.can.Id{id : $canid_start + 15}
+	}
+
+	SET_TRAJ_VEL_LIMITS {
+		- eg.can.Id{id : $canid_start + 17}
+	}
+
+	SET_TRAJ_ACCEL_LIMITS {
+		- eg.can.Id{id : $canid_start + 18}
+	}
+
+	SET_TRAJ_INERTIA {
+		- eg.can.Id{id : $canid_start + 19}
+	}
+
+	GET_IQ {
+		- eg.can.Id{id : $canid_start + 20}
+	}
+
+	GET_TEMPERATURE {
+		- eg.can.Id{id : $canid_start + 21}
+	}
+
+	REBOOT {
+		- eg.can.Id{id : $canid_start + 22}
+	}
+
+	GET_BUS_VOLTAGE_CURRENT {
+		- eg.can.Id{id : $canid_start + 21}
+	}
+
+	CLEAR_ERRORS {
+		- eg.can.Id{id : $canid_start + 22}
+	}
+
+	SET_ABSOLUTE_POSITION {
+		- eg.can.Id{id : $canid_start + 23}
+	}
+
+	SET_POS_GAINS {
+		- eg.can.Id{id : $canid_start + 24}
+	}
+
+	SET_VEL_GAINS {
+		- eg.can.Id{id : $canid_start + 25}
+	}
+
+	GET_POWERS {
+		- eg.can.Id{id : $canid_start + 26}
+	}
+}
