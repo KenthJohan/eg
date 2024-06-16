@@ -35,13 +35,13 @@ canpool {
 			- odrives.s1{canid_start: 1*32, gui_start: 20}
 		}
 		o2 {
-			- odrives.s1{canid_start: 2*32, gui_start: 40}
+			- odrives.s1{canid_start: 2*32, gui_start: 50}
 		}
 		o3 {
-			- odrives.s1{canid_start: 3*32, gui_start: 60}
+			- odrives.s1{canid_start: 3*32, gui_start: 80}
 		}
 		o4 {
-			- odrives.s1{canid_start: 4*32, gui_start: 80}
+			- odrives.s1{canid_start: 4*32, gui_start: 110}
 		}
 
 		bot {

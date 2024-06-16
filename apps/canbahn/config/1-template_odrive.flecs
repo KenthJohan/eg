@@ -261,10 +261,25 @@ assembly s1 {
 
 	SET_INPUT_VEL {
 		- eg.can.Id{id : $canid_start + 13}
+		Input_Vel {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+14}
+		}
+		Input_Torque_FF {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+15}
+		}
 	}
 
 	SET_INPUT_TORQUE {
 		- eg.can.Id{id : $canid_start + 14}
+		Input_Torque {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:4, byte_offset:0, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+16}
+		}
 	}
 
 	SET_LIMITS {
@@ -297,6 +312,16 @@ assembly s1 {
 
 	GET_BUS_VOLTAGE_CURRENT {
 		- eg.can.Id{id : $canid_start + 21}
+		Bus_Voltage {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:4, byte_offset:0, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+17}
+		}
+		Bus_Current {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:4, byte_offset:4, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+18}
+		}
 	}
 
 	CLEAR_ERRORS {
@@ -317,5 +342,16 @@ assembly s1 {
 
 	GET_POWERS {
 		- eg.can.Id{id : $canid_start + 26}
+		Electrical_Power {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:4, byte_offset:0, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+19}
+		}
+
+		Mechanical_Power {
+			- eg.quantities.RangedGeneric{kind:F32, min_f32:$ODRIVE_FLT_MIN, max_f32:$ODRIVE_FLT_MAX}
+			- eg.can.Signal{len:4, byte_offset:4, rxtx:3}
+			- gui.can.TableRow{index:$gui_start+20}
+		}
 	}
 }
