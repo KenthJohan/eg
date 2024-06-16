@@ -113,13 +113,13 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				n = ECS_MAX(row->index + 1, n);
 			}
 		}
-		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
-		igTableSetupColumn("idname", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("idname", ImGuiTableColumnFlags_WidthFixed, 150, 0);
 		igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("idn", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+		igTableSetupColumn("signame", ImGuiTableColumnFlags_WidthFixed, 150, 0);
 		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("kind", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 200, 0);
@@ -169,9 +169,6 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			// igTableSetBgColor(ImGuiTableBgTarget_RowBg0, COLOR_RGBA(0xFF, 0xFF, 0xFF, 0xFF), -1);
 
 			igTableNextColumn();
-			igText("%s", signame);
-
-			igTableNextColumn();
 			igText(desc->interface);
 
 			igTableNextColumn();
@@ -185,11 +182,14 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				igText("%i", channel->id);
 				igTableNextColumn();
 				igText("%03X", channel->id);
+				igTableNextColumn();
+				igText("%i", channel->n);
 			}
 			igPopStyleColor(1);
 
+
 			igTableNextColumn();
-			igText("%i", channel->n);
+			igText("%s", signame);
 
 			igTableNextColumn();
 			igText("%i", signal->byte_offset);

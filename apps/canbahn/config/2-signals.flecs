@@ -2,8 +2,15 @@ module app
 using flecs.meta
 
 Enum NavMode {
-	Moving :- (Constant, i32){1}
-	Docking :- (Constant, i32){2}
+	UNDEFINED :- (Constant, i32){0}
+	NAVIGATE :- (Constant, i32){1}
+	CREEP :- (Constant, i32){2}
+	ERROR :- (Constant, i32){3}
+	RECOVER :- (Constant, i32){4}
+	DOCKED :- (Constant, i32){5}
+    UNDOCK :- (Constant, i32){6}
+    RETURN :- (Constant, i32){7}
+    HOME :- (Constant, i32){8}
 }
 
 
@@ -15,12 +22,15 @@ canpool {
 	- eg.can.RxThread{dummy:0}
 	can0 {
 		- eg.can.BusDescription{interface:"can0"}
-		rc {
+
+		rc0 {
 			- flysky.fsi6{canid_start: 200, gui_start: 200}
 		}
+
 		movements {
 			- movements.Movement{canid_start:10, gui_start: 8}
 		}
+
 		o1 {
 			- odrives.s1{canid_start: 1*32, gui_start: 20}
 		}
@@ -33,6 +43,29 @@ canpool {
 		o4 {
 			- odrives.s1{canid_start: 4*32, gui_start: 80}
 		}
+
+		bot {
+			BOT_SENSE {
+				- eg.can.Id{id : 20}
+				btn0 {
+					- eg.can.Signal{len:1, byte_offset:0, rxtx:3}
+					- eg.quantities.RangedGeneric{kind:U8, min_u64:0, max_u64:255}
+					- gui.can.TableRow{index:4}
+				}
+			}
+		}
+
+		autopilot {
+			NAV {
+				- eg.can.Id{id : 21}
+				mode {
+					- eg.can.Signal{len:1, byte_offset:0, rxtx:3}
+					- eg.quantities.RangedGeneric{kind:U8, min_u64:0, max_u64:255}
+					- gui.can.TableRow{index:5, kind:NavMode}
+				}
+			}
+		}
+
 	}
 }
 
