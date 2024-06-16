@@ -1,0 +1,26 @@
+module visions
+using flecs.meta
+
+
+
+assembly Vision {
+	prop canid_start: u32 = 0
+	prop gui_start: u32 = 0
+
+	const f32signal : eg.quantities.RangedGeneric = {kind:F32, min_f32:-10, max_f32:10}
+	
+	VISION_POS {
+		- eg.can.Id{id : $canid_start + 0}
+		with $f32signal {
+			x {
+				- eg.can.Signal{byte_offset:0, len:8, rxtx:3}
+				- gui.can.TableRow{index:$gui_start+0}
+			}
+			y {
+				- eg.can.Signal{byte_offset:4, len:8, rxtx:3}
+				- gui.can.TableRow{index:$gui_start+1}
+			}
+		}
+	}
+
+}

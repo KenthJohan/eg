@@ -66,6 +66,12 @@ canpool {
 			}
 		}
 
+		vision {
+			- visions.Vision{canid_start:2, gui_start: 10}
+		}
+		
+
+
 	}
 }
 
