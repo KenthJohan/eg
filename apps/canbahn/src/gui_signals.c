@@ -36,7 +36,7 @@ static void gui_tx(ecs_world_t * world, eg_can_book_t *book, EgCanId *channel, E
 	bool modifed = false;
 	if (value) {
 		if (signal->rxtx & 0x02) {
-			if (row->parent) {
+			if (row->representation) {
 				EcsEnum const *enum_type = ecs_get(world, row->representation, EcsEnum);
 				if (enum_type) {
 					int v = (int)value->tx.val_u64;

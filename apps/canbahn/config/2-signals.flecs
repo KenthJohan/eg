@@ -8,36 +8,28 @@ Enum NavMode {
 
 
 
-rxt {
+
+
+
+canpool {
 	- eg.can.RxThread{dummy:0}
-	bus1 {
+	can0 {
 		- eg.can.BusDescription{interface:"can0"}
-		- CanIds {}
+		- flysky.fsi6{gui_parent:canpool.can0}
 	}
 }
 
-rxt.bus1 {
-	RC0123 {
-	- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
+
+canpool {
+	can0 {
+		RC0123 {
+			- eg.can.Id{id:20}
+		}
+		RC4567 {
+			- eg.can.Id{id:21}
+		}
+		RC89 {
+			- eg.can.Id{id:22}
+		}
 	}
-	//- flysky.fsi6{gui_index_start: 200, gui_scope_name_parent: rxt.bus1}
 }
-
-
-
-rxt.bus1.RC0123.navmode {
-	- eg.quantities.RangedGeneric{kind:U32, min_u64:0, max_u64:10}
-	- gui.can.TableRow{index:4, parent:rxt.bus1, representation: NavMode}
-	- eg.can.Signal{len:8, byte_offset:4, rxtx:3}
-}
-
-
-rxt.bus1.encoder_estimate_pos {
-	- eg.quantities.RangedGeneric{kind:F32, min_f32:-10, max_f32:10}
-	- gui.can.TableRow{index:6, parent:rxt.bus1, representation: NavMode}
-	- eg.can.Signal{len:8, byte_offset:0, rxtx:3}
-}
-
-
-
-

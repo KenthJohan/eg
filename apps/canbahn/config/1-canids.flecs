@@ -1,20 +1,2 @@
 using flecs.meta
 
-assembly CanIds {
-
-	prop prop1: u32 = 0
-
-	RC0123 {
-		- eg.can.Id{id:20}
-	}
-
-	RC4567 {
-		- eg.can.Id{id:21}
-	}
-
-	RC89 {
-		- eg.can.Id{id:20}
-	}
-}
-
-
