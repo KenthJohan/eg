@@ -15,18 +15,23 @@ canpool {
 	- eg.can.RxThread{dummy:0}
 	can0 {
 		- eg.can.BusDescription{interface:"can0"}
-		- flysky.fsi6{canid_start: 200, gui_parent:canpool.can0}
+		rc {
+			- flysky.fsi6{canid_start: 200, gui_start: 200}
+		}
+		movements {
+			- movements.Movement{canid_start:10, gui_start: 8}
+		}
 		o1 {
-			- odrives.s1{canid_start: 1*32, gui_start: 20, gui_parent:canpool.can0}
+			- odrives.s1{canid_start: 1*32, gui_start: 20}
 		}
 		o2 {
-			- odrives.s1{canid_start: 2*32, gui_start: 40, gui_parent:canpool.can0}
+			- odrives.s1{canid_start: 2*32, gui_start: 40}
 		}
 		o3 {
-			- odrives.s1{canid_start: 3*32, gui_start: 60, gui_parent:canpool.can0}
+			- odrives.s1{canid_start: 3*32, gui_start: 60}
 		}
 		o4 {
-			- odrives.s1{canid_start: 4*32, gui_start: 80, gui_parent:canpool.can0}
+			- odrives.s1{canid_start: 4*32, gui_start: 80}
 		}
 	}
 }

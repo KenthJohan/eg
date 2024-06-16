@@ -124,7 +124,6 @@ Enum OpCode {
 assembly s1 {
 	prop canid_start: u32 = 0
 	prop gui_start: u32 = 0
-	prop gui_parent: entity = 0
 
 	const I8_MIN = -128
 	const I8_MAX = 127
