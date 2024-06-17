@@ -4,7 +4,6 @@
 #include <math.h>
 #include <float.h>
 
-
 #define COLOR_RGBA(r, g, b, a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
 
 bool igCombo_flecs(ecs_world_t *world, EcsEnum const *enum_type, int *parent_val)
@@ -24,7 +23,7 @@ bool igCombo_flecs(ecs_world_t *world, EcsEnum const *enum_type, int *parent_val
 			selected = c0 && (c->value == c0->value);
 			snprintf(buf, sizeof(buf), "%s (%i)", c->name, c->value);
 			selected = igSelectable_Bool(buf, selected, 0, (ImVec2){0, 0});
-			if(selected) {
+			if (selected) {
 				(*parent_val) = c->value;
 				break;
 			}
@@ -35,7 +34,6 @@ bool igCombo_flecs(ecs_world_t *world, EcsEnum const *enum_type, int *parent_val
 	igPopItemWidth();
 	return selected;
 }
-
 
 char const *flecs_get_type(ecs_primitive_kind_t kind)
 {
@@ -80,13 +78,13 @@ char const *flecs_get_type(ecs_primitive_kind_t kind)
 	return "";
 }
 
-
-
 size_t djb_hash(const char *cp)
 {
 	size_t hash = 5381;
-	while (*cp)
-		hash = 33 * hash ^ (unsigned char)*cp++;
+	while (*cp) {
+		hash = 33 * (hash ^ (unsigned char)*cp) ^ *cp;
+		cp++;
+	}
 	return hash;
 }
 
@@ -117,12 +115,6 @@ void igPushStyleColor_U32_HSV_hash32(uint32_t value)
 	eg_color_hsv_to_rgb(h, s, 255, &r, &g, &b);
 	igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r, g, b, 255));
 }
-
-
-
-
-
-
 
 bool igSlider_flecs(const char *label, EgQuantitiesRangedGeneric *value)
 {
@@ -169,7 +161,7 @@ bool igSlider_flecs(const char *label, EgQuantitiesRangedGeneric *value)
 		break;
 	}
 	if (modified) {
-		//EgCan_book_prepare_send(book, signal, value);
+		// EgCan_book_prepare_send(book, signal, value);
 	}
 	return modified;
 }
@@ -212,8 +204,7 @@ void igInput_flecs(const char *label, eg_generic_number_t *val, ecs_primitive_ki
 	}
 }
 
-
-void igText_flecs_enum(ecs_world_t * world, ecs_entity_t type, eg_generic_number_t *value, ecs_primitive_kind_t kind)
+void igText_flecs_enum(ecs_world_t *world, ecs_entity_t type, eg_generic_number_t *value, ecs_primitive_kind_t kind)
 {
 	if (type && ecs_has(world, type, EcsEnum)) {
 		int val = value->val_u64;
@@ -226,7 +217,6 @@ void igText_flecs_enum(ecs_world_t * world, ecs_entity_t type, eg_generic_number
 		}
 		return;
 	}
-
 
 	switch (kind) {
 	case EcsI8:
@@ -251,8 +241,6 @@ void igText_flecs_enum(ecs_world_t * world, ecs_entity_t type, eg_generic_number
 		break;
 	}
 }
-
-
 
 void igText_flecs(eg_generic_number_t *value, ecs_primitive_kind_t kind)
 {
@@ -280,15 +268,12 @@ void igText_flecs(eg_generic_number_t *value, ecs_primitive_kind_t kind)
 	}
 }
 
-
-
-
-void igCheckbox_flecs(ecs_world_t * world, ecs_entity_t e, ecs_id_t tag)
+void igCheckbox_flecs(ecs_world_t *world, ecs_entity_t e, ecs_id_t tag)
 {
 	bool checked = ecs_has_id(world, e, tag);
 	bool pressed = igCheckbox("", &checked);
 	if (pressed) {
-		//printf("checked:%i:%s\n", checked, name);
+		// printf("checked:%i:%s\n", checked, name);
 		if (checked) {
 			ecs_add_id(world, e, tag);
 		} else {

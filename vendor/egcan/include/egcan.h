@@ -29,6 +29,7 @@ typedef struct {
 	uint32_t dirty;
 	uint32_t stats_count;
 	uint8_t payload[8];
+	ecs_time_t time;
 } eg_can_book_packet8_t;
 
 typedef struct {
@@ -64,6 +65,7 @@ typedef struct {
 typedef struct {
 	uint32_t id;
 	uint32_t n;
+	double elapsed;
 } EgCanId;
 
 extern ECS_DECLARE(EgCanRx);

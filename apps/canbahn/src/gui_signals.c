@@ -17,6 +17,7 @@
 #define COLOR_RGBA(r, g, b, a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
 
 typedef struct {
+	char const *parentname;
 	char const *signame;
 	char const *idname;
 	EgCanBusDescription *desc;
@@ -78,7 +79,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 	// int n = ecs_query_entity_count(q);
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-	if (igBeginTable("Signals table", 16, flags2, (ImVec2){0, 0}, 0)) {
+	if (igBeginTable("Signals table", 17, flags2, (ImVec2){0, 0}, 0)) {
 		gui_can_table_t gui[MAX_ROWS] = {0};
 		int n = 0;
 		ecs_iter_t it = ecs_query_iter(world, q);
@@ -100,7 +101,9 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 				// printf("e: %s, from : %s\n", name, name1 ? name1 : "?");
 				// char const *name = ecs_get_path_w_sep(world, row->parent, e, ".", NULL);
 				ecs_entity_t ident = ecs_field_src(&it, 3);
+				ecs_entity_t parent = ecs_get_parent(world, ident);
 				gui[row->index].e = e;
+				gui[row->index].parentname = ecs_get_name(world, parent);
 				gui[row->index].signame = ecs_get_name(world, e);
 				gui[row->index].idname = ecs_get_name(world, ident);
 				gui[row->index].channel = channel;
@@ -115,11 +118,12 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		}
 		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
-		igTableSetupColumn("idname", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+		igTableSetupColumn("parent", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("idn", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("signame", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+		igTableSetupColumn("sig", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 		igTableSetupColumn("kind", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 		igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 200, 0);
@@ -132,6 +136,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 		igTableHeadersRow();
 
 		for (int i = 0; i < n; ++i) {
+			char const *parentname = gui[i].parentname;
 			char const *signame = gui[i].signame;
 			char const *idname = gui[i].idname;
 			EgQuantitiesIsq *quant = gui[i].q;
@@ -144,6 +149,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 			ecs_entity_t e = gui[i].e;
 
 			if (signame == NULL) {
+				igTableNextColumn();
 				igTableNextColumn();
 				igTableNextColumn();
 				igTableNextColumn();
@@ -173,6 +179,12 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 
 			igTableNextColumn();
 			igText("%i", bus->socket);
+
+			igPushStyleColor_U32_HSV_strhash(parentname);
+			igTableNextColumn();
+			igText("%s", parentname);
+			igPopStyleColor(1);
+
 
 			igPushStyleColor_U32_HSV_hash32(channel->id);
 			{

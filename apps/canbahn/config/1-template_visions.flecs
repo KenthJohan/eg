@@ -28,11 +28,11 @@ assembly Vision {
 		with $f32signal {
 			x {
 				- eg.can.Signal{byte_offset:0, len:8, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+0}
+				- gui.can.TableRow{index:$gui_start+2}
 			}
 			y {
 				- eg.can.Signal{byte_offset:4, len:8, rxtx:3}
-				- gui.can.TableRow{index:$gui_start+1}
+				- gui.can.TableRow{index:$gui_start+3}
 			}
 		}
 	}

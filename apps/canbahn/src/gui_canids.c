@@ -14,6 +14,8 @@
 #include "GuiCan.h"
 #include "flecs_imgui.h"
 
+#define COLOR_RGBA(r, g, b, a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
+
 int compare_canid(ecs_entity_t e1, const EgCanId *p1, ecs_entity_t e2, const EgCanId *p2)
 {
 	(void)e1;
@@ -28,7 +30,7 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 	// int n = ecs_query_entity_count(q);
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-	if (igBeginTable("Signals table", 7, flags2, (ImVec2){0, 0}, 0) == false) {
+	if (igBeginTable("Signals table", 8, flags2, (ImVec2){0, 0}, 0) == false) {
 		return;
 	}
 
@@ -38,6 +40,7 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 	igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("n", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+	igTableSetupColumn("ms", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 300, 0);
 	igTableHeadersRow();
 
@@ -48,18 +51,35 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 		for (int i = 0; i < it.count; ++i, ++channel) {
 			ecs_entity_t e = it.entities[i];
 			ecs_entity_t ep = ecs_get_parent(world, e);
+			char const * idname = ecs_get_name(world, e);
+			char const * parentname = ecs_get_name(world, ep);
 			igTableNextColumn();
 			igText("%i", bus->socket);
+
 			igTableNextColumn();
-			igText("%s", ecs_get_name(world, ep));
+			igPushStyleColor_U32_HSV_strhash(parentname);
+			igText("%s", parentname);
+			igPopStyleColor(1);
+
 			igTableNextColumn();
-			igText("%s", ecs_get_name(world, e));
+			igPushStyleColor_U32_HSV_strhash(idname);
+			igText("%s", idname);
+			igPopStyleColor(1);
+
 			igTableNextColumn();
 			igText("%3i", channel->id);
 			igTableNextColumn();
 			igText("%03X", channel->id);
 			igTableNextColumn();
 			igText("%03X", channel->n);
+			igTableNextColumn();
+			if (channel->elapsed > 0) {
+				float f = 1.0f / channel->elapsed;
+				uint8_t r = ECS_MIN(f, 255);
+				igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r, 100, 100, 255));
+				igText("%3.2f", f);
+				igPopStyleColor(1);
+			}
 			igTableNextColumn();
 			eg_can_book_t * book = bus->ptr;
 			eg_can_book_packet8_t * rx = NULL;

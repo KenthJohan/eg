@@ -210,6 +210,11 @@ static void EgCanSignal_parse(ecs_world_t *world, ecs_entity_t e, EgCanSignal *s
 	}
 	// TODO: Support all types and bit offsets
 	eg_can_book_packet8_t *rx = book->rx + id;
+	if (rx->dirty == 0) {
+		return;
+	}
+	rx->dirty = 0;
+	channel->elapsed = ecs_time_measure(&rx->time);
 	channel->n = rx->stats_count;
 	void *out = &val->rx;
 	switch (val->kind) {
@@ -515,6 +520,7 @@ void EgCanImport(ecs_world_t *world)
 	.members = {
 	{.name = "id", .type = ecs_id(ecs_u32_t)},
 	{.name = "n", .type = ecs_id(ecs_u32_t)},
+	{.name = "elapsed", .type = ecs_id(ecs_f64_t)}
 	}});
 
 
