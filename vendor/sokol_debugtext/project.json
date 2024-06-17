@@ -11,8 +11,7 @@
 		"export-symbols": true,
 		"static": true,
 		"defines": [
-			"SOKOL_GLCORE33",
-			"HEJ_SOKOL_NO_ENTRY"
+			"SOKOL_GLCORE"
 		],
 		"cflags": [
 			"-Werror",
