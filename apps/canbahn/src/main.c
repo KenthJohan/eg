@@ -20,6 +20,7 @@
 #include <egifaces.h>
 
 #include "GuiCan.h"
+#include "gui_canids.h"
 #include "gui_signals.h"
 #include "gui_interfaces.h"
 #include "imgui_font.h"
@@ -27,6 +28,7 @@
 
 typedef struct {
 	ecs_world_t *world;
+	ecs_query_t *query_canids;
 	ecs_query_t *query_signals;
 	ecs_query_t *query_gui;
 	ecs_query_t *query_ifaces;
@@ -118,6 +120,10 @@ void frame(app_t *app)
 				gui_interfaces_progress(app->world, app->query_ifaces);
 				igEndTabItem();
 			}
+			if (igBeginTabItem("CANids", NULL, 0)) {
+				gui_canids_progress(app->world, app->query_canids);
+				igEndTabItem();
+			}
 			if (igBeginTabItem("Signals", NULL, 0)) {
 				gui_signals_progress(app->world, app->query_signals);
 				igEndTabItem();
@@ -191,6 +197,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	*/
 	ecs_log_set_level(-1);
 
+	app->query_canids = gui_canids_query(app->world);
 	app->query_signals = gui_signals_query(app->world);
 	app->query_ifaces = gui_interfaces_query(app->world);
 	app->query_gui = egimgui_query1(app->world);

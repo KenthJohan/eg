@@ -21,31 +21,31 @@ Enum NavMode {
 canpool {
 	- eg.can.RxThread{dummy:0}
 	can0 {
-		- eg.can.BusDescription{interface:"vcan0"}
+		- eg.can.BusDescription{interface:"can0"}
 
-		rc0 {
+		RC0 {
 			- flysky.fsi6{canid_start: 200, gui_start: 200}
 		}
 
-		movements {
+		DJMIX {
 			- movements.Movement{canid_start:10, gui_start: 8}
 		}
 
-		o1 {
+		ODRIVE1 {
 			- odrives.s1{canid_start: 1*32, gui_start: 20}
 		}
-		o2 {
+		ODRIVE2 {
 			- odrives.s1{canid_start: 2*32, gui_start: 50}
 		}
-		o3 {
+		ODRIVE3 {
 			- odrives.s1{canid_start: 3*32, gui_start: 80}
 		}
-		o4 {
+		ODRIVE4 {
 			- odrives.s1{canid_start: 4*32, gui_start: 110}
 		}
 
-		bot {
-			BOT_SENSE {
+		FUNKYBOT {
+			SENSE {
 				- eg.can.Id{id : 20}
 				btn0 {
 					- eg.can.Signal{len:1, byte_offset:0, rxtx:3}
@@ -55,7 +55,7 @@ canpool {
 			}
 		}
 
-		autopilot {
+		AUTOPILOT {
 			NAV {
 				- eg.can.Id{id : 21}
 				mode {
@@ -66,7 +66,7 @@ canpool {
 			}
 		}
 
-		vision {
+		VISION {
 			- visions.Vision{canid_start:2, gui_start: 10}
 		}
 		

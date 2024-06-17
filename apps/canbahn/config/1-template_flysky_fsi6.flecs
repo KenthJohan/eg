@@ -24,7 +24,7 @@ assembly fsi6 {
 
 	const channel_type : eg.quantities.RangedGeneric = {kind:U16, min_u64:1000, max_u64:2000}
 
-	RC0123 {
+	C0123 {
 		- eg.can.Id{id : $canid_start + 0}
 		with $channel_type {
 			ch0_rh {
@@ -46,7 +46,7 @@ assembly fsi6 {
 		}
 	}
 
-	RC4567 {
+	C4567 {
 		- eg.can.Id{id : $canid_start + 1}
 		with $channel_type {
 			ch4_trim_r {
@@ -70,7 +70,7 @@ assembly fsi6 {
 
 
 
-	RC89 {
+	C89 {
 		- eg.can.Id{id : $canid_start + 2}
 		with $channel_type {
 			ch8_0100  {
