@@ -210,12 +210,6 @@ static void EgCanSignal_parse(ecs_world_t *world, ecs_entity_t e, EgCanSignal *s
 	}
 	// TODO: Support all types and bit offsets
 	eg_can_book_packet8_t *rx = book->rx + id;
-	if (rx->dirty == 0) {
-		return;
-	}
-	rx->dirty = 0;
-	channel->elapsed = ecs_time_measure(&rx->time);
-	channel->n = rx->stats_count;
 	void *out = &val->rx;
 	switch (val->kind) {
 	case EcsI8:
@@ -279,7 +273,7 @@ static void EgCanSignal_parse(ecs_world_t *world, ecs_entity_t e, EgCanSignal *s
 	}
 }
 
-static void System_Rx(ecs_iter_t *it)
+static void System_Rx_Signal(ecs_iter_t *it)
 {
 	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1);                         // shared
 	EgCanBus *bus = ecs_field(it, EgCanBus, 2);                                   // shared
@@ -293,6 +287,32 @@ static void System_Rx(ecs_iter_t *it)
 		EgCanSignal_parse(it->world, it->entities[i], signal, channel, book, val);
 	}
 	ecs_os_mutex_unlock(impl->lock);
+}
+
+static void System_Rx(ecs_iter_t *it)
+{
+	EgCanRxThread *rxt = ecs_field(it, EgCanRxThread, 1); // shared
+	EgCanBus *bus = ecs_field(it, EgCanBus, 2);           // shared
+	EgCanId *channel = ecs_field(it, EgCanId, 3);         // self
+	thread_stuff_t const *impl = rxt->impl;
+	eg_can_book_t const *book = bus->ptr;
+	for (int i = 0; i < it->count; ++i, ++channel, ++bus) {
+		uint32_t id = channel->id;
+		if (id >= book->cap) {
+			ecs_warn("canid=%i must be less than cap=%i", id, book->cap);
+			continue;
+		}
+		eg_can_book_packet8_t *rx = book->rx + id;
+		if (rx->dirty == 0) {
+			return;
+		}
+		rx->dirty = 0;
+		// printf("%0jX: \n", e);
+		ecs_os_mutex_lock(impl->lock);
+		channel->elapsed = ecs_time_measure(&rx->time);
+		channel->n = rx->stats_count;
+		ecs_os_mutex_unlock(impl->lock);
+	}
 }
 
 static void System_Value(ecs_iter_t *it)
@@ -581,7 +601,7 @@ void EgCanImport(ecs_world_t *world)
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = System_Rx,
+	.callback = System_Rx_Signal,
 	.query.filter.terms =
 	{
 	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsChildOf},
@@ -592,6 +612,16 @@ void EgCanImport(ecs_world_t *world)
 	}});
 
 
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = System_Rx,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(EgCanRxThread), .src.flags = EcsUp, .src.trav = EcsChildOf},
+	{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
+	{.id = ecs_id(EgCanId)}
+	}});
 
 
 

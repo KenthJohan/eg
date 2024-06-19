@@ -71,7 +71,7 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 			igTableNextColumn();
 			igText("%03X", channel->id);
 			igTableNextColumn();
-			igText("%03X", channel->n);
+			igText("%u", channel->n);
 			igTableNextColumn();
 			if (channel->elapsed > 0) {
 				float f = 1.0f / channel->elapsed;
@@ -85,7 +85,7 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 			eg_can_book_packet8_t * rx = NULL;
 			if (channel->id < book->cap) {
 				rx = book->rx + channel->id;
-				char * p = rx->payload;
+				uint8_t * p = rx->payload;
 				igText("%02X %02X %02X %02X %02X %02X %02X %02X", p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
 			}
 		}

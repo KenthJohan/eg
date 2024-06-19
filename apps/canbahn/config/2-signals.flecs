@@ -11,6 +11,7 @@ Enum NavMode {
 	UNDOCK :- (Constant, i32){6}
 	RETURN :- (Constant, i32){7}
 	HOME :- (Constant, i32){8}
+	GOHOME :- (Constant, i32){9}
 }
 
 
@@ -21,7 +22,7 @@ Enum NavMode {
 canpool {
 	- eg.can.RxThread{dummy:0}
 	can0 {
-		- eg.can.BusDescription{interface:"can0"}
+		- eg.can.BusDescription{interface:"vcan0"}
 
 		RC0 {
 			- flysky.fsi6{canid_start: 200, gui_start: 200}

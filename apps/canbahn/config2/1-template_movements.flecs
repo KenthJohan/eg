@@ -1,0 +1,38 @@
+module movements
+using flecs.meta
+
+
+
+assembly Movement {
+	prop canid_start: u32 = 0
+	prop gui_start: u32 = 0
+
+	const I8_MIN = -128
+	const I8_MAX = 127
+
+	const U8_MIN = 0
+	const U8_MAX = 255
+
+
+	const U32_MIN = 0
+	const U32_MAX = 4294967295
+
+	const f32signal : eg.quantities.RangedGeneric = {kind:F32, min_f32:-10, max_f32:10}
+
+
+	MOVE {
+		- eg.can.Id{id : $canid_start + 0}
+		with $f32signal {
+			forward {
+				- eg.can.Signal{byte_offset:0, len:8, rxtx:3}
+				- gui.can.TableRow{index:$gui_start+0}
+			}
+			turn {
+				- eg.can.Signal{byte_offset:4, len:8, rxtx:3}
+				- gui.can.TableRow{index:$gui_start+1}
+			}
+		}
+
+	}
+
+}

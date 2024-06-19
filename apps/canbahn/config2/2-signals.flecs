@@ -1,59 +1,77 @@
-module app.signals
+module app
 using flecs.meta
 
 Enum NavMode {
-	Moving :- (Constant, i32){1}
-	Docking :- (Constant, i32){2}
+	UNDEFINED :- (Constant, i32){0}
+	NAVIGATE :- (Constant, i32){1}
+	CREEP :- (Constant, i32){2}
+	ERROR :- (Constant, i32){3}
+	RECOVER :- (Constant, i32){4}
+	DOCKED :- (Constant, i32){5}
+	UNDOCK :- (Constant, i32){6}
+	RETURN :- (Constant, i32){7}
+	HOME :- (Constant, i32){8}
 }
 
 
 
-rxt {
+
+
+
+canpool {
 	- eg.can.RxThread{dummy:0}
-	bus1 {
-		- eg.can.BusDescription{interface:"can0"}
-		o1 {
-			- odrives.Odrive{NODE_ID:1, gui_index_start: 20, gui_scope_name_parent: rxt.bus1}
-		}
-		o2 {
-			- odrives.Odrive{NODE_ID:2, gui_index_start: 40, gui_scope_name_parent: rxt.bus1}
-		}
-		o3 {
-			- odrives.Odrive{NODE_ID:3, gui_index_start: 60, gui_scope_name_parent: rxt.bus1}
-		}
-		o4 {
-			- odrives.Odrive{NODE_ID:4, gui_index_start: 80, gui_scope_name_parent: rxt.bus1}
+	can0 {
+		- eg.can.BusDescription{interface:"vcan0"}
+
+		RC0 {
+			- flysky.fsi6{canid_start: 200, gui_start: 200}
 		}
 
-		rc {
-			- rcs.Rc{CANID:200, gui_index_start: 200, gui_scope_name_parent: rxt.bus1}
+		DJMIX {
+			- movements.Movement{canid_start:10, gui_start: 8}
 		}
 
-
-
-		movement {
-			- movements.Movement{CANID:10, gui_index_start: 10, gui_scope_name_parent: rxt.bus1}
+		ODRIVE1 {
+			- odrives.s1{canid_start: 1*32, gui_start: 20}
+		}
+		ODRIVE2 {
+			- odrives.s1{canid_start: 2*32, gui_start: 50}
+		}
+		ODRIVE3 {
+			- odrives.s1{canid_start: 3*32, gui_start: 80}
+		}
+		ODRIVE4 {
+			- odrives.s1{canid_start: 4*32, gui_start: 110}
 		}
 
-		vision {
-			- visions.Vision{CANID:2, gui_index_start: 14, gui_scope_name_parent: rxt.bus1}
+		FUNKYBOT {
+			SENSE {
+				- eg.can.Id{id : 20}
+				btn0 {
+					- eg.can.Signal{len:1, byte_offset:0, rxtx:3}
+					- eg.quantities.RangedGeneric{kind:U8, min_u64:0, max_u64:255}
+					- gui.can.TableRow{index:4}
+				}
+			}
 		}
 
-		vision {
-			- visions.Vision{CANID:2, gui_index_start: 14, gui_scope_name_parent: rxt.bus1}
+		AUTOPILOT {
+			NAV {
+				- eg.can.Id{id : 21}
+				mode {
+					- eg.can.Signal{len:1, byte_offset:0, rxtx:3}
+					- eg.quantities.RangedGeneric{kind:U8, min_u64:0, max_u64:255}
+					- gui.can.TableRow{index:5, kind:NavMode}
+				}
+			}
 		}
 
-		navmode {
-			- eg.quantities.RangedGeneric{kind:U32, min_u64:0, max_u64:10}
-			- eg.can.Signal{canid:20, len:8, byte_offset:4, gui_index:4, gui_scope_name_parent:rxt.bus1, rxtx:3, component_rep: NavMode}
+		VISION {
+			- visions.Vision{canid_start:2, gui_start: 10}
 		}
+		
+
 
 	}
 }
-
-
-
-
-
-
 
