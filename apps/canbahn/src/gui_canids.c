@@ -30,7 +30,7 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 	// int n = ecs_query_entity_count(q);
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-	if (igBeginTable("Signals table", 8, flags2, (ImVec2){0, 0}, 0) == false) {
+	if (igBeginTable("Signals table", 9, flags2, (ImVec2){0, 0}, 0) == false) {
 		return;
 	}
 
@@ -40,7 +40,8 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 	igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("n", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-	igTableSetupColumn("ms", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+	igTableSetupColumn("f[Hz]", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+	igTableSetupColumn("T[ms]", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 300, 0);
 	igTableHeadersRow();
 
@@ -72,12 +73,14 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 			igText("%03X", channel->id);
 			igTableNextColumn();
 			igText("%u", channel->n);
-			igTableNextColumn();
-			if (channel->elapsed > 0) {
-				float f = 1.0f / channel->elapsed;
-				uint8_t r = ECS_MIN(f, 255);
-				igPushStyleColor_U32(ImGuiCol_Text, COLOR_RGBA(r, 100, 100, 255));
-				igText("%3.2f", f);
+			{
+				uint32_t f = (uint32_t)(1.0 / (double)(channel->elapsed));
+				uint32_t ms = (uint32_t)(channel->elapsed * 1000.0);
+				igPushStyleColor_U32_HSV_hash32(f);
+				igTableNextColumn();
+				igText("%u", f);
+				igTableNextColumn();
+				igText("%u", ms);
 				igPopStyleColor(1);
 			}
 			igTableNextColumn();

@@ -79,172 +79,170 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 	// int n = ecs_query_entity_count(q);
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-	if (igBeginTable("Signals table", 17, flags2, (ImVec2){0, 0}, 0)) {
-		gui_can_table_t gui[MAX_ROWS] = {0};
-		int n = 0;
-		ecs_iter_t it = ecs_query_iter(world, q);
-		while (ecs_query_next(&it)) {
-			EgCanBus *bus = ecs_field(&it, EgCanBus, 1);                                     // shared
-			EgCanBusDescription *desc = ecs_field(&it, EgCanBusDescription, 2);              // shared
-			EgCanId *channel = ecs_field(&it, EgCanId, 3);                                   // shared
-			EgCanSignal *signal = ecs_field(&it, EgCanSignal, 4);                            // self
-			GuiCanTableRow *row = ecs_field(&it, GuiCanTableRow, 5);                         // self
-			EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 6);                     // self, optional
-			EgQuantitiesRangedGeneric *value = ecs_field(&it, EgQuantitiesRangedGeneric, 7); // self, optional
+	if (igBeginTable("Signals table", 17, flags2, (ImVec2){0, 0}, 0) == false) {
+		return;
+	}
 
-			for (int i = 0; i < it.count; ++i, ++signal, ++row, quant += (quant != NULL), value += (value != NULL)) {
-				ecs_entity_t e = it.entities[i];
-				if (row->index >= MAX_ROWS) {
-					continue;
-				}
-				// char const *name = ecs_get_path_w_sep(world, row->parent, e, ".", NULL);
-				// printf("e: %s, from : %s\n", name, name1 ? name1 : "?");
-				// char const *name = ecs_get_path_w_sep(world, row->parent, e, ".", NULL);
-				ecs_entity_t ident = ecs_field_src(&it, 3);
-				ecs_entity_t parent = ecs_get_parent(world, ident);
-				gui[row->index].e = e;
-				gui[row->index].parentname = ecs_get_name(world, parent);
-				gui[row->index].signame = ecs_get_name(world, e);
-				gui[row->index].idname = ecs_get_name(world, ident);
-				gui[row->index].channel = channel;
-				gui[row->index].signal = signal;
-				gui[row->index].value = value;
-				gui[row->index].q = quant;
-				gui[row->index].desc = desc;
-				gui[row->index].bus = bus;
-				gui[row->index].row = row;
-				n = ECS_MAX(row->index + 1, n);
-			}
-		}
-		igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
-		igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
-		igTableSetupColumn("parent", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-		igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);
-		igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("idn", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("sig", ImGuiTableColumnFlags_WidthFixed, 200, 0);
-		igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
-		igTableSetupColumn("kind", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 200, 0);
-		igTableSetupColumn("max", ImGuiTableColumnFlags_WidthFixed, 200, 0);
-		igTableSetupColumn("tx", ImGuiTableColumnFlags_WidthFixed, 200, 0);
-		igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 200, 0);
-		igTableSetupColumn("q", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
-		igTableSetupColumn("u", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
-		igTableSetupColumn("plot", ImGuiTableColumnFlags_WidthFixed, 50, 0);
-		igTableHeadersRow();
+	gui_can_table_t gui[MAX_ROWS] = {0};
+	int n = 0;
+	ecs_iter_t it = ecs_query_iter(world, q);
+	while (ecs_query_next(&it)) {
+		EgCanBus *bus = ecs_field(&it, EgCanBus, 1);                                     // shared
+		EgCanBusDescription *desc = ecs_field(&it, EgCanBusDescription, 2);              // shared
+		EgCanId *channel = ecs_field(&it, EgCanId, 3);                                   // shared
+		EgCanSignal *signal = ecs_field(&it, EgCanSignal, 4);                            // self
+		GuiCanTableRow *row = ecs_field(&it, GuiCanTableRow, 5);                         // self
+		EgQuantitiesIsq *quant = ecs_field(&it, EgQuantitiesIsq, 6);                     // self, optional
+		EgQuantitiesRangedGeneric *value = ecs_field(&it, EgQuantitiesRangedGeneric, 7); // self, optional
 
-		for (int i = 0; i < n; ++i) {
-			char const *parentname = gui[i].parentname;
-			char const *signame = gui[i].signame;
-			char const *idname = gui[i].idname;
-			EgQuantitiesIsq *quant = gui[i].q;
-			EgCanId *channel = gui[i].channel;
-			EgCanSignal *signal = gui[i].signal;
-			GuiCanTableRow *row = gui[i].row;
-			EgQuantitiesRangedGeneric *value = gui[i].value;
-			EgCanBus *bus = gui[i].bus;
-			EgCanBusDescription *desc = gui[i].desc;
-			ecs_entity_t e = gui[i].e;
-
-			if (signame == NULL) {
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
-				igTableNextColumn();
+		for (int i = 0; i < it.count; ++i, ++signal, ++row, quant += (quant != NULL), value += (value != NULL)) {
+			ecs_entity_t e = it.entities[i];
+			if (row->index >= MAX_ROWS) {
 				continue;
 			}
+			// char const *name = ecs_get_path_w_sep(world, row->parent, e, ".", NULL);
+			// printf("e: %s, from : %s\n", name, name1 ? name1 : "?");
+			// char const *name = ecs_get_path_w_sep(world, row->parent, e, ".", NULL);
+			ecs_entity_t ident = ecs_field_src(&it, 3);
+			ecs_entity_t parent = ecs_get_parent(world, ident);
+			gui[row->index].e = e;
+			gui[row->index].parentname = ecs_get_name(world, parent);
+			gui[row->index].signame = ecs_get_name(world, e);
+			gui[row->index].idname = ecs_get_name(world, ident);
+			gui[row->index].channel = channel;
+			gui[row->index].signal = signal;
+			gui[row->index].value = value;
+			gui[row->index].q = quant;
+			gui[row->index].desc = desc;
+			gui[row->index].bus = bus;
+			gui[row->index].row = row;
+			n = ECS_MAX(row->index + 1, n);
+		}
+	}
+	igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
+	igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
+	igTableSetupColumn("parent", ImGuiTableColumnFlags_WidthFixed, 100, 0);
+	igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+	igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+	igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+	igTableSetupColumn("idn", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+	igTableSetupColumn("sig", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+	igTableSetupColumn("o", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
+	igTableSetupColumn("kind", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+	igTableSetupColumn("min", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+	igTableSetupColumn("max", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+	igTableSetupColumn("tx", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+	igTableSetupColumn("rx", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+	igTableSetupColumn("q", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
+	igTableSetupColumn("u", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
+	igTableSetupColumn("plot", ImGuiTableColumnFlags_WidthFixed, 50, 0);
+	igTableHeadersRow();
 
-			eg_can_book_t *book = bus->ptr;
-
-			igPushID_Ptr(signal);
-			// igTableSetBgColor(ImGuiTableBgTarget_RowBg0, COLOR_RGBA(0xFF, 0xFF, 0xFF, 0xFF), -1);
-
+	for (int i = 0; i < n; ++i) {
+		ecs_entity_t e = gui[i].e;
+		if (e == 0) {
 			igTableNextColumn();
-			igText(desc->interface);
-
 			igTableNextColumn();
-			igText("%i", bus->socket);
-
-			igPushStyleColor_U32_HSV_strhash(parentname);
 			igTableNextColumn();
-			igText("%s", parentname);
-			igPopStyleColor(1);
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			igTableNextColumn();
+			continue;
+		}
+		char const *parentname = gui[i].parentname;
+		char const *signame = gui[i].signame;
+		char const *idname = gui[i].idname;
+		EgQuantitiesIsq *quant = gui[i].q;
+		EgCanId *channel = gui[i].channel;
+		EgCanSignal *signal = gui[i].signal;
+		GuiCanTableRow *row = gui[i].row;
+		EgQuantitiesRangedGeneric *value = gui[i].value;
+		EgCanBus *bus = gui[i].bus;
+		eg_can_book_t *book = bus->ptr;
+		EgCanBusDescription *desc = gui[i].desc;
 
+		igPushID_Ptr(signal);
+		// igTableSetBgColor(ImGuiTableBgTarget_RowBg0, COLOR_RGBA(0xFF, 0xFF, 0xFF, 0xFF), -1);
 
-			igPushStyleColor_U32_HSV_hash32(channel->id);
+		igTableNextColumn();
+		igText(desc->interface);
+
+		igTableNextColumn();
+		igText("%i", bus->socket);
+
+		igPushStyleColor_U32_HSV_strhash(parentname);
+		igTableNextColumn();
+		igText("%s", parentname);
+		igPopStyleColor(1);
+
+		igPushStyleColor_U32_HSV_hash32(channel->id);
+		{
+			igTableNextColumn();
+			igText("%s", idname);
+			igTableNextColumn();
+			igText("%i", channel->id);
+			igTableNextColumn();
+			igText("%03X", channel->id);
+			igTableNextColumn();
+			igText("%i", channel->n);
+		}
+		igPopStyleColor(1);
+
+		igTableNextColumn();
+		igText("%s", signame);
+
+		igTableNextColumn();
+		igText("%i", signal->byte_offset);
+
+		igTableNextColumn();
+		if (value) {
+			igPushStyleColor_U32_HSV_strhash(flecs_get_type(value->kind));
 			{
-				igTableNextColumn();
-				igText("%s", idname);
-				igTableNextColumn();
-				igText("%i", channel->id);
-				igTableNextColumn();
-				igText("%03X", channel->id);
-				igTableNextColumn();
-				igText("%i", channel->n);
+				igText("%s", flecs_get_type(value->kind));
 			}
 			igPopStyleColor(1);
-
-
-			igTableNextColumn();
-			igText("%s", signame);
-
-			igTableNextColumn();
-			igText("%i", signal->byte_offset);
-
-			igTableNextColumn();
-			if (value) {
-				igPushStyleColor_U32_HSV_strhash(flecs_get_type(value->kind));
-				{
-					igText("%s", flecs_get_type(value->kind));
-				}
-				igPopStyleColor(1);
-			}
-
-			igTableNextColumn();
-			if (value) {
-				igText_flecs(&value->min, value->kind);
-			}
-
-			igTableNextColumn();
-			if (value) {
-				igText_flecs(&value->max, value->kind);
-			}
-
-			igTableNextColumn();
-			gui_tx(world, book, channel, signal, row, value);
-
-			igTableNextColumn();
-			gui_rx(world, book, signal, row, value);
-
-			igTableNextColumn();
-			igText(quant ? quant->symbol : "");
-
-			igTableNextColumn();
-			igText("");
-
-			igTableNextColumn();
-			igCheckbox_flecs(world, e, ecs_id(GuiCanPlot));
-
-			igPopID();
 		}
 
-		igEndTable();
+		igTableNextColumn();
+		if (value) {
+			igText_flecs(&value->min, value->kind);
+		}
+
+		igTableNextColumn();
+		if (value) {
+			igText_flecs(&value->max, value->kind);
+		}
+
+		igTableNextColumn();
+		gui_tx(world, book, channel, signal, row, value);
+
+		igTableNextColumn();
+		gui_rx(world, book, signal, row, value);
+
+		igTableNextColumn();
+		igText(quant ? quant->symbol : "");
+
+		igTableNextColumn();
+		igText("");
+
+		igTableNextColumn();
+		igCheckbox_flecs(world, e, ecs_id(GuiCanPlot));
+
+		igPopID();
 	}
+
+	igEndTable();
 }
 
 ecs_query_t *gui_signals_query(ecs_world_t *world)

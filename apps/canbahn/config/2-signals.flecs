@@ -22,7 +22,7 @@ Enum NavMode {
 canpool {
 	- eg.can.RxThread{dummy:0}
 	can0 {
-		- eg.can.BusDescription{interface:"vcan0"}
+		- eg.can.BusDescription{interface:"can0"}
 
 		RC0 {
 			- flysky.fsi6{canid_start: 200, gui_start: 200}

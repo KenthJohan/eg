@@ -15,6 +15,11 @@
 
 #include "eg_can.h"
 
+#define CAN_EFF_FLAG 0x80000000U /* EFF/SFF is set in the MSB */
+#define CAN_RTR_FLAG 0x40000000U /* remote transmission request */
+#define CAN_ERR_FLAG 0x20000000U /* error message frame */
+#define CAN_ID_MASK (~(CAN_EFF_FLAG | CAN_RTR_FLAG | CAN_ERR_FLAG))
+
 ECS_DECLARE(EgCanRx);
 ECS_DECLARE(EgCanTx);
 ECS_COMPONENT_DECLARE(EgCanRxThread);
@@ -183,7 +188,22 @@ static void eg_can_book_send(eg_can_book_t *book)
 		eg_can_send(book->sock, &frame);
 		int lvl = ecs_log_get_level();
 		ecs_log_set_level(0);
-		ecs_trace("cansend: socket=%i, id=%i, len=%i, data=[%02X %02X %02X %02X %02X %02X %02X %02X]", book->sock, frame.can_id, frame.len, frame.data[0], frame.data[1], frame.data[2], frame.data[3], frame.data[4], frame.data[5], frame.data[6], frame.data[7]);
+		if (frame.can_id & CAN_RTR_FLAG) {
+			ecs_trace("cansend: socket=%i, id=%i, RTR",book->sock,frame.can_id & CAN_ID_MASK);
+		} else {
+			ecs_trace("cansend: socket=%i, id=%i, len=%i, data=[%02X %02X %02X %02X %02X %02X %02X %02X] ",
+			book->sock,
+			frame.can_id & CAN_ID_MASK,
+			frame.len,
+			frame.data[0],
+			frame.data[1],
+			frame.data[2],
+			frame.data[3],
+			frame.data[4],
+			frame.data[5],
+			frame.data[6],
+			frame.data[7]);
+		}
 		ecs_log_set_level(lvl);
 	}
 }
@@ -368,8 +388,6 @@ static void System_EpollAdditions(ecs_iter_t *it)
 		m->dummy = 0;
 	}
 }
-
-#define CAN_RTR_FLAG 0x40000000U /* remote transmission request */
 
 static int ecs_primitive_kind_size(ecs_primitive_kind_t kind)
 {
