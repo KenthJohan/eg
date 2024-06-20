@@ -133,7 +133,8 @@
 		"float.h": "c",
 		"flecs_imgui.h": "c",
 		"dirlists.h": "c",
-		"flecs_extra.h": "c"
+		"flecs_extra.h": "c",
+		"gui_exporter.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

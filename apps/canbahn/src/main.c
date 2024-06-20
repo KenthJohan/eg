@@ -23,6 +23,7 @@
 #include "gui_canids.h"
 #include "gui_signals.h"
 #include "gui_interfaces.h"
+#include "gui_exporter.h"
 #include "imgui_font.h"
 #include "gui_plot.h"
 
@@ -33,6 +34,7 @@ typedef struct {
 	ecs_query_t *query_gui;
 	ecs_query_t *query_ifaces;
 	ecs_query_t *query_plots;
+	ecs_query_t *query_exporter;
 	ImFont *font;
 	double gui_time_seconds;
 	uint64_t last_time;
@@ -43,7 +45,7 @@ typedef struct {
 	bool show_window_extra1;
 	bool show_window_extra2;
 
-	char export_destination[128];
+	gui_exporter_t exporter;
 } app_t;
 
 static void ShowExampleAppLog1(app_t *app)
@@ -62,20 +64,6 @@ static void ShowExampleAppLog2(app_t *app)
 	igEnd();
 }
 
-static void gui_window_export(app_t *app)
-{
-	igSetNextWindowSize((ImVec2){600,400}, 0);
-	igBegin("Exporter", &app->show_window_export, 0);
-	if (igInputText("destination", app->export_destination, 128, ImGuiInputTextFlags_EnterReturnsTrue, 0, 0)) {
-		
-	}
-	if (igButton("Export C", (ImVec2){0,0})) {
-		printf("%s\n", app->export_destination);
-	}
-	if (igButton("Export Python", (ImVec2){0,0})) {
-	}
-	igEnd();
-}
 
 static void gui_window_main(app_t *app)
 {
@@ -198,7 +186,9 @@ void init(app_t *app)
 	app->show_window_export = false;
 	app->show_window_extra1 = false;
 	app->show_window_extra2 = false;
-	snprintf(app->export_destination, 128, "%s", "./canids_export.h");
+	snprintf(app->exporter.prefix, 128, "%s", "CANID");
+	snprintf(app->exporter.export_destination_c, 128, "%s", "./canids_export.h");
+	snprintf(app->exporter.export_destination_python, 128, "%s", "./canids_export.py");
 }
 
 void frame(app_t *app)
@@ -224,7 +214,7 @@ void frame(app_t *app)
 	}
 
 	if (app->show_window_export) {
-		gui_window_export(app);
+		gui_exporter_progress(app->world, app->query_exporter, &app->exporter, &app->show_window_export);
 	}
 
 	app->show_window_main = !app->show_window_export;
@@ -293,6 +283,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	app->query_ifaces = gui_interfaces_query(app->world);
 	app->query_gui = egimgui_query1(app->world);
 	app->query_plots = gui_plot_query(app->world);
+	app->query_exporter = gui_exporter_query(app->world);
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
