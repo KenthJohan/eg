@@ -36,10 +36,112 @@ typedef struct {
 	ImFont *font;
 	double gui_time_seconds;
 	uint64_t last_time;
-	bool show_test_window;
-	bool show_another_window;
 	sg_pass_action pass_action;
+
+	bool show_window_main;
+	bool show_window_export;
+	bool show_window_extra1;
+	bool show_window_extra2;
+
+	char export_destination[128];
 } app_t;
+
+static void ShowExampleAppLog1(app_t *app)
+{
+	igBegin("extr1", &app->show_window_extra1, 0);
+	if (igSmallButton("[Debug] Add 5 entries")) {
+	}
+	igEnd();
+}
+
+static void ShowExampleAppLog2(app_t *app)
+{
+	igBegin("extr2", &app->show_window_extra2, 0);
+	if (igSmallButton("[Debug] Add 5 entries")) {
+	}
+	igEnd();
+}
+
+static void gui_window_export(app_t *app)
+{
+	igSetNextWindowSize((ImVec2){600,400}, 0);
+	igBegin("Exporter", &app->show_window_export, 0);
+	if (igInputText("destination", app->export_destination, 128, ImGuiInputTextFlags_EnterReturnsTrue, 0, 0)) {
+		
+	}
+	if (igButton("Export C", (ImVec2){0,0})) {
+		printf("%s\n", app->export_destination);
+	}
+	if (igButton("Export Python", (ImVec2){0,0})) {
+	}
+	igEnd();
+}
+
+static void gui_window_main(app_t *app)
+{
+	ImGuiViewport *viewport = igGetMainViewport();
+	igSetNextWindowPos(viewport->Pos, 0, (ImVec2){0, 0});
+	igSetNextWindowSize(viewport->Size, 0);
+	//igSetNextWindowViewport(viewport->ID);
+
+	ImGuiWindowFlags flags1 = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+	igBegin("Signal window", &app->show_window_main, flags1);
+
+	if (igBeginMenuBar()) {
+		char buf[64];
+		snprintf(buf, 64, "%05u µs", (uint32_t)(app->gui_time_seconds * 1000.0 * 1000.0));
+		if (igBeginMenu(buf, true)) {
+			igEndMenu();
+		}
+		if (igBeginMenu("Export", true)) {
+			if (igMenuItem_Bool("Export C", NULL, false, true)) {
+				app->show_window_export = true;
+			}
+			igMenuItem_Bool("Export Python", NULL, false, true);
+			igEndMenu();
+		}
+		if (igBeginMenu("Extra", true)) {
+			igMenuItem_Bool("Item1", NULL, false, true);
+			igMenuItem_Bool("Item2", NULL, false, true);
+			igSeparatorText("Separator");
+			igMenuItem_Bool("Item3", NULL, false, true);
+			igMenuItem_Bool("Item4", NULL, false, true);
+			igMenuItem_Bool("Item5", NULL, false, true);
+			igMenuItem_Bool("Item6", NULL, false, true);
+			igEndMenu();
+		}
+		igEndMenuBar();
+	}
+
+	if (igBeginTabBar("tabs", 0)) {
+		// igText("Hello");
+		if (igBeginTabItem("Ifaces", NULL, 0)) {
+			gui_interfaces_progress(app->world, app->query_ifaces);
+			igEndTabItem();
+		}
+		if (igBeginTabItem("CANids", NULL, 0)) {
+			gui_canids_progress(app->world, app->query_canids);
+			igEndTabItem();
+		}
+		if (igBeginTabItem("Signals", NULL, 0)) {
+			gui_signals_progress(app->world, app->query_signals);
+			igEndTabItem();
+		}
+		if (igBeginTabItem("CustomGUI", NULL, 0)) {
+			egimgui_progress1(app->world, app->query_gui);
+			igEndTabItem();
+		}
+		if (igBeginTabItem("Plots", NULL, 0)) {
+			gui_plot_progress(app->world, app->query_plots);
+			igEndTabItem();
+		}
+		if (igBeginTabItem("Hej!", NULL, 0)) {
+			igEndTabItem();
+		}
+		igEndTabBar();
+	}
+	igEnd();
+}
 
 void init(app_t *app)
 {
@@ -88,9 +190,15 @@ void init(app_t *app)
 	}
 
 	/* initialize application state */
-	app->show_test_window = true;
 	app->pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
-	app->pass_action.colors[0].clear_value = (sg_color){0.7f, 0.5f, 0.0f, 1.0f};
+	app->pass_action.colors[0].clear_value = (sg_color){0.1f, 0.2f, 0.0f, 1.0f};
+
+
+	app->show_window_main = true;
+	app->show_window_export = false;
+	app->show_window_extra1 = false;
+	app->show_window_extra2 = false;
+	snprintf(app->export_destination, 128, "%s", "./canids_export.h");
 }
 
 void frame(app_t *app)
@@ -106,43 +214,26 @@ void frame(app_t *app)
 
 	ecs_time_t gui_time_sec;
 	ecs_time_measure(&gui_time_sec);
-	if (app->show_another_window || 1) {
-		ImGuiViewport *viewport = igGetMainViewport();
-		igSetNextWindowPos(viewport->Pos, 0, (ImVec2){0, 0});
-		igSetNextWindowSize(viewport->Size, 0);
-		// igSetNextWindowViewport(viewport->ID);
-		ImGuiWindowFlags flags1 = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-		igBegin("Signal window", &app->show_another_window, flags1);
-		igText("GUI-delay %f µs", app->gui_time_seconds * 1000.0f * 1000.0f);
-		if (igBeginTabBar("tabs", 0)) {
-			// igText("Hello");
-			if (igBeginTabItem("Ifaces", NULL, 0)) {
-				gui_interfaces_progress(app->world, app->query_ifaces);
-				igEndTabItem();
-			}
-			if (igBeginTabItem("CANids", NULL, 0)) {
-				gui_canids_progress(app->world, app->query_canids);
-				igEndTabItem();
-			}
-			if (igBeginTabItem("Signals", NULL, 0)) {
-				gui_signals_progress(app->world, app->query_signals);
-				igEndTabItem();
-			}
-			if (igBeginTabItem("CustomGUI", NULL, 0)) {
-				egimgui_progress1(app->world, app->query_gui);
-				igEndTabItem();
-			}
-			if (igBeginTabItem("Plots", NULL, 0)) {
-				gui_plot_progress(app->world, app->query_plots);
-				igEndTabItem();
-			}
-			if (igBeginTabItem("Hej!", NULL, 0)) {
-				igEndTabItem();
-			}
-			igEndTabBar();
-		}
-		igEnd();
+
+	if (app->show_window_extra1) {
+		ShowExampleAppLog1(app);
 	}
+
+	if (app->show_window_extra2) {
+		ShowExampleAppLog2(app);
+	}
+
+	if (app->show_window_export) {
+		gui_window_export(app);
+	}
+
+	app->show_window_main = !app->show_window_export;
+	if (app->show_window_main) {
+		gui_window_main(app);
+	}
+	
+
+
 	app->gui_time_seconds = (app->gui_time_seconds * 0.99) + (ecs_time_measure(&gui_time_sec) * 0.01);
 
 	ecs_progress(app->world, 0.0f);

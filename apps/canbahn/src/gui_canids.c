@@ -14,7 +14,6 @@
 #include "GuiCan.h"
 #include "flecs_imgui.h"
 
-#define COLOR_RGBA(r, g, b, a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
 
 int compare_canid(ecs_entity_t e1, const EgCanId *p1, ecs_entity_t e2, const EgCanId *p2)
 {
@@ -36,7 +35,7 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 
 	igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("parent", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-	igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 250, 0);
+	igTableSetupColumn("frame", ImGuiTableColumnFlags_WidthFixed, 250, 0);
 	igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("n", ImGuiTableColumnFlags_WidthFixed, 50, 0);

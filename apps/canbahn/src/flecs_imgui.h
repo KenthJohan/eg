@@ -5,6 +5,9 @@
 #include <egquantities.h>
 
 
+
+#define COLOR_RGBA(r,g,b,a) ((r) << 0 | (g) << 8 | (b) << 16 | (a) << 24)
+
 bool igCombo_flecs(ecs_world_t *world, EcsEnum const *enum_type, int *parent_val);
 
 
