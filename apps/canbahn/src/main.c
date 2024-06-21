@@ -37,6 +37,7 @@ typedef struct {
 	ecs_query_t *query_ifaces;
 	ecs_query_t *query_plots;
 	ecs_query_t *query_exporter;
+	ecs_query_t *query_exporter2;
 	ImFont *font;
 	double gui_time_seconds;
 	uint64_t last_time;
@@ -126,7 +127,7 @@ static void gui_window_main(app_t *app)
 			igEndTabItem();
 		}
 		if (igBeginTabItem("Export", NULL, 0)) {
-			gui_exporter_progress(app->world, app->query_exporter, &app->exporter, &app->show_window_export);
+			gui_exporter_progress(app->world, app->query_exporter, app->query_exporter2, &app->exporter, &app->show_window_export);
 			igEndTabItem();
 		}
 		igEndTabBar();
@@ -272,15 +273,6 @@ sapp_desc sokol_main(int argc, char *argv[])
 
 	ecs_log_set_level(0);
 	ecs_plecs_from_dir(app->world, "config");
-	/*
-	ecs_plecs_from_file(app->world, "config/assembly_rc.flecs");
-	ecs_plecs_from_file(app->world, "config/assembly_vision.flecs");
-	//ecs_plecs_from_file(app->world, "config/assembly_bms.flecs");
-	ecs_plecs_from_file(app->world, "config/assembly_movements.flecs");
-	ecs_plecs_from_file(app->world, "config/assembly_odrives.flecs");
-	ecs_plecs_from_file(app->world, "config/signals.flecs");
-	ecs_plecs_from_file(app->world, "config/gui.flecs");
-	*/
 	ecs_log_set_level(-1);
 
 	app->query_canids = gui_canids_query(app->world);
@@ -289,21 +281,11 @@ sapp_desc sokol_main(int argc, char *argv[])
 	app->query_gui = egimgui_query1(app->world);
 	app->query_plots = gui_plot_query(app->world);
 	app->query_exporter = gui_exporter_query(app->world);
+	app->query_exporter2 = gui_exporter_query2(app->world);
 
 
-	ecs_entity_t t1 = ecs_lookup(app->world, "app.exports");
-	ecs_entity_t t2 = ecs_lookup(app->world, "app.exports.langc");
-	ecs_entity_t t3 = ecs_lookup(app->world, "app.exports.langc.destination1");
-	ecs_entity_t t4 = ecs_lookup(app->world, "app.exports.langc.destination2");
 
-	ecs_query_t * q1 = ecs_query(app->world, {
-		.filter.terms = {
-		{.id = ecs_id(EgStrText), .src.flags = EcsUp, .src.trav = EcsChildOf}
-		},
-		//.order_by = (ecs_order_by_action_t)compare_canid,
-		//.order_by_component = ecs_id(EgCanId) 
-		}
-	);
+
 
 
 	// https://www.flecs.dev/explorer/?remote=true

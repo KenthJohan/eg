@@ -1,12 +1,15 @@
 module app
 
 exports {
+	path {}
+	prefix {}
 	langc {
-		destination1 {
-			- eg.str.Text {"./d1.txt"}
-		}
-		destination2 {
-			- eg.str.Text {"./d2.txt"}
-		}
+		- (eg.str.Text, path) {"exported_canids.h"}
+		- (eg.str.Text, prefix) {"CANID"}
+	}
+	langpy {
+		- (eg.str.Text, path) {"exported_canids.py"}
+		- (eg.str.Text, prefix) {"CANID"}
 	}
 }
+

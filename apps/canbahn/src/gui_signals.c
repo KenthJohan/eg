@@ -122,7 +122,7 @@ void gui_signals_progress(ecs_world_t *world, ecs_query_t *q)
 	igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 	igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 	igTableSetupColumn("parent", ImGuiTableColumnFlags_WidthFixed, 100, 0);
-	igTableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed, 200, 0);
+	igTableSetupColumn("frame", ImGuiTableColumnFlags_WidthFixed, 200, 0);
 	igTableSetupColumn("id10", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("id16", ImGuiTableColumnFlags_WidthFixed, 50, 0);
 	igTableSetupColumn("idn", ImGuiTableColumnFlags_WidthFixed, 50, 0);
