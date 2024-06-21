@@ -43,7 +43,7 @@ ECS_COMPONENT_DECLARE(EgFsSize);
 
 static void System_File_Tagging(ecs_iter_t *it)
 {
-	EgText *path = ecs_field(it, EgText, 1);
+	EgStrText *path = ecs_field(it, EgStrText, 1);
 	for (int i = 0; i < it->count; i++) {
 		if (path->value == NULL) {
 			continue;
@@ -66,7 +66,7 @@ static void System_File_Tagging(ecs_iter_t *it)
 
 static void LoadFile(ecs_iter_t *it)
 {
-	EgText *rootpath = ecs_field(it, EgText, 1);
+	EgStrText *rootpath = ecs_field(it, EgStrText, 1);
 	ecs_world_t *world = it->world;
 
 	char pathbuf[128] = {0};
@@ -94,7 +94,7 @@ static void LoadFile(ecs_iter_t *it)
 			eg_str_replace_ab(name, ',', '.');
 			ecs_os_sprintf(pathbuf, "%s/%s", prefix, name);
 			ecs_os_free(name);
-			ecs_set_pair(world, e, EgText, EgFsPath, {pathbuf});
+			ecs_set_pair(world, e, EgStrText, EgFsPath, {pathbuf});
 		}
 
 
@@ -102,7 +102,7 @@ static void LoadFile(ecs_iter_t *it)
 			// Generate realpath from relative path:
 			char resolved_path[256];
 			realpath(pathbuf, resolved_path);
-			ecs_set_pair(world, e, EgText, EgFsPathReal, {resolved_path});
+			ecs_set_pair(world, e, EgStrText, EgFsPathReal, {resolved_path});
 		}
 
 		{
@@ -110,7 +110,7 @@ static void LoadFile(ecs_iter_t *it)
 			int32_t size;
 			char *content = eg_fs_readfile_and_size(pathbuf, &size);
 			if (content) {
-				EgBuffer *cont = ecs_ensure(world, e, EgBuffer);
+				EgStrBuffer *cont = ecs_ensure(world, e, EgStrBuffer);
 				cont->data = content;
 				cont->size = size;
 			}
@@ -181,7 +181,7 @@ void EgFsImport(ecs_world_t *world)
 		.add = { ecs_dependson(EcsOnUpdate) }
 		}),
 		.query.filter.terms = {
-			{.id = ecs_pair(ecs_id(EgText), EgFsPath) },
+			{.id = ecs_pair(ecs_id(EgStrText), EgFsPath) },
 			{.id = EgFsFile },
 			{.id = ecs_pair(EgFsType, EcsWildcard), .oper=EcsNot }, // Adds this
 		},
@@ -193,7 +193,7 @@ void EgFsImport(ecs_world_t *world)
 	.entity = ecs_entity(world, {.name = "LoadFile", .add = {ecs_dependson(EcsOnUpdate)}}),
 	.callback = LoadFile,
 	.query.filter.terms = {
-	{.id = ecs_pair(ecs_id(EgText), EgFsRoot), .src.trav = EcsIsA, .src.flags = EcsUp},
+	{.id = ecs_pair(ecs_id(EgStrText), EgFsRoot), .src.trav = EcsIsA, .src.flags = EcsUp},
 	{.id = EgFsLoad}
 	}});
 }

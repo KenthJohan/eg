@@ -6,39 +6,39 @@
 #define FLOG(...) fprintf(__VA_ARGS__)
 
 
-ECS_COMPONENT_DECLARE(EgText);
-ECS_COMPONENT_DECLARE(EgBuffer);
+ECS_COMPONENT_DECLARE(EgStrText);
+ECS_COMPONENT_DECLARE(EgStrBuffer);
 
 
 
-ECS_COPY(EgText, dst, src, {
+ECS_COPY(EgStrText, dst, src, {
 	FLOG(stdout, "EgText::Copy\n");
 	ecs_os_strset((char**)&dst->value, src->value);
 })
 
-ECS_MOVE(EgText, dst, src, {
+ECS_MOVE(EgStrText, dst, src, {
 	FLOG(stdout, "EgText::MOVE\n");
 	ecs_os_free((char*)dst->value);
 	dst->value = src->value;
 	src->value = NULL;
 })
 
-ECS_DTOR(EgText, ptr, {
+ECS_DTOR(EgStrText, ptr, {
 	FLOG(stdout, "EgText::DTOR\n");
 	ecs_os_free((char*)ptr->value);
 })
 
-ECS_CTOR(EgBuffer, ptr, {
+ECS_CTOR(EgStrBuffer, ptr, {
 	FLOG(stdout, "EgBuffer::Ctor\n");
 	ptr->data = NULL;
 })
 
-ECS_DTOR(EgBuffer, ptr, {
+ECS_DTOR(EgStrBuffer, ptr, {
 	FLOG(stdout, "EgBuffer::Dtor %p\n", ptr->data);
 	if(ptr->data){ecs_os_free(ptr->data);}
 })
 
-ECS_MOVE(EgBuffer, dst, src, {
+ECS_MOVE(EgStrBuffer, dst, src, {
 	FLOG(stdout, "EgBuffer::Move %p %p\n", dst->data, src->data);
 	ecs_os_free((char*)dst->data);
 	dst->data = src->data;
@@ -46,7 +46,7 @@ ECS_MOVE(EgBuffer, dst, src, {
 	src->data = NULL;
 })
 
-ECS_COPY(EgBuffer, dst, src, {
+ECS_COPY(EgStrBuffer, dst, src, {
 	FLOG(stdout, "EgBuffer::Copy %p %p\n", dst->data, src->data);
 	dst->data = ecs_os_memdup(src->data, src->size);
 	dst->size = src->size;
@@ -57,35 +57,35 @@ ECS_COPY(EgBuffer, dst, src, {
 void EgStrImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgStr);
-	ecs_set_name_prefix(world, "Eg");
+	ecs_set_name_prefix(world, "EgStr");
 
-	ECS_COMPONENT_DEFINE(world, EgText);
-	ECS_COMPONENT_DEFINE(world, EgBuffer);
+	ECS_COMPONENT_DEFINE(world, EgStrText);
+	ECS_COMPONENT_DEFINE(world, EgStrBuffer);
 
 
-	ecs_set_hooks(world, EgText, {
+	ecs_set_hooks(world, EgStrText, {
 	.ctor = ecs_default_ctor,
-	.move = ecs_move(EgText),
-	.copy = ecs_copy(EgText),
-	.dtor = ecs_dtor(EgText)
+	.move = ecs_move(EgStrText),
+	.copy = ecs_copy(EgStrText),
+	.dtor = ecs_dtor(EgStrText)
 	});
 
-	ecs_set_hooks(world, EgBuffer, {
+	ecs_set_hooks(world, EgStrBuffer, {
 	.ctor = ecs_default_ctor,
-	.move = ecs_move(EgBuffer),
-	.copy = ecs_copy(EgBuffer),
-	.dtor = ecs_dtor(EgBuffer)
+	.move = ecs_move(EgStrBuffer),
+	.copy = ecs_copy(EgStrBuffer),
+	.dtor = ecs_dtor(EgStrBuffer)
 	});
  
 	ecs_struct(world, {
-	.entity = ecs_id(EgText),
+	.entity = ecs_id(EgStrText),
 	.members = {
 	{ .name = "value", .type = ecs_id(ecs_string_t) },
 	}
 	});
 
 	ecs_struct(world, {
-	.entity = ecs_id(EgBuffer),
+	.entity = ecs_id(EgStrBuffer),
 	.members = {
 	{ .name = "size", .type = ecs_id(ecs_i32_t) },
 	{ .name = "data", .type = ecs_id(ecs_uptr_t) }

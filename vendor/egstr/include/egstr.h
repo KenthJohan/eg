@@ -5,17 +5,17 @@
 
 typedef struct {
 	ecs_string_t value;
-} EgText;
+} EgStrText;
 
 typedef struct {
 	int32_t size;
 	void * data;
-} EgBuffer;
+} EgStrBuffer;
 
 
 
-extern ECS_COMPONENT_DECLARE(EgText);
-extern ECS_COMPONENT_DECLARE(EgBuffer);
+extern ECS_COMPONENT_DECLARE(EgStrText);
+extern ECS_COMPONENT_DECLARE(EgStrBuffer);
 
 
 void EgStrImport(ecs_world_t *world);

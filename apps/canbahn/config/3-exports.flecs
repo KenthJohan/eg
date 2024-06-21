@@ -1,0 +1,12 @@
+module app
+
+exports {
+	langc {
+		destination1 {
+			- eg.str.Text {"./d1.txt"}
+		}
+		destination2 {
+			- eg.str.Text {"./d2.txt"}
+		}
+	}
+}

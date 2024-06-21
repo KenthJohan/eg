@@ -18,6 +18,8 @@
 #include <egshapes.h>
 #include <egcolors.h>
 #include <egifaces.h>
+#include <egfs.h>
+#include <egstr.h>
 
 #include "GuiCan.h"
 #include "gui_canids.h"
@@ -123,7 +125,8 @@ static void gui_window_main(app_t *app)
 			gui_plot_progress(app->world, app->query_plots);
 			igEndTabItem();
 		}
-		if (igBeginTabItem("Hej!", NULL, 0)) {
+		if (igBeginTabItem("Export", NULL, 0)) {
+			gui_exporter_progress(app->world, app->query_exporter, &app->exporter, &app->show_window_export);
 			igEndTabItem();
 		}
 		igEndTabBar();
@@ -214,7 +217,7 @@ void frame(app_t *app)
 	}
 
 	if (app->show_window_export) {
-		gui_exporter_progress(app->world, app->query_exporter, &app->exporter, &app->show_window_export);
+		//gui_exporter_progress(app->world, app->query_exporter, &app->exporter, &app->show_window_export);
 	}
 
 	app->show_window_main = !app->show_window_export;
@@ -264,6 +267,8 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ECS_IMPORT(app->world, EgImgui);
 	ECS_IMPORT(app->world, EgColors);
 	ECS_IMPORT(app->world, EgIfaces);
+	ECS_IMPORT(app->world, EgStr);
+	ECS_IMPORT(app->world, EgFs);
 
 	ecs_log_set_level(0);
 	ecs_plecs_from_dir(app->world, "config");
@@ -284,6 +289,22 @@ sapp_desc sokol_main(int argc, char *argv[])
 	app->query_gui = egimgui_query1(app->world);
 	app->query_plots = gui_plot_query(app->world);
 	app->query_exporter = gui_exporter_query(app->world);
+
+
+	ecs_entity_t t1 = ecs_lookup(app->world, "app.exports");
+	ecs_entity_t t2 = ecs_lookup(app->world, "app.exports.langc");
+	ecs_entity_t t3 = ecs_lookup(app->world, "app.exports.langc.destination1");
+	ecs_entity_t t4 = ecs_lookup(app->world, "app.exports.langc.destination2");
+
+	ecs_query_t * q1 = ecs_query(app->world, {
+		.filter.terms = {
+		{.id = ecs_id(EgStrText), .src.flags = EcsUp, .src.trav = EcsChildOf}
+		},
+		//.order_by = (ecs_order_by_action_t)compare_canid,
+		//.order_by_component = ecs_id(EgCanId) 
+		}
+	);
+
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});

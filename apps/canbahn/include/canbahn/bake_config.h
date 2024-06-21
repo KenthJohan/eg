@@ -28,6 +28,8 @@
 #include <egcolors.h>
 #include <egifaces.h>
 #include <egmath.h>
+#include <egfs.h>
+#include <egstr.h>
 #include <sokol_app.h>
 #include <sokol_gl.h>
 #include <sokol_log.h>
