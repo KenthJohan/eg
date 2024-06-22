@@ -68,7 +68,7 @@ void init(app_t *app)
 		*/
 		ImFontConfig config = *ImFontConfig_ImFontConfig();
 		// ImFontAtlas_AddFontFromFileTTF(io->Fonts, "/usr/share/fonts/truetype/ubuntu/UbuntuMono[wght].ttf", 20, &config, NULL);
-		ImFontAtlas_AddFontFromFileTTF(io->Fonts, "font/roboto.ttf", 20, &config, NULL);
+		ImFontAtlas_AddFontFromFileTTF(io->Fonts, "font/roboto.ttf", 18, &config, NULL);
 		// ImFontAtlas_AddFontFromMemoryTTF(io->Fonts, dump_font, sizeof(dump_font), 16.0f, &config, NULL);
 
 		// create font texture and linear-filtering sampler for the custom font
@@ -93,7 +93,7 @@ void frame(app_t *app)
 	pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
 	pass.action.colors[0].clear_value = (sg_color){0.1f, 0.2f, 0.0f, 1.0f};
 	pass.swapchain = sglue_swapchain();
-	
+
 	simgui_new_frame(&(simgui_frame_desc_t){
 	.width = pass.swapchain.width,
 	.height = pass.swapchain.height,

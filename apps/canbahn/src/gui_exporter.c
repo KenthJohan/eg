@@ -25,9 +25,10 @@ static void export_c(ecs_world_t *world, ecs_query_t *q, char const *path, char 
 			for (int i = 0; i < it.count; ++i, ++channel, ++ident) {
 				// printf("ID %i, %s_%s\n", channel->id, ident2->value, ident->value);
 				fprintf(f, "%s", "#define ");
-				char buf2[256];
-				snprintf(buf2, 256, "%s_%s_%s", prefix, ident2->value, ident->value);
-				fprintf(f, "%-40s 0x%03X\n", buf2, channel->id);
+				char buf[256];
+				snprintf(buf, 256, "%s_%s_%s", prefix, ident2->value, ident->value);
+				fprintf(f, "%-40s ", buf);
+				fprintf(f, "0x%03X\n", channel->id);
 			}
 		}
 		fclose(f);
@@ -37,8 +38,7 @@ static void export_c(ecs_world_t *world, ecs_query_t *q, char const *path, char 
 static void export_python(ecs_world_t *world, ecs_query_t *q, char const *path, char const *prefix)
 {
 	FILE *f = fopen(path, "w");
-	fprintf(f, "%s", "#pragma once\n");
-	fprintf(f, "%s", "// Generated CAN-ids\n");
+	fprintf(f, "%s", "# Generated CAN-ids\n");
 	if (f) {
 		ecs_iter_t it = ecs_query_iter(world, q);
 		while (ecs_query_next(&it)) {
@@ -47,17 +47,17 @@ static void export_python(ecs_world_t *world, ecs_query_t *q, char const *path, 
 			EcsIdentifier *ident2 = ecs_field(&it, EcsIdentifier, 3); // shared
 			for (int i = 0; i < it.count; ++i, ++channel, ++ident) {
 				// printf("ID %i, %s_%s\n", channel->id, ident2->value, ident->value);
-				fprintf(f, "%s", "#define ");
-				char buf2[256];
-				snprintf(buf2, 256, "%s_%s_%s", prefix, ident2->value, ident->value);
-				fprintf(f, "%-40s 0x%03X\n", buf2, channel->id);
+				char buf[256];
+				snprintf(buf, 256, "%s_%s_%s", prefix, ident2->value, ident->value);
+				fprintf(f, "%-40s", buf);
+				fprintf(f, " = 0x%03X\n", channel->id);
 			}
 		}
 		fclose(f);
 	}
 }
 
-static void text(char const * label, EgStrText *text)
+static void text(char const *label, EgStrText *text)
 {
 	char buf[256];
 	snprintf(buf, 256, "%s", text->value);
@@ -73,6 +73,9 @@ void gui_exporter_progress(ecs_world_t *world, ecs_query_t *q, ecs_query_t *q2)
 {
 	assert(world);
 	assert(q);
+
+	//int lvl = ecs_log_get_level();
+	//ecs_log_set_level(0);
 
 	static ImGuiTableFlags flags2 = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 	if (igBeginTable("Export table", 4, flags2, (ImVec2){0, 0}, 0) == false) {
@@ -90,7 +93,7 @@ void gui_exporter_progress(ecs_world_t *world, ecs_query_t *q, ecs_query_t *q2)
 		EgStrText *path = ecs_field(&it, EgStrText, 2);          // self
 		EgStrText *prefix = ecs_field(&it, EgStrText, 3);        // self
 		for (int i = 0; i < it.count; ++i, ++ident, ++path, ++prefix) {
-			igPushID_Ptr((void*)(intptr_t)it.entities[i]);
+			igPushID_Ptr((void *)(intptr_t)it.entities[i]);
 			igTableNextColumn();
 			igText("%s", ident->value);
 			igTableNextColumn();
@@ -99,13 +102,26 @@ void gui_exporter_progress(ecs_world_t *world, ecs_query_t *q, ecs_query_t *q2)
 			text("##prefix", prefix);
 			igTableNextColumn();
 			if (igButton("Export", (ImVec2){0, 0})) {
-				export_c(world, q, path->value, prefix->value);
+				char const *ext = strrchr(path->value, '.');
+				if (ext == NULL) {
+					ecs_warn("No file extension in export path");
+				} else if (ecs_os_strcmp(ext, ".h") == 0) {
+					ecs_trace("export_c");
+					export_c(world, q, path->value, prefix->value);
+				} else if (ecs_os_strcmp(ext, ".py") == 0) {
+					ecs_trace("export_python");
+					export_python(world, q, path->value, prefix->value);
+				} else {
+					ecs_warn("File extension not supported");
+				} 
 			}
 			igPopID();
 		}
 	}
 
 	igEndTable();
+
+	//ecs_log_set_level(lvl);
 }
 
 ecs_query_t *gui_exporter_query(ecs_world_t *world)
