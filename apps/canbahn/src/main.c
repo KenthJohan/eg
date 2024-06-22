@@ -44,25 +44,30 @@ typedef struct {
 	sg_pass_action pass_action;
 
 	bool show_window_main;
-	bool show_window_export;
 	bool show_window_extra1;
 	bool show_window_extra2;
 
 	gui_exporter_t exporter;
 } app_t;
 
-static void ShowExampleAppLog1(app_t *app)
+static void gui_window_extra1(app_t *app)
 {
-	igBegin("extr1", &app->show_window_extra1, 0);
-	if (igSmallButton("[Debug] Add 5 entries")) {
+	igSetNextWindowPos((ImVec2){100, 100}, ImGuiCond_Once, (ImVec2){0, 0});
+	igSetNextWindowSize((ImVec2){400, 300}, ImGuiCond_Once);
+	ImGuiWindowFlags_ flags = 0;
+	igBegin("Extra1", &app->show_window_extra1, flags);
+	if (igSmallButton("Button")) {
 	}
 	igEnd();
 }
 
-static void ShowExampleAppLog2(app_t *app)
+static void gui_window_extra2(app_t *app)
 {
-	igBegin("extr2", &app->show_window_extra2, 0);
-	if (igSmallButton("[Debug] Add 5 entries")) {
+	igSetNextWindowPos((ImVec2){100, 100}, ImGuiCond_Once, (ImVec2){0, 0});
+	igSetNextWindowSize((ImVec2){400, 300}, ImGuiCond_Once);
+	ImGuiWindowFlags_ flags = 0;
+	igBegin("Extra2", &app->show_window_extra2, flags);
+	if (igSmallButton("Button")) {
 	}
 	igEnd();
 }
@@ -75,8 +80,8 @@ static void gui_window_main(app_t *app)
 	igSetNextWindowSize(viewport->Size, 0);
 	//igSetNextWindowViewport(viewport->ID);
 
-	ImGuiWindowFlags flags1 = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
-	igBegin("Signal window", &app->show_window_main, flags1);
+	ImGuiWindowFlags_ flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
+	igBegin("Signal window", &app->show_window_main, flags);
 
 	if (igBeginMenuBar()) {
 		char buf[64];
@@ -84,16 +89,9 @@ static void gui_window_main(app_t *app)
 		if (igBeginMenu(buf, true)) {
 			igEndMenu();
 		}
-		if (igBeginMenu("Export", true)) {
-			if (igMenuItem_Bool("Export C", NULL, false, true)) {
-				app->show_window_export = true;
-			}
-			igMenuItem_Bool("Export Python", NULL, false, true);
-			igEndMenu();
-		}
 		if (igBeginMenu("Extra", true)) {
-			igMenuItem_Bool("Item1", NULL, false, true);
-			igMenuItem_Bool("Item2", NULL, false, true);
+			app->show_window_extra1 = igMenuItem_Bool("extra1", NULL, false, true);
+			app->show_window_extra2 = igMenuItem_Bool("extra2", NULL, false, true);
 			igSeparatorText("Separator");
 			igMenuItem_Bool("Item3", NULL, false, true);
 			igMenuItem_Bool("Item4", NULL, false, true);
@@ -127,7 +125,7 @@ static void gui_window_main(app_t *app)
 			igEndTabItem();
 		}
 		if (igBeginTabItem("Export", NULL, 0)) {
-			gui_exporter_progress(app->world, app->query_exporter, app->query_exporter2, &app->exporter, &app->show_window_export);
+			gui_exporter_progress(app->world, app->query_exporter, app->query_exporter2, &app->exporter);
 			igEndTabItem();
 		}
 		igEndTabBar();
@@ -187,7 +185,6 @@ void init(app_t *app)
 
 
 	app->show_window_main = true;
-	app->show_window_export = false;
 	app->show_window_extra1 = false;
 	app->show_window_extra2 = false;
 	snprintf(app->exporter.prefix, 128, "%s", "CANID");
@@ -210,18 +207,14 @@ void frame(app_t *app)
 	ecs_time_measure(&gui_time_sec);
 
 	if (app->show_window_extra1) {
-		ShowExampleAppLog1(app);
+		gui_window_extra1(app);
 	}
 
 	if (app->show_window_extra2) {
-		ShowExampleAppLog2(app);
+		gui_window_extra2(app);
 	}
 
-	if (app->show_window_export) {
-		//gui_exporter_progress(app->world, app->query_exporter, &app->exporter, &app->show_window_export);
-	}
 
-	app->show_window_main = !app->show_window_export;
 	if (app->show_window_main) {
 		gui_window_main(app);
 	}

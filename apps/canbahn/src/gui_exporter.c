@@ -69,7 +69,7 @@ static void text(char const * label, EgStrText *text)
 	igPopItemWidth();
 }
 
-void gui_exporter_progress(ecs_world_t *world, ecs_query_t *q, ecs_query_t *q2, gui_exporter_t *exporter, bool *p_open)
+void gui_exporter_progress(ecs_world_t *world, ecs_query_t *q, ecs_query_t *q2, gui_exporter_t *exporter)
 {
 	assert(world);
 	assert(q);
