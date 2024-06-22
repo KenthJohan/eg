@@ -38,16 +38,12 @@ typedef struct {
 	ecs_query_t *query_plots;
 	ecs_query_t *query_exporter;
 	ecs_query_t *query_exporter2;
-	ImFont *font;
 	double gui_time_seconds;
 	uint64_t last_time;
-	sg_pass_action pass_action;
 
 	bool show_window_main;
 	bool show_window_extra1;
 	bool show_window_extra2;
-
-	gui_exporter_t exporter;
 } app_t;
 
 static void gui_window_extra1(app_t *app)
@@ -125,7 +121,7 @@ static void gui_window_main(app_t *app)
 			igEndTabItem();
 		}
 		if (igBeginTabItem("Export", NULL, 0)) {
-			gui_exporter_progress(app->world, app->query_exporter, app->query_exporter2, &app->exporter);
+			gui_exporter_progress(app->world, app->query_exporter, app->query_exporter2);
 			igEndTabItem();
 		}
 		igEndTabBar();
@@ -180,16 +176,13 @@ void init(app_t *app)
 	}
 
 	/* initialize application state */
-	app->pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
-	app->pass_action.colors[0].clear_value = (sg_color){0.1f, 0.2f, 0.0f, 1.0f};
+
+
 
 
 	app->show_window_main = true;
 	app->show_window_extra1 = false;
 	app->show_window_extra2 = false;
-	snprintf(app->exporter.prefix, 128, "%s", "CANID");
-	snprintf(app->exporter.export_destination_c, 128, "%s", "./canids_export.h");
-	snprintf(app->exporter.export_destination_python, 128, "%s", "./canids_export.py");
 }
 
 void frame(app_t *app)
@@ -226,7 +219,11 @@ void frame(app_t *app)
 	ecs_progress(app->world, 0.0f);
 
 	// the sokol_gfx draw pass
-	sg_begin_pass(&(sg_pass){.action = app->pass_action, .swapchain = sglue_swapchain()});
+	sg_pass pass = {0};
+	pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
+	pass.action.colors[0].clear_value = (sg_color){0.1f, 0.2f, 0.0f, 1.0f};
+	pass.swapchain = sglue_swapchain();
+	sg_begin_pass(&pass);
 	simgui_render();
 	sg_end_pass();
 	sg_commit();
