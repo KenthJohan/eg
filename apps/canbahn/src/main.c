@@ -13,121 +13,26 @@
 
 #include <egcan.h>
 #include <egquantities.h>
-#include <egimgui.h>
 #include <egspatials.h>
 #include <egshapes.h>
 #include <egcolors.h>
 #include <egifaces.h>
 #include <egfs.h>
 #include <egstr.h>
+#include <egimgui.h>
 
 #include "GuiCan.h"
-#include "gui_canids.h"
-#include "gui_signals.h"
-#include "gui_interfaces.h"
-#include "gui_exporter.h"
+
 #include "imgui_font.h"
-#include "gui_plot.h"
-
-typedef struct {
-	ecs_world_t *world;
-	ecs_query_t *query_canids;
-	ecs_query_t *query_signals;
-	ecs_query_t *query_gui;
-	ecs_query_t *query_ifaces;
-	ecs_query_t *query_plots;
-	ecs_query_t *query_exporter;
-	ecs_query_t *query_exporter2;
-	double gui_time_seconds;
-	uint64_t last_time;
-
-	bool show_window_main;
-	bool show_window_extra1;
-	bool show_window_extra2;
-} app_t;
-
-static void gui_window_extra1(app_t *app)
-{
-	igSetNextWindowPos((ImVec2){100, 100}, ImGuiCond_Once, (ImVec2){0, 0});
-	igSetNextWindowSize((ImVec2){400, 300}, ImGuiCond_Once);
-	ImGuiWindowFlags_ flags = 0;
-	igBegin("Extra1", &app->show_window_extra1, flags);
-	if (igSmallButton("Button")) {
-	}
-	igEnd();
-}
-
-static void gui_window_extra2(app_t *app)
-{
-	igSetNextWindowPos((ImVec2){100, 100}, ImGuiCond_Once, (ImVec2){0, 0});
-	igSetNextWindowSize((ImVec2){400, 300}, ImGuiCond_Once);
-	ImGuiWindowFlags_ flags = 0;
-	igBegin("Extra2", &app->show_window_extra2, flags);
-	if (igSmallButton("Button")) {
-	}
-	igEnd();
-}
+#include "app.h"
+#include "app_gui_window_extra.h"
+#include "app_gui_window_main.h"
 
 
-static void gui_window_main(app_t *app)
-{
-	ImGuiViewport *viewport = igGetMainViewport();
-	igSetNextWindowPos(viewport->Pos, 0, (ImVec2){0, 0});
-	igSetNextWindowSize(viewport->Size, 0);
-	//igSetNextWindowViewport(viewport->ID);
 
-	ImGuiWindowFlags_ flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
-	igBegin("Signal window", &app->show_window_main, flags);
 
-	if (igBeginMenuBar()) {
-		char buf[64];
-		snprintf(buf, 64, "%05u µs", (uint32_t)(app->gui_time_seconds * 1000.0 * 1000.0));
-		if (igBeginMenu(buf, true)) {
-			igEndMenu();
-		}
-		if (igBeginMenu("Extra", true)) {
-			app->show_window_extra1 = igMenuItem_Bool("extra1", NULL, false, true);
-			app->show_window_extra2 = igMenuItem_Bool("extra2", NULL, false, true);
-			igSeparatorText("Separator");
-			igMenuItem_Bool("Item3", NULL, false, true);
-			igMenuItem_Bool("Item4", NULL, false, true);
-			igMenuItem_Bool("Item5", NULL, false, true);
-			igMenuItem_Bool("Item6", NULL, false, true);
-			igEndMenu();
-		}
-		igEndMenuBar();
-	}
 
-	if (igBeginTabBar("tabs", 0)) {
-		// igText("Hello");
-		if (igBeginTabItem("Ifaces", NULL, 0)) {
-			gui_interfaces_progress(app->world, app->query_ifaces);
-			igEndTabItem();
-		}
-		if (igBeginTabItem("CANids", NULL, 0)) {
-			gui_canids_progress(app->world, app->query_canids);
-			igEndTabItem();
-		}
-		if (igBeginTabItem("Signals", NULL, 0)) {
-			gui_signals_progress(app->world, app->query_signals);
-			igEndTabItem();
-		}
-		if (igBeginTabItem("CustomGUI", NULL, 0)) {
-			egimgui_progress1(app->world, app->query_gui);
-			igEndTabItem();
-		}
-		if (igBeginTabItem("Plots", NULL, 0)) {
-			gui_plot_progress(app->world, app->query_plots);
-			igEndTabItem();
-		}
-		if (igBeginTabItem("Export", NULL, 0)) {
-			gui_exporter_progress(app->world, app->query_exporter, app->query_exporter2);
-			igEndTabItem();
-		}
-		igEndTabBar();
-	}
-	igEnd();
-}
+
 
 void init(app_t *app)
 {
@@ -176,10 +81,6 @@ void init(app_t *app)
 	}
 
 	/* initialize application state */
-
-
-
-
 	app->show_window_main = true;
 	app->show_window_extra1 = false;
 	app->show_window_extra2 = false;
@@ -188,11 +89,14 @@ void init(app_t *app)
 void frame(app_t *app)
 {
 	assert(app);
-	const int width = sapp_width();
-	const int height = sapp_height();
+	sg_pass pass = {0};
+	pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
+	pass.action.colors[0].clear_value = (sg_color){0.1f, 0.2f, 0.0f, 1.0f};
+	pass.swapchain = sglue_swapchain();
+	
 	simgui_new_frame(&(simgui_frame_desc_t){
-	.width = width,
-	.height = height,
+	.width = pass.swapchain.width,
+	.height = pass.swapchain.height,
 	.delta_time = sapp_frame_duration(),
 	.dpi_scale = sapp_dpi_scale()});
 
@@ -200,29 +104,23 @@ void frame(app_t *app)
 	ecs_time_measure(&gui_time_sec);
 
 	if (app->show_window_extra1) {
-		gui_window_extra1(app);
+		app_gui_window_extra1(app);
 	}
 
 	if (app->show_window_extra2) {
-		gui_window_extra2(app);
+		app_gui_window_extra2(app);
 	}
-
 
 	if (app->show_window_main) {
-		gui_window_main(app);
+		app_gui_window_main(app);
 	}
-	
-
 
 	app->gui_time_seconds = (app->gui_time_seconds * 0.99) + (ecs_time_measure(&gui_time_sec) * 0.01);
 
 	ecs_progress(app->world, 0.0f);
 
 	// the sokol_gfx draw pass
-	sg_pass pass = {0};
-	pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
-	pass.action.colors[0].clear_value = (sg_color){0.1f, 0.2f, 0.0f, 1.0f};
-	pass.swapchain = sglue_swapchain();
+
 	sg_begin_pass(&pass);
 	simgui_render();
 	sg_end_pass();
@@ -265,18 +163,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ecs_plecs_from_dir(app->world, "config");
 	ecs_log_set_level(-1);
 
-	app->query_canids = gui_canids_query(app->world);
-	app->query_signals = gui_signals_query(app->world);
-	app->query_ifaces = gui_interfaces_query(app->world);
-	app->query_gui = egimgui_query1(app->world);
-	app->query_plots = gui_plot_query(app->world);
-	app->query_exporter = gui_exporter_query(app->world);
-	app->query_exporter2 = gui_exporter_query2(app->world);
-
-
-
-
-
+	app_gui_window_main_init(app);
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
