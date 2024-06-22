@@ -66,6 +66,7 @@ typedef struct {
 	uint32_t id;
 	uint32_t n;
 	double elapsed;
+	uint32_t flags;
 } EgCanId;
 
 extern ECS_DECLARE(EgCanRx);

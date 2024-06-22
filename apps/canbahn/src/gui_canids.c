@@ -14,12 +14,11 @@
 #include "GuiCan.h"
 #include "flecs_imgui.h"
 
-
 int compare_canid(ecs_entity_t e1, const EgCanId *p1, ecs_entity_t e2, const EgCanId *p2)
 {
 	(void)e1;
 	(void)e2;
-	return (p1->id) < (p2->id);
+	return (p1->id) > (p2->id);
 }
 
 void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
@@ -50,9 +49,10 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 		EgCanId *channel = ecs_field(&it, EgCanId, 2); // self
 		for (int i = 0; i < it.count; ++i, ++channel) {
 			ecs_entity_t e = it.entities[i];
+			igPushID_Ptr((void*)(uintptr_t)e);
 			ecs_entity_t ep = ecs_get_parent(world, e);
-			char const * idname = ecs_get_name(world, e);
-			char const * parentname = ecs_get_name(world, ep);
+			char const *idname = ecs_get_name(world, e);
+			char const *parentname = ecs_get_name(world, ep);
 			igTableNextColumn();
 			igText("%i", bus->socket);
 
@@ -63,7 +63,16 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 
 			igTableNextColumn();
 			igPushStyleColor_U32_HSV_strhash(idname);
-			igText("%s", idname);
+
+			ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowOverlap;
+			if (igSelectable_Bool(idname, false, selectable_flags, (ImVec2){0, 0})) {
+				
+				if (igGetIO()->KeyCtrl) {}
+			}
+			
+
+			// igText("%s", idname);
+			// igSmallButton(idname);
 			igPopStyleColor(1);
 
 			igTableNextColumn();
@@ -83,13 +92,14 @@ void gui_canids_progress(ecs_world_t *world, ecs_query_t *q)
 				igPopStyleColor(1);
 			}
 			igTableNextColumn();
-			eg_can_book_t * book = bus->ptr;
-			eg_can_book_packet8_t * rx = NULL;
+			eg_can_book_t *book = bus->ptr;
+			eg_can_book_packet8_t *rx = NULL;
 			if (channel->id < book->cap) {
 				rx = book->rx + channel->id;
-				uint8_t * p = rx->payload;
+				uint8_t *p = rx->payload;
 				igText("%02X %02X %02X %02X %02X %02X %02X %02X", p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
 			}
+			igPopID();
 		}
 	}
 
@@ -102,8 +112,9 @@ ecs_query_t *gui_canids_query(ecs_world_t *world)
 	ecs_query_t * q = ecs_query(world, {
 		.filter.terms = {
 		{.id = ecs_id(EgCanBus), .src.flags = EcsUp, .src.trav = EcsChildOf},
-		{.id = ecs_id(EgCanId)},
+		{.id = ecs_id(EgCanId)}
 		},
+		// Does not work:
 		//.order_by = (ecs_order_by_action_t)compare_canid,
 		//.order_by_component = ecs_id(EgCanId) 
 		}

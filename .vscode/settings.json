@@ -137,7 +137,8 @@
 		"gui_exporter.h": "c",
 		"app_gui_window_extra.h": "c",
 		"app.h": "c",
-		"app_gui_window_main.h": "c"
+		"app_gui_window_main.h": "c",
+		"deque": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

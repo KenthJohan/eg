@@ -79,6 +79,8 @@ void app_gui_window_main(app_t *app)
 			gui_exporter_progress(app->world, app->query_exporter, app->query_exporter2);
 			igEndTabItem();
 		}
+
+
 		igEndTabBar();
 	}
 	igEnd();

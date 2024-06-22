@@ -1,6 +1,7 @@
 #include <flecs.h>
 
 
+
 typedef struct {
 	int32_t index;
 	ecs_entity_t kind;
@@ -15,5 +16,6 @@ typedef struct {
 
 extern ECS_COMPONENT_DECLARE(GuiCanTableRow);
 extern ECS_COMPONENT_DECLARE(GuiCanPlot);
+extern ECS_TAG_DECLARE(GuiCanSelected);
 
 void GuiCanImport(ecs_world_t *world);

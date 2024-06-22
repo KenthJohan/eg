@@ -9,6 +9,7 @@
 
 ECS_COMPONENT_DECLARE(GuiCanTableRow);
 ECS_COMPONENT_DECLARE(GuiCanPlot);
+ECS_TAG_DECLARE(GuiCanSelected);
 
 ECS_CTOR(GuiCanPlot, ptr, {
 	printf("GuiCanPlot CTOR\n");
@@ -57,6 +58,7 @@ void GuiCanImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, GuiCanTableRow);
 	ECS_COMPONENT_DEFINE(world, GuiCanPlot);
+	ECS_TAG_DEFINE(world, GuiCanSelected);
 
 	ecs_struct(world,
 	{.entity = ecs_id(GuiCanTableRow),

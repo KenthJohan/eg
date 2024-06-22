@@ -558,7 +558,8 @@ void EgCanImport(ecs_world_t *world)
 	.members = {
 	{.name = "id", .type = ecs_id(ecs_u32_t)},
 	{.name = "n", .type = ecs_id(ecs_u32_t)},
-	{.name = "elapsed", .type = ecs_id(ecs_f64_t)}
+	{.name = "elapsed", .type = ecs_id(ecs_f64_t)},
+	{.name = "flags", .type = ecs_id(ecs_u32_t)},
 	}});
 
 
