@@ -28,12 +28,6 @@
 #include "app_gui_window_extra.h"
 #include "app_gui_window_main.h"
 
-
-
-
-
-
-
 void init(app_t *app)
 {
 	// setup sokol-gfx, sokol-time and sokol-imgui
@@ -84,6 +78,33 @@ void init(app_t *app)
 	app->show_window_main = true;
 	app->show_window_extra1 = false;
 	app->show_window_extra2 = false;
+
+	sg_sampler smp_nearest = sg_make_sampler(&(sg_sampler_desc){
+	.min_filter = SG_FILTER_NEAREST,
+	.mag_filter = SG_FILTER_NEAREST,
+	});
+
+	app->image.width = 200;
+	app->image.height = 200;
+	app->image.depth = 4;
+	app->image.size = app->image.width * app->image.height * app->image.depth;
+	app->image.data = malloc(app->image.size);
+	sg_image render_depth_img = sg_make_image(&(sg_image_desc){
+	.usage = SG_USAGE_STREAM,
+	.width = app->image.width,
+	.height = app->image.height,
+	.data.subimage[0][0].ptr = 0,
+	.data.subimage[0][0].size = 0,
+	.pixel_format = SG_PIXELFORMAT_RGBA8,
+	});
+
+	simgui_image_t simgui_img = simgui_make_image(&(simgui_image_desc_t){
+	.image = render_depth_img,
+	.sampler = smp_nearest,
+	});
+
+	app->image_id = simgui_img.id;
+	app->image_id2 = render_depth_img.id;
 }
 
 void frame(app_t *app)

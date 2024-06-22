@@ -549,7 +549,7 @@ void EgCanImport(ecs_world_t *world)
 	{.entity = ecs_id(EgCanSignal),
 	.members = {
 	{.name = "len", .type = ecs_id(ecs_u8_t)},
-	{.name = "byte_offset", .type = ecs_id(ecs_u8_t)},
+	{.name = "byte_offset", .type = ecs_id(ecs_u8_t), .unit = EcsBytes},
 	{.name = "rxtx", .type = ecs_id(ecs_u8_t)}
 	}});
 

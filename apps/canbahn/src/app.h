@@ -2,6 +2,16 @@
 #include <flecs.h>
 #include <stdint.h>
 
+
+typedef struct {
+	void * data;
+	uint32_t size;
+	uint32_t width;
+	uint32_t height;
+	uint8_t depth;
+} image_t;
+
+
 typedef struct {
 	ecs_world_t *world;
 	ecs_query_t *query_canids;
@@ -17,4 +27,10 @@ typedef struct {
 	bool show_window_main;
 	bool show_window_extra1;
 	bool show_window_extra2;
+
+
+
+	uint32_t image_id;
+	uint32_t image_id2;
+	image_t image;
 } app_t;
