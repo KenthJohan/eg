@@ -61,7 +61,7 @@ typedef struct {
 
 
 typedef struct {
-	int32_t dummy;
+	uint32_t flags;
 } ShowDrawReference;
 
 

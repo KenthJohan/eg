@@ -199,6 +199,8 @@ assembly Car {
 			w4a {
 				- Position3{x: 0, y: 0, z: 0}
 				- Cylinder{radius: $r*0.1, height: 0.3, slices: 20, stacks: 2, random_colors: 1}
+				- ShowDrawReference {1}
+				- (EgUse, vbuffers.lines)
 			}
 		}
 		w2 {
@@ -232,7 +234,7 @@ assembly Car {
 		- Position3World
 		- Color32{a:255, r:255, g:255, b:0}
 		// Draw XYZ axis of this global rotation
-		- ShowDrawReference
+		- ShowDrawReference {1}
 		- (EgUse, vbuffers.lines)
 	}
 

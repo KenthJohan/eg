@@ -12,7 +12,6 @@
 #include <egcameras.h>
 #include <egshapes.h>
 
-
 ECS_COMPONENT_DECLARE(LinesBuffer);
 
 typedef struct {
@@ -27,7 +26,9 @@ static void DrawLines(ecs_iter_t *it)
 	Camera *cam = ecs_field(it, Camera, 3);              // self
 
 	for (int i = 0; i < it->count; i++) {
-		if(lines->storage.count <= 0) {continue;}
+		if (lines->storage.count <= 0) {
+			continue;
+		}
 		lines_upload(&lines->storage);
 		sg_apply_pipeline(pipeline->id);
 		sg_apply_bindings(&(sg_bindings){
@@ -42,58 +43,49 @@ static void DrawLines(ecs_iter_t *it)
 /*
 void AppendExampleLines(ecs_iter_t *it)
 {
-	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // self
+    LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // self
 
-	for (int i = 0; i < 100; i++) {
-		line_t line =
-		{
-		.a = {.color = 0xFFFFFFFF, .pos = {0, 0, 0, 0}},
-		.b = {.color = 0xFFFFFFFF, .pos = {sin(i/10.0f)*100.0f, 100, 300, 0}}};
-		//lines_append(&lines->storage, &line);
-	}
+    for (int i = 0; i < 100; i++) {
+        line_t line =
+        {
+        .a = {.color = 0xFFFFFFFF, .pos = {0, 0, 0, 0}},
+        .b = {.color = 0xFFFFFFFF, .pos = {sin(i/10.0f)*100.0f, 100, 300, 0}}};
+        //lines_append(&lines->storage, &line);
+    }
 }
 */
 
-
-
-
-#define COLOR_RGBA(r,g,b,a) ((r) << 0) | ((g) << 8) | ((b) << 16) | ((a) << 24)
+#define COLOR_RGBA(r, g, b, a) ((r) << 0) | ((g) << 8) | ((b) << 16) | ((a) << 24)
 #define COLOR_RED COLOR_RGBA(0xFF, 0x77, 0x77, 0xFF)
 #define COLOR_GREEN COLOR_RGBA(0x77, 0xFF, 0x77, 0xFF)
 #define COLOR_BLUE COLOR_RGBA(0x77, 0x77, 0xFF, 0xFF)
 
-
 static void AppendLines2(ecs_iter_t *it)
 {
-	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // up, shared
-	OrientationWorld *o = ecs_field(it, OrientationWorld, 2); // self
-	Position3World *p = ecs_field(it, Position3World, 3); // self
-	for (int i = 0; i < it->count; ++i, ++o, ++p) {
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1);         // up, shared
+	OrientationWorld *o = ecs_field(it, OrientationWorld, 2);   // self
+	Position3World *p = ecs_field(it, Position3World, 3);       // self
+	ShowDrawReference *d = ecs_field(it, ShowDrawReference, 4); // self
+	for (int i = 0; i < it->count; ++i, ++o, ++p, ++d) {
+		if ((d->flags & 0x01) == 0) {
+			continue;
+		}
 		m3f32 r;
-		qf32_unit_to_m3((float*)o, &r);
-		line_t l1 = {.a = {.color = COLOR_RED, .pos = {p->x, p->y, p->z, 0}},.b = {.color = COLOR_RED, .pos = {p->x+r.c0[0], p->y+r.c0[1], p->z+r.c0[2], 0.0f}}};
-		line_t l2 = {.a = {.color = COLOR_GREEN, .pos = {p->x, p->y, p->z, 0}},.b = {.color = COLOR_GREEN, .pos = {p->x+r.c1[0], p->y+r.c1[1], p->z+r.c1[2], 0.0f}}};
-		line_t l3 = {.a = {.color = COLOR_BLUE, .pos = {p->x, p->y, p->z, 0}},.b = {.color = COLOR_BLUE, .pos = {p->x+r.c2[0], p->y+r.c2[1], p->z+r.c2[2], 0.0f}}};
+		qf32_unit_to_m3((float *)o, &r);
+		line_t l1 = {.a = {.color = COLOR_RED, .pos = {p->x, p->y, p->z, 0}}, .b = {.color = COLOR_RED, .pos = {p->x + r.c0[0], p->y + r.c0[1], p->z + r.c0[2], 0.0f}}};
+		line_t l2 = {.a = {.color = COLOR_GREEN, .pos = {p->x, p->y, p->z, 0}}, .b = {.color = COLOR_GREEN, .pos = {p->x + r.c1[0], p->y + r.c1[1], p->z + r.c1[2], 0.0f}}};
+		line_t l3 = {.a = {.color = COLOR_BLUE, .pos = {p->x, p->y, p->z, 0}}, .b = {.color = COLOR_BLUE, .pos = {p->x + r.c2[0], p->y + r.c2[1], p->z + r.c2[2], 0.0f}}};
 		lines_append(&lines->storage, &l1);
 		lines_append(&lines->storage, &l2);
 		lines_append(&lines->storage, &l3);
 	}
 }
 
-
-
-
-
-
-
-
-
-
 static void AppendLines(ecs_iter_t *it)
 {
 	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // up, shared
-	Line *line = ecs_field(it, Line, 2); // self
-	Color32 *color = ecs_field(it, Color32, 3); // self
+	Line *line = ecs_field(it, Line, 2);                // self
+	Color32 *color = ecs_field(it, Color32, 3);         // self
 
 	for (int i = 0; i < it->count; ++i, ++line) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
@@ -105,7 +97,6 @@ static void AppendLines(ecs_iter_t *it)
 	}
 }
 
-
 static void Flush(ecs_iter_t *it)
 {
 	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // self
@@ -113,7 +104,6 @@ static void Flush(ecs_iter_t *it)
 		lines_flush(&lines->storage);
 	}
 }
-
 
 ECS_CTOR(LinesBuffer, ptr, {
 	ecs_os_memset_t(ptr, 0, LinesBuffer);
@@ -163,7 +153,7 @@ void MiscLinesImport(ecs_world_t *world)
 	{.id = ecs_id(LinesBuffer), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf},
 	{.id = ecs_id(Position3World), .src.flags = EcsSelf},
-	{.id = ecs_id(Color32), .src.flags = EcsSelf},
+	{.id = ecs_id(ShowDrawReference), .src.flags = EcsSelf},
 	}});
 
 	ecs_system_init(world,

@@ -81,7 +81,11 @@ void EgComponentsImport(ecs_world_t *world)
 	{.name = "cap", .type = ecs_id(ecs_i32_t)},
 	}});
 
-
+	ecs_struct(world,
+	{.entity = ecs_id(ShowDrawReference),
+	.members = {
+	{.name = "flags", .type = ecs_id(ecs_u32_t)},
+	}});
 
 
 }
