@@ -37,6 +37,13 @@
 #define M4_R2(a) ((a).c0[2]), ((a).c1[2]), ((a).c2[2]), ((a).c3[2])
 #define M4_R3(a) ((a).c0[3]), ((a).c1[3]), ((a).c2[3]), ((a).c3[3])
 
+#define V3_CROSS0(a,b) ((a)[1] * (b)[2] - (a)[2] * (b)[1])
+#define V3_CROSS1(a,b) ((a)[2] * (b)[0] - (a)[0] * (b)[2])
+#define V3_CROSS2(a,b) ((a)[0] * (b)[1] - (a)[1] * (b)[0])
+
+
+
+
 typedef struct
 {
 	float c0[3];

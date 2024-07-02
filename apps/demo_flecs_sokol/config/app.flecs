@@ -193,17 +193,19 @@ assembly Car {
 	const cyl : Cylinder = {radius: $r, height: 0.2, slices: 20, stacks: 2, random_colors: 1}
 	const color : Color32 = {a: 255, r: 255, g: 255, b:255}
 
-	with $cyl, $color, Position3World, Orientation, OrientationWorld, Transformation, ShapeElement, (EgUse, vbuffers.shapes), (EgUse, cam), (EgUse, graphics.pipes.shapes), Rotate3{0,0.011,0}, EgRotateOrder1 {
+	with $cyl, $color, Position3World, Orientation, OrientationWorld, Transformation, ShapeElement, (EgUse, vbuffers.shapes), (EgUse, cam), (EgUse, graphics.pipes.shapes), EgRotateOrder1 {
 		w1 {
 			- Position3{x: $width, y: $width, z: 0}
+			- my.intersectors.Hit{0}
+			- ShowDrawReference {1}
+			- (EgUse, vbuffers.lines)
 			w4a {
 				- Position3{x: 0, y: 0, z: 0}
 				- Cylinder{radius: $r*0.1, height: 0.3, slices: 20, stacks: 2, random_colors: 1}
-				- ShowDrawReference {1}
-				- (EgUse, vbuffers.lines)
 			}
 		}
 		w2 {
+			- Rotate3{0,0.011,0}
 			- Position3{x: -$width, y: $width, z: 0}
 			w4a {
 				- Position3{x: 0, y: 0, z: 0}
