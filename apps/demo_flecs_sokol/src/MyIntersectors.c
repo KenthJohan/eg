@@ -68,20 +68,7 @@ bool intersect(const Ray &ray) const
 
 
 
-float intersect(float const rp[3], float const rd[3], float const cp[3], float const cd[3])
-{   
-	float rc[3];
-	rc[0] = rp[0] - cp[0];
-	rc[1] = rp[1] - cp[1];
-	rc[2] = rp[2] - cp[2];
-	float n[3];
-	n[0] = V3_CROSS0(rd, cd);
-	n[1] = V3_CROSS1(rd, cd);
-	n[2] = V3_CROSS2(rd, cd);
-	v3f32_normalize(n, n, 0.0001);
-	float d = fabs(V3_DOT(rc, n));
-	return d;
-}
+
 
 
 
@@ -105,7 +92,7 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++cyl, ++cp, ++cr, ++ish) {
 		m3f32 r = {0};
 		qf32_unit_to_m3((float*)cr, &r);
-		ish->d = intersect(line->a, (float*)rd, (float*)cp, r.c1);
+		ish->d = v3f32_l1l2_distance(line->a, (float*)rd, (float*)cp, r.c1);
 	}
 }
 

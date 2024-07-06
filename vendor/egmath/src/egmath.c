@@ -369,3 +369,28 @@ void m4f32_inverse(float const m[16], float o[16])
 	o[15] = d * ((t22 * m[10] + t16 * m[2] + t21 * m[6]) -
 	             (t20 * m[6] + t23 * m[10] + t17 * m[2]));
 }
+
+/**
+ * @brief Calculates the shortest distance between L1 and L2
+ * https://math.stackexchange.com/questions/3081301/shortest-distance-between-two-vectors
+ *
+ * @param p1 Point on L1
+ * @param v1 Direction of L1
+ * @param p2 Point on L2
+ * @param v2 Direction of L2
+ * @return Returns the shortest distance between L1 and L2
+ */
+float v3f32_l1l2_distance(float const p1[3], float const v1[3], float const p2[3], float const v2[3])
+{
+	float d[3];
+	d[0] = p1[0] - p2[0];
+	d[1] = p1[1] - p2[1];
+	d[2] = p1[2] - p2[2];
+	float n[3];
+	n[0] = V3_CROSS0(v1, v2);
+	n[1] = V3_CROSS1(v1, v2);
+	n[2] = V3_CROSS2(v1, v2);
+	v3f32_normalize(n, n, 0.0001);
+	float l = fabs(V3_DOT(d, n));
+	return l;
+}

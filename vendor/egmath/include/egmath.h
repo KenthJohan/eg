@@ -37,12 +37,9 @@
 #define M4_R2(a) ((a).c0[2]), ((a).c1[2]), ((a).c2[2]), ((a).c3[2])
 #define M4_R3(a) ((a).c0[3]), ((a).c1[3]), ((a).c2[3]), ((a).c3[3])
 
-#define V3_CROSS0(a,b) ((a)[1] * (b)[2] - (a)[2] * (b)[1])
-#define V3_CROSS1(a,b) ((a)[2] * (b)[0] - (a)[0] * (b)[2])
-#define V3_CROSS2(a,b) ((a)[0] * (b)[1] - (a)[1] * (b)[0])
-
-
-
+#define V3_CROSS0(a, b) ((a)[1] * (b)[2] - (a)[2] * (b)[1])
+#define V3_CROSS1(a, b) ((a)[2] * (b)[0] - (a)[0] * (b)[2])
+#define V3_CROSS2(a, b) ((a)[0] * (b)[1] - (a)[1] * (b)[0])
 
 typedef struct
 {
@@ -88,3 +85,4 @@ void m4f32_print(m4f32 const *x);
 void v3f32_print(float const x[3]);
 void v4f32_print(float const x[4]);
 void m4f32_inverse(float const m[16], float o[16]);
+float v3f32_l1l2_distance(float const p1[3], float const v1[3], float const p2[3], float const v2[3]);
