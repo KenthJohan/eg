@@ -86,3 +86,8 @@ void v3f32_print(float const x[3]);
 void v4f32_print(float const x[4]);
 void m4f32_inverse(float const m[16], float o[16]);
 float v3f32_l1l2_distance(float const p1[3], float const v1[3], float const p2[3], float const v2[3]);
+void v3f32_proj(float const bnorm[3], float const a[3], float r[3]);
+void v3f32_oproj(float const bnorm[3], float const a[3], float r[3]);
+float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float const c[3], float const n[3]);
+
+int v3f32_intersect_cylinder(float const v[3], float const l0[3], float const c[3], float const n[3], float r, float height);

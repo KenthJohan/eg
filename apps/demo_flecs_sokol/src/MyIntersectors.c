@@ -84,15 +84,33 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 	ecs_entity_t line_e = ecs_lookup_fullpath(it->world, "app.line1");
 	Line const * line = ecs_get(it->world, line_e, Line);
 
+	
 	float rd[3];
 	rd[0] = line->b[0] - line->a[0];
 	rd[1] = line->b[1] - line->a[1];
 	rd[2] = line->b[2] - line->a[2];
+	//v3f32_normalize(rd, rd, 0.0001f);
+	
 
 	for (int i = 0; i < it->count; ++i, ++cyl, ++cp, ++cr, ++ish) {
 		m3f32 r = {0};
 		qf32_unit_to_m3((float*)cr, &r);
+		v3f32_intersect_cylinder(rd, line->a, (float*)cp, r.c1, cyl->radius, cyl->height);
+		/*
 		ish->d = v3f32_l1l2_distance(line->a, (float*)rd, (float*)cp, r.c1);
+		float cap[3];
+		cap[0] = cp->x + r.c1[0] * cyl->height * 0.5;
+		cap[1] = cp->y + r.c1[1] * cyl->height * 0.5;
+		cap[2] = cp->z + r.c1[2] * cyl->height * 0.5;
+		float d1 = v3f32_plane_point_line_distance(rd, line->a, cap, r.c1);
+		cap[0] = cp->x + r.c1[0] * cyl->height * -0.5;
+		cap[1] = cp->y + r.c1[1] * cyl->height * -0.5;
+		cap[2] = cp->z + r.c1[2] * cyl->height * -0.5;
+		float d2 = v3f32_plane_point_line_distance(rd, line->a, cap, r.c1);
+		//printf("%f %f %f\n", ish->d, d1, d2);
+		//ish->d = v3f32_intersect_cyl_oproj(line->a, line->b, cyl->radius, r.c1);
+		//ish->d = v3f32_intersect_cyl1(rd, r.c1, cyl->radius, line->a, (float*)cp, cyl->height);
+		*/
 	}
 }
 
@@ -122,7 +140,7 @@ void MyIntersectorsImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "Cylinder_Intersect", .add = {ecs_dependson(EcsOnUpdate)}}),
+	.entity = ecs_entity(world, {.name = "Cylinder_Intersect", .add = {ecs_dependson(EcsPostUpdate)}}),
 	.callback = Cylinder_Intersect,
 	.query.filter.terms =
 	{

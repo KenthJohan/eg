@@ -194,7 +194,7 @@ static void PrintMousePos(ecs_iter_t *it)
 			.b = {-pos->x+ ray_world[0]*length, -pos->y+ ray_world[1]*length, -pos->z+ ray_world[2]*length}
 		};
 		ecs_set_ptr(it->world, e, Line, &line);
-		printf("mouse_left_edge\n");
+		//printf("mouse_left_edge\n");
 	}
 }
 
