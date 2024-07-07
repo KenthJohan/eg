@@ -2,6 +2,7 @@
 
 ECS_COMPONENT_DECLARE(Position2);
 ECS_COMPONENT_DECLARE(Position3);
+ECS_COMPONENT_DECLARE(Scale3);
 ECS_COMPONENT_DECLARE(Position3World);
 ECS_COMPONENT_DECLARE(Velocity2);
 ECS_COMPONENT_DECLARE(Velocity3);
@@ -120,12 +121,13 @@ static void TransformationPosition(ecs_iter_t *it)
 	Transformation *t = ecs_field(it, Transformation, 1);                     // self, out
 	Position3World const *pos = ecs_field(it, Position3World, 2);             // self, in
 	OrientationWorld const *orientation = ecs_field(it, OrientationWorld, 3); // self, in
+	Scale3 const *scale = ecs_field(it, Scale3, 4);                           // self, in
 	for (int i = 0; i < it->count; ++i, ++t, ++pos, ++orientation) {
-		//t->matrix = (m4f32)M4_IDENTITY;
-		//qf32_unit_to_m4((float *)orientation, &t->matrix);
-		//m4f32_translation3(&t->matrix, (float const *)pos);
-		float s[3] = {1,1,1};
-		m4f32_trs((float const *)pos, (float *)orientation, s, &t->matrix);
+		// t->matrix = (m4f32)M4_IDENTITY;
+		// qf32_unit_to_m4((float *)orientation, &t->matrix);
+		// m4f32_translation3(&t->matrix, (float const *)pos);
+		// float s[3] = {1,1,1};
+		m4f32_trs((float const *)pos, (float *)orientation, (float *)scale, &t->matrix);
 	}
 }
 
@@ -219,6 +221,12 @@ ECS_CTOR(OrientationWorld, ptr, {
 	ptr->w = 1.0f;
 })
 
+ECS_CTOR(Scale3, ptr, {
+	ptr->x = 1.0f;
+	ptr->y = 1.0f;
+	ptr->z = 1.0f;
+})
+
 void EgSpatialsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSpatials);
@@ -226,6 +234,7 @@ void EgSpatialsImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, Position2);
 	ECS_COMPONENT_DEFINE(world, Position3);
+	ECS_COMPONENT_DEFINE(world, Scale3);
 	ECS_COMPONENT_DEFINE(world, Position3World);
 	ECS_COMPONENT_DEFINE(world, Velocity2);
 	ECS_COMPONENT_DEFINE(world, Velocity3);
@@ -245,6 +254,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	ecs_set_hooks(world, OrientationWorld, {.ctor = ecs_ctor(OrientationWorld)});
 	ecs_set_hooks(world, Transformation, {.ctor = ecs_ctor(Transformation)});
 	ecs_set_hooks(world, RotMat3, {.ctor = ecs_ctor(RotMat3)});
+	ecs_set_hooks(world, Scale3, {.ctor = ecs_ctor(Scale3)});
 
 	ecs_struct(world,
 	{.entity = ecs_id(Position2),
@@ -255,6 +265,14 @@ void EgSpatialsImport(ecs_world_t *world)
 
 	ecs_struct(world,
 	{.entity = ecs_id(Position3),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	{.name = "z", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(Scale3),
 	.members = {
 	{.name = "x", .type = ecs_id(ecs_f32_t)},
 	{.name = "y", .type = ecs_id(ecs_f32_t)},
@@ -443,5 +461,6 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.id = ecs_id(Transformation), .inout = EcsOut},
 	{.id = ecs_id(Position3World), .inout = EcsIn},
 	{.id = ecs_id(OrientationWorld), .inout = EcsIn},
+	{.id = ecs_id(Scale3), .inout = EcsIn},
 	}});
 }
