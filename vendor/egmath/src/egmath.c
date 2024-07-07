@@ -67,6 +67,90 @@ void qf32_unit_to_m4(float const q[4], m4f32 *r)
 	r->c2[2] = a2 - b2 - c2 + d2;
 }
 
+
+/*
+https://forums.inovaestudios.com/t/math-combining-a-translation-rotation-and-scale-matrix-edit-question-solved-by-math-magician-flavien/5194/4
+https://old.reddit.com/r/Unity3D/comments/flwreg/how_do_i_make_a_trs_matrix_manually/
+http://www.illusioncatalyst.com/notes_files/mathematics/line_nu_cylinder_intersection.php
+*/
+void m4f32_trs(float const t[3], float const q[4], float s[3], m4f32 *r)
+{
+	float x = q[0];
+	float y = q[1];
+	float z = q[2];
+	float w = q[3];
+
+	float sx = s[0];
+	float sy = s[1];
+	float sz = s[2];
+
+	float xx = x * x;
+	float yy = y * y;
+	float zz = z * z;
+	//float ww = w * w;
+
+	float xy = x * y;
+	float xz = x * z;
+	float zw = z * w;
+	float yw = y * w;
+	float yz = y * z;
+	float xw = x * w;
+
+	r->c0[0] = (1.0f - 2.0f * (yy + zz)) * sx;
+	r->c0[1] = (xy + zw) * sx * 2.0f;
+	r->c0[2] = (xz - yw) * sx * 2.0f;
+	r->c0[3] = 0.0f;
+
+	r->c1[0] = (xy - zw) * sy * 2.0f;
+	r->c1[1] = (1.0f - 2.0f * (xx + zz)) * sy;
+	r->c1[2] = (yz + xw) * sy * 2.0f;
+	r->c1[3] = 0.0f;
+
+	r->c2[0] = (xz + yw) * sz * 2.0f;
+	r->c2[1] = (yz - xw) * sz * 2.0f;
+	r->c2[2] = (1.0f - 2.0f * (xx + yy)) * sz;
+	r->c2[3] = 0.0f;
+
+	r->c3[0] = t[0];
+	r->c3[1] = t[1];
+	r->c3[2] = t[2];
+	r->c3[3] = 1.0f;
+}
+
+/*
+
+   public static Matrix4x4Custom TRS(Vector3d pos, Quaterniond q, Vector3d s)
+   {
+       Matrix4x4Custom result = new Matrix4x4Custom();
+       // Rotation and Scale
+       // Quaternion multiplication can be used to represent rotation.
+       // If a quaternion is represented by qw + i qx + j qy + k qz , then the equivalent matrix for rotation is (including scale):
+       // Remarks: https://forums.inovaestudios.com/t/math-combining-a-translation-rotation-and-scale-matrix-question-to-you-math-magicians/5194/2
+       double sqw = q.w * q.w;
+       double sqx = q.x * q.x;
+       double sqy = q.y * q.y;
+       double sqz = q.z * q.z;
+       result.m00 = (float)(1 - 2 * sqy - 2 * sqz) * (float)s.x;
+       result.m01 = (float)(2 * q.x * q.y - 2 * q.z * q.w);
+       result.m02 = (float)(2 * q.x * q.z + 2 * q.y * q.w);
+       result.m10 = (float)(2 * q.x * q.y + 2 * q.z * q.w);
+       result.m11 = (float)(1 - 2 * sqx - 2 * sqz) * (float)s.y;
+       result.m12 = (float)(2 * q.y * q.z - 2 * q.x * q.w);
+       result.m20 = (float)(2 * q.x * q.z - 2 * q.y * q.w);
+       result.m21 = (float)(2 * q.y * q.z + 2 * q.x * q.w);
+       result.m22 = (float)(1 - 2 * sqx - 2 * sqy) * (float)s.z;
+       // Translation
+       result.m03 = (float)pos.x;
+       result.m13 = (float)pos.y;
+       result.m23 = (float)pos.z;
+       result.m33 = 1.0f;
+       // Return result
+       return result;
+   }
+*/
+
+
+
 void qf32_unit_to_m3(float const q[4], m3f32 *r)
 {
 	float a = q[3];
@@ -411,10 +495,6 @@ void v3f32_oproj(float const bnorm[3], float const a[3], float r[3])
 	r[2] = a[2] - bnorm[2] * k;
 }
 
-
-
-
-
 float v3f32_distance(float const a[3], float const b[3])
 {
 	float d[3];
@@ -432,7 +512,6 @@ float v3f32_distance2(float const a[3], float const b[3])
 	d[2] = a[2] - b[2];
 	return V3_DOT(d, d);
 }
-
 
 // http://www.illusioncatalyst.com/notes_files/mathematics/line_plane_intersection.php
 float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float const c[3], float const n[3])
@@ -456,7 +535,6 @@ float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float
 	return v3f32_distance(c, i);
 }
 
-
 float v3f32_intersect_line_circle(float const v[3], float const l0[3], float const c[3], float const n[3], float r)
 {
 	float w[3];
@@ -474,11 +552,8 @@ float v3f32_intersect_line_circle(float const v[3], float const l0[3], float con
 	i[0] = l0[0] + t * v[0];
 	i[1] = l0[1] + t * v[1];
 	i[2] = l0[2] + t * v[2];
-	return v3f32_distance2(c, i) < (r*r);
+	return v3f32_distance2(c, i) < (r * r);
 }
-
-
-
 
 // // https://math.stackexchange.com/questions/2613781/line-cylinder-intersection
 int v3f32_intersect_cylinder(float const v[3], float const l0[3], float const c[3], float const n[3], float r, float height)
@@ -495,4 +570,3 @@ int v3f32_intersect_cylinder(float const v[3], float const l0[3], float const c[
 	float d3 = v3f32_l1l2_distance(l0, v, c, n);
 	printf("%f %f %f\n", d1, d2, d3);
 }
-

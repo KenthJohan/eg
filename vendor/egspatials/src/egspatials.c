@@ -121,9 +121,11 @@ static void TransformationPosition(ecs_iter_t *it)
 	Position3World const *pos = ecs_field(it, Position3World, 2);             // self, in
 	OrientationWorld const *orientation = ecs_field(it, OrientationWorld, 3); // self, in
 	for (int i = 0; i < it->count; ++i, ++t, ++pos, ++orientation) {
-		t->matrix = (m4f32)M4_IDENTITY;
-		qf32_unit_to_m4((float *)orientation, &t->matrix);
-		m4f32_translation3(&t->matrix, (float const *)pos);
+		//t->matrix = (m4f32)M4_IDENTITY;
+		//qf32_unit_to_m4((float *)orientation, &t->matrix);
+		//m4f32_translation3(&t->matrix, (float const *)pos);
+		float s[3] = {1,1,1};
+		m4f32_trs((float const *)pos, (float *)orientation, s, &t->matrix);
 	}
 }
 
