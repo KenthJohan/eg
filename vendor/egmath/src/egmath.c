@@ -118,6 +118,72 @@ void m4f32_trs(float const t[3], float const q[4], float s[3], m4f32 *r)
 }
 
 /*
+http://www.info.hiroshima-cu.ac.jp/~miyazaki/knowledge/teche0053.html
+http://graphics.cs.cmu.edu/nsp/course/15-462/Spring04/slides/04-transform.pdf
+https://math.stackexchange.com/questions/1234948/inverse-of-a-rigid-transformation
+https://www.cuemath.com/algebra/inverse-of-diagonal-matrix/
+*/
+void m4f32_trs_inverse(float const t[3], float const q[4], float s[3], m4f32 *r)
+{
+	float x = q[0];
+	float y = q[1];
+	float z = q[2];
+	float w = q[3];
+
+	float sx = 1.0 / s[0];
+	float sy = 1.0 / s[1];
+	float sz = 1.0 / s[2];
+
+	float xx = x * x;
+	float yy = y * y;
+	float zz = z * z;
+	//float ww = w * w;
+
+	float xy = x * y;
+	float xz = x * z;
+	float zw = z * w;
+	float yw = y * w;
+	float yz = y * z;
+	float xw = x * w;
+
+	// Store as transposed rotation matrix
+	r->c0[0] = (1.0f - 2.0f * (yy + zz)) * sx;
+	r->c1[0] = (xy + zw) * sx * 2.0f;
+	r->c2[0] = (xz - yw) * sx * 2.0f;
+	
+	r->c0[1] = (xy - zw) * sy * 2.0f;
+	r->c1[1] = (1.0f - 2.0f * (xx + zz)) * sy;
+	r->c2[1] = (yz + xw) * sy * 2.0f;
+
+	r->c0[2] = (xz + yw) * sz * 2.0f;
+	r->c1[2] = (yz - xw) * sz * 2.0f;
+	r->c2[2] = (1.0f - 2.0f * (xx + yy)) * sz;
+
+	// Translation column:
+	r->c3[0] = -V3_DOTE(t, M3_R0(*r));
+	r->c3[1] = -V3_DOTE(t, M3_R1(*r));
+	r->c3[2] = -V3_DOTE(t, M3_R2(*r));
+
+	r->c0[3] = 0.0f;
+	r->c1[3] = 0.0f;
+	r->c2[3] = 0.0f;
+	r->c3[3] = 1.0f;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 
    public static Matrix4x4Custom TRS(Vector3d pos, Quaterniond q, Vector3d s)
    {
@@ -368,10 +434,10 @@ void m4f32_mulv(m4f32 const *a, float const x[4], float y[4])
 
 void m4f32_print(m4f32 const *x)
 {
-	printf("%f %f %f %f\n", M4_R0(*x));
-	printf("%f %f %f %f\n", M4_R1(*x));
-	printf("%f %f %f %f\n", M4_R2(*x));
-	printf("%f %f %f %f\n", M4_R3(*x));
+	printf("%+f %+f %+f %+f\n", M4_R0(*x));
+	printf("%+f %+f %+f %+f\n", M4_R1(*x));
+	printf("%+f %+f %+f %+f\n", M4_R2(*x));
+	printf("%+f %+f %+f %+f\n", M4_R3(*x));
 	printf("\n");
 }
 
@@ -569,4 +635,24 @@ int v3f32_intersect_cylinder(float const v[3], float const l0[3], float const c[
 	float d2 = v3f32_plane_point_line_distance(v, l0, cap, n);
 	float d3 = v3f32_l1l2_distance(l0, v, c, n);
 	printf("%f %f %f\n", d1, d2, d3);
+}
+
+
+
+
+void test_m4f32_trs()
+{
+	float t[3] = {1, 2, 3};
+	float q[4];
+	float s[3] = {4, 5, 6};
+	qf32_from_euler(q, 123, 22, 34564567);
+	m4f32 m1;
+	m4f32 m2;
+	m4f32 m3;
+	m4f32_trs(t, q, s, &m1);
+	m4f32_trs_inverse(t, q, s, &m2);
+	m4f32_inverse((float*)&m1, (float*)&m3);
+	m4f32_print(&m1);
+	m4f32_print(&m2);
+	m4f32_print(&m3);
 }

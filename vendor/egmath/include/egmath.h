@@ -93,3 +93,5 @@ float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float
 int v3f32_intersect_cylinder(float const v[3], float const l0[3], float const c[3], float const n[3], float r, float height);
 
 void m4f32_trs(float const t[3], float const q[4], float s[3], m4f32 *r);
+
+void test_m4f32_trs();

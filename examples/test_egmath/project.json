@@ -1,0 +1,26 @@
+{
+	"id": "test_egmath",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"egmath"
+		]
+	},
+	"lang.c": {
+		"c-standard": "c11",
+		"defines": [],
+		"lib": [
+			"egmath",
+			"m"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}
