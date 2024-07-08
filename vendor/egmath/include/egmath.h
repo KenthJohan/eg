@@ -65,33 +65,45 @@ typedef struct
 
 void qf32_xyza(float q[4], float x, float y, float z, float a);
 void qf32_normalize(float r[4], float const q[4], float epsilon);
-void v3f32_normalize(float r[3], float const q[3], float epsilon);
 void qf32_mul(float r[4], float const p[4], float const q[4]);
 void qf32_unit_to_m4(float const q[4], m4f32 *r);
 void qf32_unit_to_m3(float const q[4], m3f32 *r);
 void qf32_from_euler(float q[4], float pitch, float yaw, float roll);
-void v3f32_cross(int const a[3], int const b[], int p[]);
 void qf32_rotate_vector(float const q[4], float const v[3], float output[3]);
+
+void v3f32_cross(int const a[3], int const b[], int p[]);
+void v3f32_normalize(float r[3], float const q[3], float epsilon);
 void v3f32_mul(float r[3], float const a[3], float b);
 void v3f32_add(float r[3], float const a[3], float const b[3]);
+float v3f32_l1l2_distance(float const p1[3], float const v1[3], float const p2[3], float const v2[3]);
+void v3f32_proj(float const bnorm[3], float const a[3], float r[3]);
+void v3f32_oproj(float const bnorm[3], float const a[3], float r[3]);
+void v3f32_print(float const x[3]);
+int v3f32_intersect_cylinder(float const v[3], float const l0[3], float const c[3], float const n[3], float r, float height);
+float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float const c[3], float const n[3]);
+float v3f32_distance(float const a[3], float const b[3]);
+float v3f32_distance2(float const a[3], float const b[3]);
+
 void m4f32_perspective1(m4f32 *m, float fov, float aspect, float n, float f);
 void m4f32_translation3(m4f32 *m, float const t[3]);
 void m4f32_transpose(m4f32 *x);
 void m4f32_mul_transpose(m4f32 *y, m4f32 const *at, m4f32 *const b);
 void m4f32_mul(m4f32 *y, m4f32 const *a, m4f32 const *b);
-void m3f32_mul(m3f32 *y, m3f32 const *a, m3f32 const *b);
 void m4f32_mulv(m4f32 const *a, float const x[4], float y[4]);
 void m4f32_print(m4f32 const *x);
-void v3f32_print(float const x[3]);
-void v4f32_print(float const x[4]);
 void m4f32_inverse(float const m[16], float o[16]);
-float v3f32_l1l2_distance(float const p1[3], float const v1[3], float const p2[3], float const v2[3]);
-void v3f32_proj(float const bnorm[3], float const a[3], float r[3]);
-void v3f32_oproj(float const bnorm[3], float const a[3], float r[3]);
-float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float const c[3], float const n[3]);
-
-int v3f32_intersect_cylinder(float const v[3], float const l0[3], float const c[3], float const n[3], float r, float height);
-
 void m4f32_trs(float const t[3], float const q[4], float s[3], m4f32 *r);
+void m4f32_trs_inverse(float const t[3], float const q[4], float s[3], m4f32 *r);
+
+
+void m3f32_mul(m3f32 *y, m3f32 const *a, m3f32 const *b);
+void m3f32_transpose(m3f32 *x);
+
+void v4f32_mul(float r[4], float const a[4], float b);
+void v4f32_add(float r[4], float const a[4], float const b[4]);
+void v4f32_print(float const x[4]);
+
+
 
 void test_m4f32_trs();
+
