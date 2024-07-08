@@ -109,6 +109,20 @@ float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void v3f32_print(float const x[3])
 {
 	printf("%f %f %f\n", x[0], x[1], x[2]);

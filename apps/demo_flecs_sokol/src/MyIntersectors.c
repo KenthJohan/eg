@@ -5,120 +5,63 @@
 #include <egshapes.h>
 #include <egmath.h>
 
-
 ECS_COMPONENT_DECLARE(MyIntersectorsHit);
-
-/*
-
-https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
-
-bool solveQuadratic(const float &a, const float &b, const float &c, float &x0, float &x1)
-{
-    float discr = b * b - 4 * a * c;
-    if (discr < 0) return false;
-    else if (discr == 0) x0 = x1 = - 0.5 * b / a;
-    else {
-        float q = (b > 0) ?
-            -0.5 * (b + sqrt(discr)) :
-            -0.5 * (b - sqrt(discr));
-        x0 = q / a;
-        x1 = c / q;
-    }
-    if (x0 > x1) std::swap(x0, x1);
-    
-    return true;
-}
-
-bool intersect(const Ray &ray) const
-{
-        float t0, t1; // solutions for t if the ray intersects
-#if 0
-        // Geometric solution
-        Vec3f L = center - ray.orig;
-        float tca = L.dotProduct(ray.dir);
-        // if (tca < 0) return false;
-        float d2 = L.dotProduct(L) - tca * tca;
-        if (d2 > radius * radius) return false;
-        float thc = sqrt(radius * radius - d2);
-        t0 = tca - thc;
-        t1 = tca + thc;
-#else
-        // Analytic solution
-        Vec3f L = ray.orig - center;
-        float a = ray.dir->dotProduct(ray.dir);
-        float b = 2 * ray.dir->dotProduct(L);
-        float c = L.dotProduct(L) - radius * radius;
-        if (!solveQuadratic(a, b, c, t0, t1)) return false;
-#endif
-        if (t0 > t1) std::swap(t0, t1);
-
-        if (t0 < 0) {
-            t0 = t1; // If t0 is negative, let's use t1 instead.
-            if (t0 < 0) return false; // Both t0 and t1 are negative.
-        }
-
-        t = t0;
-
-        return true;
-}
-
-*/
-
-
-
-
-
-
-
-
-
 
 static void Cylinder_Intersect(ecs_iter_t *it)
 {
-	Cylinder *cyl = ecs_field(it, Cylinder, 1); // self
-	Position3World *cp = ecs_field(it, Position3World, 2); // self
-	OrientationWorld *cr = ecs_field(it, OrientationWorld, 3); // self
-	MyIntersectorsHit *ish = ecs_field(it, MyIntersectorsHit, 4); // self
-	
-	
+	Cylinder *cyl = ecs_field(it, Cylinder, 1);                   // shared
+	Position3World *cp = ecs_field(it, Position3World, 2);        // self
+	OrientationWorld *cr = ecs_field(it, OrientationWorld, 3);    // self
+	Scale3 *s = ecs_field(it, Scale3, 4);                         // self
+	MyIntersectorsHit *ish = ecs_field(it, MyIntersectorsHit, 5); // self
+
 	ecs_entity_t line_e = ecs_lookup_fullpath(it->world, "app.line1");
-	Line const * line = ecs_get(it->world, line_e, Line);
+	Line const *line = ecs_get(it->world, line_e, Line);
 
-	
-	float rd[3];
-	rd[0] = line->b[0] - line->a[0];
-	rd[1] = line->b[1] - line->a[1];
-	rd[2] = line->b[2] - line->a[2];
-	//v3f32_normalize(rd, rd, 0.0001f);
-	
+	float v[4];
+	v[0] = line->b[0] - line->a[0];
+	v[1] = line->b[1] - line->a[1];
+	v[2] = line->b[2] - line->a[2];
+	v3f32_normalize(v, v, 0.000001);
+	v[3] = 1.0;
 
-	for (int i = 0; i < it->count; ++i, ++cyl, ++cp, ++cr, ++ish) {
-		m3f32 r = {0};
-		qf32_unit_to_m3((float*)cr, &r);
-		v3f32_intersect_cylinder(rd, line->a, (float*)cp, r.c1, cyl->radius, cyl->height);
-		/*
-		ish->d = v3f32_l1l2_distance(line->a, (float*)rd, (float*)cp, r.c1);
-		float cap[3];
-		cap[0] = cp->x + r.c1[0] * cyl->height * 0.5;
-		cap[1] = cp->y + r.c1[1] * cyl->height * 0.5;
-		cap[2] = cp->z + r.c1[2] * cyl->height * 0.5;
-		float d1 = v3f32_plane_point_line_distance(rd, line->a, cap, r.c1);
-		cap[0] = cp->x + r.c1[0] * cyl->height * -0.5;
-		cap[1] = cp->y + r.c1[1] * cyl->height * -0.5;
-		cap[2] = cp->z + r.c1[2] * cyl->height * -0.5;
-		float d2 = v3f32_plane_point_line_distance(rd, line->a, cap, r.c1);
-		//printf("%f %f %f\n", ish->d, d1, d2);
-		//ish->d = v3f32_intersect_cyl_oproj(line->a, line->b, cyl->radius, r.c1);
-		//ish->d = v3f32_intersect_cyl1(rd, r.c1, cyl->radius, line->a, (float*)cp, cyl->height);
-		*/
+	float l[4];
+	float c[4];
+	// v3f32_normalize(rd, rd, 0.0001f);
+
+	float w[4];
+	w[3] = 1.0;
+
+	float h[3] = {0, 1, 0};
+
+	for (int i = 0; i < it->count; ++i, ++cp, ++cr, ++s, ++ish) {
+		m4f32 t = {0};
+		m4f32_trs_inverse((float const *)cp, (float const *)cr, (float const *)s, &t);
+		m4f32 t2 = {0};
+		m4f32_trs((float const *)cp, (float const *)cr, (float const *)s, &t2);
+		m4f32_mul(&t2, &t2, &t);
+		m4f32_print(&t2);
+
+		c[0] = cp->x;
+		c[1] = cp->y;
+		c[2] = cp->z;
+		c[3] = 1.0;
+
+		l[0] = line->a[0];
+		l[1] = line->a[1];
+		l[2] = line->a[2];
+		l[3] = 1.0;
+
+		m4f32_mulv(&t, l, l);
+		m4f32_mulv(&t, c, c);
+		m4f32_mulv(&t, v, v);
+		w[0] = l[0] - c[0];
+		w[1] = l[1] - c[1];
+		w[2] = l[2] - c[2];
+		float b2_4ac = v3f32_intersect_cylinder_b2_4ac(v, h, w);
+		printf("b2_4ac: %+f\n", b2_4ac);
 	}
 }
-
-
-
-
-
-
 
 void MyIntersectorsImport(ecs_world_t *world)
 {
@@ -136,19 +79,17 @@ void MyIntersectorsImport(ecs_world_t *world)
 	{.name = "d", .type = ecs_id(ecs_f32_t)},
 	}});
 
-
-
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "Cylinder_Intersect", .add = {ecs_dependson(EcsPostUpdate)}}),
 	.callback = Cylinder_Intersect,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(Cylinder), .src.flags = EcsSelf},
+	{.id = ecs_id(Cylinder), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(Position3World), .src.flags = EcsSelf},
 	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf},
+	{.id = ecs_id(Scale3), .src.flags = EcsSelf},
 	{.id = ecs_id(MyIntersectorsHit), .src.flags = EcsSelf}
+
 	}});
-
-
 }

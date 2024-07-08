@@ -28,10 +28,15 @@ void m4f32_mul(m4f32 *y, m4f32 const *a, m4f32 const *b)
 
 void m4f32_mulv(m4f32 const *a, float const x[4], float y[4])
 {
-	y[0] = V4_DOTE(x, M4_R0(*a));
-	y[1] = V4_DOTE(x, M4_R1(*a));
-	y[2] = V4_DOTE(x, M4_R2(*a));
-	y[3] = V4_DOTE(x, M4_R3(*a));
+	float temp[4];
+	temp[0] = V4_DOTE(x, M4_R0(*a));
+	temp[1] = V4_DOTE(x, M4_R1(*a));
+	temp[2] = V4_DOTE(x, M4_R2(*a));
+	temp[3] = V4_DOTE(x, M4_R3(*a));
+	y[0] = temp[0];
+	y[1] = temp[1];
+	y[2] = temp[2];
+	y[3] = temp[3];
 }
 
 void m4f32_perspective1(m4f32 *m, float fov, float aspect, float n, float f)
@@ -143,7 +148,7 @@ https://forums.inovaestudios.com/t/math-combining-a-translation-rotation-and-sca
 https://old.reddit.com/r/Unity3D/comments/flwreg/how_do_i_make_a_trs_matrix_manually/
 http://www.illusioncatalyst.com/notes_files/mathematics/line_nu_cylinder_intersection.php
 */
-void m4f32_trs(float const t[3], float const q[4], float s[3], m4f32 *r)
+void m4f32_trs(float const t[3], float const q[4], float const s[3], m4f32 *r)
 {
 	float x = q[0];
 	float y = q[1];
@@ -193,7 +198,7 @@ http://graphics.cs.cmu.edu/nsp/course/15-462/Spring04/slides/04-transform.pdf
 https://math.stackexchange.com/questions/1234948/inverse-of-a-rigid-transformation
 https://www.cuemath.com/algebra/inverse-of-diagonal-matrix/
 */
-void m4f32_trs_inverse(float const t[3], float const q[4], float s[3], m4f32 *r)
+void m4f32_trs_inverse(float const t[3], float const q[4], float const s[3], m4f32 *r)
 {
 	float x = q[0];
 	float y = q[1];

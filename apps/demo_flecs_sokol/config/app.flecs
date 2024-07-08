@@ -248,8 +248,9 @@ items {
 		- Position3World
 		- Orientation
 		- OrientationWorld
-		- Scale3{x: 0.1, y: 0.1, z: 0.1}
-		- Position3{x: 0, y: 10, z: 0}
+		- Scale3{x: 0.1, y: 4, z: 0.1}
+		- Position3{x: 1, y: 0, z: 0}
+		- my.intersectors.Hit{0}
 	}
 }
 
