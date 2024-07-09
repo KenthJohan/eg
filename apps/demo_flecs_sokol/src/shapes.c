@@ -52,7 +52,7 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 		.rings = torus->rings,
 		.sides = torus->sides,
 		.color = color,
-		.random_colors = false
+		.random_colors = torus->random_colors
 		};
 		sshape_sizes_t sizes = sshape_torus_sizes(torus->sides, torus->rings);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
@@ -70,7 +70,7 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 		.slices = cylinder->slices,
 		.stacks = cylinder->stacks,
 		.color = color,
-		.random_colors = false
+		.random_colors = cylinder->random_colors
 		};
 		sshape_sizes_t sizes = sshape_cylinder_sizes(cylinder->slices, cylinder->stacks);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
@@ -81,15 +81,15 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 	}
 
 	case SSHAPE_SPHERE: {
-		Sphere *cylinder = data;
+		Sphere *sphere = data;
 		sshape_sphere_t info = {
-		.radius = cylinder->radius,
-		.slices = cylinder->slices,
-		.stacks = cylinder->stacks,
+		.radius = sphere->radius,
+		.slices = sphere->slices,
+		.stacks = sphere->stacks,
 		.color = color,
-		.random_colors = false
+		.random_colors = sphere->random_colors
 		};
-		sshape_sizes_t sizes = sshape_sphere_sizes(cylinder->slices, cylinder->stacks);
+		sshape_sizes_t sizes = sshape_sphere_sizes(sphere->slices, sphere->stacks);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
 		Memory_grow(&b->indices.buffer, sizes.indices.size);
 		buf = ShapeBuffer_convert(b);

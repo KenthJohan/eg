@@ -76,10 +76,11 @@ typedef struct {
 static void DrawShape(ecs_iter_t *it)
 {
 	Transformation *transformation = ecs_field(it, Transformation, 1); // self
-	ShapeElement *element = ecs_field(it, ShapeElement, 2);            // up, shared
-	SgPipeline *pipeline = ecs_field(it, SgPipeline, 3);               // up, shared
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                    // up, shared
-	Camera *cam = ecs_field(it, Camera, 5);                            // up, shared
+	Color *color = ecs_field(it, Color, 2);                            // self
+	ShapeElement *element = ecs_field(it, ShapeElement, 3);            // up, shared
+	SgPipeline *pipeline = ecs_field(it, SgPipeline, 4);               // up, shared
+	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 5);                    // up, shared
+	Camera *cam = ecs_field(it, Camera, 6);                            // up, shared
 	if (b->ibuf.id == 0) {
 		return;
 	}
@@ -91,12 +92,23 @@ static void DrawShape(ecs_iter_t *it)
 	.vertex_buffers[0] = (sg_buffer){b->vbuf.id},
 	.index_buffer = (sg_buffer){b->ibuf.id}});
 
-	for (int i = 0; i < it->count; ++i, ++transformation) {
-		vs_params_t params = {0};
-		m4f32_mul((m4f32 *)params.mvp, &cam->vp, &transformation->matrix);
-		// m4f32_print(&t);
-		sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(params));
-		sg_draw(element->base_element, element->num_elements, 1);
+	if (color) {
+		for (int i = 0; i < it->count; ++i, ++transformation) {
+			vs_params_t params = {.extra = {color->r, color->b, color->b, color->a}};
+			m4f32_mul((m4f32 *)params.mvp, &cam->vp, &transformation->matrix);
+			// m4f32_print(&t);
+			sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(params));
+			sg_draw(element->base_element, element->num_elements, 1);
+		}
+	} else {
+		for (int i = 0; i < it->count; ++i, ++transformation) {
+			vs_params_t params = {0};
+			params.extra[3] = -3;
+			m4f32_mul((m4f32 *)params.mvp, &cam->vp, &transformation->matrix);
+			// m4f32_print(&t);
+			sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, &SG_RANGE(params));
+			sg_draw(element->base_element, element->num_elements, 1);
+		}
 	}
 }
 
@@ -162,6 +174,7 @@ void MiscShapesImport(ecs_world_t *world)
 	.query.filter.terms =
 	{
 	{.id = ecs_id(Transformation), .src.flags = EcsSelf},
+	{.id = ecs_id(Color), .src.flags = EcsSelf, .oper = EcsOptional},
 	{.id = ecs_id(ShapeElement), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(SgPipeline), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},

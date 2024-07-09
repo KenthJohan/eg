@@ -83,8 +83,7 @@ float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float
 float v3f32_distance(float const a[3], float const b[3]);
 float v3f32_distance2(float const a[3], float const b[3]);
 
-float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const * tt, float i0[3], float i1[3]);
-int v3f32_hit_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt);
+
 
 void m4f32_perspective1(m4f32 *m, float fov, float aspect, float n, float f);
 void m4f32_translation3(m4f32 *m, float const t[3]);
@@ -108,6 +107,33 @@ void m3f32_rs_inverse_transposed(float const q[4], float const s[3], m3f32 *r);
 void v4f32_mul(float r[4], float const a[4], float b);
 void v4f32_add(float r[4], float const a[4], float const b[4]);
 void v4f32_print(float const x[4]);
+
+
+
+/**
+ * @brief Calculates two intesections point on a infinite elliptic cylinder
+ *
+ * @param v Vector that defines the line direction in world space
+ * @param l Point on the line in world space
+ * @param cylinder Center of the elliptic cylinder in world space
+ * @param h Elliptic cylinder axis vector
+ * @param tt (Transposed) The transform matrix is the result of the composition of the matrices that describe translation, rotation and scale of the scaled cylinder.
+ * @return
+ */
+float v3f32_intersect_cylinder_i0i1(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const * tt, float i0[3], float i1[3]);
+
+/**
+ * @brief Check if line intesects a finite elliptic cylinder
+ *
+ * @param v Vector that defines the line direction in world space
+ * @param l Point on the line in world space
+ * @param cylinder Center of the elliptic cylinder in world space
+ * @param h Elliptic cylinder axis vector
+ * @param tt (Transposed) The transform matrix is the result of the composition of the matrices that describe translation, rotation and scale of the scaled cylinder.
+ * @return
+ */
+int v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt);
+
 
 
 

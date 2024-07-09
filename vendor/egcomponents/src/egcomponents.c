@@ -52,7 +52,14 @@ void EgComponentsImport(ecs_world_t *world)
 
 	ecs_set_hooks(world, ShapeBuffer, {.ctor = ecs_ctor(ShapeBuffer)});
 
-
+	ecs_struct(world,
+	{.entity = ecs_id(Color),
+	.members = {
+	{.name = "r", .type = ecs_id(ecs_f32_t)},
+	{.name = "g", .type = ecs_id(ecs_f32_t)},
+	{.name = "b", .type = ecs_id(ecs_f32_t)},
+	{.name = "a", .type = ecs_id(ecs_f32_t)},
+	}});
 
 	ecs_struct(world,
 	{.entity = ecs_id(Color32),

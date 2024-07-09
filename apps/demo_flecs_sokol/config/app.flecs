@@ -227,6 +227,8 @@ items {
 			- Scale3{x: 0.1, y: 0.1, z: 0.1}
 			- Position3{x: 0, y: 0.5, z: 0}
 			- Rotate3{0,0.011,0}
+			- my.intersectors.Hit{0}
+			- Color{1,0,0,-3}
 			ref {
 				- (EgUse, vbuffers.lines)
 				- ShowDrawReference {1}
@@ -253,11 +255,10 @@ items {
 		- Scale3{x: 0.1, y: 4, z: 0.1}
 		- Position3{x: 1, y: 0, z: 0}
 		- my.intersectors.Hit{0}
+		- Color{1,0,0,-3}
 		- Rotate3{0.001,0,0}
 		- KeyActionToggleEntity{keycode: $KEYCODE_F2, entity: SpaceShip}
 	}
-
-
 
 	cylbase {
 		- (EgUse, meshes.cylinder1)
@@ -271,28 +272,6 @@ items {
 		- Position3{x: 0, y: 0, z: 0}
 	}
 
-	hitpoint1 {
-		- (EgUse, meshes.cylinder1)
-		- (EgUse, cam)
-		- EgRotateOrder1
-		- Transformation
-		- Position3World
-		- Orientation
-		- OrientationWorld
-		- Scale3{x: 0.05, y: 0.05, z: 0.05}
-		- Position3{x: 0, y: 0, z: 0}
-	}
-	hitpoint2 {
-		- (EgUse, meshes.cylinder1)
-		- (EgUse, cam)
-		- EgRotateOrder1
-		- Transformation
-		- Position3World
-		- Orientation
-		- OrientationWorld
-		- Scale3{x: 0.05, y: 0.05, z: 0.05}
-		- Position3{x: 0, y: 0, z: 0}
-	}
 }
 
 
@@ -320,6 +299,40 @@ line1 {
 	- Color32{r:255,g:255,b:255,a:255}
 	- (EgUse, vbuffers.lines)
 }
+
+
+
+
+
+
+
+hitpoint1 {
+	- (EgUse, meshes.cylinder1)
+	- (EgUse, cam)
+	- EgRotateOrder1
+	- Transformation
+	- Position3World
+	- Orientation
+	- OrientationWorld
+	- Scale3{x: 0.05, y: 0.05, z: 0.05}
+	- Position3{x: 0, y: 0, z: 0}
+}
+hitpoint2 {
+	- (EgUse, meshes.cylinder1)
+	- (EgUse, cam)
+	- EgRotateOrder1
+	- Transformation
+	- Position3World
+	- Orientation
+	- OrientationWorld
+	- Scale3{x: 0.05, y: 0.05, z: 0.05}
+	- Position3{x: 0, y: 0, z: 0}
+}
+
+
+
+
+
 
 
 
