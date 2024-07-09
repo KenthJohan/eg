@@ -91,3 +91,42 @@ void m3f32_rs_inverse(float const q[4], float const s[3], m3f32 *r)
 	r->c1[2] = (yz - xw) * sz * 2.0f;
 	r->c2[2] = (1.0f - 2.0f * (xx + yy)) * sz;
 }
+
+void m3f32_rs_inverse_transposed(float const q[4], float const s[3], m3f32 *r)
+{
+	float x = q[0];
+	float y = q[1];
+	float z = q[2];
+	float w = q[3];
+
+	float sx = 1.0 / s[0];
+	float sy = 1.0 / s[1];
+	float sz = 1.0 / s[2];
+
+	float xx = x * x;
+	float yy = y * y;
+	float zz = z * z;
+	//float ww = w * w;
+
+	float xy = x * y;
+	float xz = x * z;
+	float zw = z * w;
+	float yw = y * w;
+	float yz = y * z;
+	float xw = x * w;
+
+	r->c0[0] = (1.0f - 2.0f * (yy + zz)) * sx;
+	r->c0[1] = (xy + zw) * sx * 2.0f;
+	r->c0[2] = (xz - yw) * sx * 2.0f;
+
+	r->c1[0] = (xy - zw) * sy * 2.0f;
+	r->c1[1] = (1.0f - 2.0f * (xx + zz)) * sy;
+	r->c1[2] = (yz + xw) * sy * 2.0f;
+
+	r->c2[0] = (xz + yw) * sz * 2.0f;
+	r->c2[1] = (yz - xw) * sz * 2.0f;
+	r->c2[2] = (1.0f - 2.0f * (xx + yy)) * sz;
+}
+
+
+

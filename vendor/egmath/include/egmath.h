@@ -83,7 +83,7 @@ float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float
 float v3f32_distance(float const a[3], float const b[3]);
 float v3f32_distance2(float const a[3], float const b[3]);
 
-float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const * t, float i[6]);
+float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const * tt, float i[6]);
 
 void m4f32_perspective1(m4f32 *m, float fov, float aspect, float n, float f);
 void m4f32_translation3(m4f32 *m, float const t[3]);
@@ -101,6 +101,7 @@ void m3f32_tmulv(m3f32 const *a, float const x[3], float y[3]);
 void m3f32_mul(m3f32 *y, m3f32 const *a, m3f32 const *b);
 void m3f32_transpose(m3f32 *x);
 void m3f32_rs_inverse(float const q[4], float const s[3], m3f32 *r);
+void m3f32_rs_inverse_transposed(float const q[4], float const s[3], m3f32 *r);
 
 
 void v4f32_mul(float r[4], float const a[4], float b);

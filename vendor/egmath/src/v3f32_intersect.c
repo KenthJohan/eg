@@ -96,18 +96,18 @@ float v3f32_intersect_cylinder2(float const v[3], float const l[3], float const 
  * @param l0 Point on the line in world space
  * @param cylinder Center of the elliptic cylinder in world space
  * @param h Elliptic cylinder height vector (along local z axis)
- * @param t The transform matrix is the result of the composition of the matrices that describe translation, rotation and scale of the scaled cylinder.
+ * @param tt (Transposed) The transform matrix is the result of the composition of the matrices that describe translation, rotation and scale of the scaled cylinder.
  * @return
  */
-float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *t, float i[6])
+float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt, float i[6])
 {
 	float tv[3] = {v[0], v[1], v[2]};
 	float tw[3];
 	tw[0] = l[0] - cylinder[0];
 	tw[1] = l[1] - cylinder[1];
 	tw[2] = l[2] - cylinder[2];
-	m3f32_mulv(t, tv, tv);
-	m3f32_mulv(t, tw, tw);
+	m3f32_tmulv(tt, tv, tv);
+	m3f32_tmulv(tt, tw, tw);
 	float a;
 	float b;
 	float c;

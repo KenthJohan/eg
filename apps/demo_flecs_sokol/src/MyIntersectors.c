@@ -31,10 +31,10 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 	float h[3] = {0, 1, 0};
 
 	for (int i = 0; i < it->count; ++i, ++o, ++r, ++s, ++hit) {
-		m3f32 t = {0};
-		m3f32_rs_inverse((float const *)r, (float const *)s, &t);
+		m3f32 tt = {0};
+		m3f32_rs_inverse_transposed((float const *)r, (float const *)s, &tt);
 		Position3 hit[2];
-		float b2_4ac = v3f32_intersect_cylinder(v, line->a, (float *)o, h, &t, (float*)hit);
+		float b2_4ac = v3f32_intersect_cylinder(v, line->a, (float *)o, h, &tt, (float*)hit);
 		ecs_set_ptr(it->world, hitpoint1_e, Position3, hit + 0);
 		ecs_set_ptr(it->world, hitpoint2_e, Position3, hit + 1);
 		printf("b2_4ac: %+f\n", b2_4ac);
