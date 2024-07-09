@@ -124,6 +124,16 @@ float v3f32_intersect_cylinder(float const v[3], float const l[3], float const c
 		i[3] = l[0] + v[0] * k2;
 		i[4] = l[1] + v[1] * k2;
 		i[5] = l[2] + v[2] * k2;
+		i[0] -= cylinder[0];
+		i[1] -= cylinder[1];
+		i[2] -= cylinder[2];
+		i[3] -= cylinder[0];
+		i[4] -= cylinder[1];
+		i[5] -= cylinder[2];
+		m3f32_tmulv(tt, i+0, i+0);
+		m3f32_tmulv(tt, i+3, i+3);
+		v3f32_print(i+0);
+		v3f32_print(i+3);
 	}
 	//float k = (-b) / (2 * a);
 	return b2_4ac;

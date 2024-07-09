@@ -37,7 +37,7 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 		float b2_4ac = v3f32_intersect_cylinder(v, line->a, (float *)o, h, &tt, (float*)hit);
 		ecs_set_ptr(it->world, hitpoint1_e, Position3, hit + 0);
 		ecs_set_ptr(it->world, hitpoint2_e, Position3, hit + 1);
-		printf("b2_4ac: %+f\n", b2_4ac);
+		//printf("b2_4ac: %+f\n", b2_4ac);
 	}
 }
 

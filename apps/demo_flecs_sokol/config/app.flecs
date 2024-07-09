@@ -253,6 +253,21 @@ items {
 		- my.intersectors.Hit{0}
 		- Rotate3{0.001,0,0}
 	}
+
+
+
+	cylbase {
+		- (EgUse, meshes.cylinder1)
+		- (EgUse, cam)
+		- EgRotateOrder1
+		- Transformation
+		- Position3World
+		- Orientation
+		- OrientationWorld
+		- Scale3{x: 1, y: 1, z: 1}
+		- Position3{x: 0, y: 0, z: 0}
+	}
+
 	hitpoint1 {
 		- (EgUse, meshes.cylinder1)
 		- (EgUse, cam)
