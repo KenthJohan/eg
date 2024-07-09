@@ -9,34 +9,32 @@ ECS_COMPONENT_DECLARE(MyIntersectorsHit);
 
 static void Cylinder_Intersect(ecs_iter_t *it)
 {
-	Cylinder *cyl = ecs_field(it, Cylinder, 1);                   // shared
-	Position3World *cp = ecs_field(it, Position3World, 2);        // self
-	OrientationWorld *cr = ecs_field(it, OrientationWorld, 3);    // self
+	// Cylinder *cyl = ecs_field(it, Cylinder, 1);                   // shared
+	Position3World *o = ecs_field(it, Position3World, 2);         // self
+	OrientationWorld *r = ecs_field(it, OrientationWorld, 3);     // self
 	Scale3 *s = ecs_field(it, Scale3, 4);                         // self
-	MyIntersectorsHit *ish = ecs_field(it, MyIntersectorsHit, 5); // self
+	MyIntersectorsHit *hit = ecs_field(it, MyIntersectorsHit, 5); // self
 
 	ecs_entity_t line_e = ecs_lookup_fullpath(it->world, "app.line1");
 	Line const *line = ecs_get(it->world, line_e, Line);
 
+	ecs_entity_t hitpoint_e = ecs_lookup_fullpath(it->world, "app.items.hitpoint");
+
 	// Vector that defines the line direction in world space
-	float v[4];
+	float v[3];
 	v[0] = line->b[0] - line->a[0];
 	v[1] = line->b[1] - line->a[1];
 	v[2] = line->b[2] - line->a[2];
 	v3f32_normalize(v, v, 0.000001);
-	v[3] = 0.0;
-
-	
 
 	float h[3] = {0, 1, 0};
 
-	for (int i = 0; i < it->count; ++i, ++cp, ++cr, ++s, ++ish) {
-		
-		m4f32 t = {0};
-		m4f32_trs_inverse((float const *)cp, (float const *)cr, (float const *)s, &t);
-		float b2_4ac = v3f32_intersect_cylinder2(v, line->a, (float*)cp, h, &t);
-		
-		//float b2_4ac = v3f32_intersect_cylinder(v, line->a, (float const*)cp, h, (float const*)cr);
+	for (int i = 0; i < it->count; ++i, ++o, ++r, ++s, ++hit) {
+		m3f32 t = {0};
+		m3f32_rs_inverse((float const *)r, (float const *)s, &t);
+		float hit[3];
+		float b2_4ac = v3f32_intersect_cylinder(v, line->a, (float *)o, h, &t, hit);
+		ecs_set_ptr(it->world, hitpoint_e, Position3, hit);
 		printf("b2_4ac: %+f\n", b2_4ac);
 	}
 }
