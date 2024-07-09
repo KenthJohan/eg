@@ -83,7 +83,8 @@ float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float
 float v3f32_distance(float const a[3], float const b[3]);
 float v3f32_distance2(float const a[3], float const b[3]);
 
-float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const * tt, float i[6]);
+float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const * tt, float i0[3], float i1[3]);
+int v3f32_hit_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt);
 
 void m4f32_perspective1(m4f32 *m, float fov, float aspect, float n, float f);
 void m4f32_translation3(m4f32 *m, float const t[3]);

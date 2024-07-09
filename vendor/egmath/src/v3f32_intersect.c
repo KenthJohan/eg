@@ -99,7 +99,7 @@ float v3f32_intersect_cylinder2(float const v[3], float const l[3], float const 
  * @param tt (Transposed) The transform matrix is the result of the composition of the matrices that describe translation, rotation and scale of the scaled cylinder.
  * @return
  */
-float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt, float i[6])
+float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt, float i0[3], float i1[3])
 {
 	float tv[3] = {v[0], v[1], v[2]};
 	float tw[3];
@@ -118,26 +118,57 @@ float v3f32_intersect_cylinder(float const v[3], float const l[3], float const c
 		float sq = sqrtf(b2_4ac);
 		float k1 = (-b + sq) / (2 * a);
 		float k2 = (-b - sq) / (2 * a);
-		i[0] = l[0] + v[0] * k1;
-		i[1] = l[1] + v[1] * k1;
-		i[2] = l[2] + v[2] * k1;
-		i[3] = l[0] + v[0] * k2;
-		i[4] = l[1] + v[1] * k2;
-		i[5] = l[2] + v[2] * k2;
-		i[0] -= cylinder[0];
-		i[1] -= cylinder[1];
-		i[2] -= cylinder[2];
-		i[3] -= cylinder[0];
-		i[4] -= cylinder[1];
-		i[5] -= cylinder[2];
-		m3f32_tmulv(tt, i+0, i+0);
-		m3f32_tmulv(tt, i+3, i+3);
-		v3f32_print(i+0);
-		v3f32_print(i+3);
+		i0[0] = l[0] + v[0] * k1;
+		i0[1] = l[1] + v[1] * k1;
+		i0[2] = l[2] + v[2] * k1;
+		i1[3] = l[0] + v[0] * k2;
+		i1[4] = l[1] + v[1] * k2;
+		i1[5] = l[2] + v[2] * k2;
 	}
 	//float k = (-b) / (2 * a);
 	return b2_4ac;
 }
+
+
+
+int v3f32_hit_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt)
+{
+	float tv[3] = {v[0], v[1], v[2]};
+	float tw[3];
+	tw[0] = l[0] - cylinder[0];
+	tw[1] = l[1] - cylinder[1];
+	tw[2] = l[2] - cylinder[2];
+	m3f32_tmulv(tt, tv, tv);
+	m3f32_tmulv(tt, tw, tw);
+	float a;
+	float b;
+	float c;
+	v3f32_intersect_cylinder_abc(tv, h, tw, &a, &b, &c);
+	float b2_4ac = (b * b) - (4.0 * a * c);
+	// The distance between the cylinder axis and the line is smaller than the cylinder radius (r = 1). There are two intersections at: 
+	if (b2_4ac > 0) {
+		float sq = sqrtf(b2_4ac);
+		float k1 = (-b + sq) / (2 * a);
+		float k2 = (-b - sq) / (2 * a);
+		float i0[3];
+		float i1[3];
+		i0[0] = l[0] + v[0] * k1 - cylinder[0];
+		i0[1] = l[1] + v[1] * k1 - cylinder[1];
+		i0[2] = l[2] + v[2] * k1 - cylinder[2];
+		i1[0] = l[0] + v[0] * k2 - cylinder[0];
+		i1[1] = l[1] + v[1] * k2 - cylinder[1];
+		i1[2] = l[2] + v[2] * k2 - cylinder[2];
+		m3f32_tmulv(tt, i0, i0);
+		m3f32_tmulv(tt, i1, i1);
+		if ((fabs(i0[1]) < 0.5) || (fabs(i1[1]) < 0.5)) {
+			return 1;
+		}
+	}
+	//float k = (-b) / (2 * a);
+	return 0;
+}
+
+
 
 /*
 https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
