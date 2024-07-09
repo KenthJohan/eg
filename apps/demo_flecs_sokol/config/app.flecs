@@ -251,6 +251,7 @@ items {
 		- Scale3{x: 0.1, y: 4, z: 0.1}
 		- Position3{x: 1, y: 0, z: 0}
 		- my.intersectors.Hit{0}
+		- Rotate3{0.001,0,0}
 	}
 }
 

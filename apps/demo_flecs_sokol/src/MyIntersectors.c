@@ -18,47 +18,25 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 	ecs_entity_t line_e = ecs_lookup_fullpath(it->world, "app.line1");
 	Line const *line = ecs_get(it->world, line_e, Line);
 
+	// Vector that defines the line direction in world space
 	float v[4];
 	v[0] = line->b[0] - line->a[0];
 	v[1] = line->b[1] - line->a[1];
 	v[2] = line->b[2] - line->a[2];
 	v3f32_normalize(v, v, 0.000001);
-	v[3] = 1.0;
+	v[3] = 0.0;
 
-	float l[4];
-	float c[4];
-	// v3f32_normalize(rd, rd, 0.0001f);
-
-	float w[4];
-	w[3] = 1.0;
+	
 
 	float h[3] = {0, 1, 0};
 
 	for (int i = 0; i < it->count; ++i, ++cp, ++cr, ++s, ++ish) {
+		
 		m4f32 t = {0};
 		m4f32_trs_inverse((float const *)cp, (float const *)cr, (float const *)s, &t);
-		m4f32 t2 = {0};
-		m4f32_trs((float const *)cp, (float const *)cr, (float const *)s, &t2);
-		m4f32_mul(&t2, &t2, &t);
-		m4f32_print(&t2);
-
-		c[0] = cp->x;
-		c[1] = cp->y;
-		c[2] = cp->z;
-		c[3] = 1.0;
-
-		l[0] = line->a[0];
-		l[1] = line->a[1];
-		l[2] = line->a[2];
-		l[3] = 1.0;
-
-		m4f32_mulv(&t, l, l);
-		m4f32_mulv(&t, c, c);
-		m4f32_mulv(&t, v, v);
-		w[0] = l[0] - c[0];
-		w[1] = l[1] - c[1];
-		w[2] = l[2] - c[2];
-		float b2_4ac = v3f32_intersect_cylinder_b2_4ac(v, h, w);
+		float b2_4ac = v3f32_intersect_cylinder2(v, line->a, (float*)cp, h, &t);
+		
+		//float b2_4ac = v3f32_intersect_cylinder(v, line->a, (float const*)cp, h, (float const*)cr);
 		printf("b2_4ac: %+f\n", b2_4ac);
 	}
 }
