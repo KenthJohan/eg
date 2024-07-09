@@ -99,7 +99,7 @@ float v3f32_intersect_cylinder2(float const v[3], float const l[3], float const 
  * @param t The transform matrix is the result of the composition of the matrices that describe translation, rotation and scale of the scaled cylinder.
  * @return
  */
-float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *t, float i[3])
+float v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *t, float i[6])
 {
 	float tv[3] = {v[0], v[1], v[2]};
 	float tw[3];
@@ -113,10 +113,19 @@ float v3f32_intersect_cylinder(float const v[3], float const l[3], float const c
 	float c;
 	v3f32_intersect_cylinder_abc(tv, h, tw, &a, &b, &c);
 	float b2_4ac = (b * b) - (4.0 * a * c);
-	float k = (-b) / (2 * a);
-	i[0] = l[0] + v[0] * k;
-	i[1] = l[1] + v[1] * k;
-	i[2] = l[2] + v[2] * k;
+	// The distance between the cylinder axis and the line is smaller than the cylinder radius (r = 1). There are two intersections at: 
+	if (b2_4ac > 0) {
+		float sq = sqrtf(b2_4ac);
+		float k1 = (-b + sq) / (2 * a);
+		float k2 = (-b - sq) / (2 * a);
+		i[0] = l[0] + v[0] * k1;
+		i[1] = l[1] + v[1] * k1;
+		i[2] = l[2] + v[2] * k1;
+		i[3] = l[0] + v[0] * k2;
+		i[4] = l[1] + v[1] * k2;
+		i[5] = l[2] + v[2] * k2;
+	}
+	//float k = (-b) / (2 * a);
 	return b2_4ac;
 }
 

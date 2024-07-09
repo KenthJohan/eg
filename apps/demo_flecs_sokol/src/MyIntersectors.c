@@ -18,7 +18,8 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 	ecs_entity_t line_e = ecs_lookup_fullpath(it->world, "app.line1");
 	Line const *line = ecs_get(it->world, line_e, Line);
 
-	ecs_entity_t hitpoint_e = ecs_lookup_fullpath(it->world, "app.items.hitpoint");
+	ecs_entity_t hitpoint1_e = ecs_lookup_fullpath(it->world, "app.items.hitpoint1");
+	ecs_entity_t hitpoint2_e = ecs_lookup_fullpath(it->world, "app.items.hitpoint2");
 
 	// Vector that defines the line direction in world space
 	float v[3];
@@ -32,9 +33,10 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++o, ++r, ++s, ++hit) {
 		m3f32 t = {0};
 		m3f32_rs_inverse((float const *)r, (float const *)s, &t);
-		float hit[3];
-		float b2_4ac = v3f32_intersect_cylinder(v, line->a, (float *)o, h, &t, hit);
-		ecs_set_ptr(it->world, hitpoint_e, Position3, hit);
+		Position3 hit[2];
+		float b2_4ac = v3f32_intersect_cylinder(v, line->a, (float *)o, h, &t, (float*)hit);
+		ecs_set_ptr(it->world, hitpoint1_e, Position3, hit + 0);
+		ecs_set_ptr(it->world, hitpoint2_e, Position3, hit + 1);
 		printf("b2_4ac: %+f\n", b2_4ac);
 	}
 }
