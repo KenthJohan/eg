@@ -189,12 +189,13 @@ cam : SpaceShip {
 }
 
 camline {
+	// Copy Position3 and Ray3 to this from cam:
 	- (my.controller.TestCopyOnClick, cam)
 	- (EgUse, vbuffers.lines)
 	- Position3
 	- Ray3
 	- Line
-	- Color32{r:100,g:100,b:150,a:255}
+	- eg.colors.V4U8_RGBA{r:100,g:100,b:150,a:255}
 }
 
 
@@ -206,7 +207,6 @@ drawlines {
 		- (EgUse, graphics.pipes.lines)
 		- (EgUse, cam)
 	}
-
 }
 
 
@@ -227,13 +227,13 @@ meshes {
 	cylinder1 : graphics.pipes.shapes {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
 		- (EgUse, vbuffers.shapes)
-		- Color32{a: 255, r: 255, g: 255, b:255}
+		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
 		- ShapeElement
 	}
 	cylinder2 : graphics.pipes.shapes {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
 		- (EgUse, vbuffers.shapes)
-		- Color32{a: 255, r: 255, g: 255, b:255}
+		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
 		- ShapeElement
 	}
 }
@@ -264,7 +264,7 @@ items {
 			- Position3{x: 0, y: 0.5, z: 0}
 			- Rotate3{0,0.011,0}
 			- my.intersectors.Hit{0}
-			- Color{1,0,0,-3}
+			- eg.colors.V4F32_RGBA{1,0,0,-3}
 			ref {
 				- (EgUse, vbuffers.lines)
 				- ShowDrawReference {1}
@@ -291,7 +291,7 @@ items {
 		- Scale3{x: 0.1, y: 4, z: 0.1}
 		- Position3{x: 1, y: 0, z: 0}
 		- my.intersectors.Hit{0}
-		- Color{1,0,0,-3}
+		- eg.colors.V4F32_RGBA{1,0,0,-3}
 		- Rotate3{0.001,0,0}
 		- KeyActionToggleEntity{keycode: $KEYCODE_F2, entity: SpaceShip}
 	}
@@ -371,34 +371,34 @@ hitpoint2 {
 origin_xyz {
 	line_x {
 		- Line{a:[0,0,0], b:[100,0,0]}
-		- Color32{r:255,g:0,b:0,a:255}
+		- eg.colors.V4U8_RGBA{r:255,g:0,b:0,a:255}
 		- (EgUse, vbuffers.lines)
 	}
 	line_y {
 		- Line{a:[0,0,0], b:[0,100,0]}
-		- Color32{r:0,g:255,b:0,a:255}
+		- eg.colors.V4U8_RGBA{r:0,g:255,b:0,a:255}
 		- (EgUse, vbuffers.lines)
 	}
 	line_z {
 		- Line{a:[0,0,0], b:[0,0,100]}
-		- Color32{r:0,g:0,b:255,a:255}
+		- eg.colors.V4U8_RGBA{r:0,g:0,b:255,a:255}
 		- (EgUse, vbuffers.lines)
 	}
 
 
 	line_xx {
 		- Line{a:[0,0,0], b:[-100,0,0]}
-		- Color32{r:150,g:100,b:100,a:255}
+		- eg.colors.V4U8_RGBA{r:150,g:100,b:100,a:255}
 		- (EgUse, vbuffers.lines)
 	}
 	line_yy {
 		- Line{a:[0,0,0], b:[0,-100,0]}
-		- Color32{r:100,g:150,b:100,a:255}
+		- eg.colors.V4U8_RGBA{r:100,g:150,b:100,a:255}
 		- (EgUse, vbuffers.lines)
 	}
 	line_zz {
 		- Line{a:[0,0,0], b:[0,0,-100]}
-		- Color32{r:100,g:100,b:150,a:255}
+		- eg.colors.V4U8_RGBA{r:100,g:100,b:150,a:255}
 		- (EgUse, vbuffers.lines)
 	}
 }

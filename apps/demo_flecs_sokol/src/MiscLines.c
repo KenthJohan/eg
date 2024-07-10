@@ -11,6 +11,7 @@
 #include <egspatials.h>
 #include <egcameras.h>
 #include <egshapes.h>
+#include <egcolors.h>
 
 ECS_COMPONENT_DECLARE(LinesBuffer);
 
@@ -115,7 +116,7 @@ static void AppendLines(ecs_iter_t *it)
 {
 	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // up, shared
 	Line *line = ecs_field(it, Line, 2);                // self
-	Color32 *color = ecs_field(it, Color32, 3);         // self
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 3);         // self
 
 	for (int i = 0; i < it->count; ++i, ++line, ++color) {
 		//printf("AppendLines: %s\n", ecs_get_name(it->world, it->entities[i]));
@@ -172,7 +173,7 @@ void MiscLinesImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(LinesBuffer), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(Line), .src.flags = EcsSelf},
-	{.id = ecs_id(Color32), .src.flags = EcsSelf},
+	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
 	}});
 
 	ecs_system_init(world,

@@ -11,16 +11,17 @@
 #include <egspatials.h>
 #include <egshapes.h>
 #include <egsokol.h>
+#include <egcolors.h>
 
 #include "lines.h"
 #include "shapes.h"
 
 static void AddShapeTorus(ecs_iter_t *it)
 {
-	Torus *torus = ecs_field(it, Torus, 1);            // self
-	Color32 *color = ecs_field(it, Color32, 2);        // self
-	ShapeElement *el = ecs_field(it, ShapeElement, 3); // self
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);    // shared
+	Torus *torus = ecs_field(it, Torus, 1);                         // self
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
+	ShapeElement *el = ecs_field(it, ShapeElement, 3);              // self
+	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                 // shared
 	for (int i = 0; i < it->count; ++i, ++torus, ++color, ++el) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		ShapeBuffer_append(b, el, SSHAPE_TORUS, torus, c);
@@ -29,10 +30,11 @@ static void AddShapeTorus(ecs_iter_t *it)
 
 static void AddShapeCylinder(ecs_iter_t *it)
 {
-	Cylinder *cylinder = ecs_field(it, Cylinder, 1);   // self
-	Color32 *color = ecs_field(it, Color32, 2);        // self
-	ShapeElement *el = ecs_field(it, ShapeElement, 3); // self
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);    // shared
+	Cylinder *cylinder = ecs_field(it, Cylinder, 1);                // self
+	//int size1 = ecs_field_size(it, 2);
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
+	ShapeElement *el = ecs_field(it, ShapeElement, 3);              // self
+	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                 // shared
 	for (int i = 0; i < it->count; ++i, ++cylinder, ++color, ++el) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		ShapeBuffer_append(b, el, SSHAPE_CYLINDER, cylinder, c);
@@ -41,10 +43,10 @@ static void AddShapeCylinder(ecs_iter_t *it)
 
 static void AddShapeSphere(ecs_iter_t *it)
 {
-	Sphere *sphere = ecs_field(it, Sphere, 1);         // self
-	Color32 *color = ecs_field(it, Color32, 2);        // self
-	ShapeElement *el = ecs_field(it, ShapeElement, 3); // self
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);    // shared
+	Sphere *sphere = ecs_field(it, Sphere, 1);                      // self
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
+	ShapeElement *el = ecs_field(it, ShapeElement, 3);              // self
+	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                 // shared
 	for (int i = 0; i < it->count; ++i, ++sphere, ++color, ++el) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		ShapeBuffer_append(b, el, SSHAPE_SPHERE, sphere, c);
@@ -76,7 +78,7 @@ typedef struct {
 static void DrawShape(ecs_iter_t *it)
 {
 	Transformation *transformation = ecs_field(it, Transformation, 1); // self
-	Color *color = ecs_field(it, Color, 2);                            // self
+	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 2);  // self
 	ShapeElement *element = ecs_field(it, ShapeElement, 3);            // up, shared
 	SgPipeline *pipeline = ecs_field(it, SgPipeline, 4);               // up, shared
 	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 5);                    // up, shared
@@ -119,6 +121,7 @@ void MiscShapesImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgShapes);
+	ECS_IMPORT(world, EgColors);
 	ECS_IMPORT(world, Sg);
 
 	ecs_system_init(world,
@@ -128,7 +131,7 @@ void MiscShapesImport(ecs_world_t *world)
 	.query.filter.terms =
 	{
 	{.id = ecs_id(Torus), .src.flags = EcsSelf},
-	{.id = ecs_id(Color32), .src.flags = EcsSelf},
+	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
 	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
 	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
 	}});
@@ -140,7 +143,7 @@ void MiscShapesImport(ecs_world_t *world)
 	.query.filter.terms =
 	{
 	{.id = ecs_id(Cylinder), .src.flags = EcsSelf},
-	{.id = ecs_id(Color32), .src.flags = EcsSelf},
+	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
 	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
 	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
 	}});
@@ -152,7 +155,7 @@ void MiscShapesImport(ecs_world_t *world)
 	.query.filter.terms =
 	{
 	{.id = ecs_id(Sphere), .src.flags = EcsSelf},
-	{.id = ecs_id(Color32), .src.flags = EcsSelf},
+	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
 	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
 	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
 	}});
@@ -174,7 +177,7 @@ void MiscShapesImport(ecs_world_t *world)
 	.query.filter.terms =
 	{
 	{.id = ecs_id(Transformation), .src.flags = EcsSelf},
-	{.id = ecs_id(Color), .src.flags = EcsSelf, .oper = EcsOptional},
+	{.id = ecs_id(EgColorsV4F32_RGBA), .src.flags = EcsSelf, .oper = EcsOptional},
 	{.id = ecs_id(ShapeElement), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(SgPipeline), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},

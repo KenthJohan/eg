@@ -1,8 +1,6 @@
 #include "egcomponents.h"
 
 ECS_COMPONENT_DECLARE(Pass);
-ECS_COMPONENT_DECLARE(Color);
-ECS_COMPONENT_DECLARE(Color32);
 ECS_COMPONENT_DECLARE(ShapeBuffer);
 ECS_COMPONENT_DECLARE(ShapeElement);
 ECS_COMPONENT_DECLARE(ShowDrawReference);
@@ -34,10 +32,6 @@ void EgComponentsImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, Pass);
 
-
-
-	ECS_COMPONENT_DEFINE(world, Color);
-	ECS_COMPONENT_DEFINE(world, Color32);
 	ECS_COMPONENT_DEFINE(world, ShapeBuffer);
 	ECS_COMPONENT_DEFINE(world, ShapeElement);
 	ECS_COMPONENT_DEFINE(world, ShowDrawReference);
@@ -54,23 +48,7 @@ void EgComponentsImport(ecs_world_t *world)
 
 	ecs_set_hooks(world, ShapeBuffer, {.ctor = ecs_ctor(ShapeBuffer)});
 
-	ecs_struct(world,
-	{.entity = ecs_id(Color),
-	.members = {
-	{.name = "r", .type = ecs_id(ecs_f32_t)},
-	{.name = "g", .type = ecs_id(ecs_f32_t)},
-	{.name = "b", .type = ecs_id(ecs_f32_t)},
-	{.name = "a", .type = ecs_id(ecs_f32_t)},
-	}});
 
-	ecs_struct(world,
-	{.entity = ecs_id(Color32),
-	.members = {
-	{.name = "r", .type = ecs_id(ecs_u8_t)},
-	{.name = "g", .type = ecs_id(ecs_u8_t)},
-	{.name = "b", .type = ecs_id(ecs_u8_t)},
-	{.name = "a", .type = ecs_id(ecs_u8_t)},
-	}});
 
 
 

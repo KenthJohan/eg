@@ -26,6 +26,7 @@
 #include <egcameras.h>
 #include <egspatials.h>
 #include <egwindows.h>
+#include <egcolors.h>
 #include <sokol_app.h>
 #include <sokol_gl.h>
 #include <sokol_log.h>

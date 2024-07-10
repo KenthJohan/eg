@@ -4,6 +4,7 @@
 #include <egspatials.h>
 #include <egshapes.h>
 #include <egmath.h>
+#include <egcolors.h>
 
 ECS_COMPONENT_DECLARE(MyIntersectorsHit);
 
@@ -16,7 +17,7 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 	OrientationWorld *r = ecs_field(it, OrientationWorld, 3);        // self
 	Scale3 *s = ecs_field(it, Scale3, 4);                            // self
 	MyIntersectorsHit *inthit = ecs_field(it, MyIntersectorsHit, 5); // self
-	Color *color = ecs_field(it, Color, 6);                          // self
+	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 6);                          // self
 
 	// Vector that defines the line direction in world space
 	ecs_entity_t line_e = ecs_lookup(it->world, "app.camline");
@@ -94,6 +95,7 @@ void MyIntersectorsImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgComponents);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgShapes);
+	ECS_IMPORT(world, EgColors);
 	ecs_set_name_prefix(world, "MyIntersectors");
 
 	ECS_COMPONENT_DEFINE(world, MyIntersectorsHit);
@@ -119,7 +121,7 @@ void MyIntersectorsImport(ecs_world_t *world)
 	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf},
 	{.id = ecs_id(Scale3), .src.flags = EcsSelf},
 	{.id = ecs_id(MyIntersectorsHit), .src.flags = EcsSelf},
-	{.id = ecs_id(Color), .src.flags = EcsSelf}
+	{.id = ecs_id(EgColorsV4F32_RGBA), .src.flags = EcsSelf}
 
 	}});
 }
