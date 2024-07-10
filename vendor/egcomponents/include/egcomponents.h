@@ -80,5 +80,6 @@ extern ECS_TAG_DECLARE(EgRotateOrder1);
 extern ECS_TAG_DECLARE(EgRotateOrder2);
 extern ECS_TAG_DECLARE(EgUse);
 extern ECS_TAG_DECLARE(EgUpdate);
+extern ECS_TAG_DECLARE(EgComponentsDraw);
 
 void EgComponentsImport(ecs_world_t *world);

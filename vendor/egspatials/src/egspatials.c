@@ -2,6 +2,7 @@
 
 ECS_COMPONENT_DECLARE(Position2);
 ECS_COMPONENT_DECLARE(Position3);
+ECS_COMPONENT_DECLARE(Ray3);
 ECS_COMPONENT_DECLARE(Scale3);
 ECS_COMPONENT_DECLARE(Position3World);
 ECS_COMPONENT_DECLARE(Velocity2);
@@ -234,6 +235,7 @@ void EgSpatialsImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, Position2);
 	ECS_COMPONENT_DEFINE(world, Position3);
+	ECS_COMPONENT_DEFINE(world, Ray3);
 	ECS_COMPONENT_DEFINE(world, Scale3);
 	ECS_COMPONENT_DEFINE(world, Position3World);
 	ECS_COMPONENT_DEFINE(world, Velocity2);
@@ -265,6 +267,14 @@ void EgSpatialsImport(ecs_world_t *world)
 
 	ecs_struct(world,
 	{.entity = ecs_id(Position3),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	{.name = "z", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(Ray3),
 	.members = {
 	{.name = "x", .type = ecs_id(ecs_f32_t)},
 	{.name = "y", .type = ecs_id(ecs_f32_t)},

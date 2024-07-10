@@ -1,0 +1,12 @@
+module my.intersectors
+
+using eg.components
+using eg.spatials
+using eg.shapes
+
+// Camera ray cast test
+line1 {
+	//- Line{a:[1,2,3], b:[20,20,20]}
+	//- Color32{r:255,g:255,b:255,a:255}
+	//- (EgUse, app.vbuffers.lines)
+}

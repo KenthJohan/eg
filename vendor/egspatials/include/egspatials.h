@@ -18,6 +18,12 @@ typedef struct {
 	float x;
 	float y;
 	float z;
+} Ray3;
+
+typedef struct {
+	float x;
+	float y;
+	float z;
 } Scale3;
 
 typedef struct {
@@ -87,6 +93,7 @@ typedef struct {
 
 extern ECS_COMPONENT_DECLARE(Position2);
 extern ECS_COMPONENT_DECLARE(Position3);
+extern ECS_COMPONENT_DECLARE(Ray3);
 extern ECS_COMPONENT_DECLARE(Scale3);
 extern ECS_COMPONENT_DECLARE(Position3World);
 extern ECS_COMPONENT_DECLARE(Velocity2);

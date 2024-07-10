@@ -47,10 +47,15 @@ typedef struct {
 	ecs_entity_t entity;
 } KeyActionToggleEntity;
 
+typedef struct {
+	int32_t dummy;
+} EgWindowsMouseRay;
+
 
 extern ECS_COMPONENT_DECLARE(Window);
 extern ECS_COMPONENT_DECLARE(KeyActionToggleEntity);
 extern ECS_COMPONENT_DECLARE(KeyboardController);
+extern ECS_COMPONENT_DECLARE(EgWindowsMouseRay);
 
 
 void EgWindowsImport(ecs_world_t *world);

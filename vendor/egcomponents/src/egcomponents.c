@@ -10,6 +10,7 @@ ECS_COMPONENT_DECLARE(Memory);
 
 ECS_TAG_DECLARE(EgUse);
 ECS_TAG_DECLARE(EgUpdate);
+ECS_TAG_DECLARE(EgComponentsDraw);
 
 
 
@@ -45,6 +46,7 @@ void EgComponentsImport(ecs_world_t *world)
 
 	ECS_TAG_DEFINE(world, EgUse);
 	ECS_TAG_DEFINE(world, EgUpdate);
+	ECS_TAG_DEFINE(world, EgComponentsDraw);
 
 	ecs_add_id(world, EgUse, EcsTraversable);
 	ecs_add_id(world, EgUpdate, EcsTraversable);

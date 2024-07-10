@@ -26,6 +26,7 @@ static void DrawLines(ecs_iter_t *it)
 	Camera *cam = ecs_field(it, Camera, 3);              // self
 
 	for (int i = 0; i < it->count; i++) {
+		// printf("DrawLines: %s\n", ecs_get_name(it->world, it->entities[i]));
 		if (lines->storage.count <= 0) {
 			continue;
 		}
@@ -81,13 +82,43 @@ static void AppendLines2(ecs_iter_t *it)
 	}
 }
 
+static void Ray2Line(ecs_iter_t *it)
+{
+	Position3 *p = ecs_field(it, Position3, 1); // self|shared
+	Ray3 *r = ecs_field(it, Ray3, 2);           // self|shared
+	Line *l = ecs_field(it, Line, 3);           // self
+	int self_p = ecs_field_is_self(it, 1);
+	int self_r = ecs_field_is_self(it, 2);
+	//int self_l = ecs_field_is_self(it, 3);
+	for (int i = 0; i < it->count; ++i, ++l, p += self_p, p += self_r) {
+		float length = 100.0f;
+		l->a[0] = -p->x;
+		l->a[1] = -p->y;
+		l->a[2] = -p->z;
+		l->b[0] = -p->x + r->x * length;
+		l->b[1] = -p->y + r->y * length;
+		l->b[2] = -p->z + r->z * length;
+		printf("%s: %f %f %f\n", ecs_get_name(it->world, it->entities[i]), l->a[0], l->a[1], l->a[2]);
+		/*
+		Line line = {
+		    // TODO:
+		    // Camera position flipped, hmm?
+		    // Shoot ray from mouse position or camera position?
+		    .a = {-pos->x, -pos->y, -pos->z},
+		    .b = {-pos->x+ ray_world[0]*length, -pos->y+ ray_world[1]*length, -pos->z+ ray_world[2]*length}
+		};
+		*/
+	}
+}
+
 static void AppendLines(ecs_iter_t *it)
 {
 	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // up, shared
 	Line *line = ecs_field(it, Line, 2);                // self
 	Color32 *color = ecs_field(it, Color32, 3);         // self
 
-	for (int i = 0; i < it->count; ++i, ++line) {
+	for (int i = 0; i < it->count; ++i, ++line, ++color) {
+		//printf("AppendLines: %s\n", ecs_get_name(it->world, it->entities[i]));
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		line_t l =
 		{
@@ -158,13 +189,25 @@ void MiscLinesImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "Ray2Line", .add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = Ray2Line,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(Position3)},
+	{.id = ecs_id(Ray3)},
+	{.id = ecs_id(Line), .src.flags = EcsSelf},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "DrawLines", .add = {ecs_dependson(EcsPostUpdate)}}),
 	.callback = DrawLines,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .src.flags = EcsSelf},
+	{.id = ecs_id(LinesBuffer), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(SgPipeline), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(Camera), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = EgComponentsDraw},
 	}});
 
 	ecs_system_init(world,

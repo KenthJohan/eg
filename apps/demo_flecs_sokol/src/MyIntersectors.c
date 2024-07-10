@@ -10,17 +10,20 @@ ECS_COMPONENT_DECLARE(MyIntersectorsHit);
 #if 1
 static void Cylinder_Intersect(ecs_iter_t *it)
 {
-	// Cylinder *cyl = ecs_field(it, Cylinder, 1);                   // shared
-	Position3World *o = ecs_field(it, Position3World, 2);         // self
-	OrientationWorld *r = ecs_field(it, OrientationWorld, 3);     // self
-	Scale3 *s = ecs_field(it, Scale3, 4);                         // self
+	//Line *line = ecs_field(it, Line, 1);                             // shared
+	Cylinder *cyl = ecs_field(it, Cylinder, 1);                   // shared
+	Position3World *o = ecs_field(it, Position3World, 2);            // self
+	OrientationWorld *r = ecs_field(it, OrientationWorld, 3);        // self
+	Scale3 *s = ecs_field(it, Scale3, 4);                            // self
 	MyIntersectorsHit *inthit = ecs_field(it, MyIntersectorsHit, 5); // self
-	Color *color = ecs_field(it, Color, 6);                       // self
-
-	ecs_entity_t line_e = ecs_lookup_fullpath(it->world, "app.line1");
-	Line const *line = ecs_get(it->world, line_e, Line);
+	Color *color = ecs_field(it, Color, 6);                          // self
 
 	// Vector that defines the line direction in world space
+	ecs_entity_t line_e = ecs_lookup(it->world, "app.camline");
+	if (line_e == 0) {
+		return;
+	}
+	Line const * line = ecs_get(it->world, line_e, Line);
 	float v[3];
 	v[0] = line->b[0] - line->a[0];
 	v[1] = line->b[1] - line->a[1];
@@ -31,7 +34,7 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 		m3f32 tt = {0};
 		m3f32_rs_inverse_transposed((float const *)r, (float const *)s, &tt);
 		int hit1 = v3f32_intersect_cylinder(v, line->a, (float *)o, h, &tt);
-		if(hit1) {
+		if (hit1) {
 			color->r = 1;
 			color->g = 1;
 			color->b = 1;
@@ -42,7 +45,7 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 			color->b = 0;
 			color->a = -3;
 		}
-		//printf("hit1: %i\n", hit1);
+		// printf("hit1: %i\n", hit1);
 	}
 }
 
@@ -101,12 +104,16 @@ void MyIntersectorsImport(ecs_world_t *world)
 	{.name = "d", .type = ecs_id(ecs_f32_t)},
 	}});
 
+	ecs_entity_t line_e = ecs_new_entity(world, "line1");
+	//Line const *line = ecs_get(it->world, line_e, Line);
+
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "Cylinder_Intersect", .add = {ecs_dependson(EcsPostUpdate)}}),
 	.callback = Cylinder_Intersect,
 	.query.filter.terms =
 	{
+	//{.id = ecs_id(Line), .src.id = line_e},
 	{.id = ecs_id(Cylinder), .src.trav = EgUse, .src.flags = EcsUp},
 	{.id = ecs_id(Position3World), .src.flags = EcsSelf},
 	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf},

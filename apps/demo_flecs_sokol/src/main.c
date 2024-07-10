@@ -163,6 +163,7 @@ static void init_cb(app_t *app)
 	ecs_plecs_from_file(app->world, "config/graphics_shaders.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_ubs.flecs");
 	ecs_plecs_from_file(app->world, "config/app.flecs");
+	ecs_plecs_from_file(app->world, "config/eg.intersectors.flecs");
 	ecs_log_set_level(-1);
 
 	// https://www.flecs.dev/explorer/?remote=true

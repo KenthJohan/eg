@@ -134,6 +134,7 @@ const KEYCODE_RIGHT_ALT        = 346
 const KEYCODE_RIGHT_SUPER      = 347
 const KEYCODE_MENU             = 348
 
+
 // Rotate {Orientation} with keyboard
 Prefab SpaceShip {
 	- KeyboardController{
@@ -157,15 +158,7 @@ Prefab SpaceShip {
 	- Velocity3
 }
 
-cam : SpaceShip {
-	- Camera
-	// Set the order of the operands, changes how {Orientation} rotates
-	- EgRotateOrder2
-	- Position3{-3, 2, -4}
-	- Orientation{-0.4, -0.1, -0.2, 0.8}
-	// Apply keyboard controll when pressing key
-	- KeyActionToggleEntity{keycode: $KEYCODE_F1, entity: SpaceShip}
-}
+
 
 
 // Vertices GPU storage for shapes
@@ -175,15 +168,58 @@ vbuffers {
 	}
 	lines {
 		- misc.lines.LinesBuffer
-		- (EgUse, cam)
-		- (EgUse, graphics.pipes.lines)
 	}
 	points {
 		- misc.points.PointsBuffer
-		- (EgUse, cam)
-		- (EgUse, graphics.pipes.points)
 	}
 }
+
+
+cam : SpaceShip {
+	- Camera
+	// Set the order of the operands, changes how {Orientation} rotates
+	- EgRotateOrder2
+	- Position3{-3, 2, -4}
+	- Orientation{-0.4, -0.1, -0.2, 0.8}
+	// Apply keyboard controll when pressing key
+	- KeyActionToggleEntity{keycode: $KEYCODE_F1, entity: SpaceShip}
+
+	- eg.windows.MouseRay
+	- Ray3
+}
+
+camline {
+	- (my.controller.TestCopyOnClick, cam)
+	- (EgUse, vbuffers.lines)
+	- Position3
+	- Ray3
+	- Line
+	- Color32{r:100,g:100,b:150,a:255}
+}
+
+
+
+drawlines {
+	lines1 {
+		- eg.components.Draw
+		- (EgUse, vbuffers.lines)
+		- (EgUse, graphics.pipes.lines)
+		- (EgUse, cam)
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -293,12 +329,7 @@ items {
 
 
 
-// Camera ray cast test
-line1 {
-	- Line{a:[1,2,3], b:[20,20,20]}
-	- Color32{r:255,g:255,b:255,a:255}
-	- (EgUse, vbuffers.lines)
-}
+
 
 
 

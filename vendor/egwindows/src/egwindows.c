@@ -3,6 +3,7 @@
 ECS_COMPONENT_DECLARE(Window);
 ECS_COMPONENT_DECLARE(KeyActionToggleEntity);
 ECS_COMPONENT_DECLARE(KeyboardController);
+ECS_COMPONENT_DECLARE(EgWindowsMouseRay);
 
 
 void EgWindowsImport(ecs_world_t *world)
@@ -14,6 +15,7 @@ void EgWindowsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Window);
 	ECS_COMPONENT_DEFINE(world, KeyActionToggleEntity);
 	ECS_COMPONENT_DEFINE(world, KeyboardController);
+	ECS_COMPONENT_DEFINE(world, EgWindowsMouseRay);
 
 	ecs_struct(world,
 	{.entity = ecs_id(Window),
@@ -67,5 +69,9 @@ void EgWindowsImport(ecs_world_t *world)
 	{.name = "key_fov_minus", .type = ecs_id(ecs_u16_t)},
 	}});
 
-
+	ecs_struct(world,
+	{.entity = ecs_id(EgWindowsMouseRay),
+	.members = {
+	{.name = "dummy", .type = ecs_id(ecs_i32_t)}
+	}});
 }

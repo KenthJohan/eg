@@ -7,6 +7,7 @@
 #include <egshapes.h>
 #include "MiscLines.h"
 
+ECS_TAG_DECLARE(MyControllerTestCopyOnClick);
 
 /*
 
@@ -25,7 +26,7 @@ bool solveQuadratic(const float &a, const float &b, const float &c, float &x0, f
         x1 = c / q;
     }
     if (x0 > x1) std::swap(x0, x1);
-    
+
     return true;
 }
 
@@ -63,7 +64,6 @@ bool intersect(const Ray &ray) const
 }
 
 */
-
 
 static void ControllerRotate(ecs_iter_t *it)
 {
@@ -110,110 +110,15 @@ static void ControllerPerspective(ecs_iter_t *it)
 	}
 }
 
-static void PrintMousePos(ecs_iter_t *it)
-{
-	Window *win = ecs_field(it, Window, 1);
-	Camera *cam = ecs_field(it, Camera, 2);
-	Position3 *pos = ecs_field(it, Position3, 3);
-	//Orientation *rot = ecs_field(it, Orientation, 4);
-
-	win->dt = it->delta_time;
-	win->fps = 1.0f / it->delta_time;
-	win->pos[0] = pos->x;
-	win->pos[1] = pos->y;
-	win->pos[2] = pos->z;
-
-	float mouse_pos[2] = {win->canvas_mouse_x, win->canvas_mouse_y};
-	float rectangle[2] = {win->canvas_width, win->canvas_height};
-	
-	/*
-	sdtx_canvas(win->w/ 2.0f, win->h/ 2.0f);
-	sdtx_origin(1.0f, 1.0f);
-	sdtx_color3f(1.0f, 1.0f, 1.0f);
-	sdtx_pos(0, 0);
-	sdtx_printf("FPS: %f", 1.0f / it->delta_time);
-	sdtx_pos(0, 1);
-	sdtx_printf("Pos: %f %f %f", pos->x, pos->y, pos->z);
-	sdtx_pos(0, 2);
-	sdtx_printf("Rot: %f %f %f %f", rot->x, rot->y, rot->z, rot->w);
-	sdtx_canvas(win->w / 2.0f, win->h / 2.0f);
-	sdtx_origin(win->mouse_x / 16.0f, win->mouse_y / 16.0f);
-	sdtx_color3f(1.0f, 1.0f, 1.0f);
-	*/
-
-	float r[4];
-	r[0] = 2.0f * (mouse_pos[0] / rectangle[0]) - 1.0f;
-	r[1] = 2.0f * (mouse_pos[1] / rectangle[1]) - 1.0f;
-	r[1] *= -1.0f; //Why flip, hmm?
-	r[2] = -1.0;
-	r[3] = 1.0;
-
-	// Eye/Camera
-	// vec4 ray_eye = mat4_mul_vec4(mat4_inverse(projection), ray_clip);
-
-	float ray_eye[4];
-	m4f32 pinv;
-	m4f32_inverse((float *)&cam->projection, (float *)&pinv);
-	m4f32_mulv(&pinv, r, ray_eye);
-	ray_eye[2] = -1.0f;
-	ray_eye[3] = 0.0f;
-
-	// Convert to world coordinates;
-	// r.direction = vec3_from_vec4(mat4_mul_vec4(view, ray_eye));
-	// vec3_normalize(&r.direction);
-
-	m4f32 vinv;
-	float ray_world[4];
-	m4f32_inverse((float *)&cam->view, (float *)&vinv);
-	m4f32_mulv(&vinv, ray_eye, ray_world);
-
-	/*
-	sdtx_pos(3, 0);
-	sdtx_printf("%f %f", win->mouse_x, win->mouse_y);
-	sdtx_pos(3, 1);
-	sdtx_printf("%f %f", r[0], r[1]);
-	sdtx_pos(3, 2);
-	sdtx_printf("%f %f %f %f", ray_eye[0], ray_eye[1], ray_eye[2], ray_eye[3]);
-	sdtx_pos(3, 3);
-	sdtx_printf("%f %f %f %f", ray_world[0], ray_world[1], ray_world[2], ray_world[3]);
-	v3f32_normalize(ray_world, ray_world);
-	sdtx_pos(3, 4);
-	sdtx_printf("%f %f %f %f", ray_world[0], ray_world[1], ray_world[2], ray_world[3]);
-	*/
-
-
-	if(win->mouse_left_edge)
-	{
-		float length = 1000.0f;
-		ecs_entity_t e = ecs_lookup_fullpath(it->world, "app.line1");
-		Line line = {
-			// TODO:
-			// Camera position flipped, hmm?
-			// Shoot ray from mouse position or camera position?
-			.a = {-pos->x, -pos->y, -pos->z},
-			.b = {-pos->x+ ray_world[0]*length, -pos->y+ ray_world[1]*length, -pos->z+ ray_world[2]*length}
-		};
-		ecs_set_ptr(it->world, e, Line, &line);
-		//printf("mouse_left_edge\n");
-	}
-}
-
-
-
-
-
-
-
-
 static void KeyActionToggleEntity_OnUpdate(ecs_iter_t *it)
 {
 	Window *window = ecs_field(it, Window, 1);
 	KeyActionToggleEntity *action = ecs_field(it, KeyActionToggleEntity, 2);
 	uint8_t *keys_edge = window->keys_edge;
 	for (int i = 0; i < it->count; ++i, ++action) {
-		if(keys_edge[action->keycode]) {
-			//ecs_add_id(it->world, it->entities[i], action->entity);
-			if(ecs_has_pair(it->world, it->entities[i], EcsIsA, action->entity)) {
+		if (keys_edge[action->keycode]) {
+			// ecs_add_id(it->world, it->entities[i], action->entity);
+			if (ecs_has_pair(it->world, it->entities[i], EcsIsA, action->entity)) {
 				ecs_remove_pair(it->world, it->entities[i], EcsIsA, action->entity);
 			} else {
 				ecs_add_pair(it->world, it->entities[i], EcsIsA, action->entity);
@@ -222,6 +127,20 @@ static void KeyActionToggleEntity_OnUpdate(ecs_iter_t *it)
 	}
 }
 
+static void System_MyControllerTestCopyOnClick(ecs_iter_t *it)
+{
+	Window *window = ecs_field(it, Window, 1);       // shared
+	Position3 *p0 = ecs_field(it, Position3, 2); // shared
+	Ray3 *r0 = ecs_field(it, Ray3, 3);           // shared
+	Position3 *p = ecs_field(it, Position3, 4); // self
+	Ray3 *r = ecs_field(it, Ray3, 5);           // self
+	for (int i = 0; i < it->count; ++i, ++p, ++r) {
+		if (window->mouse_left_edge) {
+			*p = *p0;
+			*r = *r0;
+		}
+	}
+}
 
 void MyControllerImport(ecs_world_t *world)
 {
@@ -231,9 +150,27 @@ void MyControllerImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, EgShapes);
 
+	ecs_set_name_prefix(world, "MyController");
+
+	ECS_TAG_DEFINE(world, MyControllerTestCopyOnClick);
+	ecs_add_id(world, MyControllerTestCopyOnClick, EcsTraversable);
+
 	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, KeyboardController, Rotate3, Window($));
 	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, KeyboardController, Velocity3, Window($));
 	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, KeyboardController, Camera, Window($));
-	ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera, Position3, Orientation);
+	// ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera, Position3, Orientation);
 	ECS_SYSTEM(world, KeyActionToggleEntity_OnUpdate, EcsOnUpdate, Window($), KeyActionToggleEntity);
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "System_MyControllerTestCopyOnClick", .add = {ecs_dependson(EcsOnUpdate)}}),
+	.callback = System_MyControllerTestCopyOnClick,
+	.query.filter.terms =
+	{
+	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
+	{.id = ecs_id(Position3), .src.trav = MyControllerTestCopyOnClick, .src.flags = EcsUp},
+	{.id = ecs_id(Ray3), .src.trav = MyControllerTestCopyOnClick, .src.flags = EcsUp},
+	{.id = ecs_id(Position3), .src.flags = EcsSelf},
+	{.id = ecs_id(Ray3), .src.flags = EcsSelf},
+	}});
 }
