@@ -31,7 +31,6 @@ static void AddShapeTorus(ecs_iter_t *it)
 static void AddShapeCylinder(ecs_iter_t *it)
 {
 	Cylinder *cylinder = ecs_field(it, Cylinder, 1);                // self
-	//int size1 = ecs_field_size(it, 2);
 	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
 	ShapeElement *el = ecs_field(it, ShapeElement, 3);              // self
 	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                 // shared

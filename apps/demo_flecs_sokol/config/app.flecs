@@ -179,7 +179,7 @@ cam : SpaceShip {
 	- Camera
 	// Set the order of the operands, changes how {Orientation} rotates
 	- EgRotateOrder2
-	- Position3{-3, 2, -4}
+	- Position3{3, -2, 4}
 	- Orientation{-0.4, -0.1, -0.2, 0.8}
 	// Apply keyboard controll when pressing key
 	- KeyActionToggleEntity{keycode: $KEYCODE_F1, entity: SpaceShip}
@@ -252,6 +252,8 @@ items {
 		- Scale3{x: 0.1, y: 0.1, z: 0.1}
 		- Position3{x: 2, y: 0, z: 0}
 		- Rotate3{0.001,0,0}
+		- (my.intersectors.Hit, cam){0}
+		- eg.colors.V4F32_RGBA{1,0,0,-3}
 		obj1 {
 			- (EgUse, meshes.cylinder1)
 			- (EgUse, cam)
@@ -263,7 +265,7 @@ items {
 			- Scale3{x: 0.1, y: 0.1, z: 0.1}
 			- Position3{x: 0, y: 0.5, z: 0}
 			- Rotate3{0,0.011,0}
-			- my.intersectors.Hit{0}
+			- (my.intersectors.Hit, cam){0}
 			- eg.colors.V4F32_RGBA{1,0,0,-3}
 			ref {
 				- (EgUse, vbuffers.lines)
@@ -290,10 +292,8 @@ items {
 		- OrientationWorld
 		- Scale3{x: 0.1, y: 4, z: 0.1}
 		- Position3{x: 1, y: 0, z: 0}
-		- my.intersectors.Hit{0}
 		- eg.colors.V4F32_RGBA{1,0,0,-3}
 		- Rotate3{0.001,0,0}
-		- KeyActionToggleEntity{keycode: $KEYCODE_F2, entity: SpaceShip}
 	}
 
 	cylbase {
@@ -306,6 +306,9 @@ items {
 		- OrientationWorld
 		- Scale3{x: 1, y: 1, z: 1}
 		- Position3{x: 0, y: 0, z: 0}
+		- KeyActionToggleEntity{keycode: $KEYCODE_F2, entity: SpaceShip}
+		- (my.intersectors.Hit, camline){0}
+		- eg.colors.V4F32_RGBA{1,0,0,-3}
 	}
 
 }

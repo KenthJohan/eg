@@ -11,30 +11,20 @@ ECS_COMPONENT_DECLARE(MyIntersectorsHit);
 #if 1
 static void Cylinder_Intersect(ecs_iter_t *it)
 {
-	//Line *line = ecs_field(it, Line, 1);                             // shared
-	Cylinder *cyl = ecs_field(it, Cylinder, 1);                   // shared
-	Position3World *o = ecs_field(it, Position3World, 2);            // self
-	OrientationWorld *r = ecs_field(it, OrientationWorld, 3);        // self
-	Scale3 *s = ecs_field(it, Scale3, 4);                            // self
-	MyIntersectorsHit *inthit = ecs_field(it, MyIntersectorsHit, 5); // self
-	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 6);                          // self
+	Position3 *l = ecs_field(it, Position3, 1);                       // shared
+	Ray3 *v = ecs_field(it, Ray3, 2);                                 // shared
+	Cylinder *cyl = ecs_field(it, Cylinder, 3);                       // shared
+	Position3World *o = ecs_field(it, Position3World, 4);             // self
+	OrientationWorld *r = ecs_field(it, OrientationWorld, 5);         // self
+	Scale3 *s = ecs_field(it, Scale3, 6);                             // self
+	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 7); // self
+	printf("%f %f %f, %f %f %f\n", l->x, l->y, l->z, v->x, v->y, v->z);
 
-	// Vector that defines the line direction in world space
-	ecs_entity_t line_e = ecs_lookup(it->world, "app.camline");
-	if (line_e == 0) {
-		return;
-	}
-	Line const * line = ecs_get(it->world, line_e, Line);
-	float v[3];
-	v[0] = line->b[0] - line->a[0];
-	v[1] = line->b[1] - line->a[1];
-	v[2] = line->b[2] - line->a[2];
-	v3f32_normalize(v, v, 0.000001);
 	float h[3] = {0, 1, 0}; // The non transformed cylinder axis
-	for (int i = 0; i < it->count; ++i, ++o, ++r, ++s, ++inthit, ++color) {
+	for (int i = 0; i < it->count; ++i, ++o, ++r, ++s, ++color) {
 		m3f32 tt = {0};
 		m3f32_rs_inverse_transposed((float const *)r, (float const *)s, &tt);
-		int hit1 = v3f32_intersect_cylinder(v, line->a, (float *)o, h, &tt);
+		int hit1 = v3f32_intersect_cylinder((float *)v, (float *)l, (float *)o, h, &tt);
 		if (hit1) {
 			color->r = 1;
 			color->g = 1;
@@ -99,6 +89,7 @@ void MyIntersectorsImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "MyIntersectors");
 
 	ECS_COMPONENT_DEFINE(world, MyIntersectorsHit);
+	ecs_add_id(world, ecs_id(MyIntersectorsHit), EcsTraversable);
 
 	ecs_struct(world,
 	{.entity = ecs_id(MyIntersectorsHit),
@@ -107,7 +98,7 @@ void MyIntersectorsImport(ecs_world_t *world)
 	}});
 
 	ecs_entity_t line_e = ecs_new_entity(world, "line1");
-	//Line const *line = ecs_get(it->world, line_e, Line);
+	// Line const *line = ecs_get(it->world, line_e, Line);
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -116,11 +107,12 @@ void MyIntersectorsImport(ecs_world_t *world)
 	.query.filter.terms =
 	{
 	//{.id = ecs_id(Line), .src.id = line_e},
-	{.id = ecs_id(Cylinder), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(Position3), .src.trav = ecs_id(MyIntersectorsHit), .src.flags = EcsUp},
+	{.id = ecs_id(Ray3), .src.trav = ecs_id(MyIntersectorsHit), .src.flags = EcsUp},
+	{.id = ecs_id(Cylinder), .src.trav = EgUse, .src.flags = EcsUp}, // TODO
 	{.id = ecs_id(Position3World), .src.flags = EcsSelf},
 	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf},
 	{.id = ecs_id(Scale3), .src.flags = EcsSelf},
-	{.id = ecs_id(MyIntersectorsHit), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4F32_RGBA), .src.flags = EcsSelf}
 
 	}});

@@ -67,9 +67,9 @@ void m4f32_perspective1(m4f32 *m, float fov, float aspect, float n, float f)
 void m4f32_translation3(m4f32 *m, float const t[3])
 {
 	// Translation vector in 4th column
-	m->c3[0] = t[0];
-	m->c3[1] = t[1];
-	m->c3[2] = t[2];
+	m->c3[0] = -t[0];
+	m->c3[1] = -t[1];
+	m->c3[2] = -t[2];
 }
 
 void m4f32_transpose(m4f32 *x)

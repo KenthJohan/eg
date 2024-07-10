@@ -55,7 +55,7 @@ static void PrintMousePos(ecs_iter_t *it)
 	// Orientation *rot = ecs_field(it, Orientation, 4);
 
 	if (win->mouse_left_edge == 0) {
-		return;
+		//return;
 	}
 
 	win->dt = it->delta_time;
@@ -124,7 +124,7 @@ static void PrintMousePos(ecs_iter_t *it)
 	ray1->x = ray_world[0];
 	ray1->y = ray_world[1];
 	ray1->z = ray_world[2];
-	printf("mouse_left_edge %f %f %f\n", ray1->x, ray1->y, ray1->z);
+	//printf("mouse_left_edge %f %f %f\n", ray1->x, ray1->y, ray1->z);
 
 	if (1 || win->mouse_left_edge) {
 		/*

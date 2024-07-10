@@ -89,9 +89,9 @@ static void ControllerMove(ecs_iter_t *it)
 	float moving_speed = 1.1f;
 	float k = it->delta_time * moving_speed;
 	for (int i = 0; i < it->count; i++) {
-		vel->x = keys[controller->key_move_dx_plus] - keys[controller->key_move_dx_minus];
-		vel->y = keys[controller->key_move_dy_plus] - keys[controller->key_move_dy_minus];
-		vel->z = keys[controller->key_move_dz_plus] - keys[controller->key_move_dz_minus];
+		vel->x = -(keys[controller->key_move_dx_plus] - keys[controller->key_move_dx_minus]);
+		vel->y = -(keys[controller->key_move_dy_plus] - keys[controller->key_move_dy_minus]);
+		vel->z = -(keys[controller->key_move_dz_plus] - keys[controller->key_move_dz_minus]);
 		v3f32_mul((float *)vel, (float *)vel, k);
 	}
 }

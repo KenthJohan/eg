@@ -93,12 +93,12 @@ static void Ray2Line(ecs_iter_t *it)
 	//int self_l = ecs_field_is_self(it, 3);
 	for (int i = 0; i < it->count; ++i, ++l, p += self_p, p += self_r) {
 		float length = 100.0f;
-		l->a[0] = -p->x;
-		l->a[1] = -p->y;
-		l->a[2] = -p->z;
-		l->b[0] = -p->x + r->x * length;
-		l->b[1] = -p->y + r->y * length;
-		l->b[2] = -p->z + r->z * length;
+		l->a[0] = p->x;
+		l->a[1] = p->y;
+		l->a[2] = p->z;
+		l->b[0] = p->x + r->x * length;
+		l->b[1] = p->y + r->y * length;
+		l->b[2] = p->z + r->z * length;
 		printf("%s: %f %f %f\n", ecs_get_name(it->world, it->entities[i]), l->a[0], l->a[1], l->a[2]);
 		/*
 		Line line = {
