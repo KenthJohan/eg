@@ -6,7 +6,7 @@
 #include <sokol_debugtext.h>
 #include <sokol_glue.h>
 #include <sokol_shape.h>
-#include <egcomponents.h>
+#include <egbase.h>
 #include <egcameras.h>
 #include <egspatials.h>
 #include <egshapes.h>
@@ -20,8 +20,8 @@ static void AddShapeTorus(ecs_iter_t *it)
 {
 	Torus *torus = ecs_field(it, Torus, 1);                         // self
 	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
-	ShapeElement *el = ecs_field(it, ShapeElement, 3);              // self
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                 // shared
+	EgBaseShapeElement *el = ecs_field(it, EgBaseShapeElement, 3);              // self
+	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 4);                 // shared
 	for (int i = 0; i < it->count; ++i, ++torus, ++color, ++el) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		ShapeBuffer_append(b, el, SSHAPE_TORUS, torus, c);
@@ -32,8 +32,8 @@ static void AddShapeCylinder(ecs_iter_t *it)
 {
 	Cylinder *cylinder = ecs_field(it, Cylinder, 1);                // self
 	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
-	ShapeElement *el = ecs_field(it, ShapeElement, 3);              // self
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                 // shared
+	EgBaseShapeElement *el = ecs_field(it, EgBaseShapeElement, 3);              // self
+	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 4);                 // shared
 	for (int i = 0; i < it->count; ++i, ++cylinder, ++color, ++el) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		ShapeBuffer_append(b, el, SSHAPE_CYLINDER, cylinder, c);
@@ -44,8 +44,8 @@ static void AddShapeSphere(ecs_iter_t *it)
 {
 	Sphere *sphere = ecs_field(it, Sphere, 1);                      // self
 	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
-	ShapeElement *el = ecs_field(it, ShapeElement, 3);              // self
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 4);                 // shared
+	EgBaseShapeElement *el = ecs_field(it, EgBaseShapeElement, 3);              // self
+	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 4);                 // shared
 	for (int i = 0; i < it->count; ++i, ++sphere, ++color, ++el) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		ShapeBuffer_append(b, el, SSHAPE_SPHERE, sphere, c);
@@ -54,7 +54,7 @@ static void AddShapeSphere(ecs_iter_t *it)
 
 static void Flush(ecs_iter_t *it)
 {
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 1);
+	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 1);
 	for (int i = 0; i < it->count; ++i, ++b) {
 		if (b->indices.buffer.size <= 0) {
 			continue;
@@ -76,12 +76,12 @@ typedef struct {
 
 static void DrawShape(ecs_iter_t *it)
 {
-	Transformation *transformation = ecs_field(it, Transformation, 1); // self
-	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 2);  // self
-	ShapeElement *element = ecs_field(it, ShapeElement, 3);            // up, shared
-	SgPipeline *pipeline = ecs_field(it, SgPipeline, 4);               // up, shared
-	ShapeBuffer *b = ecs_field(it, ShapeBuffer, 5);                    // up, shared
-	Camera *cam = ecs_field(it, Camera, 6);                            // up, shared
+	Transformation *transformation = ecs_field(it, Transformation, 1);  // self
+	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 2);   // self
+	EgBaseShapeElement *element = ecs_field(it, EgBaseShapeElement, 3); // up, shared
+	SgPipeline *pipeline = ecs_field(it, SgPipeline, 4);                // up, shared
+	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 5);         // up, shared
+	Camera *cam = ecs_field(it, Camera, 6);                             // up, shared
 	if (b->ibuf.id == 0) {
 		return;
 	}
@@ -116,7 +116,7 @@ static void DrawShape(ecs_iter_t *it)
 void MiscShapesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MiscShapes);
-	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgBase);
 	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgShapes);
@@ -131,8 +131,8 @@ void MiscShapesImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(Torus), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
-	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
-	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(EgBaseShapeElement), .src.flags = EcsSelf},
+	{.id = ecs_id(EgBaseShapeBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
 	}});
 
 	ecs_system_init(world,
@@ -143,8 +143,8 @@ void MiscShapesImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(Cylinder), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
-	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
-	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(EgBaseShapeElement), .src.flags = EcsSelf},
+	{.id = ecs_id(EgBaseShapeBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
 	}});
 
 	ecs_system_init(world,
@@ -155,8 +155,8 @@ void MiscShapesImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(Sphere), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
-	{.id = ecs_id(ShapeElement), .src.flags = EcsSelf},
-	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(EgBaseShapeElement), .src.flags = EcsSelf},
+	{.id = ecs_id(EgBaseShapeBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
 	}});
 
 	ecs_system_init(world,
@@ -165,7 +165,7 @@ void MiscShapesImport(ecs_world_t *world)
 	.callback = Flush,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(ShapeBuffer), .src.flags = EcsSelf},
+	{.id = ecs_id(EgBaseShapeBuffer), .src.flags = EcsSelf},
 	}});
 
 	ecs_system_init(world,
@@ -177,9 +177,9 @@ void MiscShapesImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(Transformation), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4F32_RGBA), .src.flags = EcsSelf, .oper = EcsOptional},
-	{.id = ecs_id(ShapeElement), .src.trav = EgUse, .src.flags = EcsUp},
-	{.id = ecs_id(SgPipeline), .src.trav = EgUse, .src.flags = EcsUp},
-	{.id = ecs_id(ShapeBuffer), .src.trav = EgUse, .src.flags = EcsUp},
-	{.id = ecs_id(Camera), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(EgBaseShapeElement), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(SgPipeline), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(EgBaseShapeBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(Camera), .src.trav = EgBaseUse, .src.flags = EcsUp},
 	}});
 }

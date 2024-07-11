@@ -21,7 +21,7 @@
 #include <flecs.h>
 #include <egmath.h>
 #include <egsokol.h>
-#include <egcomponents.h>
+#include <egbase.h>
 #include <egshapes.h>
 #include <egcameras.h>
 #include <egspatials.h>

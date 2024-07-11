@@ -7,7 +7,7 @@
 #include <sokol_debugtext.h>
 #include <sokol_glue.h>
 #include <sokol_shape.h>
-#include <egcomponents.h>
+#include <egbase.h>
 #include <egcameras.h>
 #include <stdlib.h>
 
@@ -68,7 +68,7 @@ ECS_CTOR(PointsBuffer, ptr, {
 void MiscPointsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MiscPoints);
-	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgBase);
 	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, Sg);
 
@@ -92,8 +92,8 @@ void MiscPointsImport(ecs_world_t *world)
 	.query.filter.terms =
 	{
 	{.id = ecs_id(PointsBuffer), .src.flags = EcsSelf},
-	{.id = ecs_id(SgPipeline), .src.trav = EgUse, .src.flags = EcsUp},
-	{.id = ecs_id(Camera), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(SgPipeline), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(Camera), .src.trav = EgBaseUse, .src.flags = EcsUp},
 	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
 	}});
 }

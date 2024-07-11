@@ -1,6 +1,5 @@
 module app
 
-using eg.components
 using eg.windows
 using eg.spatials
 using eg.cameras
@@ -164,7 +163,7 @@ Prefab SpaceShip {
 // Vertices GPU storage for shapes
 vbuffers {
 	shapes {
-		- ShapeBuffer
+		- eg.base.ShapeBuffer
 	}
 	lines {
 		- misc.lines.LinesBuffer
@@ -191,7 +190,7 @@ cam : SpaceShip {
 camline {
 	// Copy Position3 and Ray3 to this from cam:
 	- (my.controller.TestCopyOnClick, cam)
-	- (EgUse, vbuffers.lines)
+	- (eg.base.Use, vbuffers.lines)
 	- Position3
 	- Ray3
 	- Line
@@ -202,10 +201,10 @@ camline {
 
 drawlines {
 	lines1 {
-		- eg.components.Draw
-		- (EgUse, vbuffers.lines)
-		- (EgUse, graphics.pipes.lines)
-		- (EgUse, cam)
+		- eg.base.Draw
+		- (eg.base.Use, vbuffers.lines)
+		- (eg.base.Use, graphics.pipes.lines)
+		- (eg.base.Use, cam)
 	}
 }
 
@@ -226,15 +225,15 @@ drawlines {
 meshes {
 	cylinder1 : graphics.pipes.shapes {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
-		- (EgUse, vbuffers.shapes)
+		- (eg.base.Use, vbuffers.shapes)
 		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
-		- ShapeElement
+		- eg.base.ShapeElement
 	}
 	cylinder2 : graphics.pipes.shapes {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
-		- (EgUse, vbuffers.shapes)
+		- (eg.base.Use, vbuffers.shapes)
 		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
-		- ShapeElement
+		- eg.base.ShapeElement
 	}
 }
 
@@ -242,8 +241,8 @@ meshes {
 
 items {
 	obj1 {
-		- (EgUse, meshes.cylinder1)
-		- (EgUse, cam)
+		- (eg.base.Use, meshes.cylinder1)
+		- (eg.base.Use, cam)
 		- EgRotateOrder1
 		- Transformation
 		- Position3World
@@ -255,8 +254,8 @@ items {
 		- (my.intersectors.Hit, cam){0}
 		- eg.colors.V4F32_RGBA{1,0,0,-3}
 		obj1 {
-			- (EgUse, meshes.cylinder1)
-			- (EgUse, cam)
+			- (eg.base.Use, meshes.cylinder1)
+			- (eg.base.Use, cam)
 			- EgRotateOrder1
 			- Transformation
 			- Position3World
@@ -268,8 +267,8 @@ items {
 			- (my.intersectors.Hit, cam){0}
 			- eg.colors.V4F32_RGBA{1,0,0,-3}
 			ref {
-				- (EgUse, vbuffers.lines)
-				- ShowDrawReference {1}
+				- (eg.base.Use, vbuffers.lines)
+				- eg.base.ShowDrawReference {1}
 				- Transformation
 				- EgRotateOrder1
 				- Position3
@@ -283,8 +282,8 @@ items {
 
 
 	obj2 {
-		- (EgUse, meshes.cylinder1)
-		- (EgUse, cam)
+		- (eg.base.Use, meshes.cylinder1)
+		- (eg.base.Use, cam)
 		- EgRotateOrder1
 		- Transformation
 		- Position3World
@@ -297,8 +296,8 @@ items {
 	}
 
 	cylbase {
-		- (EgUse, meshes.cylinder1)
-		- (EgUse, cam)
+		- (eg.base.Use, meshes.cylinder1)
+		- (eg.base.Use, cam)
 		- EgRotateOrder1
 		- Transformation
 		- Position3World
@@ -341,8 +340,8 @@ items {
 
 
 hitpoint1 {
-	- (EgUse, meshes.cylinder1)
-	- (EgUse, cam)
+	- (eg.base.Use, meshes.cylinder1)
+	- (eg.base.Use, cam)
 	- EgRotateOrder1
 	- Transformation
 	- Position3World
@@ -352,8 +351,8 @@ hitpoint1 {
 	- Position3{x: 0, y: 0, z: 0}
 }
 hitpoint2 {
-	- (EgUse, meshes.cylinder1)
-	- (EgUse, cam)
+	- (eg.base.Use, meshes.cylinder1)
+	- (eg.base.Use, cam)
 	- EgRotateOrder1
 	- Transformation
 	- Position3World
@@ -375,34 +374,34 @@ origin_xyz {
 	line_x {
 		- Line{a:[0,0,0], b:[100,0,0]}
 		- eg.colors.V4U8_RGBA{r:255,g:0,b:0,a:255}
-		- (EgUse, vbuffers.lines)
+		- (eg.base.Use, vbuffers.lines)
 	}
 	line_y {
 		- Line{a:[0,0,0], b:[0,100,0]}
 		- eg.colors.V4U8_RGBA{r:0,g:255,b:0,a:255}
-		- (EgUse, vbuffers.lines)
+		- (eg.base.Use, vbuffers.lines)
 	}
 	line_z {
 		- Line{a:[0,0,0], b:[0,0,100]}
 		- eg.colors.V4U8_RGBA{r:0,g:0,b:255,a:255}
-		- (EgUse, vbuffers.lines)
+		- (eg.base.Use, vbuffers.lines)
 	}
 
 
 	line_xx {
 		- Line{a:[0,0,0], b:[-100,0,0]}
 		- eg.colors.V4U8_RGBA{r:150,g:100,b:100,a:255}
-		- (EgUse, vbuffers.lines)
+		- (eg.base.Use, vbuffers.lines)
 	}
 	line_yy {
 		- Line{a:[0,0,0], b:[0,-100,0]}
 		- eg.colors.V4U8_RGBA{r:100,g:150,b:100,a:255}
-		- (EgUse, vbuffers.lines)
+		- (eg.base.Use, vbuffers.lines)
 	}
 	line_zz {
 		- Line{a:[0,0,0], b:[0,0,-100]}
 		- eg.colors.V4U8_RGBA{r:100,g:100,b:150,a:255}
-		- (EgUse, vbuffers.lines)
+		- (eg.base.Use, vbuffers.lines)
 	}
 }
 

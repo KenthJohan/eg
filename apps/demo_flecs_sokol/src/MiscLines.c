@@ -7,7 +7,7 @@
 #include <sokol_debugtext.h>
 #include <sokol_glue.h>
 #include <sokol_shape.h>
-#include <egcomponents.h>
+#include <egbase.h>
 #include <egspatials.h>
 #include <egcameras.h>
 #include <egshapes.h>
@@ -64,10 +64,10 @@ void AppendExampleLines(ecs_iter_t *it)
 
 static void AppendLines2(ecs_iter_t *it)
 {
-	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1);         // up, shared
-	OrientationWorld *o = ecs_field(it, OrientationWorld, 2);   // self
-	Position3World *p = ecs_field(it, Position3World, 3);       // self
-	ShowDrawReference *d = ecs_field(it, ShowDrawReference, 4); // self
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1);                     // up, shared
+	OrientationWorld *o = ecs_field(it, OrientationWorld, 2);               // self
+	Position3World *p = ecs_field(it, Position3World, 3);                   // self
+	EgBaseShowDrawReference *d = ecs_field(it, EgBaseShowDrawReference, 4); // self
 	for (int i = 0; i < it->count; ++i, ++o, ++p, ++d) {
 		if ((d->flags & 0x01) == 0) {
 			continue;
@@ -90,7 +90,7 @@ static void Ray2Line(ecs_iter_t *it)
 	Line *l = ecs_field(it, Line, 3);           // self
 	int self_p = ecs_field_is_self(it, 1);
 	int self_r = ecs_field_is_self(it, 2);
-	//int self_l = ecs_field_is_self(it, 3);
+	// int self_l = ecs_field_is_self(it, 3);
 	for (int i = 0; i < it->count; ++i, ++l, p += self_p, p += self_r) {
 		float length = 100.0f;
 		l->a[0] = p->x;
@@ -99,7 +99,7 @@ static void Ray2Line(ecs_iter_t *it)
 		l->b[0] = p->x + r->x * length;
 		l->b[1] = p->y + r->y * length;
 		l->b[2] = p->z + r->z * length;
-		printf("%s: %f %f %f\n", ecs_get_name(it->world, it->entities[i]), l->a[0], l->a[1], l->a[2]);
+		// printf("%s: %f %f %f\n", ecs_get_name(it->world, it->entities[i]), l->a[0], l->a[1], l->a[2]);
 		/*
 		Line line = {
 		    // TODO:
@@ -114,12 +114,12 @@ static void Ray2Line(ecs_iter_t *it)
 
 static void AppendLines(ecs_iter_t *it)
 {
-	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // up, shared
-	Line *line = ecs_field(it, Line, 2);                // self
-	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 3);         // self
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1);             // up, shared
+	Line *line = ecs_field(it, Line, 2);                            // self
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 3); // self
 
 	for (int i = 0; i < it->count; ++i, ++line, ++color) {
-		//printf("AppendLines: %s\n", ecs_get_name(it->world, it->entities[i]));
+		// printf("AppendLines: %s\n", ecs_get_name(it->world, it->entities[i]));
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		line_t l =
 		{
@@ -144,11 +144,13 @@ ECS_CTOR(LinesBuffer, ptr, {
 void MiscLinesImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MiscLines);
-	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgBase);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, Sg);
+	ecs_set_name_prefix(world, "MiscLines");
+
 
 	ECS_COMPONENT_DEFINE(world, LinesBuffer);
 
@@ -171,7 +173,7 @@ void MiscLinesImport(ecs_world_t *world)
 	.callback = AppendLines,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(LinesBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
 	{.id = ecs_id(Line), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
 	}});
@@ -182,10 +184,10 @@ void MiscLinesImport(ecs_world_t *world)
 	.callback = AppendLines2,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .src.trav = EgUse, .src.flags = EcsUp},
+	{.id = ecs_id(LinesBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
 	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf},
 	{.id = ecs_id(Position3World), .src.flags = EcsSelf},
-	{.id = ecs_id(ShowDrawReference), .src.flags = EcsSelf},
+	{.id = ecs_id(EgBaseShowDrawReference), .src.flags = EcsSelf},
 	}});
 
 	ecs_system_init(world,
@@ -205,10 +207,10 @@ void MiscLinesImport(ecs_world_t *world)
 	.callback = DrawLines,
 	.query.filter.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .src.trav = EgUse, .src.flags = EcsUp},
-	{.id = ecs_id(SgPipeline), .src.trav = EgUse, .src.flags = EcsUp},
-	{.id = ecs_id(Camera), .src.trav = EgUse, .src.flags = EcsUp},
-	{.id = EgComponentsDraw},
+	{.id = ecs_id(LinesBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(SgPipeline), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(Camera), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = EgBaseDraw},
 	}});
 
 	ecs_system_init(world,

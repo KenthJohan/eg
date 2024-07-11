@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
 #include <egshapes.h>
-#include <egcomponents.h>
+#include <egbase.h>
 #include <sokol_gfx.h>
 
 
@@ -14,9 +14,9 @@ typedef enum {
 	SSHAPE_COUNT,
 } sshape_t;
 
-void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *data, uint32_t color);
+void ShapeBuffer_append(EgBaseShapeBuffer *b, EgBaseShapeElement *el, sshape_t shape, void *data, uint32_t color);
 
-void ShapeBuffer_upload(ShapeBuffer *storage);
+void ShapeBuffer_upload(EgBaseShapeBuffer *storage);
 
 
-void ShapeBuffer_reset(ShapeBuffer *storage);
+void ShapeBuffer_reset(EgBaseShapeBuffer *storage);

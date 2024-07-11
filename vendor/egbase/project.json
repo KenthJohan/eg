@@ -1,5 +1,5 @@
 {
-	"id": "egcomponents",
+	"id": "egbase",
 	"type": "package",
 	"value": {
 		"language": "c",

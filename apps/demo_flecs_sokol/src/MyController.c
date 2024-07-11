@@ -1,7 +1,7 @@
 #include "MyController.h"
 
 #include <egsokol.h>
-#include <egcomponents.h>
+#include <egbase.h>
 #include <egspatials.h>
 #include <egcameras.h>
 #include <egshapes.h>
@@ -145,7 +145,7 @@ static void System_MyControllerTestCopyOnClick(ecs_iter_t *it)
 void MyControllerImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MyController);
-	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgBase);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, EgShapes);

@@ -14,25 +14,25 @@
  * dependencies will automatically show up in this file. Include bake_config.h
  * in your main project file. Do not edit! */
 
-#ifndef EGCOMPONENTS_BAKE_CONFIG_H
-#define EGCOMPONENTS_BAKE_CONFIG_H
+#ifndef EGBASE_BAKE_CONFIG_H
+#define EGBASE_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
 /* No dependencies */
 
 /* Convenience macro for exporting symbols */
-#ifndef egcomponents_STATIC
-#if defined(egcomponents_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
-  #define EGCOMPONENTS_API __declspec(dllexport)
-#elif defined(egcomponents_EXPORTS)
-  #define EGCOMPONENTS_API __attribute__((__visibility__("default")))
+#ifndef egbase_STATIC
+#if defined(egbase_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+  #define EGBASE_API __declspec(dllexport)
+#elif defined(egbase_EXPORTS)
+  #define EGBASE_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
-  #define EGCOMPONENTS_API __declspec(dllimport)
+  #define EGBASE_API __declspec(dllimport)
 #else
-  #define EGCOMPONENTS_API
+  #define EGBASE_API
 #endif
 #else
-  #define EGCOMPONENTS_API
+  #define EGBASE_API
 #endif
 
 #endif

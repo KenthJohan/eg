@@ -1,6 +1,6 @@
 #include "MyIntersectors.h"
 
-#include <egcomponents.h>
+#include <egbase.h>
 #include <egspatials.h>
 #include <egshapes.h>
 #include <egmath.h>
@@ -18,7 +18,7 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 	OrientationWorld *r = ecs_field(it, OrientationWorld, 5);         // self
 	Scale3 *s = ecs_field(it, Scale3, 6);                             // self
 	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 7); // self
-	printf("%f %f %f, %f %f %f\n", l->x, l->y, l->z, v->x, v->y, v->z);
+	//printf("%f %f %f, %f %f %f\n", l->x, l->y, l->z, v->x, v->y, v->z);
 
 	float h[3] = {0, 1, 0}; // The non transformed cylinder axis
 	for (int i = 0; i < it->count; ++i, ++o, ++r, ++s, ++color) {
@@ -82,7 +82,7 @@ static void Cylinder_Intersect(ecs_iter_t *it)
 void MyIntersectorsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MyIntersectors);
-	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgBase);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgColors);
@@ -109,7 +109,7 @@ void MyIntersectorsImport(ecs_world_t *world)
 	//{.id = ecs_id(Line), .src.id = line_e},
 	{.id = ecs_id(Position3), .src.trav = ecs_id(MyIntersectorsHit), .src.flags = EcsUp},
 	{.id = ecs_id(Ray3), .src.trav = ecs_id(MyIntersectorsHit), .src.flags = EcsUp},
-	{.id = ecs_id(Cylinder), .src.trav = EgUse, .src.flags = EcsUp}, // TODO
+	{.id = ecs_id(Cylinder), .src.trav = EgBaseUse, .src.flags = EcsUp}, // TODO
 	{.id = ecs_id(Position3World), .src.flags = EcsSelf},
 	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf},
 	{.id = ecs_id(Scale3), .src.flags = EcsSelf},

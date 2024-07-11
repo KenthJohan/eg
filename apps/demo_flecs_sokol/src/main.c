@@ -19,7 +19,7 @@
 
 #include <flecs.h>
 #include <egcameras.h>
-#include <egcomponents.h>
+#include <egbase.h>
 #include <egspatials.h>
 #include <egsokol.h>
 #include <egwindows.h>
@@ -143,7 +143,7 @@ static void init_cb(app_t *app)
 
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgCameras);
-	ECS_IMPORT(world, EgComponents);
+	ECS_IMPORT(world, EgBase);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, MiscShapes);
 	ECS_IMPORT(world, MiscLines);
@@ -163,7 +163,6 @@ static void init_cb(app_t *app)
 	ecs_plecs_from_file(app->world, "config/graphics_shaders.flecs");
 	ecs_plecs_from_file(app->world, "config/graphics_ubs.flecs");
 	ecs_plecs_from_file(app->world, "config/app.flecs");
-	ecs_plecs_from_file(app->world, "config/eg.intersectors.flecs");
 	ecs_log_set_level(-1);
 
 	// https://www.flecs.dev/explorer/?remote=true

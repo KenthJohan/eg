@@ -15,7 +15,7 @@ int32_t Memory_next_pow_of_2(int32_t n)
 	return n;
 }
 
-void Memory_grow(Memory *m, int32_t inc)
+void Memory_grow(EgBaseMemory *m, int32_t inc)
 {
 	m->size = m->size + inc;
 	if (m->size > m->cap) {
@@ -24,7 +24,7 @@ void Memory_grow(Memory *m, int32_t inc)
 	}
 }
 
-sshape_buffer_t ShapeBuffer_convert(ShapeBuffer *b)
+sshape_buffer_t ShapeBuffer_convert(EgBaseShapeBuffer *b)
 {
 	sshape_buffer_t buf = {
 	.vertices.buffer.ptr = b->vertices.buffer.ptr,
@@ -40,7 +40,7 @@ sshape_buffer_t ShapeBuffer_convert(ShapeBuffer *b)
 	return buf;
 }
 
-void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *data, uint32_t color)
+void ShapeBuffer_append(EgBaseShapeBuffer *b, EgBaseShapeElement *el, sshape_t shape, void *data, uint32_t color)
 {
 	sshape_buffer_t buf;
 	switch (shape) {
@@ -111,7 +111,7 @@ void ShapeBuffer_append(ShapeBuffer *b, ShapeElement *el, sshape_t shape, void *
 	el->num_elements = element.num_elements;
 }
 
-static void upload(Memory *mem, MemoryGPU *gpu, sg_buffer_type type)
+static void upload(EgBaseMemory *mem, EgBaseMemoryGPU *gpu, sg_buffer_type type)
 {
 	if (mem->cap > gpu->cap) {
 		sg_destroy_buffer((sg_buffer){gpu->id});
@@ -126,14 +126,14 @@ static void upload(Memory *mem, MemoryGPU *gpu, sg_buffer_type type)
 	sg_update_buffer((sg_buffer){gpu->id}, &(sg_range const){.ptr = mem->ptr, .size = mem->size});
 }
 
-void ShapeBuffer_upload(ShapeBuffer *storage)
+void ShapeBuffer_upload(EgBaseShapeBuffer *storage)
 {
 	upload(&storage->vertices.buffer, &storage->vbuf, SG_BUFFERTYPE_VERTEXBUFFER);
 	upload(&storage->indices.buffer, &storage->ibuf, SG_BUFFERTYPE_INDEXBUFFER);
 }
 
 
-void ShapeBuffer_reset(ShapeBuffer *storage)
+void ShapeBuffer_reset(EgBaseShapeBuffer *storage)
 {
 	storage->indices.data_size = 0;
 	storage->indices.shape_offset = 0;
