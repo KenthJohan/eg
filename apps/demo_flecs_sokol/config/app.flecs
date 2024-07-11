@@ -227,13 +227,13 @@ meshes {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
 		- (eg.base.Use, vbuffers.shapes)
 		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
-		- eg.base.ShapeElement
+		- my.graphics.DrawCommand{-1,-1,-1}
 	}
 	cylinder2 : graphics.pipes.shapes {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
 		- (eg.base.Use, vbuffers.shapes)
 		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
-		- eg.base.ShapeElement
+		- my.graphics.DrawCommand{-1,-1,-1}
 	}
 }
 

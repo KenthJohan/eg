@@ -9,10 +9,7 @@ typedef struct {
 } EgBasePass;
 
 
-typedef struct {
-	int32_t base_element;
-	int32_t num_elements;
-} EgBaseShapeElement;
+
 
 typedef struct {
 	void *ptr;

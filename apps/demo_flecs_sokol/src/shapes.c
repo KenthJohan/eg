@@ -40,7 +40,7 @@ sshape_buffer_t ShapeBuffer_convert(EgBaseShapeBuffer *b)
 	return buf;
 }
 
-void ShapeBuffer_append(EgBaseShapeBuffer *b, EgBaseShapeElement *el, sshape_t shape, void *data, uint32_t color)
+void ShapeBuffer_append(EgBaseShapeBuffer *b, MyGraphicsDrawCommand *el, sshape_t shape, void *data, uint32_t color)
 {
 	sshape_buffer_t buf;
 	switch (shape) {
@@ -107,8 +107,9 @@ void ShapeBuffer_append(EgBaseShapeBuffer *b, EgBaseShapeElement *el, sshape_t s
 	b->vertices.shape_offset = buf.vertices.shape_offset;
 
 	sshape_element_range_t element = sshape_element_range(&buf);
-	el->base_element = element.base_element;
-	el->num_elements = element.num_elements;
+	el->offset = element.base_element;
+	el->count = element.num_elements;
+	el->instances = 1;
 }
 
 static void upload(EgBaseMemory *mem, EgBaseMemoryGPU *gpu, sg_buffer_type type)

@@ -2,7 +2,6 @@
 
 ECS_COMPONENT_DECLARE(EgBasePass);
 ECS_COMPONENT_DECLARE(EgBaseShapeBuffer);
-ECS_COMPONENT_DECLARE(EgBaseShapeElement);
 ECS_COMPONENT_DECLARE(EgBaseShowDrawReference);
 ECS_COMPONENT_DECLARE(EgBaseMemory);
 
@@ -32,7 +31,6 @@ void EgBaseImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, EgBasePass);
 	ECS_COMPONENT_DEFINE(world, EgBaseShapeBuffer);
-	ECS_COMPONENT_DEFINE(world, EgBaseShapeElement);
 	ECS_COMPONENT_DEFINE(world, EgBaseShowDrawReference);
 	ECS_COMPONENT_DEFINE(world, EgBaseMemory);
 	ECS_TAG_DEFINE(world, EgBaseUse);
@@ -44,17 +42,6 @@ void EgBaseImport(ecs_world_t *world)
 	
 
 	ecs_set_hooks(world, EgBaseShapeBuffer, {.ctor = ecs_ctor(EgBaseShapeBuffer)});
-
-
-
-
-
-	ecs_struct(world,
-	{.entity = ecs_id(EgBaseShapeElement),
-	.members = {
-	{.name = "x", .type = ecs_id(ecs_i32_t)},
-	{.name = "y", .type = ecs_id(ecs_i32_t)},
-	}});
 
 
 	ecs_struct(world,

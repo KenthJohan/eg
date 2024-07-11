@@ -140,7 +140,9 @@
 		"app_gui_window_main.h": "c",
 		"deque": "c",
 		"egwindows.h": "c",
-		"mycontroller.h": "c"
+		"mycontroller.h": "c",
+		"egbase.h": "c",
+		"myintersectors.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

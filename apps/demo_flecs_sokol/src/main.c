@@ -29,6 +29,7 @@
 #include "MiscPoints.h"
 #include "MyController.h"
 #include "MyIntersectors.h"
+#include "MyGraphics.h"
 
 #include "argparse.h"
 
@@ -151,6 +152,7 @@ static void init_cb(app_t *app)
 	ECS_IMPORT(world, Sg);
 	ECS_IMPORT(world, MyController);
 	ECS_IMPORT(world, MyIntersectors);
+	ECS_IMPORT(world, MyGraphics);
 
 
 
