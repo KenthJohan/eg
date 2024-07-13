@@ -91,7 +91,7 @@ void MiscShapesImport(ecs_world_t *world)
 	{.id = ecs_id(Torus), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
 	{.id = ecs_id(MyGraphicsDrawCommand), .src.flags = EcsSelf},
-	{.id = ecs_id(EgBaseMemory2), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(EgBaseMemory2), .src.trav = EcsChildOf, .src.flags = EcsUp},
 	}});
 
 	ecs_system_init(world,
@@ -103,7 +103,7 @@ void MiscShapesImport(ecs_world_t *world)
 	{.id = ecs_id(Cylinder), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
 	{.id = ecs_id(MyGraphicsDrawCommand), .src.flags = EcsSelf},
-	{.id = ecs_id(EgBaseMemory2), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(EgBaseMemory2), .src.trav = EcsChildOf, .src.flags = EcsUp},
 	}});
 
 	ecs_system_init(world,
@@ -115,7 +115,7 @@ void MiscShapesImport(ecs_world_t *world)
 	{.id = ecs_id(Sphere), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
 	{.id = ecs_id(MyGraphicsDrawCommand), .src.flags = EcsSelf},
-	{.id = ecs_id(EgBaseMemory2), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(EgBaseMemory2), .src.trav = EcsChildOf, .src.flags = EcsUp},
 	}});
 
 	ecs_system_init(world,

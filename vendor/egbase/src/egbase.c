@@ -1,5 +1,6 @@
 #include "egbase.h"
 
+ECS_COMPONENT_DECLARE(EgBaseMemoryGPU);
 ECS_COMPONENT_DECLARE(EgBaseShapeBuffer);
 ECS_COMPONENT_DECLARE(EgBaseShowDrawReference);
 ECS_COMPONENT_DECLARE(EgBaseMemory);
@@ -19,6 +20,7 @@ void EgBaseImport(ecs_world_t *world)
 
 	ecs_set_name_prefix(world, "EgBase");
 
+	ECS_COMPONENT_DEFINE(world, EgBaseMemoryGPU);
 	ECS_COMPONENT_DEFINE(world, EgBaseShapeBuffer);
 	ECS_COMPONENT_DEFINE(world, EgBaseShowDrawReference);
 	ECS_COMPONENT_DEFINE(world, EgBaseMemory);
@@ -33,6 +35,21 @@ void EgBaseImport(ecs_world_t *world)
 	ecs_set_hooks(world, EgBaseShapeBuffer, {.ctor = ecs_ctor(EgBaseShapeBuffer)});
 
 	ecs_struct(world,
+	{.entity = ecs_id(EgBaseMemoryGPU),
+	.members = {
+	{.name = "id", .type = ecs_id(ecs_u32_t)},
+	{.name = "cap", .type = ecs_id(ecs_i32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgBaseShapeBuffer),
+	.members = {
+	//{.name = "mem", .type = ecs_id(EgBaseMemory), .count = 2},
+	{.name = "vbuf", .type = ecs_id(EgBaseMemoryGPU)},
+	{.name = "ibuf", .type = ecs_id(EgBaseMemoryGPU)},
+	}});
+
+	ecs_struct(world,
 	{.entity = ecs_id(EgBaseMemory),
 	.members = {
 	{.name = "ptr", .type = ecs_id(ecs_uptr_t)},
@@ -44,7 +61,9 @@ void EgBaseImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(EgBaseMemory2),
 	.members = {
-	{.name = "mem", .type = ecs_id(EgBaseMemory), .count = 2},
+	//{.name = "mem", .type = ecs_id(EgBaseMemory), .count = 2},
+	{.name = "mem0", .type = ecs_id(EgBaseMemory)},
+	{.name = "mem1", .type = ecs_id(EgBaseMemory)},
 	}});
 
 	ecs_struct(world,

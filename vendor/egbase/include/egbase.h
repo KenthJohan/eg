@@ -1,10 +1,20 @@
 #pragma once
 #include <flecs.h>
 
+
+/*
+
+ptr                                 last              size             cap
+ |                                   |                 |                | 
+ +--------+-------+------------------+-----------------+----------------+
+ | item 1 | item2 | item 3           | item last       | unused space   |
+ +--------+-------+------------------+-----------------+----------------+
+
+*/
 typedef struct {
 	void *ptr;
 	int32_t cap; // Capacity
-	int32_t size; // Current size
+	int32_t size; // Current used space
 	int32_t last; // Starting byte position of last item
 } EgBaseMemory;
 
@@ -15,7 +25,7 @@ typedef struct {
 
 
 typedef struct {
-	int32_t id;
+	uint32_t id;
 	int32_t cap;
 } EgBaseMemoryGPU;
 
@@ -30,6 +40,7 @@ typedef struct {
 	uint32_t flags;
 } EgBaseShowDrawReference;
 
+extern ECS_COMPONENT_DECLARE(EgBaseMemoryGPU);
 extern ECS_COMPONENT_DECLARE(EgBaseShapeBuffer);
 extern ECS_COMPONENT_DECLARE(EgBaseShowDrawReference);
 extern ECS_COMPONENT_DECLARE(EgBaseMemory);

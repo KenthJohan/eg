@@ -162,10 +162,6 @@ Prefab SpaceShip {
 
 // Vertices GPU storage for shapes
 vbuffers {
-	shapes {
-		- eg.base.Memory2
-		- eg.base.ShapeBuffer
-	}
 	lines {
 		- misc.lines.LinesBuffer
 	}
@@ -223,18 +219,19 @@ drawlines {
 
 
 
-meshes {
-	cylinder1 : graphics.pipes.shapes {
+meshes : graphics.pipes.shapes {
+	- eg.base.Update
+	- eg.base.Memory2
+	- eg.base.ShapeBuffer
+	cylinder1 {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
-		- (eg.base.Use, vbuffers.shapes)
 		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
-		- my.graphics.DrawCommand{-1,-1,-1}
+		- my.graphics.DrawCommand{0,0,0,0,0,0}
 	}
-	cylinder2 : graphics.pipes.shapes {
+	cylinder2 {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
-		- (eg.base.Use, vbuffers.shapes)
 		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
-		- my.graphics.DrawCommand{-1,-1,-1}
+		- my.graphics.DrawCommand{0,0,0,0,0,0}
 	}
 }
 
