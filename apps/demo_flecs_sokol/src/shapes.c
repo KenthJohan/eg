@@ -52,8 +52,7 @@ void ShapeBuffer_append(EgBaseShapeBuffer *b, MyGraphicsDrawCommand *el, sshape_
 		.rings = torus->rings,
 		.sides = torus->sides,
 		.color = color,
-		.random_colors = torus->random_colors
-		};
+		.random_colors = torus->random_colors};
 		sshape_sizes_t sizes = sshape_torus_sizes(torus->sides, torus->rings);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
 		Memory_grow(&b->indices.buffer, sizes.indices.size);
@@ -70,8 +69,7 @@ void ShapeBuffer_append(EgBaseShapeBuffer *b, MyGraphicsDrawCommand *el, sshape_
 		.slices = cylinder->slices,
 		.stacks = cylinder->stacks,
 		.color = color,
-		.random_colors = cylinder->random_colors
-		};
+		.random_colors = cylinder->random_colors};
 		sshape_sizes_t sizes = sshape_cylinder_sizes(cylinder->slices, cylinder->stacks);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
 		Memory_grow(&b->indices.buffer, sizes.indices.size);
@@ -87,8 +85,7 @@ void ShapeBuffer_append(EgBaseShapeBuffer *b, MyGraphicsDrawCommand *el, sshape_
 		.slices = sphere->slices,
 		.stacks = sphere->stacks,
 		.color = color,
-		.random_colors = sphere->random_colors
-		};
+		.random_colors = sphere->random_colors};
 		sshape_sizes_t sizes = sshape_sphere_sizes(sphere->slices, sphere->stacks);
 		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
 		Memory_grow(&b->indices.buffer, sizes.indices.size);
@@ -132,7 +129,6 @@ void ShapeBuffer_upload(EgBaseShapeBuffer *storage)
 	upload(&storage->vertices.buffer, &storage->vbuf, SG_BUFFERTYPE_VERTEXBUFFER);
 	upload(&storage->indices.buffer, &storage->ibuf, SG_BUFFERTYPE_INDEXBUFFER);
 }
-
 
 void ShapeBuffer_reset(EgBaseShapeBuffer *storage)
 {

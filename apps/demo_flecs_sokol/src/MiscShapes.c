@@ -19,10 +19,10 @@
 
 static void AddShapeTorus(ecs_iter_t *it)
 {
-	Torus *torus = ecs_field(it, Torus, 1);                         // self
-	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
-	MyGraphicsDrawCommand *el = ecs_field(it, MyGraphicsDrawCommand, 3);  // self
-	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 4);     // shared
+	Torus *torus = ecs_field(it, Torus, 1);                              // self
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2);      // self
+	MyGraphicsDrawCommand *el = ecs_field(it, MyGraphicsDrawCommand, 3); // self
+	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 4);          // shared
 	for (int i = 0; i < it->count; ++i, ++torus, ++color, ++el) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		ShapeBuffer_append(b, el, SSHAPE_TORUS, torus, c);
@@ -31,10 +31,10 @@ static void AddShapeTorus(ecs_iter_t *it)
 
 static void AddShapeCylinder(ecs_iter_t *it)
 {
-	Cylinder *cylinder = ecs_field(it, Cylinder, 1);                // self
-	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
-	MyGraphicsDrawCommand *el = ecs_field(it, MyGraphicsDrawCommand, 3);  // self
-	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 4);     // shared
+	Cylinder *cylinder = ecs_field(it, Cylinder, 1);                     // self
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2);      // self
+	MyGraphicsDrawCommand *el = ecs_field(it, MyGraphicsDrawCommand, 3); // self
+	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 4);          // shared
 	for (int i = 0; i < it->count; ++i, ++cylinder, ++color, ++el) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		ShapeBuffer_append(b, el, SSHAPE_CYLINDER, cylinder, c);
@@ -43,10 +43,10 @@ static void AddShapeCylinder(ecs_iter_t *it)
 
 static void AddShapeSphere(ecs_iter_t *it)
 {
-	Sphere *sphere = ecs_field(it, Sphere, 1);                      // self
-	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
-	MyGraphicsDrawCommand *el = ecs_field(it, MyGraphicsDrawCommand, 3);  // self
-	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 4);     // shared
+	Sphere *sphere = ecs_field(it, Sphere, 1);                           // self
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2);      // self
+	MyGraphicsDrawCommand *el = ecs_field(it, MyGraphicsDrawCommand, 3); // self
+	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 4);          // shared
 	for (int i = 0; i < it->count; ++i, ++sphere, ++color, ++el) {
 		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
 		ShapeBuffer_append(b, el, SSHAPE_SPHERE, sphere, c);
