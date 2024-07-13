@@ -17,9 +17,9 @@ int32_t Memory_next_pow_of_2(int32_t n)
 
 void Memory_grow(EgBaseMemory *m, int32_t inc)
 {
-	m->size = m->size + inc;
-	if (m->size > m->cap) {
-		m->cap = Memory_next_pow_of_2(m->size);
+	int32_t cap = m->size + inc;
+	if (cap > m->cap) {
+		m->cap = Memory_next_pow_of_2(cap);
 		m->ptr = ecs_os_realloc(m->ptr, m->cap);
 	}
 }
@@ -27,15 +27,15 @@ void Memory_grow(EgBaseMemory *m, int32_t inc)
 sshape_buffer_t ShapeBuffer_convert(EgBaseShapeBuffer *b)
 {
 	sshape_buffer_t buf = {
-	.vertices.buffer.ptr = b->vertices.buffer.ptr,
-	.vertices.buffer.size = b->vertices.buffer.size,
-	.vertices.data_size = b->vertices.data_size,
-	.vertices.shape_offset = b->vertices.shape_offset,
+	.vertices.buffer.ptr = b->vertices.ptr,
+	.vertices.buffer.size = b->vertices.cap,
+	.vertices.data_size = b->vertices.size,
+	.vertices.shape_offset = b->vertices.last,
 
-	.indices.buffer.ptr = b->indices.buffer.ptr,
-	.indices.buffer.size = b->indices.buffer.size,
-	.indices.data_size = b->indices.data_size,
-	.indices.shape_offset = b->indices.shape_offset,
+	.indices.buffer.ptr = b->indices.ptr,
+	.indices.buffer.size = b->indices.cap,
+	.indices.data_size = b->indices.size,
+	.indices.shape_offset = b->indices.last,
 	};
 	return buf;
 }
@@ -54,8 +54,8 @@ void ShapeBuffer_append(EgBaseShapeBuffer *b, MyGraphicsDrawCommand *el, sshape_
 		.color = color,
 		.random_colors = torus->random_colors};
 		sshape_sizes_t sizes = sshape_torus_sizes(torus->sides, torus->rings);
-		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
-		Memory_grow(&b->indices.buffer, sizes.indices.size);
+		Memory_grow(&b->vertices, sizes.vertices.size);
+		Memory_grow(&b->indices, sizes.indices.size);
 		buf = ShapeBuffer_convert(b);
 		buf = sshape_build_torus(&buf, &info);
 		break;
@@ -71,8 +71,8 @@ void ShapeBuffer_append(EgBaseShapeBuffer *b, MyGraphicsDrawCommand *el, sshape_
 		.color = color,
 		.random_colors = cylinder->random_colors};
 		sshape_sizes_t sizes = sshape_cylinder_sizes(cylinder->slices, cylinder->stacks);
-		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
-		Memory_grow(&b->indices.buffer, sizes.indices.size);
+		Memory_grow(&b->vertices, sizes.vertices.size);
+		Memory_grow(&b->indices, sizes.indices.size);
 		buf = ShapeBuffer_convert(b);
 		buf = sshape_build_cylinder(&buf, &info);
 		break;
@@ -87,8 +87,8 @@ void ShapeBuffer_append(EgBaseShapeBuffer *b, MyGraphicsDrawCommand *el, sshape_
 		.color = color,
 		.random_colors = sphere->random_colors};
 		sshape_sizes_t sizes = sshape_sphere_sizes(sphere->slices, sphere->stacks);
-		Memory_grow(&b->vertices.buffer, sizes.vertices.size);
-		Memory_grow(&b->indices.buffer, sizes.indices.size);
+		Memory_grow(&b->vertices, sizes.vertices.size);
+		Memory_grow(&b->indices, sizes.indices.size);
 		buf = ShapeBuffer_convert(b);
 		buf = sshape_build_sphere(&buf, &info);
 		break;
@@ -98,10 +98,10 @@ void ShapeBuffer_append(EgBaseShapeBuffer *b, MyGraphicsDrawCommand *el, sshape_
 		break;
 	}
 
-	b->indices.data_size = buf.indices.data_size;
-	b->indices.shape_offset = buf.indices.shape_offset;
-	b->vertices.data_size = buf.vertices.data_size;
-	b->vertices.shape_offset = buf.vertices.shape_offset;
+	b->indices.size = buf.indices.data_size;
+	b->indices.last = buf.indices.shape_offset;
+	b->vertices.size = buf.vertices.data_size;
+	b->vertices.last = buf.vertices.shape_offset;
 
 	sshape_element_range_t element = sshape_element_range(&buf);
 	el->offset = element.base_element;
@@ -126,16 +126,14 @@ static void upload(EgBaseMemory *mem, EgBaseMemoryGPU *gpu, sg_buffer_type type)
 
 void ShapeBuffer_upload(EgBaseShapeBuffer *storage)
 {
-	upload(&storage->vertices.buffer, &storage->vbuf, SG_BUFFERTYPE_VERTEXBUFFER);
-	upload(&storage->indices.buffer, &storage->ibuf, SG_BUFFERTYPE_INDEXBUFFER);
+	upload(&storage->vertices, &storage->vbuf, SG_BUFFERTYPE_VERTEXBUFFER);
+	upload(&storage->indices, &storage->ibuf, SG_BUFFERTYPE_INDEXBUFFER);
 }
 
 void ShapeBuffer_reset(EgBaseShapeBuffer *storage)
 {
-	storage->indices.data_size = 0;
-	storage->indices.shape_offset = 0;
-	storage->vertices.data_size = 0;
-	storage->vertices.shape_offset = 0;
-	storage->indices.buffer.size = 0;
-	storage->vertices.buffer.size = 0;
+	storage->indices.size = 0;
+	storage->indices.last = 0;
+	storage->vertices.size = 0;
+	storage->vertices.last = 0;
 }

@@ -3,8 +3,9 @@
 
 typedef struct {
 	void *ptr;
-	int32_t size;
-	int32_t cap;
+	int32_t cap; // Capacity
+	int32_t size; // Current size
+	int32_t last; // Starting byte position of last item
 } EgBaseMemory;
 
 typedef struct {
@@ -12,15 +13,11 @@ typedef struct {
 	int32_t cap;
 } EgBaseMemoryGPU;
 
-typedef struct {
-	EgBaseMemory buffer;  // pointer/size pair of output buffer
-	int32_t data_size;    // size in bytes of valid data in buffer
-	int32_t shape_offset; // data offset of the most recent shape
-} EgBaseShapeBufferItem;
+
 
 typedef struct {
-	EgBaseShapeBufferItem vertices;
-	EgBaseShapeBufferItem indices;
+	EgBaseMemory vertices;
+	EgBaseMemory indices;
 	EgBaseMemoryGPU vbuf;
 	EgBaseMemoryGPU ibuf;
 } EgBaseShapeBuffer;

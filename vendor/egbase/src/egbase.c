@@ -34,8 +34,9 @@ void EgBaseImport(ecs_world_t *world)
 	{.entity = ecs_id(EgBaseMemory),
 	.members = {
 	{.name = "ptr", .type = ecs_id(ecs_uptr_t)},
-	{.name = "size", .type = ecs_id(ecs_i32_t)},
 	{.name = "cap", .type = ecs_id(ecs_i32_t)},
+	{.name = "size", .type = ecs_id(ecs_i32_t)},
+	{.name = "last", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct(world,

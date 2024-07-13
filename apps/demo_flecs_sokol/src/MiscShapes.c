@@ -57,13 +57,13 @@ static void Flush(ecs_iter_t *it)
 {
 	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 1);
 	for (int i = 0; i < it->count; ++i, ++b) {
-		if (b->indices.buffer.size <= 0) {
+		if (b->indices.size <= 0) {
 			continue;
 		}
-		if (b->vertices.buffer.size <= 0) {
+		if (b->vertices.size <= 0) {
 			continue;
 		}
-		// printf("ShapeBuffer %s\n", ecs_get_name(it->world, it->entities[i]));
+		//printf("EgBaseShapeBuffer %s %i %i\n", ecs_get_name(it->world, it->entities[i]), b->indices.size, b->indices.cap);
 		// printf("%i %i, %i %i\n", b->ibuf.cap, b->vertices.buffer.cap, b->vbuf.cap, b->indices.buffer.cap);
 		ShapeBuffer_upload(b);
 		ShapeBuffer_reset(b);
