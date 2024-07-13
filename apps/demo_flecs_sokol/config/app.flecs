@@ -226,12 +226,12 @@ meshes : graphics.pipes.shapes {
 	cylinder1 {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
 		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
-		- my.graphics.DrawCommand{0,0,0,0,0,0}
+		- my.graphics.DrawCommand{0,0,0}
 	}
 	cylinder2 {
 		- Cylinder{radius: 1, height: 1, slices: 20, stacks: 2, random_colors: 1}
 		- eg.colors.V4U8_RGBA{a: 255, r: 255, g: 255, b:255}
-		- my.graphics.DrawCommand{0,0,0,0,0,0}
+		- my.graphics.DrawCommand{0,0,0}
 	}
 }
 
@@ -239,7 +239,8 @@ meshes : graphics.pipes.shapes {
 
 items {
 	obj1 {
-		- (eg.base.Use, meshes.cylinder1)
+		- (eg.base.Use, meshes) // vbuf and ibuf
+		- (eg.base.Use, meshes.cylinder1) // draw offset and count
 		- (eg.base.Use, cam)
 		- EgRotateOrder1
 		- Transformation
@@ -252,6 +253,7 @@ items {
 		- (my.intersectors.Hit, cam){0}
 		- eg.colors.V4F32_RGBA{1,0,0,-3}
 		obj1 {
+			- (eg.base.Use, meshes)
 			- (eg.base.Use, meshes.cylinder1)
 			- (eg.base.Use, cam)
 			- EgRotateOrder1
@@ -280,6 +282,7 @@ items {
 
 
 	obj2 {
+		- (eg.base.Use, meshes)
 		- (eg.base.Use, meshes.cylinder1)
 		- (eg.base.Use, cam)
 		- EgRotateOrder1
@@ -294,6 +297,7 @@ items {
 	}
 
 	cylbase {
+		- (eg.base.Use, meshes)
 		- (eg.base.Use, meshes.cylinder1)
 		- (eg.base.Use, cam)
 		- EgRotateOrder1

@@ -4,9 +4,6 @@
 
 
 typedef struct {
-	uint32_t pipeline;
-	uint32_t ibuf;
-	uint32_t vbuf;
 	int32_t offset;
 	int32_t count;
 	int32_t instances;

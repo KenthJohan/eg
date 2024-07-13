@@ -16,8 +16,6 @@
 
 ECS_COMPONENT_DECLARE(MyGraphicsDrawCommand);
 
-
-
 ECS_CTOR(MyGraphicsDrawCommand, ptr, {
 	ecs_os_memset_t(ptr, 0, MyGraphicsDrawCommand);
 })
@@ -32,17 +30,19 @@ static void DrawShape(ecs_iter_t *it)
 	Transformation *transformation = ecs_field(it, Transformation, 1);        // self
 	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 2);         // self
 	MyGraphicsDrawCommand *drawcmd = ecs_field(it, MyGraphicsDrawCommand, 3); // up, shared
-	Camera *cam = ecs_field(it, Camera, 4);                                   // up, shared
-	if (drawcmd->ibuf == 0) {
+	SgPipeline *pipeline = ecs_field(it, SgPipeline, 4);                      // up, shared
+	EgBaseShapeBuffer *ivbuf = ecs_field(it, EgBaseShapeBuffer, 5);         // up, shared
+	Camera *cam = ecs_field(it, Camera, 6);                                   // up, shared
+	if (ivbuf->ibuf.id == 0) {
 		return;
 	}
-	if (drawcmd->vbuf == 0) {
+	if (ivbuf->vbuf.id == 0) {
 		return;
 	}
-	sg_apply_pipeline((sg_pipeline){drawcmd->pipeline});
+	sg_apply_pipeline((sg_pipeline){pipeline->id.id});
 	sg_apply_bindings(&(sg_bindings){
-	.vertex_buffers[0] = (sg_buffer){drawcmd->vbuf},
-	.index_buffer = (sg_buffer){drawcmd->ibuf}});
+	.vertex_buffers[0] = (sg_buffer){ivbuf->vbuf.id},
+	.index_buffer = (sg_buffer){ivbuf->ibuf.id}});
 
 	if (color) {
 		for (int i = 0; i < it->count; ++i, ++transformation) {
@@ -64,19 +64,6 @@ static void DrawShape(ecs_iter_t *it)
 	}
 }
 
-static void CopyDrawInfo(ecs_iter_t *it)
-{
-	SgPipeline *p = ecs_field(it, SgPipeline, 1);                       // up, shared
-	EgBaseShapeBuffer *b = ecs_field(it, EgBaseShapeBuffer, 2);         // up, shared
-	MyGraphicsDrawCommand *d = ecs_field(it, MyGraphicsDrawCommand, 3); // self
-
-	for (int i = 0; i < it->count; ++i, ++d) {
-		d->ibuf = b->ibuf.id;
-		d->vbuf = b->vbuf.id;
-		d->pipeline = p->id.id;
-	}
-}
-
 void MyGraphicsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, MyGraphics);
@@ -94,9 +81,6 @@ void MyGraphicsImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(MyGraphicsDrawCommand),
 	.members = {
-	{.name = "pipeline", .type = ecs_id(ecs_u32_t)},
-	{.name = "ibuf", .type = ecs_id(ecs_u32_t)},
-	{.name = "vbuf", .type = ecs_id(ecs_u32_t)},
 	{.name = "offset", .type = ecs_id(ecs_i32_t)},
 	{.name = "count", .type = ecs_id(ecs_i32_t)},
 	{.name = "instances", .type = ecs_id(ecs_i32_t)},
@@ -112,18 +96,8 @@ void MyGraphicsImport(ecs_world_t *world)
 	{.id = ecs_id(Transformation), .src.flags = EcsSelf},
 	{.id = ecs_id(EgColorsV4F32_RGBA), .src.flags = EcsSelf, .oper = EcsOptional},
 	{.id = ecs_id(MyGraphicsDrawCommand), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(SgPipeline), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(EgBaseShapeBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
 	{.id = ecs_id(Camera), .src.trav = EgBaseUse, .src.flags = EcsUp},
-	}});
-
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "CopyDrawInfo", .add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = CopyDrawInfo,
-	.query.filter.instanced = true,
-	.query.filter.terms =
-	{
-	{.id = ecs_id(SgPipeline), .src.trav = EcsChildOf, .src.flags = EcsUp},
-	{.id = ecs_id(EgBaseShapeBuffer), .src.trav = EcsChildOf, .src.flags = EcsUp},
-	{.id = ecs_id(MyGraphicsDrawCommand), .src.flags = EcsSelf},
 	}});
 }
