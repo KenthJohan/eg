@@ -163,6 +163,7 @@ Prefab SpaceShip {
 // Vertices GPU storage for shapes
 vbuffers {
 	shapes {
+		- eg.base.Memory2
 		- eg.base.ShapeBuffer
 	}
 	lines {

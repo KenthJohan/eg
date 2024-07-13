@@ -15,9 +15,9 @@ typedef enum {
 	SSHAPE_COUNT,
 } sshape_t;
 
-void ShapeBuffer_append(EgBaseShapeBuffer *b, MyGraphicsDrawCommand *el, sshape_t shape, void *data, uint32_t color);
+void ShapeBuffer_append(EgBaseMemory2 *b, MyGraphicsDrawCommand *el, sshape_t shape, void *data, uint32_t color);
 
-void ShapeBuffer_upload(EgBaseShapeBuffer *storage);
+void ShapeBuffer_upload(EgBaseMemory2 *storage, EgBaseShapeBuffer * gbuf);
 
 
-void ShapeBuffer_reset(EgBaseShapeBuffer *storage);
+void ShapeBuffer_reset(EgBaseMemory2 *storage);

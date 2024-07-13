@@ -8,6 +8,12 @@ typedef struct {
 	int32_t last; // Starting byte position of last item
 } EgBaseMemory;
 
+
+typedef struct {
+	EgBaseMemory mem[2];
+} EgBaseMemory2;
+
+
 typedef struct {
 	int32_t id;
 	int32_t cap;
@@ -16,8 +22,6 @@ typedef struct {
 
 
 typedef struct {
-	EgBaseMemory vertices;
-	EgBaseMemory indices;
 	EgBaseMemoryGPU vbuf;
 	EgBaseMemoryGPU ibuf;
 } EgBaseShapeBuffer;
@@ -29,6 +33,7 @@ typedef struct {
 extern ECS_COMPONENT_DECLARE(EgBaseShapeBuffer);
 extern ECS_COMPONENT_DECLARE(EgBaseShowDrawReference);
 extern ECS_COMPONENT_DECLARE(EgBaseMemory);
+extern ECS_COMPONENT_DECLARE(EgBaseMemory2);
 
 extern ECS_TAG_DECLARE(EgBaseUse);
 extern ECS_TAG_DECLARE(EgBaseUpdate);

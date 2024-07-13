@@ -3,6 +3,7 @@
 ECS_COMPONENT_DECLARE(EgBaseShapeBuffer);
 ECS_COMPONENT_DECLARE(EgBaseShowDrawReference);
 ECS_COMPONENT_DECLARE(EgBaseMemory);
+ECS_COMPONENT_DECLARE(EgBaseMemory2);
 
 ECS_TAG_DECLARE(EgBaseUse);
 ECS_TAG_DECLARE(EgBaseUpdate);
@@ -21,6 +22,7 @@ void EgBaseImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgBaseShapeBuffer);
 	ECS_COMPONENT_DEFINE(world, EgBaseShowDrawReference);
 	ECS_COMPONENT_DEFINE(world, EgBaseMemory);
+	ECS_COMPONENT_DEFINE(world, EgBaseMemory2);
 	ECS_TAG_DEFINE(world, EgBaseUse);
 	ECS_TAG_DEFINE(world, EgBaseUpdate);
 	ECS_TAG_DEFINE(world, EgBaseDraw);
@@ -37,6 +39,12 @@ void EgBaseImport(ecs_world_t *world)
 	{.name = "cap", .type = ecs_id(ecs_i32_t)},
 	{.name = "size", .type = ecs_id(ecs_i32_t)},
 	{.name = "last", .type = ecs_id(ecs_i32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgBaseMemory2),
+	.members = {
+	{.name = "mem", .type = ecs_id(EgBaseMemory), .count = 2},
 	}});
 
 	ecs_struct(world,
