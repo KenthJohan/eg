@@ -161,24 +161,6 @@ static void iterate_vertex_attrs(ecs_world_t *world, ecs_entity_t parent, sg_ver
 			ecs_doc_set_color(world, e, ENTITY_COLOR);
 			SgLocation *loc = ecs_get_mut(world, e, SgLocation);
 			sg_vertex_attr_state *outstate = descs + loc->index;
-			// TODO: This code will have to change, its too much:
-			if (ecs_has(world, e, SgAttributeShapePosition)) {
-				loc->offset = sshape_position_vertex_attr_state().buffer_index;
-				loc->format = (SgVertexFormat)sshape_position_vertex_attr_state().format;
-				loc->buffer_index = sshape_position_vertex_attr_state().buffer_index;
-			} else if (ecs_has(world, e, SgAttributeShapeNormal)) {
-				loc->offset = sshape_normal_vertex_attr_state().buffer_index;
-				loc->format = (SgVertexFormat)sshape_normal_vertex_attr_state().format;
-				loc->buffer_index = sshape_normal_vertex_attr_state().buffer_index;
-			} else if (ecs_has(world, e, SgAttributeShapeTextcoord)) {
-				loc->offset = sshape_texcoord_vertex_attr_state().buffer_index;
-				loc->format = (SgVertexFormat)sshape_texcoord_vertex_attr_state().format;
-				loc->buffer_index = sshape_texcoord_vertex_attr_state().buffer_index;
-			} else if (ecs_has(world, e, SgAttributeShapeColor)) {
-				loc->offset = sshape_color_vertex_attr_state().buffer_index;
-				loc->format = (SgVertexFormat)sshape_color_vertex_attr_state().format;
-				loc->buffer_index = sshape_color_vertex_attr_state().buffer_index;
-			}
 			outstate->offset = loc->offset;
 			outstate->buffer_index = loc->buffer_index;
 			outstate->format = (sg_vertex_format)loc->format;
@@ -192,28 +174,21 @@ static void set_vertex_buffers(ecs_world_t *world, ecs_entity_t parent, sg_verte
 	for (int i = 0; i < SG_MAX_VERTEX_BUFFERS; ++i) {
 		snprintf(buf, sizeof(buf), "buf%i", i);
 		ecs_entity_t e = ecs_lookup_child(world, parent, buf);
+		ecs_log(0, "%s:%s:%s", ecs_get_name(world, parent), buf, e ? ecs_get_name(world, e) : "");
 		if (e == 0) {
 			continue;
 		}
-		if (ecs_has(world, e, SgVertexBufferLayoutShape)) {
-			buffers[i] = sshape_vertex_buffer_layout_state();
-			SgVertexBufferLayout *b = ecs_ensure(world, e, SgVertexBufferLayout);
-			b->stride = buffers[i].stride;
-			b->step_func = buffers[i].step_func;
-			b->step_rate = buffers[i].step_rate;
-		} else {
-			SgVertexBufferLayout const *b = ecs_get(world, e, SgVertexBufferLayout);
-			if (b == NULL) {
-				continue;
-			}
-			buffers[i].stride = b->stride;
-			buffers[i].step_func = b->step_func;
-			buffers[i].step_rate = b->step_rate;
+		SgVertexBufferLayout const *b = ecs_get(world, e, SgVertexBufferLayout);
+		if (b == NULL) {
+			continue;
 		}
+		buffers[i].stride = b->stride;
+		buffers[i].step_func = b->step_func;
+		buffers[i].step_rate = b->step_rate;
 	}
 }
 
-void Pip_Create(ecs_iter_t *it)
+static void Pip_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	SgPipelineCreate *create = ecs_field(it, SgPipelineCreate, 0); // self
@@ -225,9 +200,10 @@ void Pip_Create(ecs_iter_t *it)
 
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
-		ecs_log_set_level(2);
-		print_entity_from_it(it, i);
-		ecs_log_set_level(0);
+
+		//ecs_log_set_level(2);
+		//print_entity_from_it(it, i);
+		//ecs_log_set_level(0);
 
 		if (create->shader == 0) {
 			ecs_warn("No shader entity");
@@ -235,7 +211,7 @@ void Pip_Create(ecs_iter_t *it)
 		}
 		SgShader const *shader = ecs_get(world, create->shader, SgShader);
 		if (shader == NULL) {
-			ecs_warn("No SgShader component in shader entity");
+			//ecs_warn("No SgShader component in shader entity");
 			return;
 		}
 		SgShaderCreate const *shaderinfo = ecs_get(world, create->shader, SgShaderCreate);
@@ -266,7 +242,7 @@ void Pip_Create(ecs_iter_t *it)
 }
 
 // https://github.com/SanderMertens/flecs/blob/ca73ed213310f2ca23f2afde38f72af793091e50/examples/c/entities/hierarchy/src/main.c#L52
-void Shader_Create(ecs_iter_t *it)
+static void Shader_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	SgShaderCreate *create = ecs_field(it, SgShaderCreate, 0);
@@ -314,14 +290,31 @@ void Shader_Create(ecs_iter_t *it)
 		iterate_shader_attrs(world, create->attrs, desc.attrs);
 		iterate_shader_blocks(world, create->ubs, desc.vs.uniform_blocks);
 
-		/*
+		
 		sg_shader shd = sg_make_shader(&desc);
 		SgShader *shader = ecs_ensure(world, e, SgShader);
 		shader->id = shd.id;
 		ecs_dbg_2("");
-		*/
+		
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void SgImport(ecs_world_t *world)
 {
@@ -416,18 +409,25 @@ void SgImport(ecs_world_t *world)
 	                {.name = "FORCE_U32", .value = SgUniformTypeFORCE_U32},
 	                }});
 
+	{
+		sg_vertex_attr_state a0 = sshape_position_vertex_attr_state();
+		sg_vertex_attr_state a1 = sshape_normal_vertex_attr_state();
+		sg_vertex_attr_state a2 = sshape_texcoord_vertex_attr_state();
+		sg_vertex_attr_state a3 = sshape_color_vertex_attr_state();
 
+		sg_vertex_buffer_layout_state l = sshape_vertex_buffer_layout_state();
 
-	ECS_TAG_DEFINE(world, SgAttributeShapePosition);
-	ECS_TAG_DEFINE(world, SgAttributeShapeNormal);
-	ECS_TAG_DEFINE(world, SgAttributeShapeTextcoord);
-	ECS_TAG_DEFINE(world, SgAttributeShapeColor);
-	ECS_TAG_DEFINE(world, SgVertexBufferLayoutShape);
+		ecs_dbg_2("");
+	}
+
 
 	ecs_struct(world,
 	{.entity = ecs_id(SgPipelineCreate),
 	.members = {
 	{.name = "shader", .type = ecs_id(ecs_entity_t)},
+	{.name = "primtype", .type = ecs_id(SgPrimitiveType)},
+	{.name = "cullmode", .type = ecs_id(SgCullMode)},
+	{.name = "indextype", .type = ecs_id(SgIndexType)},
 	}});
 
 	ecs_struct(world,
@@ -500,6 +500,8 @@ void SgImport(ecs_world_t *world)
 	                  {.id = ecs_id(SgShaderCreate), .src.id = EcsSelf},
 	                  {.id = ecs_id(SgShader), .oper = EcsNot}, // Adds this
 	                  }});
+
+
 }
 
 void egsokol_flecs_event_cb(const sapp_event *evt, Window *window)

@@ -2,20 +2,13 @@ module graphics.pipes
 
 
 points {
-	sg.PipelineCreate : {shader : graphics.shaders.points}
-	(sg.PrimitiveType, sg.Points)
-	(sg.CullMode, sg.None)
-	(sg.IndexType, sg.None)
+	sg.PipelineCreate : {shader : graphics.shaders.points, primtype:POINTS, cullmode:NONE, indextype:NONE}
 }
 
 instances {
-	sg.PipelineCreate : {shader : graphics.shaders.instances}
-	(sg.PrimitiveType, sg.Lines)
-	(sg.CullMode, sg.Back)
-	(sg.IndexType, sg.U16)
-	
+	sg.PipelineCreate : {shader : graphics.shaders.instances, primtype:LINES, cullmode:BACK, indextype:UINT16}
 	buf0 {
-		sg.VertexBufferLayoutShape
+		sg.VertexBufferLayout : {stride:24, step_func:0, step_rate:0}
 	}
 	buf1 {
 		// step_func = 2 : SG_VERTEXSTEP_PER_INSTANCE
@@ -24,19 +17,13 @@ instances {
 }
 
 shapes {
-	sg.PipelineCreate : {shader : graphics.shaders.shapes}
-	(sg.PrimitiveType, sg.Lines)
-	(sg.CullMode, sg.Back)
-	(sg.IndexType, sg.U16)
+	sg.PipelineCreate : {shader : graphics.shaders.shapes, primtype:LINES, cullmode:BACK, indextype:UINT16}
 	buf0 {
-		sg.VertexBufferLayoutShape
+		sg.VertexBufferLayout : {stride:24, step_func:0, step_rate:0}
 	}
 }
 
 
 lines {
-	sg.PipelineCreate : {shader : graphics.shaders.lines}
-	(sg.PrimitiveType, sg.Lines)
-	(sg.CullMode, sg.None)
-	(sg.IndexType, sg.None)
+	sg.PipelineCreate : {shader : graphics.shaders.lines, primtype:LINES, cullmode:NONE, indextype:NONE}
 }

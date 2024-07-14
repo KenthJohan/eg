@@ -154,11 +154,6 @@ extern ECS_COMPONENT_DECLARE(SgCullMode);
 extern ECS_COMPONENT_DECLARE(SgUniformBlock);
 extern ECS_COMPONENT_DECLARE(SgUniform);
 
-extern ECS_TAG_DECLARE(SgAttributeShapePosition);
-extern ECS_TAG_DECLARE(SgAttributeShapeNormal);
-extern ECS_TAG_DECLARE(SgAttributeShapeTextcoord);
-extern ECS_TAG_DECLARE(SgAttributeShapeColor);
-extern ECS_TAG_DECLARE(SgVertexBufferLayoutShape);
 
 void SgImport(ecs_world_t *world);
 
