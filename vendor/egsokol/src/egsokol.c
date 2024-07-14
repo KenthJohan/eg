@@ -20,21 +20,6 @@ ECS_COMPONENT_DECLARE(SgCullMode);
 ECS_COMPONENT_DECLARE(SgUniformBlock);
 ECS_COMPONENT_DECLARE(SgUniform);
 
-ECS_TAG_DECLARE(SgNone);
-ECS_TAG_DECLARE(SgPoints);
-ECS_TAG_DECLARE(SgLines);
-ECS_TAG_DECLARE(SgTriangles);
-ECS_TAG_DECLARE(SgFloat2);
-ECS_TAG_DECLARE(SgFloat3);
-ECS_TAG_DECLARE(SgFloat4);
-ECS_TAG_DECLARE(SgByte4n);
-ECS_TAG_DECLARE(SgUbyte4n);
-ECS_TAG_DECLARE(SgUshort2n);
-ECS_TAG_DECLARE(SgU16);
-ECS_TAG_DECLARE(SgU32);
-ECS_TAG_DECLARE(SgFront);
-ECS_TAG_DECLARE(SgBack);
-
 ECS_TAG_DECLARE(SgAttributeShapePosition);
 ECS_TAG_DECLARE(SgAttributeShapeNormal);
 ECS_TAG_DECLARE(SgAttributeShapeTextcoord);
@@ -42,7 +27,6 @@ ECS_TAG_DECLARE(SgAttributeShapeColor);
 ECS_TAG_DECLARE(SgVertexBufferLayoutShape);
 
 #define ENTITY_COLOR "#55A3F4"
-
 
 char *eg_fs_readfile(char const *path)
 {
@@ -79,15 +63,7 @@ error:
 	return NULL;
 }
 
-static void const *ecsx_get_target_data(ecs_world_t *world, ecs_entity_t e, ecs_entity_t type)
-{
-	ecs_entity_t target = ecs_get_target(world, e, type, 0);
-	if (target == 0) {
-		return NULL;
-	}
-	void const *p = ecs_get_id(world, target, type);
-	return p;
-}
+
 
 static void print_entity(ecs_world_t *world, ecs_entity_t e)
 {
@@ -112,25 +88,7 @@ static void print_entity_from_it(ecs_iter_t *it, int i)
 	ecs_os_free(path_str);
 }
 
-static ecs_entity_t get_vertex_format_entity(sg_vertex_format t)
-{
-	switch (t) {
-	case SG_VERTEXFORMAT_FLOAT2:
-		return SgFloat2;
-	case SG_VERTEXFORMAT_FLOAT3:
-		return SgFloat3;
-	case SG_VERTEXFORMAT_FLOAT4:
-		return SgFloat4;
-	case SG_VERTEXFORMAT_BYTE4N:
-		return SgByte4n;
-	case SG_VERTEXFORMAT_UBYTE4N:
-		return SgUbyte4n;
-	case SG_VERTEXFORMAT_USHORT2N:
-		return SgUshort2n;
-	default:
-		return 0;
-	}
-}
+
 
 static void iterate_children(ecs_world_t *world, ecs_entity_t parent)
 {
@@ -167,12 +125,10 @@ static void iterate_shader_uniforms(ecs_world_t *world, ecs_entity_t parent, sg_
 			print_entity_from_it(&it, i);
 			char const *name = ecs_get_name(world, e);
 			SgUniform const *uniform = ecs_get(world, e, SgUniform);
-			SgUniformType const *type = ecsx_get_target_data(world, e, ecs_id(SgUniformType));
 			ecs_assert(uniform != NULL, ECS_INTERNAL_ERROR, NULL);
-			ecs_assert(type != NULL, ECS_INTERNAL_ERROR, NULL);
 			descs[uniform->index].name = name;
 			descs[uniform->index].array_count = uniform->array_count;
-			descs[uniform->index].type = type->value;
+			descs[uniform->index].type = (sg_uniform_type)uniform->type;
 		}
 	}
 }
@@ -203,37 +159,29 @@ static void iterate_vertex_attrs(ecs_world_t *world, ecs_entity_t parent, sg_ver
 			ecs_entity_t e = it.entities[i];
 			print_entity_from_it(&it, i);
 			ecs_doc_set_color(world, e, ENTITY_COLOR);
-			SgLocation const *loc = ecs_get(world, e, SgLocation);
+			SgLocation *loc = ecs_get_mut(world, e, SgLocation);
 			sg_vertex_attr_state *outstate = descs + loc->index;
 			// TODO: This code will have to change, its too much:
 			if (ecs_has(world, e, SgAttributeShapePosition)) {
-				outstate[0] = sshape_position_vertex_attr_state();
+				loc->offset = sshape_position_vertex_attr_state().buffer_index;
+				loc->format = (SgVertexFormat)sshape_position_vertex_attr_state().format;
+				loc->buffer_index = sshape_position_vertex_attr_state().buffer_index;
 			} else if (ecs_has(world, e, SgAttributeShapeNormal)) {
-				outstate[0] = sshape_normal_vertex_attr_state();
+				loc->offset = sshape_normal_vertex_attr_state().buffer_index;
+				loc->format = (SgVertexFormat)sshape_normal_vertex_attr_state().format;
+				loc->buffer_index = sshape_normal_vertex_attr_state().buffer_index;
 			} else if (ecs_has(world, e, SgAttributeShapeTextcoord)) {
-				outstate[0] = sshape_texcoord_vertex_attr_state();
+				loc->offset = sshape_texcoord_vertex_attr_state().buffer_index;
+				loc->format = (SgVertexFormat)sshape_texcoord_vertex_attr_state().format;
+				loc->buffer_index = sshape_texcoord_vertex_attr_state().buffer_index;
 			} else if (ecs_has(world, e, SgAttributeShapeColor)) {
-				outstate[0] = sshape_color_vertex_attr_state();
+				loc->offset = sshape_color_vertex_attr_state().buffer_index;
+				loc->format = (SgVertexFormat)sshape_color_vertex_attr_state().format;
+				loc->buffer_index = sshape_color_vertex_attr_state().buffer_index;
 			}
-
-			if (ecs_has(world, e, SgAttribute)) {
-				SgAttribute const *attr = ecs_get(world, e, SgAttribute);
-				outstate->buffer_index = attr->buffer_index;
-				outstate->offset = attr->offset;
-			} else {
-				SgAttribute *attr = ecs_ensure(world, e, SgAttribute);
-				attr->buffer_index = outstate->buffer_index;
-				attr->offset = outstate->offset;
-			}
-
-			if (ecs_has_pair(world, e, ecs_id(SgVertexFormat), EcsWildcard)) {
-				SgVertexFormat const *format = ecsx_get_target_data(world, e, ecs_id(SgVertexFormat));
-				ecs_assert(format != NULL, ECS_INTERNAL_ERROR, NULL);
-				outstate->format = format->value;
-			} else {
-				ecs_entity_t f = get_vertex_format_entity(outstate->format);
-				ecs_add_pair(world, e, ecs_id(SgVertexFormat), f);
-			}
+			outstate->offset = loc->offset;
+			outstate->buffer_index = loc->buffer_index;
+			outstate->format = (sg_vertex_format)loc->format;
 		}
 	}
 }
@@ -269,37 +217,48 @@ void Pip_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	SgPipelineCreate *create = ecs_field(it, SgPipelineCreate, 0); // self
-	SgAttributes * attrs = ecs_field(it, SgAttributes, 1); // up
-	ecs_entity_t entity_attrs = ecs_field_src(it, 1);
-	SgShader *shader = ecs_field(it, SgShader, 2); // up
-	ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
 
-	for (int i = 0; i < it->count; ++i) {
+	// SgAttributes * attrs = ecs_field(it, SgAttributes, 1); // up
+	// ecs_entity_t entity_attrs = ecs_field_src(it, 1);
+	// SgShader *shader = ecs_field(it, SgShader, 2); // up
+	// ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
+
+	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
-		ecs_doc_set_color(world, e, ENTITY_COLOR);
+		ecs_log_set_level(2);
 		print_entity_from_it(it, i);
+		ecs_log_set_level(0);
+
+		if (create->shader == 0) {
+			ecs_warn("No shader entity");
+			return;
+		}
+		SgShader const *shader = ecs_get(world, create->shader, SgShader);
+		if (shader == NULL) {
+			ecs_warn("No SgShader component in shader entity");
+			return;
+		}
+		SgShaderCreate const *shaderinfo = ecs_get(world, create->shader, SgShaderCreate);
+		if (shaderinfo == NULL) {
+			ecs_warn("No SgShaderCreate component in shader entity");
+			return;
+		}
+
+		ecs_doc_set_color(world, e, ENTITY_COLOR);
 
 		SgPipeline *pip = ecs_ensure(world, e, SgPipeline);
 
-		SgIndexType const *index_type = ecsx_get_target_data(world, e, ecs_id(SgIndexType));
-		SgPrimitiveType const *primitive_type = ecsx_get_target_data(world, e, ecs_id(SgPrimitiveType));
-		SgCullMode const *cull_mode = ecsx_get_target_data(world, e, ecs_id(SgCullMode));
-
-		ecs_assert(index_type != NULL, ECS_INTERNAL_ERROR, NULL);
-		ecs_assert(primitive_type != NULL, ECS_INTERNAL_ERROR, NULL);
-		ecs_assert(cull_mode != NULL, ECS_INTERNAL_ERROR, NULL);
-
 		sg_pipeline_desc desc = {
-		.shader = shader->id,
+		.shader = (sg_shader){shader->id},
 		.depth = {.write_enabled = true, .compare = SG_COMPAREFUNC_LESS_EQUAL},
-		.index_type = index_type->value,
-		.primitive_type = primitive_type->value,
-		.cull_mode = cull_mode->value,
+		.index_type = (sg_index_type)create->indextype,
+		.primitive_type = (sg_primitive_type)create->primtype,
+		.cull_mode = (sg_cull_mode)create->cullmode,
 		// TODO: Use 1 when for offscreen rendering
 		// Use 4 when render directly
 		.sample_count = 1,
 		};
-		iterate_vertex_attrs(world, entity_attrs, desc.layout.attrs);
+		iterate_vertex_attrs(world, shaderinfo->attrs, desc.layout.attrs);
 		set_vertex_buffers(world, e, desc.layout.buffers);
 
 		pip->id = sg_make_pipeline(&desc);
@@ -311,15 +270,22 @@ void Shader_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	SgShaderCreate *create = ecs_field(it, SgShaderCreate, 0);
-	// SgAttributes * attrs = ecs_field(it, SgAttributes, 2);
-	// SgUniformBlocks * blocks = ecs_field(it, SgUniformBlocks, 3);
-	// int self1 = ecs_field_is_self(it, 1);
+	if (create->attrs == 0) {
+		ecs_warn("No attrs entity");
+		return;
+	}
+	if (create->ubs == 0) {
+		ecs_warn("No ubs entity");
+		return;
+	}
+	/*
 	ecs_entity_t entity_attrs = ecs_field_src(it, 1);
 	ecs_entity_t entity_blocks = ecs_field_src(it, 2);
 	ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
 	ecs_doc_set_color(world, entity_blocks, ENTITY_COLOR);
+	*/
 
-	for (int i = 0; i < it->count; ++i) {
+	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
 		print_entity_from_it(it, i);
 		ecs_doc_set_color(world, e, "#003366");
@@ -342,17 +308,18 @@ void Shader_Create(ecs_iter_t *it)
 		desc.vs.entry = "main";
 		desc.fs.entry = "main";
 
-
 		ecs_assert(desc.vs.source != NULL, ECS_INTERNAL_ERROR, NULL);
 		ecs_assert(desc.fs.source != NULL, ECS_INTERNAL_ERROR, NULL);
 		// shader->id = create_shader(desc->filename_fs, desc->filename_vs);
-		iterate_shader_attrs(world, entity_attrs, desc.attrs);
-		iterate_shader_blocks(world, entity_blocks, desc.vs.uniform_blocks);
+		iterate_shader_attrs(world, create->attrs, desc.attrs);
+		iterate_shader_blocks(world, create->ubs, desc.vs.uniform_blocks);
 
+		/*
 		sg_shader shd = sg_make_shader(&desc);
 		SgShader *shader = ecs_ensure(world, e, SgShader);
-		shader->id = shd;
+		shader->id = shd.id;
 		ecs_dbg_2("");
+		*/
 	}
 }
 
@@ -366,7 +333,6 @@ void SgImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, SgShaderCreate);
 	ECS_COMPONENT_DEFINE(world, SgShader);
 	ECS_COMPONENT_DEFINE(world, SgLocation);
-	ECS_COMPONENT_DEFINE(world, SgAttribute);
 	ECS_COMPONENT_DEFINE(world, SgVertexBufferLayout);
 	ECS_COMPONENT_DEFINE(world, SgAttributes);
 	ECS_COMPONENT_DEFINE(world, SgUniformBlocks);
@@ -378,25 +344,79 @@ void SgImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, SgUniformBlock);
 	ECS_COMPONENT_DEFINE(world, SgUniform);
 
-	ecs_add_id(world, ecs_id(SgVertexFormat), EcsUnion);
-	ecs_add_id(world, ecs_id(SgIndexType), EcsUnion);
-	ecs_add_id(world, ecs_id(SgPrimitiveType), EcsUnion);
-	ecs_add_id(world, ecs_id(SgCullMode), EcsUnion);
+	ecs_enum(world, {.entity = ecs_id(SgPrimitiveType),
+	                .constants = {
+	                {.name = "DEFAULT", .value = SgPrimitiveTypeDEFAULT},
+	                {.name = "POINTS", .value = SgPrimitiveTypePOINTS},
+	                {.name = "LINES", .value = SgPrimitiveTypeLINES},
+	                {.name = "LINE_STRIP", .value = SgPrimitiveTypeLINE_STRIP},
+	                {.name = "TRIANGLES", .value = SgPrimitiveTypeTRIANGLES},
+	                {.name = "TRIANGLE_STRIP", .value = SgPrimitiveTypeTRIANGLE_STRIP},
+	                {.name = "NUM", .value = SgPrimitiveTypeNUM},
+	                {.name = "FORCE_U32", .value = SgPrimitiveTypeFORCE_U32},
+	                }});
 
-	ECS_TAG_DEFINE(world, SgNone);
-	ECS_TAG_DEFINE(world, SgPoints);
-	ECS_TAG_DEFINE(world, SgLines);
-	ECS_TAG_DEFINE(world, SgTriangles);
-	ECS_TAG_DEFINE(world, SgFloat2);
-	ECS_TAG_DEFINE(world, SgFloat3);
-	ECS_TAG_DEFINE(world, SgFloat4);
-	ECS_TAG_DEFINE(world, SgByte4n);
-	ECS_TAG_DEFINE(world, SgUbyte4n);
-	ECS_TAG_DEFINE(world, SgUshort2n);
-	ECS_TAG_DEFINE(world, SgU16);
-	ECS_TAG_DEFINE(world, SgU32);
-	ECS_TAG_DEFINE(world, SgFront);
-	ECS_TAG_DEFINE(world, SgBack);
+	ecs_enum(world, {.entity = ecs_id(SgCullMode),
+	                .constants = {
+	                {.name = "DEFAULT", .value = SgCullModeDEFAULT},
+	                {.name = "NONE", .value = SgCullModeNONE},
+	                {.name = "FRONT", .value = SgCullModeFRONT},
+	                {.name = "BACK", .value = SgCullModeBACK},
+	                {.name = "NUM", .value = SgCullModeNUM},
+	                {.name = "FORCE_U32", .value = SgCullModeFORCE_U32},
+	                }});
+
+	ecs_enum(world, {.entity = ecs_id(SgIndexType),
+	                .constants = {
+	                {.name = "DEFAULT", .value = SgIndexTypeDEFAULT},
+	                {.name = "NONE", .value = SgIndexTypeNONE},
+	                {.name = "UINT16", .value = SgIndexTypeUINT16},
+	                {.name = "UINT32", .value = SgIndexTypeUINT32},
+	                {.name = "NUM", .value = SgIndexTypeNUM},
+	                {.name = "FORCE_U32", .value = SgIndexTypeFORCE_U32},
+	                }});
+
+	ecs_enum(world, {.entity = ecs_id(SgVertexFormat),
+	                .constants = {
+	                {.name = "INVALID", .value = SgVertexFormatINVALID},
+	                {.name = "FLOAT", .value = SgVertexFormatFLOAT},
+	                {.name = "FLOAT2", .value = SgVertexFormatFLOAT2},
+	                {.name = "FLOAT3", .value = SgVertexFormatFLOAT3},
+	                {.name = "FLOAT4", .value = SgVertexFormatFLOAT4},
+	                {.name = "BYTE4", .value = SgVertexFormatBYTE4},
+	                {.name = "BYTE4N", .value = SgVertexFormatBYTE4N},
+	                {.name = "UBYTE4", .value = SgVertexFormatUBYTE4},
+	                {.name = "UBYTE4N", .value = SgVertexFormatUBYTE4N},
+	                {.name = "SHORT2", .value = SgVertexFormatSHORT2},
+	                {.name = "SHORT2N", .value = SgVertexFormatSHORT2N},
+	                {.name = "USHORT2N", .value = SgVertexFormatUSHORT2N},
+	                {.name = "SHORT4", .value = SgVertexFormatSHORT4},
+	                {.name = "SHORT4N", .value = SgVertexFormatSHORT4N},
+	                {.name = "USHORT4N", .value = SgVertexFormatUSHORT4N},
+	                {.name = "UINT10_N2", .value = SgVertexFormatUINT10_N2},
+	                {.name = "HALF2", .value = SgVertexFormatHALF2},
+	                {.name = "HALF4", .value = SgVertexFormatHALF4},
+	                {.name = "NUM", .value = SgVertexFormatNUM},
+	                {.name = "FORCE_U32", .value = SgVertexFormatFORCE_U32},
+	                }});
+
+	ecs_enum(world, {.entity = ecs_id(SgUniformType),
+	                .constants = {
+	                {.name = "INVALID", .value = SgUniformTypeINVALID},
+	                {.name = "FLOAT", .value = SgUniformTypeFLOAT},
+	                {.name = "FLOAT2", .value = SgUniformTypeFLOAT2},
+	                {.name = "FLOAT3", .value = SgUniformTypeFLOAT3},
+	                {.name = "FLOAT4", .value = SgUniformTypeFLOAT4},
+	                {.name = "INT", .value = SgUniformTypeINT},
+	                {.name = "INT2", .value = SgUniformTypeINT2},
+	                {.name = "INT3", .value = SgUniformTypeINT3},
+	                {.name = "INT4", .value = SgUniformTypeINT4},
+	                {.name = "MAT4", .value = SgUniformTypeMAT4},
+	                {.name = "NUM", .value = SgUniformTypeNUM},
+	                {.name = "FORCE_U32", .value = SgUniformTypeFORCE_U32},
+	                }});
+
+
 
 	ECS_TAG_DEFINE(world, SgAttributeShapePosition);
 	ECS_TAG_DEFINE(world, SgAttributeShapeNormal);
@@ -404,29 +424,10 @@ void SgImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, SgAttributeShapeColor);
 	ECS_TAG_DEFINE(world, SgVertexBufferLayoutShape);
 
-	ecs_set(world, SgPoints, SgPrimitiveType, {SG_PRIMITIVETYPE_POINTS});
-	ecs_set(world, SgLines, SgPrimitiveType, {SG_PRIMITIVETYPE_LINES});
-	ecs_set(world, SgTriangles, SgPrimitiveType, {SG_PRIMITIVETYPE_TRIANGLES});
-
-	ecs_set(world, SgFloat2, SgVertexFormat, {SG_VERTEXFORMAT_FLOAT2});
-	ecs_set(world, SgFloat3, SgVertexFormat, {SG_VERTEXFORMAT_FLOAT3});
-	ecs_set(world, SgFloat4, SgVertexFormat, {SG_VERTEXFORMAT_FLOAT4});
-	ecs_set(world, SgUbyte4n, SgVertexFormat, {SG_VERTEXFORMAT_UBYTE4N});
-
-	ecs_set(world, SgFloat4, SgUniformType, {SG_UNIFORMTYPE_FLOAT4});
-
-	ecs_set(world, SgNone, SgIndexType, {SG_INDEXTYPE_NONE});
-	ecs_set(world, SgU16, SgIndexType, {SG_INDEXTYPE_UINT16});
-	ecs_set(world, SgU32, SgIndexType, {SG_INDEXTYPE_UINT32});
-
-	ecs_set(world, SgNone, SgCullMode, {SG_CULLMODE_NONE});
-	ecs_set(world, SgFront, SgCullMode, {SG_CULLMODE_FRONT});
-	ecs_set(world, SgBack, SgCullMode, {SG_CULLMODE_BACK});
-
 	ecs_struct(world,
 	{.entity = ecs_id(SgPipelineCreate),
 	.members = {
-	{.name = "dummy", .type = ecs_id(ecs_i32_t)},
+	{.name = "shader", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_struct(world,
@@ -434,6 +435,8 @@ void SgImport(ecs_world_t *world)
 	.members = {
 	{.name = "filename_vs", .type = ecs_id(ecs_string_t)},
 	{.name = "filename_fs", .type = ecs_id(ecs_string_t)},
+	{.name = "ubs", .type = ecs_id(ecs_entity_t)},
+	{.name = "attrs", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_struct(world,
@@ -449,13 +452,6 @@ void SgImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(SgAttribute),
-	.members = {
-	{.name = "offset", .type = ecs_id(ecs_i32_t)},
-	{.name = "buffer_index", .type = ecs_id(ecs_i32_t)},
-	}});
-
-	ecs_struct(world,
 	{.entity = ecs_id(SgVertexBufferLayout),
 	.members = {
 	{.name = "stride", .type = ecs_id(ecs_i32_t)},
@@ -467,12 +463,9 @@ void SgImport(ecs_world_t *world)
 	{.entity = ecs_id(SgLocation),
 	.members = {
 	{.name = "index", .type = ecs_id(ecs_i32_t)},
-	}});
-
-	ecs_struct(world,
-	{.entity = ecs_id(SgVertexFormat),
-	.members = {
-	{.name = "value", .type = ecs_id(ecs_i32_t)},
+	{.name = "format", .type = ecs_id(SgVertexFormat)},
+	{.name = "offset", .type = ecs_id(ecs_i32_t)},
+	{.name = "buffer_index", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct(world,
@@ -487,46 +480,27 @@ void SgImport(ecs_world_t *world)
 	.members = {
 	{.name = "index", .type = ecs_id(ecs_i32_t)},
 	{.name = "array_count", .type = ecs_id(ecs_i32_t)},
+	{.name = "type", .type = ecs_id(SgUniformType)},
 	}});
 
-	ecs_system(world,{
-	.entity = ecs_entity(world, {.name = "Pip_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Pip_Create,
-	.query.terms =
-	{
-	{.id = ecs_id(SgPipelineCreate), .src.id = EcsSelf},
-	{.id = ecs_id(SgAttributes), .trav = EcsIsA, .src.id = EcsUp},
-	{.id = ecs_id(SgShader), .trav = EcsIsA, .src.id = EcsUp},
-	{.id = ecs_id(SgPipeline), .oper = EcsNot}, // Adds this
-	}});
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "Pip_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	                  .callback = Pip_Create,
+	                  .query.terms =
+	                  {
+	                  {.id = ecs_id(SgPipelineCreate), .src.id = EcsSelf},
+	                  //{.id = ecs_id(SgAttributes), .trav = EcsIsA, .src.id = EcsUp},
+	                  //{.id = ecs_id(SgShader), .trav = EcsIsA, .src.id = EcsUp},
+	                  {.id = ecs_id(SgPipeline), .oper = EcsNot}, // Adds this
+	                  }});
 
-	ecs_system(world, {
-	.entity = ecs_entity(world, {.name = "Shader_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Shader_Create,
-	.query.terms =
-	{
-	{.id = ecs_id(SgShaderCreate), .src.id = EcsSelf},
-	{.id = ecs_id(SgAttributes), .trav = EcsIsA, .src.id = EcsUp},
-	{.id = ecs_id(SgUniformBlocks), .trav = EcsIsA, .src.id = EcsUp},
-	{.id = ecs_id(SgShader), .oper = EcsNot}, // Adds this
-	}});
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "Shader_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	                  .callback = Shader_Create,
+	                  .query.terms =
+	                  {
+	                  {.id = ecs_id(SgShaderCreate), .src.id = EcsSelf},
+	                  {.id = ecs_id(SgShader), .oper = EcsNot}, // Adds this
+	                  }});
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void egsokol_flecs_event_cb(const sapp_event *evt, Window *window)
 {
@@ -542,7 +516,6 @@ void egsokol_flecs_event_cb(const sapp_event *evt, Window *window)
 		}
 
 		if (evt->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
-
 		}
 		break;
 	case SAPP_EVENTTYPE_MOUSE_UP:

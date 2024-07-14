@@ -6,9 +6,79 @@
 #include <sokol_debugtext.h>
 #include <sokol_app.h>
 
+typedef enum {
+	SgPrimitiveTypeDEFAULT, // value 0 reserved for default-init
+	SgPrimitiveTypePOINTS,
+	SgPrimitiveTypeLINES,
+	SgPrimitiveTypeLINE_STRIP,
+	SgPrimitiveTypeTRIANGLES,
+	SgPrimitiveTypeTRIANGLE_STRIP,
+	SgPrimitiveTypeNUM,
+	SgPrimitiveTypeFORCE_U32 = 0x7FFFFFFF
+} SgPrimitiveType;
+
+typedef enum {
+	SgCullModeDEFAULT, // value 0 reserved for default-init
+	SgCullModeNONE,
+	SgCullModeFRONT,
+	SgCullModeBACK,
+	SgCullModeNUM,
+	SgCullModeFORCE_U32 = 0x7FFFFFFF
+} SgCullMode;
+
+typedef enum {
+	SgIndexTypeDEFAULT, // value 0 reserved for default-init
+	SgIndexTypeNONE,
+	SgIndexTypeUINT16,
+	SgIndexTypeUINT32,
+	SgIndexTypeNUM,
+	SgIndexTypeFORCE_U32 = 0x7FFFFFFF
+} SgIndexType;
+
+typedef enum {
+	SgVertexFormatINVALID,
+	SgVertexFormatFLOAT,
+	SgVertexFormatFLOAT2,
+	SgVertexFormatFLOAT3,
+	SgVertexFormatFLOAT4,
+	SgVertexFormatBYTE4,
+	SgVertexFormatBYTE4N,
+	SgVertexFormatUBYTE4,
+	SgVertexFormatUBYTE4N,
+	SgVertexFormatSHORT2,
+	SgVertexFormatSHORT2N,
+	SgVertexFormatUSHORT2N,
+	SgVertexFormatSHORT4,
+	SgVertexFormatSHORT4N,
+	SgVertexFormatUSHORT4N,
+	SgVertexFormatUINT10_N2,
+	SgVertexFormatHALF2,
+	SgVertexFormatHALF4,
+	SgVertexFormatNUM,
+	SgVertexFormatFORCE_U32 = 0x7FFFFFFF
+} SgVertexFormat;
+
+typedef enum {
+	SgUniformTypeINVALID,
+	SgUniformTypeFLOAT,
+	SgUniformTypeFLOAT2,
+	SgUniformTypeFLOAT3,
+	SgUniformTypeFLOAT4,
+	SgUniformTypeINT,
+	SgUniformTypeINT2,
+	SgUniformTypeINT3,
+	SgUniformTypeINT4,
+	SgUniformTypeMAT4,
+	SgUniformTypeNUM,
+	SgUniformTypeFORCE_U32 = 0x7FFFFFFF
+} SgUniformType;
+
 typedef struct
 {
-	ecs_i32_t dummy;
+	ecs_entity_t shader;
+	SgPrimitiveType primtype;
+	SgCullMode cullmode;
+	SgIndexType indextype;
 } SgPipelineCreate;
 
 typedef struct
@@ -20,23 +90,23 @@ typedef struct
 {
 	ecs_string_t filename_vs;
 	ecs_string_t filename_fs;
+	ecs_entity_t ubs;
+	ecs_entity_t attrs;
 } SgShaderCreate;
 
 typedef struct
 {
-	sg_shader id;
+	uint32_t id;
 } SgShader;
 
 typedef struct
 {
 	ecs_i32_t index;
-} SgLocation;
-
-typedef struct
-{
+	SgVertexFormat format;
 	ecs_i32_t offset;
 	ecs_i32_t buffer_index;
-} SgAttribute;
+} SgLocation;
+
 
 typedef struct
 {
@@ -57,31 +127,6 @@ typedef struct
 
 typedef struct
 {
-	sg_vertex_format value;
-} SgVertexFormat;
-
-typedef struct
-{
-	sg_uniform_type value;
-} SgUniformType;
-
-typedef struct
-{
-	sg_index_type value;
-} SgIndexType;
-
-typedef struct
-{
-	sg_primitive_type value;
-} SgPrimitiveType;
-
-typedef struct
-{
-	sg_cull_mode value;
-} SgCullMode;
-
-typedef struct
-{
 	ecs_i32_t index;
 	ecs_i32_t size;
 } SgUniformBlock;
@@ -90,13 +135,13 @@ typedef struct
 {
 	ecs_i32_t index;
 	ecs_i32_t array_count;
+	SgUniformType type;
 } SgUniform;
 
 extern ECS_COMPONENT_DECLARE(SgPipelineCreate);
 extern ECS_COMPONENT_DECLARE(SgPipeline);
 extern ECS_COMPONENT_DECLARE(SgShaderCreate);
 extern ECS_COMPONENT_DECLARE(SgShader);
-extern ECS_COMPONENT_DECLARE(SgAttribute);
 extern ECS_COMPONENT_DECLARE(SgVertexBufferLayout);
 extern ECS_COMPONENT_DECLARE(SgLocation);
 extern ECS_COMPONENT_DECLARE(SgAttributes);
@@ -109,19 +154,6 @@ extern ECS_COMPONENT_DECLARE(SgCullMode);
 extern ECS_COMPONENT_DECLARE(SgUniformBlock);
 extern ECS_COMPONENT_DECLARE(SgUniform);
 
-
-
-extern ECS_TAG_DECLARE(SgNone);
-extern ECS_TAG_DECLARE(SgPoints);
-extern ECS_TAG_DECLARE(SgLines);
-extern ECS_TAG_DECLARE(SgTriangles);
-extern ECS_TAG_DECLARE(SgFloat4);
-extern ECS_TAG_DECLARE(SgUbyte4n);
-extern ECS_TAG_DECLARE(SgU16);
-extern ECS_TAG_DECLARE(SgU32);
-extern ECS_TAG_DECLARE(SgFront);
-extern ECS_TAG_DECLARE(SgBack);
-
 extern ECS_TAG_DECLARE(SgAttributeShapePosition);
 extern ECS_TAG_DECLARE(SgAttributeShapeNormal);
 extern ECS_TAG_DECLARE(SgAttributeShapeTextcoord);
@@ -129,6 +161,5 @@ extern ECS_TAG_DECLARE(SgAttributeShapeColor);
 extern ECS_TAG_DECLARE(SgVertexBufferLayoutShape);
 
 void SgImport(ecs_world_t *world);
-
 
 void egsokol_flecs_event_cb(const sapp_event *evt, Window *window);

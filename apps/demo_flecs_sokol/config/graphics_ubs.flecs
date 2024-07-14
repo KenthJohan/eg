@@ -5,8 +5,7 @@ standard {
 	ub0 {
 		sg.UniformBlock : {index:0, size:80}
 		vs_params {
-			sg.Uniform : {index:0, array_count:5}
-			(sg.UniformType, sg.Float4)
+			sg.Uniform : {index:0, array_count:5, type:FLOAT4}
 		}
 	}
 }

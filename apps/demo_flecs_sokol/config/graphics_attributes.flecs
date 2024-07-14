@@ -4,14 +4,10 @@ module graphics.attributes
 points {
 	sg.Attributes
 	position {
-		sg.Location : {0}
-		sg.Attribute : {offset: 0, buffer_index: 0}
-		(sg.VertexFormat, sg.Float4)
+		sg.Location : {index:0, format:FLOAT4, offset: 0, buffer_index: 0}
 	}
 	color0 {
-		sg.Location : {1}
-		sg.Attribute : {offset: 0, buffer_index: 0}
-		(sg.VertexFormat, sg.Ubyte4n)
+		sg.Location : {index:1, format:UBYTE4N, offset: 0, buffer_index: 0}
 	}
 }
 
@@ -19,25 +15,23 @@ points {
 instances {
 	sg.Attributes
 	position {
-		sg.Location : {0}
+		sg.Location : {index:0}
 		sg.AttributeShapePosition
 	}
 	normal {
-		sg.Location : {1}
+		sg.Location : {index:1}
 		sg.AttributeShapeNormal
 	}
 	texcoord {
-		sg.Location : {2}
+		sg.Location : {index:2}
 		sg.AttributeShapeTextcoord
 	}
 	color0 {
-		sg.Location : {3}
+		sg.Location : {index:3}
 		sg.AttributeShapeColor
 	}
 	inst_pos {
-		sg.Location : {4}
-		sg.Attribute : {offset: 0, buffer_index: 1}
-		(sg.VertexFormat, sg.Float3)
+		sg.Location : {index:4, format:FLOAT3, offset: 0, buffer_index: 1}
 	}
 }
 
@@ -45,19 +39,19 @@ instances {
 shapes {
 	sg.Attributes
 	position {
-		sg.Location : {0}
+		sg.Location : {index:0}
 		sg.AttributeShapePosition
 	}
 	normal {
-		sg.Location : {1}
+		sg.Location : {index:1}
 		sg.AttributeShapeNormal
 	}
 	texcoord {
-		sg.Location : {2}
+		sg.Location : {index:2}
 		sg.AttributeShapeTextcoord
 	}
 	color0 {
-		sg.Location : {3}
+		sg.Location : {index:3}
 		sg.AttributeShapeColor
 	}
 }
@@ -65,14 +59,10 @@ shapes {
 lines {
 	sg.Attributes
 	position {
-		sg.Location : {0}
-		sg.Attribute : {offset: 0, buffer_index: 0}
-		(sg.VertexFormat, sg.Float4)
+		sg.Location : {index:0, format:FLOAT4, offset: 0, buffer_index: 0}
 	}
 	color0 {
-		sg.Location : {1}
-		sg.Attribute : {offset: 0, buffer_index: 0}
-		(sg.VertexFormat, sg.Ubyte4n)
+		sg.Location : {index:1, format:UBYTE4N, offset: 0, buffer_index: 0}
 	}
 }
 

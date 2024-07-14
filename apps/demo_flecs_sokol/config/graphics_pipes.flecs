@@ -1,15 +1,15 @@
 module graphics.pipes
 
 
-points : graphics.shaders.points {
-	sg.PipelineCreate
+points {
+	sg.PipelineCreate : {shader : graphics.shaders.points}
 	(sg.PrimitiveType, sg.Points)
 	(sg.CullMode, sg.None)
 	(sg.IndexType, sg.None)
 }
 
-instances : graphics.shaders.instances {
-	sg.PipelineCreate
+instances {
+	sg.PipelineCreate : {shader : graphics.shaders.instances}
 	(sg.PrimitiveType, sg.Lines)
 	(sg.CullMode, sg.Back)
 	(sg.IndexType, sg.U16)
@@ -23,8 +23,8 @@ instances : graphics.shaders.instances {
 	}
 }
 
-shapes : graphics.shaders.shapes {
-	sg.PipelineCreate
+shapes {
+	sg.PipelineCreate : {shader : graphics.shaders.shapes}
 	(sg.PrimitiveType, sg.Lines)
 	(sg.CullMode, sg.Back)
 	(sg.IndexType, sg.U16)
@@ -34,8 +34,8 @@ shapes : graphics.shaders.shapes {
 }
 
 
-lines : graphics.shaders.lines {
-	sg.PipelineCreate
+lines {
+	sg.PipelineCreate : {shader : graphics.shaders.lines}
 	(sg.PrimitiveType, sg.Lines)
 	(sg.CullMode, sg.None)
 	(sg.IndexType, sg.None)
