@@ -29,7 +29,7 @@ static void DrawPoints(ecs_iter_t *it)
 		if(points->storage.count <= 0) {continue;}
 		//printf("points->storage.count %i\n", points->storage.count);
  		points_upload(&points->storage);
-		sg_apply_pipeline(pipeline->id);
+		sg_apply_pipeline((sg_pipeline){pipeline->id});
 		sg_apply_bindings(&(sg_bindings){
 		.vertex_buffers[0] = points->storage.gpu_buffer});
 		vs_params_t params = {0};
