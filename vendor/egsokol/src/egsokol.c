@@ -268,8 +268,8 @@ static void set_vertex_buffers(ecs_world_t *world, ecs_entity_t parent, sg_verte
 void Pip_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
-	// SgPipelineCreate *create = ecs_field(it, SgPipelineCreate, 0); // self
-	// SgAttributes * attrs = ecs_field(it, SgAttributes, 1); // up
+	SgPipelineCreate *create = ecs_field(it, SgPipelineCreate, 0); // self
+	SgAttributes * attrs = ecs_field(it, SgAttributes, 1); // up
 	ecs_entity_t entity_attrs = ecs_field_src(it, 1);
 	SgShader *shader = ecs_field(it, SgShader, 2); // up
 	ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);

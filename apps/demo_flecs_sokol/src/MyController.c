@@ -169,8 +169,8 @@ void MyControllerImport(ecs_world_t *world)
 
 	//ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, KeyboardController, Velocity3, Window($));
 	ecs_system(world,{
-	.entity = ecs_entity(world, {.name = "ControllerRotate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = ControllerRotate,
+	.entity = ecs_entity(world, {.name = "ControllerMove", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = ControllerMove,
 	.query.terms =
 	{
 	{.id = ecs_id(KeyboardController), .src.id = EcsSelf},

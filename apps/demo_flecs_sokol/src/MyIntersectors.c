@@ -11,13 +11,13 @@ ECS_COMPONENT_DECLARE(MyIntersectorsHit);
 #if 1
 static void Cylinder_Intersect(ecs_iter_t *it)
 {
-	Position3 *l = ecs_field(it, Position3, 1);                       // shared
-	Ray3 *v = ecs_field(it, Ray3, 2);                                 // shared
-	Cylinder *cyl = ecs_field(it, Cylinder, 3);                       // shared
-	Position3World *o = ecs_field(it, Position3World, 4);             // self
-	OrientationWorld *r = ecs_field(it, OrientationWorld, 5);         // self
-	Scale3 *s = ecs_field(it, Scale3, 6);                             // self
-	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 7); // self
+	Position3 *l = ecs_field(it, Position3, 0);                       // shared
+	Ray3 *v = ecs_field(it, Ray3, 1);                                 // shared
+	Cylinder *cyl = ecs_field(it, Cylinder, 2);                       // shared
+	Position3World *o = ecs_field(it, Position3World, 3);             // self
+	OrientationWorld *r = ecs_field(it, OrientationWorld, 4);         // self
+	Scale3 *s = ecs_field(it, Scale3, 5);                             // self
+	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 6); // self
 	//printf("%f %f %f, %f %f %f\n", l->x, l->y, l->z, v->x, v->y, v->z);
 
 	float h[3] = {0, 1, 0}; // The non transformed cylinder axis
@@ -99,8 +99,7 @@ void MyIntersectorsImport(ecs_world_t *world)
 
 
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
+	ecs_system(world,{
 	.entity = ecs_entity(world, {.name = "Cylinder_Intersect", .add = ecs_ids(ecs_dependson(EcsPostUpdate))}),
 	.callback = Cylinder_Intersect,
 	.query.terms =

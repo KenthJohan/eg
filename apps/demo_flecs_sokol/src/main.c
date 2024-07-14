@@ -159,11 +159,11 @@ static void init_cb(app_t *app)
 
 
 	ecs_log_set_level(1);
-	ecs_script_run_file(app->world, "config/keycode_sokol.flecs");
+	//ecs_script_run_file(app->world, "config/keycode_sokol.flecs");
 	ecs_script_run_file(app->world, "config/graphics_attributes.flecs");
-	ecs_script_run_file(app->world, "config/graphics_pipes.flecs");
-	ecs_script_run_file(app->world, "config/graphics_shaders.flecs");
 	ecs_script_run_file(app->world, "config/graphics_ubs.flecs");
+	ecs_script_run_file(app->world, "config/graphics_shaders.flecs");
+	ecs_script_run_file(app->world, "config/graphics_pipes.flecs");
 	ecs_script_run_file(app->world, "config/app.flecs");
 	ecs_log_set_level(-1);
 
