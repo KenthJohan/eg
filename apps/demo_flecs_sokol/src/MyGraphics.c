@@ -32,14 +32,14 @@ static void DrawShape(ecs_iter_t *it)
 	MyGraphicsDrawCommand *drawcmd = ecs_field(it, MyGraphicsDrawCommand, 2); // up, shared
 	SgPipeline *pipeline = ecs_field(it, SgPipeline, 3);                      // up, shared
 	EgBaseShapeBuffer *ivbuf = ecs_field(it, EgBaseShapeBuffer, 4);         // up, shared
-	Camera *cam = ecs_field(it, Camera, 6);                                   // up, shared
+	Camera *cam = ecs_field(it, Camera, 5);                                   // up, shared
 	if (ivbuf->ibuf.id == 0) {
 		return;
 	}
 	if (ivbuf->vbuf.id == 0) {
 		return;
 	}
-	sg_apply_pipeline((sg_pipeline){pipeline->id.id});
+	sg_apply_pipeline((sg_pipeline){pipeline->id});
 	sg_apply_bindings(&(sg_bindings){
 	.vertex_buffers[0] = (sg_buffer){ivbuf->vbuf.id},
 	.index_buffer = (sg_buffer){ivbuf->ibuf.id}});

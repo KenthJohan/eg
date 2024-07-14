@@ -208,7 +208,7 @@ void MiscLinesImport(ecs_world_t *world)
 	.callback = DrawLines,
 	.query.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(LinesBuffer), .trav = EgBaseUpdate, .src.id = EcsUp},
 	{.id = ecs_id(SgPipeline), .trav = EgBaseUse, .src.id = EcsUp},
 	{.id = ecs_id(Camera), .trav = EgBaseUse, .src.id = EcsUp},
 	{.id = EgBaseDraw},

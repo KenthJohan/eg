@@ -24,6 +24,7 @@ shapes {
 }
 
 
-piplines {
+lines {
 	sg.PipelineCreate : {shader : graphics.shaders.lines, primtype:LINES, cullmode:NONE, indextype:NONE}
+	//sg.Pipeline : {0}
 }

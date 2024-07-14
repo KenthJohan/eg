@@ -187,12 +187,12 @@ static void Pip_Create(ecs_iter_t *it)
 	// SgShader *shader = ecs_field(it, SgShader, 2); // up
 	// ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
 
+	ecs_log_set_level(0);
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
 
 		// ecs_log_set_level(2);
 		// print_entity_from_it(it, i);
-		// ecs_log_set_level(0);
 
 		if (create->shader == 0) {
 			ecs_warn("No shader entity");
@@ -211,7 +211,8 @@ static void Pip_Create(ecs_iter_t *it)
 
 		ecs_doc_set_color(world, e, ENTITY_COLOR);
 
-		SgPipeline *pip = ecs_ensure(world, e, SgPipeline);
+		//SgPipeline *pip = ecs_ensure(world, e, SgPipeline);
+		
 
 		sg_pipeline_desc desc = {
 		.shader = (sg_shader){shader->id},
@@ -226,7 +227,10 @@ static void Pip_Create(ecs_iter_t *it)
 		iterate_vertex_attrs(world, shaderinfo->attrs, desc.layout.attrs);
 		set_vertex_buffers(world, e, desc.layout.buffers);
 
-		pip->id = sg_make_pipeline(&desc).id;
+		uint32_t pipid = sg_make_pipeline(&desc).id;
+		ecs_set(world, e, SgPipeline, {pipid});
+		//pip->id = pipid;
+		ecs_log(0, "%s: sg_make_pipeline : %i", ecs_get_name(world, e), pipid);
 	}
 }
 
