@@ -8,7 +8,6 @@ ECS_COMPONENT_DECLARE(SgPipeline);
 ECS_COMPONENT_DECLARE(SgShaderCreate);
 ECS_COMPONENT_DECLARE(SgShader);
 ECS_COMPONENT_DECLARE(SgLocation);
-ECS_COMPONENT_DECLARE(SgAttribute);
 ECS_COMPONENT_DECLARE(SgVertexBufferLayout);
 ECS_COMPONENT_DECLARE(SgAttributes);
 ECS_COMPONENT_DECLARE(SgUniformBlocks);
@@ -19,12 +18,6 @@ ECS_COMPONENT_DECLARE(SgPrimitiveType);
 ECS_COMPONENT_DECLARE(SgCullMode);
 ECS_COMPONENT_DECLARE(SgUniformBlock);
 ECS_COMPONENT_DECLARE(SgUniform);
-
-ECS_TAG_DECLARE(SgAttributeShapePosition);
-ECS_TAG_DECLARE(SgAttributeShapeNormal);
-ECS_TAG_DECLARE(SgAttributeShapeTextcoord);
-ECS_TAG_DECLARE(SgAttributeShapeColor);
-ECS_TAG_DECLARE(SgVertexBufferLayoutShape);
 
 #define ENTITY_COLOR "#55A3F4"
 
@@ -63,8 +56,6 @@ error:
 	return NULL;
 }
 
-
-
 static void print_entity(ecs_world_t *world, ecs_entity_t e)
 {
 	ecs_entity_t scope = ecs_get_scope(world);
@@ -87,8 +78,6 @@ static void print_entity_from_it(ecs_iter_t *it, int i)
 	ecs_os_free(type_str);
 	ecs_os_free(path_str);
 }
-
-
 
 static void iterate_children(ecs_world_t *world, ecs_entity_t parent)
 {
@@ -201,9 +190,9 @@ static void Pip_Create(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
 
-		//ecs_log_set_level(2);
-		//print_entity_from_it(it, i);
-		//ecs_log_set_level(0);
+		// ecs_log_set_level(2);
+		// print_entity_from_it(it, i);
+		// ecs_log_set_level(0);
 
 		if (create->shader == 0) {
 			ecs_warn("No shader entity");
@@ -211,7 +200,7 @@ static void Pip_Create(ecs_iter_t *it)
 		}
 		SgShader const *shader = ecs_get(world, create->shader, SgShader);
 		if (shader == NULL) {
-			//ecs_warn("No SgShader component in shader entity");
+			// ecs_warn("No SgShader component in shader entity");
 			return;
 		}
 		SgShaderCreate const *shaderinfo = ecs_get(world, create->shader, SgShaderCreate);
@@ -237,7 +226,7 @@ static void Pip_Create(ecs_iter_t *it)
 		iterate_vertex_attrs(world, shaderinfo->attrs, desc.layout.attrs);
 		set_vertex_buffers(world, e, desc.layout.buffers);
 
-		pip->id = sg_make_pipeline(&desc);
+		pip->id = sg_make_pipeline(&desc).id;
 	}
 }
 
@@ -290,31 +279,12 @@ static void Shader_Create(ecs_iter_t *it)
 		iterate_shader_attrs(world, create->attrs, desc.attrs);
 		iterate_shader_blocks(world, create->ubs, desc.vs.uniform_blocks);
 
-		
 		sg_shader shd = sg_make_shader(&desc);
 		SgShader *shader = ecs_ensure(world, e, SgShader);
 		shader->id = shd.id;
 		ecs_dbg_2("");
-		
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void SgImport(ecs_world_t *world)
 {
@@ -337,77 +307,74 @@ void SgImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, SgUniformBlock);
 	ECS_COMPONENT_DEFINE(world, SgUniform);
 
-	ecs_enum(world, {.entity = ecs_id(SgPrimitiveType),
-	                .constants = {
-	                {.name = "DEFAULT", .value = SgPrimitiveTypeDEFAULT},
-	                {.name = "POINTS", .value = SgPrimitiveTypePOINTS},
-	                {.name = "LINES", .value = SgPrimitiveTypeLINES},
-	                {.name = "LINE_STRIP", .value = SgPrimitiveTypeLINE_STRIP},
-	                {.name = "TRIANGLES", .value = SgPrimitiveTypeTRIANGLES},
-	                {.name = "TRIANGLE_STRIP", .value = SgPrimitiveTypeTRIANGLE_STRIP},
-	                {.name = "NUM", .value = SgPrimitiveTypeNUM},
-	                {.name = "FORCE_U32", .value = SgPrimitiveTypeFORCE_U32},
-	                }});
+	// clang-format off
+	ecs_enum(world, {.entity = ecs_id(SgPrimitiveType), .constants = {
+		{.name = "DEFAULT", .value = SgPrimitiveTypeDEFAULT},
+		{.name = "POINTS", .value = SgPrimitiveTypePOINTS},
+		{.name = "LINES", .value = SgPrimitiveTypeLINES},
+		{.name = "LINE_STRIP", .value = SgPrimitiveTypeLINE_STRIP},
+		{.name = "TRIANGLES", .value = SgPrimitiveTypeTRIANGLES},
+		{.name = "TRIANGLE_STRIP", .value = SgPrimitiveTypeTRIANGLE_STRIP},
+		{.name = "NUM", .value = SgPrimitiveTypeNUM},
+		{.name = "FORCE_U32", .value = SgPrimitiveTypeFORCE_U32},
+		}});
 
-	ecs_enum(world, {.entity = ecs_id(SgCullMode),
-	                .constants = {
-	                {.name = "DEFAULT", .value = SgCullModeDEFAULT},
-	                {.name = "NONE", .value = SgCullModeNONE},
-	                {.name = "FRONT", .value = SgCullModeFRONT},
-	                {.name = "BACK", .value = SgCullModeBACK},
-	                {.name = "NUM", .value = SgCullModeNUM},
-	                {.name = "FORCE_U32", .value = SgCullModeFORCE_U32},
-	                }});
+	ecs_enum(world, {.entity = ecs_id(SgCullMode), .constants = {
+		{.name = "DEFAULT", .value = SgCullModeDEFAULT},
+		{.name = "NONE", .value = SgCullModeNONE},
+		{.name = "FRONT", .value = SgCullModeFRONT},
+		{.name = "BACK", .value = SgCullModeBACK},
+		{.name = "NUM", .value = SgCullModeNUM},
+		{.name = "FORCE_U32", .value = SgCullModeFORCE_U32},
+		}});
 
-	ecs_enum(world, {.entity = ecs_id(SgIndexType),
-	                .constants = {
-	                {.name = "DEFAULT", .value = SgIndexTypeDEFAULT},
-	                {.name = "NONE", .value = SgIndexTypeNONE},
-	                {.name = "UINT16", .value = SgIndexTypeUINT16},
-	                {.name = "UINT32", .value = SgIndexTypeUINT32},
-	                {.name = "NUM", .value = SgIndexTypeNUM},
-	                {.name = "FORCE_U32", .value = SgIndexTypeFORCE_U32},
-	                }});
+	ecs_enum(world, {.entity = ecs_id(SgIndexType), .constants = {
+		{.name = "DEFAULT", .value = SgIndexTypeDEFAULT},
+		{.name = "NONE", .value = SgIndexTypeNONE},
+		{.name = "UINT16", .value = SgIndexTypeUINT16},
+		{.name = "UINT32", .value = SgIndexTypeUINT32},
+		{.name = "NUM", .value = SgIndexTypeNUM},
+		{.name = "FORCE_U32", .value = SgIndexTypeFORCE_U32},
+		}});
 
-	ecs_enum(world, {.entity = ecs_id(SgVertexFormat),
-	                .constants = {
-	                {.name = "INVALID", .value = SgVertexFormatINVALID},
-	                {.name = "FLOAT", .value = SgVertexFormatFLOAT},
-	                {.name = "FLOAT2", .value = SgVertexFormatFLOAT2},
-	                {.name = "FLOAT3", .value = SgVertexFormatFLOAT3},
-	                {.name = "FLOAT4", .value = SgVertexFormatFLOAT4},
-	                {.name = "BYTE4", .value = SgVertexFormatBYTE4},
-	                {.name = "BYTE4N", .value = SgVertexFormatBYTE4N},
-	                {.name = "UBYTE4", .value = SgVertexFormatUBYTE4},
-	                {.name = "UBYTE4N", .value = SgVertexFormatUBYTE4N},
-	                {.name = "SHORT2", .value = SgVertexFormatSHORT2},
-	                {.name = "SHORT2N", .value = SgVertexFormatSHORT2N},
-	                {.name = "USHORT2N", .value = SgVertexFormatUSHORT2N},
-	                {.name = "SHORT4", .value = SgVertexFormatSHORT4},
-	                {.name = "SHORT4N", .value = SgVertexFormatSHORT4N},
-	                {.name = "USHORT4N", .value = SgVertexFormatUSHORT4N},
-	                {.name = "UINT10_N2", .value = SgVertexFormatUINT10_N2},
-	                {.name = "HALF2", .value = SgVertexFormatHALF2},
-	                {.name = "HALF4", .value = SgVertexFormatHALF4},
-	                {.name = "NUM", .value = SgVertexFormatNUM},
-	                {.name = "FORCE_U32", .value = SgVertexFormatFORCE_U32},
-	                }});
+	ecs_enum(world, {.entity = ecs_id(SgVertexFormat), .constants = {
+		{.name = "INVALID", .value = SgVertexFormatINVALID},
+		{.name = "FLOAT", .value = SgVertexFormatFLOAT},
+		{.name = "FLOAT2", .value = SgVertexFormatFLOAT2},
+		{.name = "FLOAT3", .value = SgVertexFormatFLOAT3},
+		{.name = "FLOAT4", .value = SgVertexFormatFLOAT4},
+		{.name = "BYTE4", .value = SgVertexFormatBYTE4},
+		{.name = "BYTE4N", .value = SgVertexFormatBYTE4N},
+		{.name = "UBYTE4", .value = SgVertexFormatUBYTE4},
+		{.name = "UBYTE4N", .value = SgVertexFormatUBYTE4N},
+		{.name = "SHORT2", .value = SgVertexFormatSHORT2},
+		{.name = "SHORT2N", .value = SgVertexFormatSHORT2N},
+		{.name = "USHORT2N", .value = SgVertexFormatUSHORT2N},
+		{.name = "SHORT4", .value = SgVertexFormatSHORT4},
+		{.name = "SHORT4N", .value = SgVertexFormatSHORT4N},
+		{.name = "USHORT4N", .value = SgVertexFormatUSHORT4N},
+		{.name = "UINT10_N2", .value = SgVertexFormatUINT10_N2},
+		{.name = "HALF2", .value = SgVertexFormatHALF2},
+		{.name = "HALF4", .value = SgVertexFormatHALF4},
+		{.name = "NUM", .value = SgVertexFormatNUM},
+		{.name = "FORCE_U32", .value = SgVertexFormatFORCE_U32},
+		}});
 
-	ecs_enum(world, {.entity = ecs_id(SgUniformType),
-	                .constants = {
-	                {.name = "INVALID", .value = SgUniformTypeINVALID},
-	                {.name = "FLOAT", .value = SgUniformTypeFLOAT},
-	                {.name = "FLOAT2", .value = SgUniformTypeFLOAT2},
-	                {.name = "FLOAT3", .value = SgUniformTypeFLOAT3},
-	                {.name = "FLOAT4", .value = SgUniformTypeFLOAT4},
-	                {.name = "INT", .value = SgUniformTypeINT},
-	                {.name = "INT2", .value = SgUniformTypeINT2},
-	                {.name = "INT3", .value = SgUniformTypeINT3},
-	                {.name = "INT4", .value = SgUniformTypeINT4},
-	                {.name = "MAT4", .value = SgUniformTypeMAT4},
-	                {.name = "NUM", .value = SgUniformTypeNUM},
-	                {.name = "FORCE_U32", .value = SgUniformTypeFORCE_U32},
-	                }});
+	ecs_enum(world, {.entity = ecs_id(SgUniformType), .constants = {
+		{.name = "INVALID", .value = SgUniformTypeINVALID},
+		{.name = "FLOAT", .value = SgUniformTypeFLOAT},
+		{.name = "FLOAT2", .value = SgUniformTypeFLOAT2},
+		{.name = "FLOAT3", .value = SgUniformTypeFLOAT3},
+		{.name = "FLOAT4", .value = SgUniformTypeFLOAT4},
+		{.name = "INT", .value = SgUniformTypeINT},
+		{.name = "INT2", .value = SgUniformTypeINT2},
+		{.name = "INT3", .value = SgUniformTypeINT3},
+		{.name = "INT4", .value = SgUniformTypeINT4},
+		{.name = "MAT4", .value = SgUniformTypeMAT4},
+		{.name = "NUM", .value = SgUniformTypeNUM},
+		{.name = "FORCE_U32", .value = SgUniformTypeFORCE_U32},
+		}});
+	// clang-format on
 
 	{
 		sg_vertex_attr_state a0 = sshape_position_vertex_attr_state();
@@ -419,7 +386,6 @@ void SgImport(ecs_world_t *world)
 
 		ecs_dbg_2("");
 	}
-
 
 	ecs_struct(world,
 	{.entity = ecs_id(SgPipelineCreate),
@@ -483,25 +449,23 @@ void SgImport(ecs_world_t *world)
 	{.name = "type", .type = ecs_id(SgUniformType)},
 	}});
 
+	// clang-format off
 	ecs_system(world, {.entity = ecs_entity(world, {.name = "Pip_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	                  .callback = Pip_Create,
-	                  .query.terms =
-	                  {
-	                  {.id = ecs_id(SgPipelineCreate), .src.id = EcsSelf},
-	                  //{.id = ecs_id(SgAttributes), .trav = EcsIsA, .src.id = EcsUp},
-	                  //{.id = ecs_id(SgShader), .trav = EcsIsA, .src.id = EcsUp},
-	                  {.id = ecs_id(SgPipeline), .oper = EcsNot}, // Adds this
-	                  }});
+		.callback = Pip_Create,
+		.query.terms =
+		{
+		{.id = ecs_id(SgPipelineCreate), .src.id = EcsSelf},
+		{.id = ecs_id(SgPipeline), .oper = EcsNot}, // Adds this
+		}});
 
 	ecs_system(world, {.entity = ecs_entity(world, {.name = "Shader_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	                  .callback = Shader_Create,
-	                  .query.terms =
-	                  {
-	                  {.id = ecs_id(SgShaderCreate), .src.id = EcsSelf},
-	                  {.id = ecs_id(SgShader), .oper = EcsNot}, // Adds this
-	                  }});
-
-
+		.callback = Shader_Create,
+		.query.terms =
+		{
+		{.id = ecs_id(SgShaderCreate), .src.id = EcsSelf},
+		{.id = ecs_id(SgShader), .oper = EcsNot}, // Adds this
+		}});
+	// clang-format on
 }
 
 void egsokol_flecs_event_cb(const sapp_event *evt, Window *window)

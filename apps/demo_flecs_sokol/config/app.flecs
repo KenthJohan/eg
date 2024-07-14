@@ -195,12 +195,11 @@ camline {
 }
 
 
-
 drawlines {
 	lines1 {
 		eg.base.Draw
 		(eg.base.Use, vbuffers.lines)
-		(eg.base.Use, graphics.pipes.lines)
+		(eg.base.Use, graphics.pipes.piplines)
 		(eg.base.Use, cam)
 	}
 }

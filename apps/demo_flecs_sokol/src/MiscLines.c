@@ -22,9 +22,14 @@ typedef struct {
 
 static void DrawLines(ecs_iter_t *it)
 {
-	LinesBuffer *lines = ecs_field(it, LinesBuffer, 0);  // self
-	SgPipeline *pipeline = ecs_field(it, SgPipeline, 1); // self
-	Camera *cam = ecs_field(it, Camera, 2);              // self
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 0);  // up
+	SgPipeline *pipeline = ecs_field(it, SgPipeline, 1); // up, BUG: Does not match even when SgPipeline is added
+	Camera *cam = ecs_field(it, Camera, 2);              // up
+
+	if (pipeline->id == 0) {
+		ecs_warn("pipeline id is 0");
+		return;
+	}
 
 	for (int i = 0; i < it->count; i++) {
 		// printf("DrawLines: %s\n", ecs_get_name(it->world, it->entities[i]));
@@ -32,7 +37,7 @@ static void DrawLines(ecs_iter_t *it)
 			continue;
 		}
 		lines_upload(&lines->storage);
-		sg_apply_pipeline(pipeline->id);
+		sg_apply_pipeline((sg_pipeline){pipeline->id});
 		sg_apply_bindings(&(sg_bindings){
 		.vertex_buffers[0] = lines->storage.gpu_buffer});
 		vs_params_t params = {0};

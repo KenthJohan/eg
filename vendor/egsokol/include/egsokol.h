@@ -83,7 +83,7 @@ typedef struct
 
 typedef struct
 {
-	sg_pipeline id;
+	uint32_t id;
 } SgPipeline;
 
 typedef struct
