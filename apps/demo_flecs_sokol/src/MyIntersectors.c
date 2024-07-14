@@ -97,23 +97,20 @@ void MyIntersectorsImport(ecs_world_t *world)
 	{.name = "d", .type = ecs_id(ecs_f32_t)},
 	}});
 
-	ecs_entity_t line_e = ecs_new_entity(world, "line1");
-	// Line const *line = ecs_get(it->world, line_e, Line);
+
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "Cylinder_Intersect", .add = {ecs_dependson(EcsPostUpdate)}}),
+	.entity = ecs_entity(world, {.name = "Cylinder_Intersect", .add = ecs_ids(ecs_dependson(EcsPostUpdate))}),
 	.callback = Cylinder_Intersect,
-	.query.filter.terms =
+	.query.terms =
 	{
-	//{.id = ecs_id(Line), .src.id = line_e},
-	{.id = ecs_id(Position3), .src.trav = ecs_id(MyIntersectorsHit), .src.flags = EcsUp},
-	{.id = ecs_id(Ray3), .src.trav = ecs_id(MyIntersectorsHit), .src.flags = EcsUp},
-	{.id = ecs_id(Cylinder), .src.trav = EgBaseUse, .src.flags = EcsUp}, // TODO
-	{.id = ecs_id(Position3World), .src.flags = EcsSelf},
-	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf},
-	{.id = ecs_id(Scale3), .src.flags = EcsSelf},
-	{.id = ecs_id(EgColorsV4F32_RGBA), .src.flags = EcsSelf}
-
+	{.id = ecs_id(Position3), .trav = ecs_id(MyIntersectorsHit), .src.id = EcsUp},
+	{.id = ecs_id(Ray3), .trav = ecs_id(MyIntersectorsHit), .src.id = EcsUp},
+	{.id = ecs_id(Cylinder), .trav = EgBaseUse, .src.id = EcsUp}, // TODO
+	{.id = ecs_id(Position3World), .src.id = EcsSelf},
+	{.id = ecs_id(OrientationWorld), .src.id = EcsSelf},
+	{.id = ecs_id(Scale3), .src.id = EcsSelf},
+	{.id = ecs_id(EgColorsV4F32_RGBA), .src.id = EcsSelf}
 	}});
 }

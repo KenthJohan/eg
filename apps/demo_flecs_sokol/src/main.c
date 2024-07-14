@@ -67,7 +67,7 @@ static void _sg_gl_query_pixels(int x, int y, int w, int h, bool origin_top_left
 
 static void WindowLastFrame(ecs_iter_t *it)
 {
-	Window *window = ecs_field(it, Window, 1);
+	Window *window = ecs_field(it, Window, 0);
 	window->mouse_left_edge = 0;
 	window->mouse_right_edge = 0;
 	memset(window->keys_edge, 0, sizeof(uint8_t) * 512);
@@ -159,19 +159,28 @@ static void init_cb(app_t *app)
 
 
 	ecs_log_set_level(1);
-	ecs_plecs_from_file(app->world, "config/keycode_sokol.flecs");
-	ecs_plecs_from_file(app->world, "config/graphics_attributes.flecs");
-	ecs_plecs_from_file(app->world, "config/graphics_pipes.flecs");
-	ecs_plecs_from_file(app->world, "config/graphics_shaders.flecs");
-	ecs_plecs_from_file(app->world, "config/graphics_ubs.flecs");
-	ecs_plecs_from_file(app->world, "config/app.flecs");
+	ecs_script_run_file(app->world, "config/keycode_sokol.flecs");
+	ecs_script_run_file(app->world, "config/graphics_attributes.flecs");
+	ecs_script_run_file(app->world, "config/graphics_pipes.flecs");
+	ecs_script_run_file(app->world, "config/graphics_shaders.flecs");
+	ecs_script_run_file(app->world, "config/graphics_ubs.flecs");
+	ecs_script_run_file(app->world, "config/app.flecs");
 	ecs_log_set_level(-1);
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
 	printf("https://www.flecs.dev/explorer/?remote=true\n");
 
-	ECS_SYSTEM(world, WindowLastFrame, EcsPostUpdate, Window($));
+	//ECS_SYSTEM(world, WindowLastFrame, EcsPostUpdate, Window($));
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "WindowLastFrame", .add = ecs_ids(ecs_dependson(EcsPostUpdate))}),
+	.callback = WindowLastFrame,
+	.query.terms =
+	{
+	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
+	}});
+
 
 	ecs_singleton_set(app->world, Window, {.w = 0, .h = 0});
 }

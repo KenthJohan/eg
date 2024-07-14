@@ -93,7 +93,7 @@ static void print_entity(ecs_world_t *world, ecs_entity_t e)
 {
 	ecs_entity_t scope = ecs_get_scope(world);
 	char const *scope_name = scope ? ecs_get_name(world, scope) : "";
-	char *path_str = ecs_get_fullpath(world, e);
+	char *path_str = ecs_get_path(world, e);
 	char *type_str = ecs_type_str(world, ecs_get_type(world, e));
 	ecs_dbg_2(ECS_GREY "%s" ECS_NORMAL " %s [%s]\n", scope_name, path_str, type_str);
 	ecs_os_free(type_str);
@@ -105,7 +105,7 @@ static void print_entity_from_it(ecs_iter_t *it, int i)
 	ecs_entity_t s = it->system ? ecs_get_parent(it->world, it->system) : 0;
 	ecs_entity_t parent = s ? ecs_get_parent(it->world, s) : ecs_get_scope(it->world);
 	char const *scope_name = parent ? ecs_get_name(it->world, parent) : "";
-	char *path_str = ecs_get_fullpath(it->world, it->entities[i]);
+	char *path_str = ecs_get_path(it->world, it->entities[i]);
 	char *type_str = ecs_type_str(it->world, ecs_get_type(it->world, it->entities[i]));
 	ecs_dbg_2(ECS_MAGENTA "%s" ECS_NORMAL " %s [%s]\n", scope_name, path_str, type_str);
 	ecs_os_free(type_str);
@@ -268,10 +268,10 @@ static void set_vertex_buffers(ecs_world_t *world, ecs_entity_t parent, sg_verte
 void Pip_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
-	// SgPipelineCreate *create = ecs_field(it, SgPipelineCreate, 1); // self
-	// SgAttributes * attrs = ecs_field(it, SgAttributes, 2); // up
-	ecs_entity_t entity_attrs = ecs_field_src(it, 2);
-	SgShader *shader = ecs_field(it, SgShader, 3); // up
+	// SgPipelineCreate *create = ecs_field(it, SgPipelineCreate, 0); // self
+	// SgAttributes * attrs = ecs_field(it, SgAttributes, 1); // up
+	ecs_entity_t entity_attrs = ecs_field_src(it, 1);
+	SgShader *shader = ecs_field(it, SgShader, 2); // up
 	ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
 
 	for (int i = 0; i < it->count; ++i) {
@@ -310,12 +310,12 @@ void Pip_Create(ecs_iter_t *it)
 void Shader_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
-	SgShaderCreate *create = ecs_field(it, SgShaderCreate, 1);
+	SgShaderCreate *create = ecs_field(it, SgShaderCreate, 0);
 	// SgAttributes * attrs = ecs_field(it, SgAttributes, 2);
 	// SgUniformBlocks * blocks = ecs_field(it, SgUniformBlocks, 3);
 	// int self1 = ecs_field_is_self(it, 1);
-	ecs_entity_t entity_attrs = ecs_field_src(it, 2);
-	ecs_entity_t entity_blocks = ecs_field_src(it, 3);
+	ecs_entity_t entity_attrs = ecs_field_src(it, 1);
+	ecs_entity_t entity_blocks = ecs_field_src(it, 2);
 	ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
 	ecs_doc_set_color(world, entity_blocks, ENTITY_COLOR);
 
@@ -489,27 +489,25 @@ void SgImport(ecs_world_t *world)
 	{.name = "array_count", .type = ecs_id(ecs_i32_t)},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "Pip_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = Pip_Create,
-	.query.filter.terms =
+	.query.terms =
 	{
-	{.id = ecs_id(SgPipelineCreate), .src.flags = EcsSelf},
-	{.id = ecs_id(SgAttributes), .src.trav = EcsIsA, .src.flags = EcsUp},
-	{.id = ecs_id(SgShader), .src.trav = EcsIsA, .src.flags = EcsUp},
+	{.id = ecs_id(SgPipelineCreate), .src.id = EcsSelf},
+	{.id = ecs_id(SgAttributes), .trav = EcsIsA, .src.id = EcsUp},
+	{.id = ecs_id(SgShader), .trav = EcsIsA, .src.id = EcsUp},
 	{.id = ecs_id(SgPipeline), .oper = EcsNot}, // Adds this
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.add = {ecs_dependson(EcsOnUpdate)}}),
+	ecs_system(world, {
+	.entity = ecs_entity(world, {.name = "Shader_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = Shader_Create,
-	.query.filter.terms =
+	.query.terms =
 	{
-	{.id = ecs_id(SgShaderCreate), .src.flags = EcsSelf},
-	{.id = ecs_id(SgAttributes), .src.trav = EcsIsA, .src.flags = EcsUp},
-	{.id = ecs_id(SgUniformBlocks), .src.trav = EcsIsA, .src.flags = EcsUp},
+	{.id = ecs_id(SgShaderCreate), .src.id = EcsSelf},
+	{.id = ecs_id(SgAttributes), .trav = EcsIsA, .src.id = EcsUp},
+	{.id = ecs_id(SgUniformBlocks), .trav = EcsIsA, .src.id = EcsUp},
 	{.id = ecs_id(SgShader), .oper = EcsNot}, // Adds this
 	}});
 }

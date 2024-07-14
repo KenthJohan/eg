@@ -13,10 +13,10 @@ ECS_COMPONENT_DECLARE(Camera);
 
 static void CameraUpdate(ecs_iter_t *it)
 {
-	Camera *cam = ecs_field(it, Camera, 1);         // self
-	Position3 *pos = ecs_field(it, Position3, 2);   // self
-	Orientation *o = ecs_field(it, Orientation, 3); // self
-	Window *win = ecs_field(it, Window, 4);         // singleton
+	Camera *cam = ecs_field(it, Camera, 0);         // self
+	Position3 *pos = ecs_field(it, Position3, 1);   // self
+	Orientation *o = ecs_field(it, Orientation, 2); // self
+	Window *win = ecs_field(it, Window, 3);         // singleton
 
 	for (int i = 0; i < it->count; ++i, ++cam, ++pos, ++o) {
 
@@ -47,11 +47,11 @@ static void CameraUpdate(ecs_iter_t *it)
 
 static void PrintMousePos(ecs_iter_t *it)
 {
-	Window *win = ecs_field(it, Window, 1);                          // shared
-	Camera *cam = ecs_field(it, Camera, 2);                          // self
-	Position3 *pos = ecs_field(it, Position3, 3);                    // self
-	Ray3 *ray1 = ecs_field(it, Ray3, 4);                             // self
-	EgWindowsMouseRay *winray = ecs_field(it, EgWindowsMouseRay, 5); // self
+	Window *win = ecs_field(it, Window, 0);                          // shared
+	Camera *cam = ecs_field(it, Camera, 1);                          // self
+	Position3 *pos = ecs_field(it, Position3, 2);                    // self
+	Ray3 *ray1 = ecs_field(it, Ray3, 3);                             // self
+	EgWindowsMouseRay *winray = ecs_field(it, EgWindowsMouseRay, 4); // self
 	// Orientation *rot = ecs_field(it, Orientation, 4);
 
 	if (win->mouse_left_edge == 0) {
@@ -166,27 +166,25 @@ void EgCamerasImport(ecs_world_t *world)
 	{.name = "vp", .type = ecs_id(ecs_f32_t), .count = 16},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "CameraUpdate", .add = {ecs_dependson(EcsOnUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "CameraUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = CameraUpdate,
-	.query.filter.terms = {
-	{.id = ecs_id(Camera), .src.flags = EcsSelf},
-	{.id = ecs_id(Position3), .src.flags = EcsSelf},
-	{.id = ecs_id(Orientation), .src.flags = EcsSelf},
+	.query.terms = {
+	{.id = ecs_id(Camera), .src.id = EcsSelf},
+	{.id = ecs_id(Position3), .src.id = EcsSelf},
+	{.id = ecs_id(Orientation), .src.id = EcsSelf},
 	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "PrintMousePos", .add = {ecs_dependson(EcsOnUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "PrintMousePos", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = PrintMousePos,
-	.query.filter.terms =
+	.query.terms =
 	{
 	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
-	{.id = ecs_id(Camera), .src.flags = EcsSelf},
-	{.id = ecs_id(Position3), .src.flags = EcsSelf},
-	{.id = ecs_id(Ray3), .src.flags = EcsSelf},
-	{.id = ecs_id(EgWindowsMouseRay), .src.flags = EcsSelf},
+	{.id = ecs_id(Camera), .src.id = EcsSelf},
+	{.id = ecs_id(Position3), .src.id = EcsSelf},
+	{.id = ecs_id(Ray3), .src.id = EcsSelf},
+	{.id = ecs_id(EgWindowsMouseRay), .src.id = EcsSelf},
 	}});
 }

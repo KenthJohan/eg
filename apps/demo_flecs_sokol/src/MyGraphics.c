@@ -27,11 +27,11 @@ typedef struct {
 
 static void DrawShape(ecs_iter_t *it)
 {
-	Transformation *transformation = ecs_field(it, Transformation, 1);        // self
-	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 2);         // self
-	MyGraphicsDrawCommand *drawcmd = ecs_field(it, MyGraphicsDrawCommand, 3); // up, shared
-	SgPipeline *pipeline = ecs_field(it, SgPipeline, 4);                      // up, shared
-	EgBaseShapeBuffer *ivbuf = ecs_field(it, EgBaseShapeBuffer, 5);         // up, shared
+	Transformation *transformation = ecs_field(it, Transformation, 0);        // self
+	EgColorsV4F32_RGBA *color = ecs_field(it, EgColorsV4F32_RGBA, 1);         // self
+	MyGraphicsDrawCommand *drawcmd = ecs_field(it, MyGraphicsDrawCommand, 2); // up, shared
+	SgPipeline *pipeline = ecs_field(it, SgPipeline, 3);                      // up, shared
+	EgBaseShapeBuffer *ivbuf = ecs_field(it, EgBaseShapeBuffer, 4);         // up, shared
 	Camera *cam = ecs_field(it, Camera, 6);                                   // up, shared
 	if (ivbuf->ibuf.id == 0) {
 		return;
@@ -86,18 +86,17 @@ void MyGraphicsImport(ecs_world_t *world)
 	{.name = "instances", .type = ecs_id(ecs_i32_t)},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "DrawShape", .add = {ecs_dependson(EcsOnUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "DrawShape", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = DrawShape,
-	.query.filter.instanced = true,
-	.query.filter.terms =
+	//.query.instanced = true,
+	.query.terms =
 	{
-	{.id = ecs_id(Transformation), .src.flags = EcsSelf},
-	{.id = ecs_id(EgColorsV4F32_RGBA), .src.flags = EcsSelf, .oper = EcsOptional},
-	{.id = ecs_id(MyGraphicsDrawCommand), .src.trav = EgBaseUse, .src.flags = EcsUp},
-	{.id = ecs_id(SgPipeline), .src.trav = EgBaseUse, .src.flags = EcsUp},
-	{.id = ecs_id(EgBaseShapeBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
-	{.id = ecs_id(Camera), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(Transformation), .src.id = EcsSelf},
+	{.id = ecs_id(EgColorsV4F32_RGBA), .src.id = EcsSelf, .oper = EcsOptional},
+	{.id = ecs_id(MyGraphicsDrawCommand), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(SgPipeline), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(EgBaseShapeBuffer), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(Camera), .trav = EgBaseUse, .src.id = EcsUp},
 	}});
 }

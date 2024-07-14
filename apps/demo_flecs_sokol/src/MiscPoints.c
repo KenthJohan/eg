@@ -20,10 +20,10 @@ typedef struct {
 
 static void DrawPoints(ecs_iter_t *it)
 {
-	PointsBuffer *points = ecs_field(it, PointsBuffer, 1); // self
-	SgPipeline *pipeline = ecs_field(it, SgPipeline, 2);   // self
-	Camera *cam = ecs_field(it, Camera, 3);                // self
-	Window *win = ecs_field(it, Window, 4);                // singleton
+	PointsBuffer *points = ecs_field(it, PointsBuffer, 0); // self
+	SgPipeline *pipeline = ecs_field(it, SgPipeline, 1);   // self
+	Camera *cam = ecs_field(it, Camera, 2);                // self
+	Window *win = ecs_field(it, Window, 3);                // singleton
 
 	for (int i = 0; i < it->count; i++) {
 		if(points->storage.count <= 0) {continue;}
@@ -43,7 +43,7 @@ static void DrawPoints(ecs_iter_t *it)
 
 static void AppendExamplePoints(ecs_iter_t *it)
 {
-	PointsBuffer *points = ecs_field(it, PointsBuffer, 1); // self
+	PointsBuffer *points = ecs_field(it, PointsBuffer, 0); // self
 	int32_t n = 100;
 	point_vertex_t * p = points_append(&points->storage, n);
 	for (int i = 0; i < n; ++i, ++p) {
@@ -76,24 +76,22 @@ void MiscPointsImport(ecs_world_t *world)
 
 	ecs_set_hooks(world, PointsBuffer, {.ctor = ecs_ctor(PointsBuffer)});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "AppendExamplePoints", .add = {ecs_dependson(EcsOnUpdate), EcsDisabled}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "AppendExamplePoints", .add = ecs_ids(ecs_dependson(EcsOnUpdate), EcsDisabled)}),
 	.callback = AppendExamplePoints,
-	.query.filter.terms =
+	.query.terms =
 	{
-	{.id = ecs_id(PointsBuffer), .src.flags = EcsSelf},
+	{.id = ecs_id(PointsBuffer), .src.id = EcsSelf},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "DrawPoints", .add = {ecs_dependson(EcsPostUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "DrawPoints", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = DrawPoints,
-	.query.filter.terms =
+	.query.terms =
 	{
-	{.id = ecs_id(PointsBuffer), .src.flags = EcsSelf},
-	{.id = ecs_id(SgPipeline), .src.trav = EgBaseUse, .src.flags = EcsUp},
-	{.id = ecs_id(Camera), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(PointsBuffer), .src.id = EcsSelf},
+	{.id = ecs_id(SgPipeline), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(Camera), .trav = EgBaseUse, .src.id = EcsUp},
 	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
 	}});
 }

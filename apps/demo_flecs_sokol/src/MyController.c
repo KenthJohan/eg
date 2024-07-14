@@ -67,9 +67,9 @@ bool intersect(const Ray &ray) const
 
 static void ControllerRotate(ecs_iter_t *it)
 {
-	KeyboardController *controller = ecs_field(it, KeyboardController, 1);
-	Rotate3 *rotate = ecs_field(it, Rotate3, 2);
-	Window *window = ecs_field(it, Window, 3);
+	KeyboardController *controller = ecs_field(it, KeyboardController, 0);
+	Rotate3 *rotate = ecs_field(it, Rotate3, 1);
+	Window *window = ecs_field(it, Window, 2);
 	uint8_t *keys = window->keys;
 	float k = 0.8f * it->delta_time;
 	for (int i = 0; i < it->count; ++i, ++rotate) {
@@ -82,9 +82,9 @@ static void ControllerRotate(ecs_iter_t *it)
 
 static void ControllerMove(ecs_iter_t *it)
 {
-	KeyboardController *controller = ecs_field(it, KeyboardController, 1);
-	Velocity3 *vel = ecs_field(it, Velocity3, 2);
-	Window *window = ecs_field(it, Window, 3);
+	KeyboardController *controller = ecs_field(it, KeyboardController, 0);
+	Velocity3 *vel = ecs_field(it, Velocity3, 1);
+	Window *window = ecs_field(it, Window, 2);
 	uint8_t *keys = window->keys;
 	float moving_speed = 1.1f;
 	float k = it->delta_time * moving_speed;
@@ -98,9 +98,9 @@ static void ControllerMove(ecs_iter_t *it)
 
 static void ControllerPerspective(ecs_iter_t *it)
 {
-	KeyboardController *controller = ecs_field(it, KeyboardController, 1);
-	Camera *camera = ecs_field(it, Camera, 2);
-	Window *window = ecs_field(it, Window, 3);
+	KeyboardController *controller = ecs_field(it, KeyboardController, 0);
+	Camera *camera = ecs_field(it, Camera, 1);
+	Window *window = ecs_field(it, Window, 2);
 	uint8_t *keys = window->keys;
 	for (int i = 0; i < it->count; i++) {
 		camera->fov = keys[controller->key_fov_reset] ? 45 : camera->fov;
@@ -112,8 +112,8 @@ static void ControllerPerspective(ecs_iter_t *it)
 
 static void KeyActionToggleEntity_OnUpdate(ecs_iter_t *it)
 {
-	Window *window = ecs_field(it, Window, 1);
-	KeyActionToggleEntity *action = ecs_field(it, KeyActionToggleEntity, 2);
+	Window *window = ecs_field(it, Window, 0);
+	KeyActionToggleEntity *action = ecs_field(it, KeyActionToggleEntity, 1);
 	uint8_t *keys_edge = window->keys_edge;
 	for (int i = 0; i < it->count; ++i, ++action) {
 		if (keys_edge[action->keycode]) {
@@ -129,11 +129,11 @@ static void KeyActionToggleEntity_OnUpdate(ecs_iter_t *it)
 
 static void System_MyControllerTestCopyOnClick(ecs_iter_t *it)
 {
-	Window *window = ecs_field(it, Window, 1);       // shared
-	Position3 *p0 = ecs_field(it, Position3, 2); // shared
-	Ray3 *r0 = ecs_field(it, Ray3, 3);           // shared
-	Position3 *p = ecs_field(it, Position3, 4); // self
-	Ray3 *r = ecs_field(it, Ray3, 5);           // self
+	Window *window = ecs_field(it, Window, 0);       // shared
+	Position3 *p0 = ecs_field(it, Position3, 1); // shared
+	Ray3 *r0 = ecs_field(it, Ray3, 2);           // shared
+	Position3 *p = ecs_field(it, Position3, 3); // self
+	Ray3 *r = ecs_field(it, Ray3, 4);           // self
 	for (int i = 0; i < it->count; ++i, ++p, ++r) {
 		if (window->mouse_left_edge) {
 			*p = *p0;
@@ -155,22 +155,61 @@ void MyControllerImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, MyControllerTestCopyOnClick);
 	ecs_add_id(world, MyControllerTestCopyOnClick, EcsTraversable);
 
-	ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, KeyboardController, Rotate3, Window($));
-	ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, KeyboardController, Velocity3, Window($));
-	ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, KeyboardController, Camera, Window($));
-	// ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera, Position3, Orientation);
-	ECS_SYSTEM(world, KeyActionToggleEntity_OnUpdate, EcsOnUpdate, Window($), KeyActionToggleEntity);
+	//ECS_SYSTEM(world, ControllerRotate, EcsOnUpdate, KeyboardController, Rotate3, Window($));
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "ControllerRotate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = ControllerRotate,
+	.query.terms =
+	{
+	{.id = ecs_id(KeyboardController), .src.id = EcsSelf},
+	{.id = ecs_id(Rotate3), .src.id = EcsSelf},
+	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
+	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "System_MyControllerTestCopyOnClick", .add = {ecs_dependson(EcsOnUpdate)}}),
-	.callback = System_MyControllerTestCopyOnClick,
-	.query.filter.terms =
+
+	//ECS_SYSTEM(world, ControllerMove, EcsOnUpdate, KeyboardController, Velocity3, Window($));
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "ControllerRotate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = ControllerRotate,
+	.query.terms =
+	{
+	{.id = ecs_id(KeyboardController), .src.id = EcsSelf},
+	{.id = ecs_id(Velocity3), .src.id = EcsSelf},
+	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
+	}});
+
+
+	//ECS_SYSTEM(world, ControllerPerspective, EcsOnUpdate, KeyboardController, Camera, Window($));
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "ControllerPerspective", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = ControllerPerspective,
+	.query.terms =
+	{
+	{.id = ecs_id(KeyboardController), .src.id = EcsSelf},
+	{.id = ecs_id(Camera), .src.id = EcsSelf},
+	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
+	}});
+
+	// ECS_SYSTEM(world, PrintMousePos, EcsOnUpdate, Window($), Camera, Position3, Orientation);
+	//ECS_SYSTEM(world, KeyActionToggleEntity_OnUpdate, EcsOnUpdate, Window($), KeyActionToggleEntity);
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "KeyActionToggleEntity_OnUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = KeyActionToggleEntity_OnUpdate,
+	.query.terms =
 	{
 	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
-	{.id = ecs_id(Position3), .src.trav = MyControllerTestCopyOnClick, .src.flags = EcsUp},
-	{.id = ecs_id(Ray3), .src.trav = MyControllerTestCopyOnClick, .src.flags = EcsUp},
-	{.id = ecs_id(Position3), .src.flags = EcsSelf},
-	{.id = ecs_id(Ray3), .src.flags = EcsSelf},
+	{.id = ecs_id(KeyActionToggleEntity), .src.id = EcsSelf}
+	}});
+
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "System_MyControllerTestCopyOnClick", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_MyControllerTestCopyOnClick,
+	.query.terms =
+	{
+	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
+	{.id = ecs_id(Position3), .trav = MyControllerTestCopyOnClick, .src.id = EcsUp},
+	{.id = ecs_id(Ray3), .trav = MyControllerTestCopyOnClick, .src.id = EcsUp},
+	{.id = ecs_id(Position3), .src.id = EcsSelf},
+	{.id = ecs_id(Ray3), .src.id = EcsSelf},
 	}});
 }

@@ -22,9 +22,9 @@ typedef struct {
 
 static void DrawLines(ecs_iter_t *it)
 {
-	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1);  // self
-	SgPipeline *pipeline = ecs_field(it, SgPipeline, 2); // self
-	Camera *cam = ecs_field(it, Camera, 3);              // self
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 0);  // self
+	SgPipeline *pipeline = ecs_field(it, SgPipeline, 1); // self
+	Camera *cam = ecs_field(it, Camera, 2);              // self
 
 	for (int i = 0; i < it->count; i++) {
 		// printf("DrawLines: %s\n", ecs_get_name(it->world, it->entities[i]));
@@ -64,10 +64,10 @@ void AppendExampleLines(ecs_iter_t *it)
 
 static void AppendLines2(ecs_iter_t *it)
 {
-	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1);                     // up, shared
-	OrientationWorld *o = ecs_field(it, OrientationWorld, 2);               // self
-	Position3World *p = ecs_field(it, Position3World, 3);                   // self
-	EgBaseShowDrawReference *d = ecs_field(it, EgBaseShowDrawReference, 4); // self
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 0);                     // up, shared
+	OrientationWorld *o = ecs_field(it, OrientationWorld, 1);               // self
+	Position3World *p = ecs_field(it, Position3World, 2);                   // self
+	EgBaseShowDrawReference *d = ecs_field(it, EgBaseShowDrawReference, 3); // self
 	for (int i = 0; i < it->count; ++i, ++o, ++p, ++d) {
 		if ((d->flags & 0x01) == 0) {
 			continue;
@@ -85,11 +85,11 @@ static void AppendLines2(ecs_iter_t *it)
 
 static void Ray2Line(ecs_iter_t *it)
 {
-	Position3 *p = ecs_field(it, Position3, 1); // self|shared
-	Ray3 *r = ecs_field(it, Ray3, 2);           // self|shared
-	Line *l = ecs_field(it, Line, 3);           // self
-	int self_p = ecs_field_is_self(it, 1);
-	int self_r = ecs_field_is_self(it, 2);
+	Position3 *p = ecs_field(it, Position3, 0); // self|shared
+	Ray3 *r = ecs_field(it, Ray3, 1);           // self|shared
+	Line *l = ecs_field(it, Line, 2);           // self
+	int self_p = ecs_field_is_self(it, 0);
+	int self_r = ecs_field_is_self(it, 1);
 	// int self_l = ecs_field_is_self(it, 3);
 	for (int i = 0; i < it->count; ++i, ++l, p += self_p, p += self_r) {
 		float length = 100.0f;
@@ -114,9 +114,9 @@ static void Ray2Line(ecs_iter_t *it)
 
 static void AppendLines(ecs_iter_t *it)
 {
-	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1);             // up, shared
-	Line *line = ecs_field(it, Line, 2);                            // self
-	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 3); // self
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 0);             // up, shared
+	Line *line = ecs_field(it, Line, 1);                            // self
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 2); // self
 
 	for (int i = 0; i < it->count; ++i, ++line, ++color) {
 		// printf("AppendLines: %s\n", ecs_get_name(it->world, it->entities[i]));
@@ -131,7 +131,7 @@ static void AppendLines(ecs_iter_t *it)
 
 static void Flush(ecs_iter_t *it)
 {
-	LinesBuffer *lines = ecs_field(it, LinesBuffer, 1); // self
+	LinesBuffer *lines = ecs_field(it, LinesBuffer, 0); // self
 	for (int i = 0; i < it->count; ++i, ++lines) {
 		lines_flush(&lines->storage);
 	}
@@ -167,58 +167,53 @@ void MiscLinesImport(ecs_world_t *world)
 	}});
 	*/
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "AppendLines", .add = {ecs_dependson(EcsOnUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "AppendLines", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = AppendLines,
-	.query.filter.terms =
+	.query.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
-	{.id = ecs_id(Line), .src.flags = EcsSelf},
-	{.id = ecs_id(EgColorsV4U8_RGBA), .src.flags = EcsSelf},
+	{.id = ecs_id(LinesBuffer), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(Line), .src.id = EcsSelf},
+	{.id = ecs_id(EgColorsV4U8_RGBA), .src.id = EcsSelf},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "AppendLines2", .add = {ecs_dependson(EcsOnUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "AppendLines2", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = AppendLines2,
-	.query.filter.terms =
+	.query.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
-	{.id = ecs_id(OrientationWorld), .src.flags = EcsSelf},
-	{.id = ecs_id(Position3World), .src.flags = EcsSelf},
-	{.id = ecs_id(EgBaseShowDrawReference), .src.flags = EcsSelf},
+	{.id = ecs_id(LinesBuffer), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(OrientationWorld), .src.id = EcsSelf},
+	{.id = ecs_id(Position3World), .src.id = EcsSelf},
+	{.id = ecs_id(EgBaseShowDrawReference), .src.id = EcsSelf},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "Ray2Line", .add = {ecs_dependson(EcsOnUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "Ray2Line", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = Ray2Line,
-	.query.filter.terms =
+	.query.terms =
 	{
 	{.id = ecs_id(Position3)},
 	{.id = ecs_id(Ray3)},
-	{.id = ecs_id(Line), .src.flags = EcsSelf},
+	{.id = ecs_id(Line), .src.id = EcsSelf},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "DrawLines", .add = {ecs_dependson(EcsPostUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "DrawLines", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = DrawLines,
-	.query.filter.terms =
+	.query.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .src.trav = EgBaseUse, .src.flags = EcsUp},
-	{.id = ecs_id(SgPipeline), .src.trav = EgBaseUse, .src.flags = EcsUp},
-	{.id = ecs_id(Camera), .src.trav = EgBaseUse, .src.flags = EcsUp},
+	{.id = ecs_id(LinesBuffer), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(SgPipeline), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(Camera), .trav = EgBaseUse, .src.id = EcsUp},
 	{.id = EgBaseDraw},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "Flush", .add = {ecs_dependson(EcsPostUpdate)}}),
+	ecs_system(world,{
+	.entity = ecs_entity(world, {.name = "Flush", .add = ecs_ids(ecs_dependson(EcsPostUpdate))}),
 	.callback = Flush,
-	.query.filter.terms =
+	.query.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .src.flags = EcsSelf},
+	{.id = ecs_id(LinesBuffer), .src.id = EcsSelf},
 	}});
 }

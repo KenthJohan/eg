@@ -62,7 +62,8 @@
 			"-Wno-pedantic",
 			"-Wextra",
 			"-Wno-error=unused-variable",
-			"-Wno-error=unused-function"
+			"-Wno-error=unused-function",
+			"-fmax-errors=2"
 		]
 	}
 }
