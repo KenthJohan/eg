@@ -198,7 +198,7 @@ camline {
 drawlines {
 	lines1 {
 		eg.base.Draw
-		(eg.base.Update, vbuffers.lines)
+		(eg.base.Use, vbuffers.lines)
 		(eg.base.Use, graphics.pipes.lines)
 		(eg.base.Use, cam)
 	}
@@ -218,7 +218,8 @@ drawlines {
 
 
 
-meshes : graphics.pipes.shapes {
+meshes {
+	(eg.base.Use, graphics.pipes.shapes)
 	eg.base.Update
 	eg.base.Memory2
 	eg.base.ShapeBuffer
@@ -250,6 +251,72 @@ cylbase {
 	(my.intersectors.Hit, camline) : {0}
 	eg.colors.V4F32_RGBA : {1,0,0,-3}
 }
+
+
+
+
+items {
+	obj1 {
+		(eg.base.Use, meshes)
+		(eg.base.Use, meshes.cylinder2)
+		(eg.base.Use, cam)
+		EgRotateOrder1
+		Transformation
+		Position3World
+		Orientation
+		OrientationWorld
+		Scale3 : {x: 0.1, y: 0.1, z: 0.1}
+		Position3 : {x: 2, y: 0, z: 0}
+		Rotate3 : {0.001,0,0}
+		(my.intersectors.Hit, cam) : {0}
+		eg.colors.V4F32_RGBA : {1,0,0,-3}
+		obj1 {
+			(eg.base.Use, meshes)
+			(eg.base.Use, meshes.cylinder2)
+			(eg.base.Use, cam)
+			EgRotateOrder1
+			Transformation
+			Position3World
+			Orientation
+			OrientationWorld
+			Scale3 : {x: 0.1, y: 0.1, z: 0.1}
+			Position3 : {x: 0, y: 0.5, z: 0}
+			Rotate3 : {0,0.011,0}
+			(my.intersectors.Hit, cam) : {0}
+			eg.colors.V4F32_RGBA : {1,0,0,-3}
+			ref {
+				(eg.base.Use, vbuffers.lines)
+				eg.base.ShowDrawReference : {1}
+				Transformation
+				EgRotateOrder1
+				Position3
+				Position3World
+				Orientation
+				OrientationWorld
+				Scale3 : {x: 0.1, y: 0.1, z: 0.1}
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

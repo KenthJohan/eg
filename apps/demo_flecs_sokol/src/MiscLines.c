@@ -23,8 +23,8 @@ typedef struct {
 static void DrawLines(ecs_iter_t *it)
 {
 	LinesBuffer *lines = ecs_field(it, LinesBuffer, 0);  // up
-	SgPipeline *pipeline = ecs_field(it, SgPipeline, 1); // up, BUG: Does not match even when SgPipeline is added
-	Camera *cam = ecs_field(it, Camera, 2);              // up
+	SgPipeline const *pipeline = ecs_field(it, SgPipeline, 1); // up, BUG: Does not match even when SgPipeline is added
+	Camera const *cam = ecs_field(it, Camera, 2);              // up
 
 	if (pipeline->id == 0) {
 		ecs_warn("pipeline id is 0");
@@ -208,9 +208,9 @@ void MiscLinesImport(ecs_world_t *world)
 	.callback = DrawLines,
 	.query.terms =
 	{
-	{.id = ecs_id(LinesBuffer), .trav = EgBaseUpdate, .src.id = EcsUp},
-	{.id = ecs_id(SgPipeline), .trav = EgBaseUse, .src.id = EcsUp},
-	{.id = ecs_id(Camera), .trav = EgBaseUse, .src.id = EcsUp},
+	{.id = ecs_id(LinesBuffer), .trav = EgBaseUse, .src.id = EcsUp, .inout = EcsInOut},
+	{.id = ecs_id(SgPipeline), .trav = EgBaseUse, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(Camera), .trav = EgBaseUse, .src.id = EcsUp, .inout = EcsIn},
 	{.id = EgBaseDraw},
 	}});
 

@@ -196,17 +196,17 @@ static void Pip_Create(ecs_iter_t *it)
 
 		if (create->shader == 0) {
 			ecs_warn("No shader entity");
-			return;
+			continue;
 		}
 		SgShader const *shader = ecs_get(world, create->shader, SgShader);
 		if (shader == NULL) {
 			// ecs_warn("No SgShader component in shader entity");
-			return;
+			continue;
 		}
 		SgShaderCreate const *shaderinfo = ecs_get(world, create->shader, SgShaderCreate);
 		if (shaderinfo == NULL) {
 			ecs_warn("No SgShaderCreate component in shader entity");
-			return;
+			continue;
 		}
 
 		ecs_doc_set_color(world, e, ENTITY_COLOR);
@@ -381,14 +381,14 @@ void SgImport(ecs_world_t *world)
 	// clang-format on
 
 	{
+		/*
 		sg_vertex_attr_state a0 = sshape_position_vertex_attr_state();
 		sg_vertex_attr_state a1 = sshape_normal_vertex_attr_state();
 		sg_vertex_attr_state a2 = sshape_texcoord_vertex_attr_state();
 		sg_vertex_attr_state a3 = sshape_color_vertex_attr_state();
-
 		sg_vertex_buffer_layout_state l = sshape_vertex_buffer_layout_state();
-
 		ecs_dbg_2("");
+		*/
 	}
 
 	ecs_struct(world,
