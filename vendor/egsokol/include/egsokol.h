@@ -75,10 +75,26 @@ typedef enum {
 
 typedef struct
 {
+	ecs_i32_t stride;
+	ecs_i32_t step_func;
+	ecs_i32_t step_rate;
+} SgVertexBufferLayout;
+
+
+typedef struct
+{
 	ecs_entity_t shader;
 	SgPrimitiveType primtype;
 	SgCullMode cullmode;
 	SgIndexType indextype;
+	SgVertexBufferLayout buflayout0;
+	SgVertexBufferLayout buflayout1;
+	SgVertexBufferLayout buflayout2;
+	SgVertexBufferLayout buflayout3;
+	SgVertexBufferLayout buflayout4;
+	SgVertexBufferLayout buflayout5;
+	SgVertexBufferLayout buflayout6;
+	SgVertexBufferLayout buflayout7;
 } SgPipelineCreate;
 
 typedef struct
@@ -106,14 +122,6 @@ typedef struct
 	ecs_i32_t offset;
 	ecs_i32_t buffer_index;
 } SgLocation;
-
-
-typedef struct
-{
-	ecs_i32_t stride;
-	ecs_i32_t step_func;
-	ecs_i32_t step_rate;
-} SgVertexBufferLayout;
 
 typedef struct
 {

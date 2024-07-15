@@ -157,25 +157,6 @@ static void iterate_vertex_attrs(ecs_world_t *world, ecs_entity_t parent, sg_ver
 	}
 }
 
-static void set_vertex_buffers(ecs_world_t *world, ecs_entity_t parent, sg_vertex_buffer_layout_state buffers[SG_MAX_VERTEX_BUFFERS])
-{
-	char buf[8];
-	for (int i = 0; i < SG_MAX_VERTEX_BUFFERS; ++i) {
-		snprintf(buf, sizeof(buf), "buf%i", i);
-		ecs_entity_t e = ecs_lookup_child(world, parent, buf);
-		ecs_log(0, "%s:%s:%s", ecs_get_name(world, parent), buf, e ? ecs_get_name(world, e) : "");
-		if (e == 0) {
-			continue;
-		}
-		SgVertexBufferLayout const *b = ecs_get(world, e, SgVertexBufferLayout);
-		if (b == NULL) {
-			continue;
-		}
-		buffers[i].stride = b->stride;
-		buffers[i].step_func = b->step_func;
-		buffers[i].step_rate = b->step_rate;
-	}
-}
 
 static void Pip_Create(ecs_iter_t *it)
 {
@@ -187,10 +168,9 @@ static void Pip_Create(ecs_iter_t *it)
 	// SgShader *shader = ecs_field(it, SgShader, 2); // up
 	// ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
 
-	ecs_log_set_level(0);
+	ecs_log_set_level(1);
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
-
 		// ecs_log_set_level(2);
 		// print_entity_from_it(it, i);
 
@@ -209,6 +189,12 @@ static void Pip_Create(ecs_iter_t *it)
 			continue;
 		}
 
+
+        //ecs_dbg("#[bold]pipeline rebuild");
+		ecs_dbg("Pip_Create: %s", ecs_get_name(world, e));
+        ecs_log_push_1();
+
+
 		ecs_doc_set_color(world, e, ENTITY_COLOR);
 
 		//SgPipeline *pip = ecs_ensure(world, e, SgPipeline);
@@ -220,18 +206,28 @@ static void Pip_Create(ecs_iter_t *it)
 		.index_type = (sg_index_type)create->indextype,
 		.primitive_type = (sg_primitive_type)create->primtype,
 		.cull_mode = (sg_cull_mode)create->cullmode,
+		.layout.buffers = {
+			{create->buflayout0.stride, create->buflayout0.step_func, create->buflayout0.step_rate},
+			{create->buflayout1.stride, create->buflayout1.step_func, create->buflayout1.step_rate},
+			{create->buflayout2.stride, create->buflayout2.step_func, create->buflayout2.step_rate},
+		},
 		// TODO: Use 1 when for offscreen rendering
 		// Use 4 when render directly
 		.sample_count = 1,
 		};
 		iterate_vertex_attrs(world, shaderinfo->attrs, desc.layout.attrs);
-		set_vertex_buffers(world, e, desc.layout.buffers);
 
 		uint32_t pipid = sg_make_pipeline(&desc).id;
 		ecs_set(world, e, SgPipeline, {pipid});
 		//pip->id = pipid;
-		ecs_log(0, "%s: sg_make_pipeline : %i", ecs_get_name(world, e), pipid);
+		ecs_dbg("sg_make_pipeline -> %i", pipid);
+		ecs_log_push_1();
+		ecs_dbg("buflayout0: %i %i %i", create->buflayout0.stride, create->buflayout0.step_func, create->buflayout0.step_rate);
+		ecs_dbg("buflayout1: %i %i %i", create->buflayout1.stride, create->buflayout1.step_func, create->buflayout1.step_rate);
+		ecs_log_pop_1();
+		ecs_log_pop_1();
 	}
+	ecs_log_set_level(0);
 }
 
 // https://github.com/SanderMertens/flecs/blob/ca73ed213310f2ca23f2afde38f72af793091e50/examples/c/entities/hierarchy/src/main.c#L52
@@ -392,12 +388,33 @@ void SgImport(ecs_world_t *world)
 	}
 
 	ecs_struct(world,
+	{.entity = ecs_id(SgVertexBufferLayout),
+	.members = {
+	{.name = "stride", .type = ecs_id(ecs_i32_t)},
+	{.name = "step_func", .type = ecs_id(ecs_i32_t)},
+	{.name = "step_rate", .type = ecs_id(ecs_i32_t)},
+	}});
+
+	ecs_struct(world,
 	{.entity = ecs_id(SgPipelineCreate),
 	.members = {
 	{.name = "shader", .type = ecs_id(ecs_entity_t)},
 	{.name = "primtype", .type = ecs_id(SgPrimitiveType)},
-	{.name = "cullmode", .type = ecs_id(SgCullMode)},
+	{.name = "cullmode", .type = ecs_id(SgCullMode), 
+		//.range = {SgCullModeDEFAULT, SgCullModeNUM}, 
+		//.error_range = {SgCullModeDEFAULT, SgCullModeNUM}
+		},
 	{.name = "indextype", .type = ecs_id(SgIndexType)},
+	//{.name = "buflayouts", .type = ecs_id(SgVertexBufferLayout), .count = 8},
+	{.name = "buflayout0", .type = ecs_id(SgVertexBufferLayout)},
+	{.name = "buflayout1", .type = ecs_id(SgVertexBufferLayout)},
+	{.name = "buflayout2", .type = ecs_id(SgVertexBufferLayout)},
+	{.name = "buflayout3", .type = ecs_id(SgVertexBufferLayout)},
+	{.name = "buflayout4", .type = ecs_id(SgVertexBufferLayout)},
+	{.name = "buflayout5", .type = ecs_id(SgVertexBufferLayout)},
+	{.name = "buflayout6", .type = ecs_id(SgVertexBufferLayout)},
+	{.name = "buflayout7", .type = ecs_id(SgVertexBufferLayout)},
+	{.name = "buflayout8", .type = ecs_id(SgVertexBufferLayout)},
 	}});
 
 	ecs_struct(world,
@@ -422,19 +439,11 @@ void SgImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(SgVertexBufferLayout),
-	.members = {
-	{.name = "stride", .type = ecs_id(ecs_i32_t)},
-	{.name = "step_func", .type = ecs_id(ecs_i32_t)},
-	{.name = "step_rate", .type = ecs_id(ecs_i32_t)},
-	}});
-
-	ecs_struct(world,
 	{.entity = ecs_id(SgLocation),
 	.members = {
 	{.name = "index", .type = ecs_id(ecs_i32_t)},
 	{.name = "format", .type = ecs_id(SgVertexFormat)},
-	{.name = "offset", .type = ecs_id(ecs_i32_t)},
+	{.name = "offset", .type = ecs_id(ecs_i32_t), .unit = EcsBytes},
 	{.name = "buffer_index", .type = ecs_id(ecs_i32_t)},
 	}});
 
