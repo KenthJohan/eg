@@ -2,6 +2,7 @@
 #include <sokol_shape.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <egbase.h>
 
 ECS_COMPONENT_DECLARE(SgPipelineCreate);
 ECS_COMPONENT_DECLARE(SgPipeline);
@@ -311,6 +312,7 @@ static void Shader_Create(ecs_iter_t *it)
 void SgImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Sg);
+	ECS_IMPORT(world, EgBase);
 
 	ecs_set_name_prefix(world, "Sg");
 	ECS_COMPONENT_DEFINE(world, SgPipelineCreate);
@@ -498,6 +500,7 @@ void SgImport(ecs_world_t *world)
 		.query.terms =
 		{
 		{.id = ecs_id(SgPipelineCreate), .src.id = EcsSelf},
+		{.id = ecs_id(SgShader), .trav = EgBaseUse, .src.id = EcsUp, .inout = EcsIn},
 		{.id = ecs_id(SgPipeline), .oper = EcsNot}, // Adds this
 		}});
 

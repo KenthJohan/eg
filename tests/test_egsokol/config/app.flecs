@@ -1,0 +1,357 @@
+module app
+
+using eg.windows
+using eg.spatials
+using eg.cameras
+using eg.shapes
+
+
+
+
+const PI = 3.14159265358979323846
+// Sokol keyboard codes
+
+const KEYCODE_INVALID          = 0
+const KEYCODE_SPACE            = 32
+const KEYCODE_APOSTROPHE       = 39
+const KEYCODE_COMMA            = 44
+const KEYCODE_MINUS            = 45 
+const KEYCODE_PERIOD           = 46
+const KEYCODE_SLASH            = 47
+const KEYCODE_0                = 48
+const KEYCODE_1                = 49
+const KEYCODE_2                = 50
+const KEYCODE_3                = 51
+const KEYCODE_4                = 52
+const KEYCODE_5                = 53
+const KEYCODE_6                = 54
+const KEYCODE_7                = 55
+const KEYCODE_8                = 56
+const KEYCODE_9                = 57
+const KEYCODE_SEMICOLON        = 59
+const KEYCODE_EQUAL            = 61
+const KEYCODE_A                = 65
+const KEYCODE_B                = 66
+const KEYCODE_C                = 67
+const KEYCODE_D                = 68
+const KEYCODE_E                = 69
+const KEYCODE_F                = 70
+const KEYCODE_G                = 71
+const KEYCODE_H                = 72
+const KEYCODE_I                = 73
+const KEYCODE_J                = 74
+const KEYCODE_K                = 75
+const KEYCODE_L                = 76
+const KEYCODE_M                = 77
+const KEYCODE_N                = 78
+const KEYCODE_O                = 79
+const KEYCODE_P                = 80
+const KEYCODE_Q                = 81
+const KEYCODE_R                = 82
+const KEYCODE_S                = 83
+const KEYCODE_T                = 84
+const KEYCODE_U                = 85
+const KEYCODE_V                = 86
+const KEYCODE_W                = 87
+const KEYCODE_X                = 88
+const KEYCODE_Y                = 89
+const KEYCODE_Z                = 90
+const KEYCODE_LEFT_BRACKET     = 91
+const KEYCODE_BACKSLASH        = 92
+const KEYCODE_RIGHT_BRACKET    = 93
+const KEYCODE_GRAVE_ACCENT     = 96
+const KEYCODE_WORLD_1          = 161
+const KEYCODE_WORLD_2          = 162
+const KEYCODE_ESCAPE           = 256
+const KEYCODE_ENTER            = 257
+const KEYCODE_TAB              = 258
+const KEYCODE_BACKSPACE        = 259
+const KEYCODE_INSERT           = 260
+const KEYCODE_DELETE           = 261
+const KEYCODE_RIGHT            = 262
+const KEYCODE_LEFT             = 263
+const KEYCODE_DOWN             = 264
+const KEYCODE_UP               = 265
+const KEYCODE_PAGE_UP          = 266
+const KEYCODE_PAGE_DOWN        = 267
+const KEYCODE_HOME             = 268
+const KEYCODE_END              = 269
+const KEYCODE_CAPS_LOCK        = 280
+const KEYCODE_SCROLL_LOCK      = 281
+const KEYCODE_NUM_LOCK         = 282
+const KEYCODE_PRINT_SCREEN     = 283
+const KEYCODE_PAUSE            = 284
+const KEYCODE_F1               = 290
+const KEYCODE_F2               = 291
+const KEYCODE_F3               = 292
+const KEYCODE_F4               = 293
+const KEYCODE_F5               = 294
+const KEYCODE_F6               = 295
+const KEYCODE_F7               = 296
+const KEYCODE_F8               = 297
+const KEYCODE_F9               = 298
+const KEYCODE_F10              = 299
+const KEYCODE_F11              = 300
+const KEYCODE_F12              = 301
+const KEYCODE_F13              = 302
+const KEYCODE_F14              = 303
+const KEYCODE_F15              = 304
+const KEYCODE_F16              = 305
+const KEYCODE_F17              = 306
+const KEYCODE_F18              = 307
+const KEYCODE_F19              = 308
+const KEYCODE_F20              = 309
+const KEYCODE_F21              = 310
+const KEYCODE_F22              = 311
+const KEYCODE_F23              = 312
+const KEYCODE_F24              = 313
+const KEYCODE_F25              = 314
+const KEYCODE_KP_0             = 320
+const KEYCODE_KP_1             = 321
+const KEYCODE_KP_2             = 322
+const KEYCODE_KP_3             = 323
+const KEYCODE_KP_4             = 324
+const KEYCODE_KP_5             = 325
+const KEYCODE_KP_6             = 326
+const KEYCODE_KP_7             = 327
+const KEYCODE_KP_8             = 328
+const KEYCODE_KP_9             = 329
+const KEYCODE_KP_DECIMAL       = 330
+const KEYCODE_KP_DIVIDE        = 331
+const KEYCODE_KP_MULTIPLY      = 332
+const KEYCODE_KP_SUBTRACT      = 333
+const KEYCODE_KP_ADD           = 334
+const KEYCODE_KP_ENTER         = 335
+const KEYCODE_KP_EQUAL         = 336
+const KEYCODE_LEFT_SHIFT       = 340
+const KEYCODE_LEFT_CONTROL     = 341
+const KEYCODE_LEFT_ALT         = 342
+const KEYCODE_LEFT_SUPER       = 343
+const KEYCODE_RIGHT_SHIFT      = 344
+const KEYCODE_RIGHT_CONTROL    = 345
+const KEYCODE_RIGHT_ALT        = 346
+const KEYCODE_RIGHT_SUPER      = 347
+const KEYCODE_MENU             = 348
+
+
+// Rotate {Orientation} with keyboard
+Prefab SpaceShip {
+	KeyboardController : {
+		key_rotate_dx_plus:$KEYCODE_UP, 
+		key_rotate_dx_minus:$KEYCODE_DOWN, 
+		key_rotate_dy_plus:$KEYCODE_RIGHT, 
+		key_rotate_dy_minus:$KEYCODE_LEFT, 
+		key_rotate_dz_plus:$KEYCODE_E, 
+		key_rotate_dz_minus:$KEYCODE_Q,
+		key_move_dx_plus:$KEYCODE_A, 
+		key_move_dx_minus:$KEYCODE_D, 
+		key_move_dy_plus:$KEYCODE_LEFT_CONTROL, 
+		key_move_dy_minus:$KEYCODE_SPACE, 
+		key_move_dz_plus:$KEYCODE_W, 
+		key_move_dz_minus:$KEYCODE_S, 
+		key_fov_reset:$KEYCODE_KP_0, 
+		key_fov_plus:$KEYCODE_KP_1, 
+		key_fov_minus:$KEYCODE_KP_2, 
+		}
+	Rotate3
+	Velocity3
+}
+
+
+
+
+// Vertices GPU storage for shapes
+vbuffers {
+	lines {
+		misc.lines.LinesBuffer
+	}
+	points {
+		misc.points.PointsBuffer
+	}
+}
+
+
+cam : SpaceShip {
+	Camera
+	// Set the order of the operands, changes how {Orientation} rotates
+	EgRotateOrder2
+	Position3 : {3, -2, 4}
+	Orientation : {-0.4, -0.1, -0.2, 0.8}
+	// Apply keyboard controll when pressing key
+	KeyActionToggleEntity : {keycode: $KEYCODE_F1, entity: SpaceShip}
+
+	eg.windows.MouseRay
+	Ray3
+}
+
+camline {
+	// Copy Position3 and Ray3 to this from cam:
+	(my.controller.TestCopyOnClick, cam)
+	(eg.base.Use, vbuffers.lines)
+	Position3
+	Ray3
+	Line
+	eg.colors.V4U8_RGBA : {r:100,g:100,b:150,a:255}
+}
+
+
+drawlines {
+	lines1 {
+		eg.base.Draw
+		(eg.base.Use, vbuffers.lines)
+		(eg.base.Use, graphics.pipes.lines)
+		(eg.base.Use, cam)
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+meshes {
+	(eg.base.Use, graphics.pipes.shapes)
+	eg.base.Update
+	eg.base.Memory2
+	eg.base.ShapeBuffer
+	cylinder1 {
+		Cylinder : {radius: 1, height: 1, slices: 10, stacks: 1, random_colors: 1}
+		eg.colors.V4U8_RGBA : {a: 255, r: 255, g: 255, b:255}
+		my.graphics.DrawCommand : {0,0,0}
+	}
+	cylinder2 {
+		Cylinder : {radius: 1, height: 1, slices: 20, stacks: 4, random_colors: 1}
+		eg.colors.V4U8_RGBA : {a: 255, r: 255, g: 255, b:255}
+		my.graphics.DrawCommand : {0,0,0}
+	}
+}
+
+
+cylbase {
+	(eg.base.Use, meshes)
+	(eg.base.Use, meshes.cylinder2)
+	(eg.base.Use, cam)
+	EgRotateOrder1
+	Transformation
+	Position3World
+	Orientation
+	OrientationWorld
+	Scale3 : {x: 1, y: 1, z: 1}
+	Position3 : {x: 0, y: 0, z: 0}
+	KeyActionToggleEntity : {keycode: $KEYCODE_F2, entity: SpaceShip}
+	(my.intersectors.Hit, camline) : {0}
+	eg.colors.V4F32_RGBA : {1,0,0,-3}
+}
+
+
+
+
+items {
+	obj1 {
+		(eg.base.Use, meshes)
+		(eg.base.Use, meshes.cylinder2)
+		(eg.base.Use, cam)
+		EgRotateOrder1
+		Transformation
+		Position3World
+		Orientation
+		OrientationWorld
+		Scale3 : {x: 0.1, y: 0.1, z: 0.1}
+		Position3 : {x: 2, y: 0, z: 0}
+		Rotate3 : {0.001,0,0}
+		(my.intersectors.Hit, cam) : {0}
+		eg.colors.V4F32_RGBA : {1,0,0,-3}
+		obj1 {
+			(eg.base.Use, meshes)
+			(eg.base.Use, meshes.cylinder2)
+			(eg.base.Use, cam)
+			EgRotateOrder1
+			Transformation
+			Position3World
+			Orientation
+			OrientationWorld
+			Scale3 : {x: 0.1, y: 0.1, z: 0.1}
+			Position3 : {x: 0, y: 0.5, z: 0}
+			Rotate3 : {0,0.011,0}
+			(my.intersectors.Hit, cam) : {0}
+			eg.colors.V4F32_RGBA : {1,0,0,-3}
+			ref {
+				(eg.base.Use, vbuffers.lines)
+				eg.base.ShowDrawReference : {1}
+				Transformation
+				EgRotateOrder1
+				Position3
+				Position3World
+				Orientation
+				OrientationWorld
+				Scale3 : {x: 0.1, y: 0.1, z: 0.1}
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+origin_xyz {
+	line_x {
+		Line : {a:[0,0,0], b:[100,0,0]}
+		eg.colors.V4U8_RGBA : {r:255,g:0,b:0,a:255}
+		(eg.base.Use, vbuffers.lines)
+	}
+	line_y {
+		Line : {a:[0,0,0], b:[0,100,0]}
+		eg.colors.V4U8_RGBA : {r:0,g:255,b:0,a:255}
+		(eg.base.Use, vbuffers.lines)
+	}
+	line_z {
+		Line : {a:[0,0,0], b:[0,0,100]}
+		eg.colors.V4U8_RGBA : {r:0,g:0,b:255,a:255}
+		(eg.base.Use, vbuffers.lines)
+	}
+
+
+	line_xx {
+		Line : {a:[0,0,0], b:[-100,0,0]}
+		eg.colors.V4U8_RGBA : {r:150,g:100,b:100,a:255}
+		(eg.base.Use, vbuffers.lines)
+	}
+	line_yy {
+		Line : {a:[0,0,0], b:[0,-100,0]}
+		eg.colors.V4U8_RGBA : {r:100,g:150,b:100,a:255}
+		(eg.base.Use, vbuffers.lines)
+	}
+	line_zz {
+		Line : {a:[0,0,0], b:[0,0,-100]}
+		eg.colors.V4U8_RGBA : {r:100,g:100,b:150,a:255}
+		(eg.base.Use, vbuffers.lines)
+	}
+}

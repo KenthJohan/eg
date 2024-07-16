@@ -1,0 +1,70 @@
+{
+	"id": "test_egsokol",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"flecs",
+			"egmath",
+			"egsokol",
+			"egbase",
+			"egshapes",
+			"egcameras",
+			"egspatials",
+			"egwindows",
+			"egcolors",
+			"sokol_app",
+			"sokol_gl",
+			"sokol_log",
+			"sokol_gfx",
+			"sokol_glue",
+			"sokol_imgui",
+			"sokol_shape",
+			"sokol_debugtext",
+			"cimgui"
+		]
+	},
+	"lang.c": {
+		"c-standard": "c11",
+		"defines": [
+			"SOKOL_GLCORE33"
+		],
+		"lib": [
+			"flecs",
+			"egmath",
+			"egsokol",
+			"egbase",
+			"egshapes",
+			"egcameras",
+			"egspatials",
+			"egwindows",
+			"egcolors",
+			"sokol_app",
+			"sokol_gl",
+			"sokol_log",
+			"sokol_gfx",
+			"sokol_glue",
+			"sokol_imgui",
+			"sokol_shape",
+			"sokol_debugtext",
+			"cimgui",
+			"GL",
+			"X11",
+			"Xi",
+			"Xcursor",
+			"m",
+			"stdc++"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable",
+			"-Wno-error=unused-function",
+			"-fmax-errors=2",
+			"-Wshadow=global"
+		]
+	}
+}
