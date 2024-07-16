@@ -157,7 +157,6 @@ static void iterate_vertex_attrs(ecs_world_t *world, ecs_entity_t parent, sg_ver
 	}
 }
 
-
 static void Pip_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
@@ -169,36 +168,37 @@ static void Pip_Create(ecs_iter_t *it)
 	// ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
 
 	ecs_log_set_level(1);
+	ecs_dbg("Pip_Create count:%i", it->count);
+	ecs_log_push_1();
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
-		// ecs_log_set_level(2);
-		// print_entity_from_it(it, i);
+
+		ecs_dbg("Entity: %s", ecs_get_name(world, e));
+		ecs_log_push_1();
 
 		if (create->shader == 0) {
 			ecs_warn("No shader entity");
-			continue;
+			ecs_enable(world, e, false);
+			goto for_continue;
 		}
 		SgShader const *shader = ecs_get(world, create->shader, SgShader);
 		if (shader == NULL) {
-			// ecs_warn("No SgShader component in shader entity");
-			continue;
+			ecs_warn("No SgShader component in shader entity");
+			ecs_enable(world, e, false);
+			goto for_continue;
 		}
 		SgShaderCreate const *shaderinfo = ecs_get(world, create->shader, SgShaderCreate);
 		if (shaderinfo == NULL) {
 			ecs_warn("No SgShaderCreate component in shader entity");
-			continue;
+			ecs_enable(world, e, false);
+			goto for_continue;
 		}
 
-
-        //ecs_dbg("#[bold]pipeline rebuild");
-		ecs_dbg("Pip_Create: %s", ecs_get_name(world, e));
-        ecs_log_push_1();
 
 
 		ecs_doc_set_color(world, e, ENTITY_COLOR);
 
-		//SgPipeline *pip = ecs_ensure(world, e, SgPipeline);
-		
+		// SgPipeline *pip = ecs_ensure(world, e, SgPipeline);
 
 		sg_pipeline_desc desc = {
 		.shader = (sg_shader){shader->id},
@@ -207,9 +207,9 @@ static void Pip_Create(ecs_iter_t *it)
 		.primitive_type = (sg_primitive_type)create->primtype,
 		.cull_mode = (sg_cull_mode)create->cullmode,
 		.layout.buffers = {
-			{create->buflayout0.stride, create->buflayout0.step_func, create->buflayout0.step_rate},
-			{create->buflayout1.stride, create->buflayout1.step_func, create->buflayout1.step_rate},
-			{create->buflayout2.stride, create->buflayout2.step_func, create->buflayout2.step_rate},
+		{create->buflayout0.stride, create->buflayout0.step_func, create->buflayout0.step_rate},
+		{create->buflayout1.stride, create->buflayout1.step_func, create->buflayout1.step_rate},
+		{create->buflayout2.stride, create->buflayout2.step_func, create->buflayout2.step_rate},
 		},
 		// TODO: Use 1 when for offscreen rendering
 		// Use 4 when render directly
@@ -219,14 +219,17 @@ static void Pip_Create(ecs_iter_t *it)
 
 		uint32_t pipid = sg_make_pipeline(&desc).id;
 		ecs_set(world, e, SgPipeline, {pipid});
-		//pip->id = pipid;
+		// pip->id = pipid;
 		ecs_dbg("sg_make_pipeline -> %i", pipid);
 		ecs_log_push_1();
 		ecs_dbg("buflayout0: %i %i %i", create->buflayout0.stride, create->buflayout0.step_func, create->buflayout0.step_rate);
 		ecs_dbg("buflayout1: %i %i %i", create->buflayout1.stride, create->buflayout1.step_func, create->buflayout1.step_rate);
 		ecs_log_pop_1();
+
+	for_continue:
 		ecs_log_pop_1();
 	}
+	ecs_log_pop_1();
 	ecs_log_set_level(0);
 }
 
@@ -249,25 +252,32 @@ static void Shader_Create(ecs_iter_t *it)
 	ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
 	ecs_doc_set_color(world, entity_blocks, ENTITY_COLOR);
 	*/
-
+	ecs_log_set_level(1);
+	ecs_dbg("Shader_Create count:%i", it->count);
+	ecs_log_push_1();
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
-		print_entity_from_it(it, i);
+		// print_entity_from_it(it, i);
 		ecs_doc_set_color(world, e, "#003366");
 		sg_shader_desc desc = {0};
 
-		ecs_dbg_2("Readfile %s\n", create->filename_vs);
+		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
+		ecs_log_push_1();
+
+		ecs_dbg("Readfile '%s'", create->filename_vs);
 		desc.vs.source = eg_fs_readfile(create->filename_vs);
 		if (desc.vs.source == NULL) {
 			ecs_enable(world, e, false);
-			break;
+			ecs_warn("Readfile '%s' failed", create->filename_vs);
+			goto for_continue;
 		}
 
-		ecs_dbg_2("Readfile %s\n", create->filename_fs);
+		ecs_dbg("Readfile '%s'", create->filename_fs);
 		desc.fs.source = eg_fs_readfile(create->filename_fs);
 		if (desc.fs.source == NULL) {
 			ecs_enable(world, e, false);
-			break;
+			ecs_warn("Readfile '%s' failed", create->filename_fs);
+			goto for_continue;
 		}
 
 		desc.vs.entry = "main";
@@ -280,10 +290,22 @@ static void Shader_Create(ecs_iter_t *it)
 		iterate_shader_blocks(world, create->ubs, desc.vs.uniform_blocks);
 
 		sg_shader shd = sg_make_shader(&desc);
+		sg_shader_info info = sg_query_shader_info(shd);
+		if (info.slot.state != SG_RESOURCESTATE_VALID) {
+			ecs_warn("sg_make_shader failed");
+			sg_destroy_shader(shd);
+			ecs_enable(world, e, false);
+			goto for_continue;
+		}
+		
 		SgShader *shader = ecs_ensure(world, e, SgShader);
 		shader->id = shd.id;
-		ecs_dbg_2("");
+		ecs_dbg("sg_make_shader() -> %i", shd.id);
+	for_continue:
+		ecs_log_pop_1();
 	}
+	ecs_log_pop_1();
+	ecs_log_set_level(0);
 }
 
 void SgImport(ecs_world_t *world)
@@ -388,11 +410,23 @@ void SgImport(ecs_world_t *world)
 	}
 
 	ecs_struct(world,
+	{.entity = ecs_id(SgAttributes),
+	.members = {
+	{.name = "count", .type = ecs_id(ecs_i32_t), .unit = EcsAmount},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(SgUniformBlocks),
+	.members = {
+	{.name = "count", .type = ecs_id(ecs_i32_t), .unit = EcsAmount},
+	}});
+
+	ecs_struct(world,
 	{.entity = ecs_id(SgVertexBufferLayout),
 	.members = {
-	{.name = "stride", .type = ecs_id(ecs_i32_t)},
+	{.name = "stride", .type = ecs_id(ecs_i32_t), .unit = EcsBytes},
 	{.name = "step_func", .type = ecs_id(ecs_i32_t)},
-	{.name = "step_rate", .type = ecs_id(ecs_i32_t)},
+	{.name = "step_rate", .type = ecs_id(ecs_i32_t), .unit = EcsBytes},
 	}});
 
 	ecs_struct(world,
@@ -400,10 +434,7 @@ void SgImport(ecs_world_t *world)
 	.members = {
 	{.name = "shader", .type = ecs_id(ecs_entity_t)},
 	{.name = "primtype", .type = ecs_id(SgPrimitiveType)},
-	{.name = "cullmode", .type = ecs_id(SgCullMode), 
-		//.range = {SgCullModeDEFAULT, SgCullModeNUM}, 
-		//.error_range = {SgCullModeDEFAULT, SgCullModeNUM}
-		},
+	{.name = "cullmode", .type = ecs_id(SgCullMode)},
 	{.name = "indextype", .type = ecs_id(SgIndexType)},
 	//{.name = "buflayouts", .type = ecs_id(SgVertexBufferLayout), .count = 8},
 	{.name = "buflayout0", .type = ecs_id(SgVertexBufferLayout)},
@@ -414,7 +445,6 @@ void SgImport(ecs_world_t *world)
 	{.name = "buflayout5", .type = ecs_id(SgVertexBufferLayout)},
 	{.name = "buflayout6", .type = ecs_id(SgVertexBufferLayout)},
 	{.name = "buflayout7", .type = ecs_id(SgVertexBufferLayout)},
-	{.name = "buflayout8", .type = ecs_id(SgVertexBufferLayout)},
 	}});
 
 	ecs_struct(world,

@@ -125,12 +125,12 @@ typedef struct
 
 typedef struct
 {
-	ecs_i32_t dummy;
+	ecs_i32_t count;
 } SgAttributes;
 
 typedef struct
 {
-	ecs_i32_t dummy;
+	ecs_i32_t count;
 } SgUniformBlocks;
 
 typedef struct
