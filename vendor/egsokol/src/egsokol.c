@@ -218,10 +218,17 @@ static void Pip_Create(ecs_iter_t *it)
 		};
 		iterate_vertex_attrs(world, shaderinfo->attrs, desc.layout.attrs);
 
-		uint32_t pipid = sg_make_pipeline(&desc).id;
-		ecs_set(world, e, SgPipeline, {pipid});
-		// pip->id = pipid;
-		ecs_dbg("sg_make_pipeline -> %i", pipid);
+		sg_pipeline pip = sg_make_pipeline(&desc);
+		sg_pipeline_info info = sg_query_pipeline_info(pip);
+		if (info.slot.state != SG_RESOURCESTATE_VALID) {
+			ecs_warn("sg_make_pipeline failed");
+			sg_destroy_pipeline(pip);
+			ecs_enable(world, e, false);
+			goto for_continue;
+		}
+
+		ecs_set(world, e, SgPipeline, {pip.id});
+		ecs_dbg("sg_make_pipeline -> %i", pip.id);
 		ecs_log_push_1();
 		ecs_dbg("buflayout0: %i %i %i", create->buflayout0.stride, create->buflayout0.step_func, create->buflayout0.step_rate);
 		ecs_dbg("buflayout1: %i %i %i", create->buflayout1.stride, create->buflayout1.step_func, create->buflayout1.step_rate);
