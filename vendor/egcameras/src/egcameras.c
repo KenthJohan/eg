@@ -45,7 +45,7 @@ static void CameraUpdate(ecs_iter_t *it)
 	}
 }
 
-static void PrintMousePos(ecs_iter_t *it)
+static void MouseRayCast(ecs_iter_t *it)
 {
 	Window *win = ecs_field(it, Window, 0);                          // shared
 	Camera *cam = ecs_field(it, Camera, 1);                          // self
@@ -111,9 +111,9 @@ void EgCamerasImport(ecs_world_t *world)
 	{.entity = ecs_id(Camera),
 	.members = {
 	{.name = "fov", .type = ecs_id(ecs_f32_t)},
-	{.name = "view", .type = ecs_id(ecs_f32_t), .count = 16},
-	{.name = "projection", .type = ecs_id(ecs_f32_t), .count = 16},
-	{.name = "vp", .type = ecs_id(ecs_f32_t), .count = 16},
+	{.name = "view", .type = ecs_id(Transformation)},
+	{.name = "projection", .type = ecs_id(Transformation)},
+	{.name = "vp", .type = ecs_id(Transformation)},
 	}});
 
 	ecs_system(world, {.entity = ecs_entity(world, {.name = "CameraUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
@@ -125,8 +125,8 @@ void EgCamerasImport(ecs_world_t *world)
 	                  {.id = ecs_id(Window), .src.id = ecs_id(Window)},
 	                  }});
 
-	ecs_system(world, {.entity = ecs_entity(world, {.name = "PrintMousePos", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	                  .callback = PrintMousePos,
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "MouseRayCast", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	                  .callback = MouseRayCast,
 	                  .query.terms =
 	                  {
 	                  {.id = ecs_id(Window), .src.id = ecs_id(Window)},
