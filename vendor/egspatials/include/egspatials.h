@@ -18,6 +18,13 @@ typedef struct {
 	float x;
 	float y;
 	float z;
+	float w;
+} Vector4;
+
+typedef struct {
+	float x;
+	float y;
+	float z;
 } Ray3;
 
 typedef struct {

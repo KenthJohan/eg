@@ -2,6 +2,7 @@
 
 ECS_COMPONENT_DECLARE(Position2);
 ECS_COMPONENT_DECLARE(Position3);
+ECS_COMPONENT_DECLARE(Vector4);
 ECS_COMPONENT_DECLARE(Ray3);
 ECS_COMPONENT_DECLARE(Scale3);
 ECS_COMPONENT_DECLARE(Position3World);
@@ -235,6 +236,7 @@ void EgSpatialsImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, Position2);
 	ECS_COMPONENT_DEFINE(world, Position3);
+	ECS_COMPONENT_DEFINE(world, Vector4);
 	ECS_COMPONENT_DEFINE(world, Ray3);
 	ECS_COMPONENT_DEFINE(world, Scale3);
 	ECS_COMPONENT_DEFINE(world, Position3World);
@@ -346,10 +348,23 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.name = "dz", .type = ecs_id(ecs_f32_t)},
 	}});
 
+	ecs_struct(world, {
+	.entity = ecs_id(Vector4),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	{.name = "z", .type = ecs_id(ecs_f32_t)},
+	{.name = "w", .type = ecs_id(ecs_f32_t)},
+	}});
+
 	ecs_struct(world,
 	{.entity = ecs_id(Transformation),
 	.members = {
-	{.name = "matrix", .type = ecs_id(ecs_f32_t), .count = 16},
+	//{.name = "matrix", .type = ecs_id(ecs_f32_t), .count = 16},
+	{.name = "c0", .type = ecs_id(Vector4)},
+	{.name = "c1", .type = ecs_id(Vector4)},
+	{.name = "c2", .type = ecs_id(Vector4)},
+	{.name = "c3", .type = ecs_id(Vector4)},
 	}});
 
 	ecs_struct(world,

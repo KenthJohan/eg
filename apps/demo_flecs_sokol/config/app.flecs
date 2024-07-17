@@ -270,6 +270,7 @@ items {
 		Rotate3 : {0.001,0,0}
 		(my.intersectors.Hit, cam) : {0}
 		eg.colors.V4F32_RGBA : {1,0,0,-3}
+		Sinewave : {frequency:0.5, amplitude:0.1}
 		obj1 {
 			(eg.base.Use, meshes)
 			(eg.base.Use, meshes.cylinder2)
