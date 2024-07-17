@@ -4,7 +4,6 @@ module graphics.pipes
 points {
 	(eg.base.Use, graphics.shaders.points)
 	sg.PipelineCreate : {
-		shader : graphics.shaders.points, 
 		primtype : POINTS, 
 		cullmode : NONE, 
 		indextype : NONE
@@ -14,7 +13,6 @@ points {
 instancing {
 	(eg.base.Use, graphics.shaders.instancing)
 	sg.PipelineCreate : {
-		shader : graphics.shaders.instancing, 
 		primtype : LINES, 
 		cullmode : BACK, 
 		indextype : UINT16, 
@@ -26,7 +24,6 @@ instancing {
 shapes {
 	(eg.base.Use, graphics.shaders.shapes)
 	sg.PipelineCreate : {
-		shader : graphics.shaders.shapes, 
 		primtype : LINES, 
 		cullmode : BACK, 
 		indextype : UINT16,
@@ -38,7 +35,6 @@ shapes {
 lines {
 	(eg.base.Use, graphics.shaders.lines)
 	sg.PipelineCreate : {
-		shader : graphics.shaders.lines, 
 		primtype : LINES, 
 		cullmode : NONE, 
 		indextype : NONE

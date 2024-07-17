@@ -159,18 +159,12 @@ static void init_cb(app_t *app)
 
 
 	ecs_log_set_level(1);
-	//ecs_script_run_file(app->world, "config/keycode_sokol.flecs");
 	ecs_script_run_file(app->world, "config/graphics_attributes.flecs");
 	ecs_script_run_file(app->world, "config/graphics_ubs.flecs");
 	ecs_script_run_file(app->world, "config/graphics_shaders.flecs");
-	//ecs_progress(app->world, 0);
+	ecs_progress(app->world, 0); // TODO: Remove this
 	ecs_script_run_file(app->world, "config/graphics_pipes.flecs");
-	/*
-	ecs_progress(app->world, 0);
-	ecs_progress(app->world, 0);
-	ecs_progress(app->world, 0);
-	*/
-	//ecs_progress(app->world, 0);
+	ecs_progress(app->world, 0); // TODO: Remove this
 	ecs_script_run_file(app->world, "config/app.flecs");
 	ecs_log_set_level(-1);
 
@@ -178,7 +172,6 @@ static void init_cb(app_t *app)
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
 	printf("https://www.flecs.dev/explorer/?remote=true\n");
 
-	//ECS_SYSTEM(world, WindowLastFrame, EcsPostUpdate, Window($));
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "WindowLastFrame", .add = ecs_ids(ecs_dependson(EcsPostUpdate))}),
@@ -187,8 +180,7 @@ static void init_cb(app_t *app)
 	{
 	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
 	}});
-
-
+	
 	ecs_singleton_set(app->world, Window, {.w = 0, .h = 0});
 }
 

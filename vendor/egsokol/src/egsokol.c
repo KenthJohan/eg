@@ -162,45 +162,17 @@ static void Pip_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	SgPipelineCreate *create = ecs_field(it, SgPipelineCreate, 0); // self
-
-	// SgAttributes * attrs = ecs_field(it, SgAttributes, 1); // up
-	// ecs_entity_t entity_attrs = ecs_field_src(it, 1);
-	// SgShader *shader = ecs_field(it, SgShader, 2); // up
-	// ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
+	SgShader *shader = ecs_field(it, SgShader, 1);                 // shared
+	SgShaderCreate *sinfo = ecs_field(it, SgShaderCreate, 2);      // shared
 
 	ecs_log_set_level(1);
-	ecs_dbg("Pip_Create count:%i", it->count);
+	ecs_dbg("System Pip_Create() count:%i", it->count);
 	ecs_log_push_1();
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
-
 		ecs_dbg("Entity: %s", ecs_get_name(world, e));
 		ecs_log_push_1();
-
-		if (create->shader == 0) {
-			ecs_warn("No shader entity");
-			ecs_enable(world, e, false);
-			goto for_continue;
-		}
-		SgShader const *shader = ecs_get(world, create->shader, SgShader);
-		if (shader == NULL) {
-			ecs_warn("No SgShader component in shader entity");
-			ecs_enable(world, e, false);
-			goto for_continue;
-		}
-		SgShaderCreate const *shaderinfo = ecs_get(world, create->shader, SgShaderCreate);
-		if (shaderinfo == NULL) {
-			ecs_warn("No SgShaderCreate component in shader entity");
-			ecs_enable(world, e, false);
-			goto for_continue;
-		}
-
-
-
 		ecs_doc_set_color(world, e, ENTITY_COLOR);
-
-		// SgPipeline *pip = ecs_ensure(world, e, SgPipeline);
-
 		sg_pipeline_desc desc = {
 		.shader = (sg_shader){shader->id},
 		.depth = {.write_enabled = true, .compare = SG_COMPAREFUNC_LESS_EQUAL},
@@ -208,15 +180,21 @@ static void Pip_Create(ecs_iter_t *it)
 		.primitive_type = (sg_primitive_type)create->primtype,
 		.cull_mode = (sg_cull_mode)create->cullmode,
 		.layout.buffers = {
+		// TODO: Change to array when flecs explorer array gui is nice
 		{create->buflayout0.stride, create->buflayout0.step_func, create->buflayout0.step_rate},
 		{create->buflayout1.stride, create->buflayout1.step_func, create->buflayout1.step_rate},
 		{create->buflayout2.stride, create->buflayout2.step_func, create->buflayout2.step_rate},
+		{create->buflayout3.stride, create->buflayout3.step_func, create->buflayout3.step_rate},
+		{create->buflayout4.stride, create->buflayout4.step_func, create->buflayout4.step_rate},
+		{create->buflayout5.stride, create->buflayout5.step_func, create->buflayout5.step_rate},
+		{create->buflayout6.stride, create->buflayout6.step_func, create->buflayout6.step_rate},
+		{create->buflayout7.stride, create->buflayout7.step_func, create->buflayout7.step_rate},
 		},
 		// TODO: Use 1 when for offscreen rendering
 		// Use 4 when render directly
 		.sample_count = 1,
 		};
-		iterate_vertex_attrs(world, shaderinfo->attrs, desc.layout.attrs);
+		iterate_vertex_attrs(world, sinfo->attrs, desc.layout.attrs);
 
 		sg_pipeline pip = sg_make_pipeline(&desc);
 		sg_pipeline_info info = sg_query_pipeline_info(pip);
@@ -261,7 +239,7 @@ static void Shader_Create(ecs_iter_t *it)
 	ecs_doc_set_color(world, entity_blocks, ENTITY_COLOR);
 	*/
 	ecs_log_set_level(1);
-	ecs_dbg("Shader_Create count:%i", it->count);
+	ecs_dbg("System Shader_Create() count:%i", it->count);
 	ecs_log_push_1();
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
@@ -272,40 +250,39 @@ static void Shader_Create(ecs_iter_t *it)
 		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_1();
 
-		ecs_dbg("Readfile '%s'", create->filename_vs);
+		ecs_dbg("eg_fs_readfile '%s'", create->filename_vs);
 		desc.vs.source = eg_fs_readfile(create->filename_vs);
 		if (desc.vs.source == NULL) {
 			ecs_enable(world, e, false);
-			ecs_warn("Readfile '%s' failed", create->filename_vs);
+			ecs_warn("eg_fs_readfile '%s' failed", create->filename_vs);
 			goto for_continue;
 		}
 
-		ecs_dbg("Readfile '%s'", create->filename_fs);
+		ecs_dbg("eg_fs_readfile '%s'", create->filename_fs);
 		desc.fs.source = eg_fs_readfile(create->filename_fs);
 		if (desc.fs.source == NULL) {
 			ecs_enable(world, e, false);
-			ecs_warn("Readfile '%s' failed", create->filename_fs);
+			ecs_warn("eg_fs_readfile '%s' failed", create->filename_fs);
 			goto for_continue;
 		}
 
 		desc.vs.entry = "main";
 		desc.fs.entry = "main";
 
-		ecs_assert(desc.vs.source != NULL, ECS_INTERNAL_ERROR, NULL);
-		ecs_assert(desc.fs.source != NULL, ECS_INTERNAL_ERROR, NULL);
-		// shader->id = create_shader(desc->filename_fs, desc->filename_vs);
 		iterate_shader_attrs(world, create->attrs, desc.attrs);
 		iterate_shader_blocks(world, create->ubs, desc.vs.uniform_blocks);
 
+		ecs_assert(desc.vs.source != NULL, ECS_INTERNAL_ERROR, NULL);
+		ecs_assert(desc.fs.source != NULL, ECS_INTERNAL_ERROR, NULL);
 		sg_shader shd = sg_make_shader(&desc);
 		sg_shader_info info = sg_query_shader_info(shd);
 		if (info.slot.state != SG_RESOURCESTATE_VALID) {
-			ecs_warn("sg_make_shader failed");
+			ecs_warn("sg_make_shader() failed");
 			sg_destroy_shader(shd);
 			ecs_enable(world, e, false);
 			goto for_continue;
 		}
-		
+
 		SgShader *shader = ecs_ensure(world, e, SgShader);
 		shader->id = shd.id;
 		ecs_dbg("sg_make_shader() -> %i", shd.id);
@@ -441,7 +418,6 @@ void SgImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(SgPipelineCreate),
 	.members = {
-	{.name = "shader", .type = ecs_id(ecs_entity_t)},
 	{.name = "primtype", .type = ecs_id(SgPrimitiveType)},
 	{.name = "cullmode", .type = ecs_id(SgCullMode)},
 	{.name = "indextype", .type = ecs_id(SgIndexType)},
@@ -502,16 +478,19 @@ void SgImport(ecs_world_t *world)
 	}});
 
 	// clang-format off
-	ecs_system(world, {.entity = ecs_entity(world, {.name = "Pip_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	ecs_system(world, {
+		.entity = ecs_entity(world, {.name = "Pip_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 		.callback = Pip_Create,
 		.query.terms =
 		{
 		{.id = ecs_id(SgPipelineCreate), .src.id = EcsSelf},
 		{.id = ecs_id(SgShader), .trav = EgBaseUse, .src.id = EcsUp, .inout = EcsIn},
+		{.id = ecs_id(SgShaderCreate), .trav = EgBaseUse, .src.id = EcsUp, .inout = EcsIn},
 		{.id = ecs_id(SgPipeline), .oper = EcsNot}, // Adds this
 		}});
 
-	ecs_system(world, {.entity = ecs_entity(world, {.name = "Shader_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	ecs_system(world, {
+		.entity = ecs_entity(world, {.name = "Shader_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 		.callback = Shader_Create,
 		.query.terms =
 		{

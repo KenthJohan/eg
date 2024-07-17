@@ -83,10 +83,10 @@ typedef struct
 
 typedef struct
 {
-	ecs_entity_t shader;
 	SgPrimitiveType primtype;
 	SgCullMode cullmode;
 	SgIndexType indextype;
+	// TODO: Change to array when flecs explorer array gui is nice
 	SgVertexBufferLayout buflayout0;
 	SgVertexBufferLayout buflayout1;
 	SgVertexBufferLayout buflayout2;
