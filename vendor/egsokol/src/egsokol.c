@@ -20,7 +20,8 @@ ECS_COMPONENT_DECLARE(SgCullMode);
 ECS_COMPONENT_DECLARE(SgUniformBlock);
 ECS_COMPONENT_DECLARE(SgUniform);
 
-#define ENTITY_COLOR "#55A3F4"
+#define ENTITY_COLOR_OK "#62fc03"
+#define ENTITY_COLOR_ERR "#fc4a03"
 
 char *eg_fs_readfile(char const *path)
 {
@@ -97,7 +98,7 @@ static void iterate_shader_attrs(ecs_world_t *world, ecs_entity_t parent, sg_sha
 	while (ecs_children_next(&it)) {
 		for (int i = 0; i < it.count; i++) {
 			ecs_entity_t e = it.entities[i];
-			ecs_doc_set_color(world, e, ENTITY_COLOR);
+			//ecs_doc_set_color(world, e, ENTITY_COLOR);
 			char const *name = ecs_get_name(world, e);
 			SgLocation const *loc = ecs_get(world, e, SgLocation);
 			descs[loc->index].name = name;
@@ -111,7 +112,7 @@ static void iterate_shader_uniforms(ecs_world_t *world, ecs_entity_t parent, sg_
 	while (ecs_children_next(&it)) {
 		for (int i = 0; i < it.count; i++) {
 			ecs_entity_t e = it.entities[i];
-			ecs_doc_set_color(world, e, ENTITY_COLOR);
+			//ecs_doc_set_color(world, e, ENTITY_COLOR);
 			print_entity_from_it(&it, i);
 			char const *name = ecs_get_name(world, e);
 			SgUniform const *uniform = ecs_get(world, e, SgUniform);
@@ -129,7 +130,7 @@ static void iterate_shader_blocks(ecs_world_t *world, ecs_entity_t parent, sg_sh
 	while (ecs_children_next(&it)) {
 		for (int i = 0; i < it.count; i++) {
 			ecs_entity_t e = it.entities[i];
-			ecs_doc_set_color(world, e, ENTITY_COLOR);
+			//ecs_doc_set_color(world, e, ENTITY_COLOR);
 			print_entity_from_it(&it, i);
 			// char const * name = ecs_get_name(world, e);
 			ecs_i32_t index = ecs_get(world, e, SgUniformBlock)->index;
@@ -148,7 +149,7 @@ static void iterate_vertex_attrs(ecs_world_t *world, ecs_entity_t parent, sg_ver
 		for (int i = 0; i < it.count; i++) {
 			ecs_entity_t e = it.entities[i];
 			print_entity_from_it(&it, i);
-			ecs_doc_set_color(world, e, ENTITY_COLOR);
+			//ecs_doc_set_color(world, e, ENTITY_COLOR);
 			SgLocation *loc = ecs_get_mut(world, e, SgLocation);
 			sg_vertex_attr_state *outstate = descs + loc->index;
 			outstate->offset = loc->offset;
@@ -164,6 +165,8 @@ static void Pip_Create(ecs_iter_t *it)
 	SgPipelineCreate *create = ecs_field(it, SgPipelineCreate, 0); // self
 	SgShader *shader = ecs_field(it, SgShader, 1);                 // shared
 	SgShaderCreate *sinfo = ecs_field(it, SgShaderCreate, 2);      // shared
+	char const *statustext = "";
+	char const *color = "";
 
 	ecs_log_set_level(1);
 	ecs_dbg("System Pip_Create() count:%i", it->count);
@@ -172,7 +175,6 @@ static void Pip_Create(ecs_iter_t *it)
 		ecs_entity_t e = it->entities[i];
 		ecs_dbg("Entity: %s", ecs_get_name(world, e));
 		ecs_log_push_1();
-		ecs_doc_set_color(world, e, ENTITY_COLOR);
 		sg_pipeline_desc desc = {
 		.shader = (sg_shader){shader->id},
 		.depth = {.write_enabled = true, .compare = SG_COMPAREFUNC_LESS_EQUAL},
@@ -202,9 +204,12 @@ static void Pip_Create(ecs_iter_t *it)
 			ecs_warn("sg_make_pipeline failed");
 			sg_destroy_pipeline(pip);
 			ecs_enable(world, e, false);
+			statustext = "ERR";
+			color = ENTITY_COLOR_ERR;
 			goto for_continue;
 		}
-
+		statustext = "OK";
+		color = ENTITY_COLOR_OK;
 		ecs_set(world, e, SgPipeline, {pip.id});
 		ecs_dbg("sg_make_pipeline -> %i", pip.id);
 		ecs_log_push_1();
@@ -212,8 +217,13 @@ static void Pip_Create(ecs_iter_t *it)
 		ecs_dbg("buflayout1: %i %i %i", create->buflayout1.stride, create->buflayout1.step_func, create->buflayout1.step_rate);
 		ecs_log_pop_1();
 
-	for_continue:
+	for_continue: {
+		char docname[128];
+		snprintf(docname, 128, "%s [%s]", ecs_get_name(world, e), statustext);
+		ecs_doc_set_name(world, e, docname);
+		ecs_doc_set_color(world, e, color);
 		ecs_log_pop_1();
+	}
 	}
 	ecs_log_pop_1();
 	ecs_log_set_level(0);
@@ -232,29 +242,25 @@ static void Shader_Create(ecs_iter_t *it)
 		ecs_warn("No ubs entity");
 		return;
 	}
-	/*
-	ecs_entity_t entity_attrs = ecs_field_src(it, 1);
-	ecs_entity_t entity_blocks = ecs_field_src(it, 2);
-	ecs_doc_set_color(world, entity_attrs, ENTITY_COLOR);
-	ecs_doc_set_color(world, entity_blocks, ENTITY_COLOR);
-	*/
+	char const * statustext = "";
+	char const * color = "";
+
 	ecs_log_set_level(1);
 	ecs_dbg("System Shader_Create() count:%i", it->count);
 	ecs_log_push_1();
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
-		// print_entity_from_it(it, i);
-		ecs_doc_set_color(world, e, "#003366");
-		sg_shader_desc desc = {0};
-
 		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_1();
 
+		sg_shader_desc desc = {0};
 		ecs_dbg("eg_fs_readfile '%s'", create->filename_vs);
 		desc.vs.source = eg_fs_readfile(create->filename_vs);
 		if (desc.vs.source == NULL) {
 			ecs_enable(world, e, false);
 			ecs_warn("eg_fs_readfile '%s' failed", create->filename_vs);
+			statustext = "ERR";
+			color = ENTITY_COLOR_ERR;
 			goto for_continue;
 		}
 
@@ -263,6 +269,8 @@ static void Shader_Create(ecs_iter_t *it)
 		if (desc.fs.source == NULL) {
 			ecs_enable(world, e, false);
 			ecs_warn("eg_fs_readfile '%s' failed", create->filename_fs);
+			statustext = "ERR";
+			color = ENTITY_COLOR_ERR;
 			goto for_continue;
 		}
 
@@ -280,15 +288,24 @@ static void Shader_Create(ecs_iter_t *it)
 			ecs_warn("sg_make_shader() failed");
 			sg_destroy_shader(shd);
 			ecs_enable(world, e, false);
+			statustext = "ERR";
+			color = ENTITY_COLOR_ERR;
 			goto for_continue;
 		}
 
+		statustext = "OK";
+		color = ENTITY_COLOR_OK;
 		SgShader *shader = ecs_ensure(world, e, SgShader);
 		shader->id = shd.id;
 		ecs_dbg("sg_make_shader() -> %i", shd.id);
-	for_continue:
+	for_continue: {
+		char docname[128];
+		snprintf(docname, 128, "%s [%s]", ecs_get_name(world, e), statustext);
+		ecs_doc_set_name(world, e, docname);
+		ecs_doc_set_color(world, e, color);
 		ecs_log_pop_1();
 	}
+	} // END FOR LOOP
 	ecs_log_pop_1();
 	ecs_log_set_level(0);
 }
