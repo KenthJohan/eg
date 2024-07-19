@@ -33,10 +33,38 @@ static void ig_debug_draw()
 	}
 }
 
+typedef struct {
+	char name[128];
+	int type;
+	int order;
+	int mode;
+	int start;
+	int length;
+	double factor;
+	double offset;
+	double min;
+	double max;
+	char unit[128];
+} signal_table_t;
+
+static int signal_table_bitpos_to_signal(signal_table_t table[], int length, int bitpos)
+{
+	for(int i = 0; i < length; ++i) {
+		if (table[i].start > bitpos) {
+			continue;
+		}
+		if ((table[i].start + table[i].length) <= bitpos) {
+			continue;
+		}
+		return i;
+	}
+	return -1;
+}
+
 /*
 https://www.csselectronics.com/pages/dbc-editor-can-bus-database
 */
-static void show_table1(uint8_t value[], int length)
+static void show_table1(signal_table_t table[], int table_length, int message_length)
 {
 	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoHostExtendX;
 	if (igBeginTable("Message", 9, flags, (ImVec2){(0.0F), (0.0F)}, (0.0F)) == false) {
@@ -50,21 +78,25 @@ static void show_table1(uint8_t value[], int length)
 		igTableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(50, 50, 50, 255), -1);
 	}
 
-	for (int row = 0; row < length; row++) {
+	int bitpos = 0;
+	for (int row = 0; row < message_length; row++) {
 		igTableNextRow(0, 0);
+
+		igPushID_Int(row);
 
 		// Fill cells
 		igTableSetColumnIndex(0);
 		igText("%02X", row);
 		igTableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(50, 50, 50, 255), -1);
-
+		
 		for (int column = 0; column < 8; column++) {
+			igPushID_Int(column);
 			igTableSetColumnIndex(column + 1);
 			// igText("%c%c", 'A' + row, '0' + column);
 			char buf[128];
-			snprintf(buf, 128, "%c%c", 'A' + row, '0' + column);
+			snprintf(buf, 128, "%i", signal_table_bitpos_to_signal(table, table_length, bitpos));
 			igSelectable_Bool(buf, false, 0, (ImVec2){0, 0});
-
+			bitpos++;
 			// Change background of Cells B1->C2
 			// Demonstrate setting a cell background color with 'ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ...)'
 			// (the CellBg color will be blended over the RowBg and ColumnBg colors)
@@ -73,7 +105,9 @@ static void show_table1(uint8_t value[], int length)
 				ImU32 cell_bg_color = igGetColorU32_Vec4((ImVec4){0.3f, 0.3f, 0.7f, 0.65f});
 				igTableSetBgColor(ImGuiTableBgTarget_CellBg, cell_bg_color, -1);
 			}
+			igPopID();
 		}
+		igPopID();
 	}
 	igEndTable();
 }
@@ -85,6 +119,7 @@ typedef enum {
 	GENERIC_GUI_KIND_INPUT_TEXT,
 	GENERIC_GUI_KIND_INPUT_INT,
 	GENERIC_GUI_KIND_INPUT_FLOAT,
+	GENERIC_GUI_KIND_INPUT_DOUBLE,
 } generic_gui_kind_t;
 
 typedef struct {
@@ -100,6 +135,11 @@ typedef struct {
 		struct {
 			int value;
 		} text_int;
+
+		struct {
+			int value;
+			bool *selected;
+		} selectable_int;
 	};
 } generic_gui_t;
 
@@ -114,7 +154,7 @@ static void generic_gui(generic_gui_t *item)
 	case GENERIC_GUI_KIND_TEXT_SELECTABLE_INT: {
 		char buf[128];
 		snprintf(buf, 128, "%i", item->text_int.value);
-		igSelectable_Bool(buf, false, ImGuiSelectableFlags_SpanAllColumns, (ImVec2){0, 0});
+		//*item->selectable_int.selected = igSelectable_Bool(buf, *item->selectable_int.selected, ImGuiSelectableFlags_SpanAllColumns, (ImVec2){0, 0});
 	} break;
 
 	case GENERIC_GUI_KIND_INPUT_TEXT:
@@ -135,13 +175,19 @@ static void generic_gui(generic_gui_t *item)
 		igPopItemWidth();
 		break;
 
+	case GENERIC_GUI_KIND_INPUT_DOUBLE:
+		igPushItemWidth(-1);
+		igInputDouble(item->label, item->input.data, 0, 0, "%f", 0);
+		igPopItemWidth();
+		break;
+
 	default:
 		break;
 	}
 	igPopID();
 }
 
-static void show_table2(uint8_t value[], int length)
+static void show_table2(signal_table_t value[], int length)
 {
 	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 	if (igBeginTable("Signals", 12, flags, (ImVec2){0, 0}, 0) == false) {
@@ -165,22 +211,23 @@ static void show_table2(uint8_t value[], int length)
 	static char buf[128];
 	static int start;
 	static float factor;
+	static bool selected[64] = {false};
 	for (int i = 0; i < length; ++i) {
 
 		igTableNextColumn();
 		generic_gui(&(generic_gui_t){
 		.label = "##Select",
 		.kind = GENERIC_GUI_KIND_TEXT_SELECTABLE_INT,
-		.text_int.value = i,
-		});
+		.selectable_int.value = i,
+		.selectable_int.selected = selected + i});
 
 		igTableNextColumn();
 		generic_gui(&(generic_gui_t){
 		.label = "##Name",
 		.id = i,
 		.kind = GENERIC_GUI_KIND_INPUT_TEXT,
-		.input.data = buf,
-		.input.data_size = sizeof(buf),
+		.input.data = value[i].name,
+		.input.data_size = 128,
 		});
 
 		igTableNextColumn();
@@ -197,8 +244,8 @@ static void show_table2(uint8_t value[], int length)
 		.label = "##Start",
 		.id = i,
 		.kind = GENERIC_GUI_KIND_INPUT_INT,
-		.input.data = &start,
-		.input.data_size = sizeof(start),
+		.input.data = &value[i].start,
+		.input.data_size = sizeof(value[i].start),
 		});
 
 		igTableNextColumn();
@@ -206,26 +253,26 @@ static void show_table2(uint8_t value[], int length)
 		.label = "##Length",
 		.id = i,
 		.kind = GENERIC_GUI_KIND_INPUT_INT,
-		.input.data = &start,
-		.input.data_size = sizeof(start),
+		.input.data = &value[i].length,
+		.input.data_size = sizeof(value[i].length),
 		});
 
 		igTableNextColumn();
 		generic_gui(&(generic_gui_t){
 		.label = "##Factor",
 		.id = i,
-		.kind = GENERIC_GUI_KIND_INPUT_FLOAT,
-		.input.data = &start,
-		.input.data_size = sizeof(start),
+		.kind = GENERIC_GUI_KIND_INPUT_DOUBLE,
+		.input.data = &value[i].factor,
+		.input.data_size = sizeof(value[i].factor),
 		});
 
 		igTableNextColumn();
 		generic_gui(&(generic_gui_t){
 		.label = "##Offset",
 		.id = i,
-		.kind = GENERIC_GUI_KIND_INPUT_FLOAT,
-		.input.data = &start,
-		.input.data_size = sizeof(start),
+		.kind = GENERIC_GUI_KIND_INPUT_DOUBLE,
+		.input.data = &value[i].offset,
+		.input.data_size = sizeof(value[i].offset),
 		});
 
 		igTableNextColumn();
@@ -233,8 +280,8 @@ static void show_table2(uint8_t value[], int length)
 		.label = "##Min",
 		.id = i,
 		.kind = GENERIC_GUI_KIND_INPUT_FLOAT,
-		.input.data = &start,
-		.input.data_size = sizeof(start),
+		.input.data = &value[i].min,
+		.input.data_size = sizeof(value[i].min),
 		});
 
 		igTableNextColumn();
@@ -242,8 +289,8 @@ static void show_table2(uint8_t value[], int length)
 		.label = "##Max",
 		.id = i,
 		.kind = GENERIC_GUI_KIND_INPUT_FLOAT,
-		.input.data = &start,
-		.input.data_size = sizeof(start),
+		.input.data = &value[i].max,
+		.input.data_size = sizeof(value[i].max),
 		});
 
 		igTableNextColumn();
@@ -291,9 +338,12 @@ void app_gui_window_main(app_t *app)
 	if (igBeginTabBar("tabs", 0)) {
 		// igText("Hello");
 		if (igBeginTabItem("Message", NULL, 0)) {
-			show_table1(NULL, 64);
+			static signal_table_t stable[5] = {
+			{.name = "WheelBased", .type = 0, .order = 0, .mode = 0, .start = 0, .length = 16, .factor = 0.01, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"}};
+
+			show_table1(stable, 5, 64);
 			igSameLine(0, 10);
-			show_table2(NULL, 64);
+			show_table2(stable, 5);
 			igEndTabItem();
 		}
 		if (igBeginTabItem("Tab2", NULL, 0)) {
