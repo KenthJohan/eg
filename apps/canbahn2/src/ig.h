@@ -1,5 +1,8 @@
 #pragma once
 #include <stdint.h>
+#include <stdbool.h>
+
+#include <stddef.h>
 
 void igPushStyleColor_U32_HSV_strhash(const char *cp);
 
@@ -24,4 +27,41 @@ void igPushStyleColor_U32_HSV_hash32(uint32_t value);
 #define IM_COL32_BLACK IM_COL32(0, 0, 0, 255)       // Opaque black
 #define IM_COL32_BLACK_TRANS IM_COL32(0, 0, 0, 0)   // Transparent black = 0x00000000
 
-uint32_t hash32_to_color32(uint32_t value);
+uint32_t hash32_to_color32(uint32_t value, uint8_t v);
+
+
+typedef enum {
+	GENERIC_GUI_KIND_TEXT_INT,
+	GENERIC_GUI_KIND_TEXT_SELECTABLE,
+	GENERIC_GUI_KIND_TEXT_SELECTABLE_INT,
+	GENERIC_GUI_KIND_INPUT_TEXT,
+	GENERIC_GUI_KIND_INPUT_INT,
+	GENERIC_GUI_KIND_INPUT_FLOAT,
+	GENERIC_GUI_KIND_INPUT_DOUBLE,
+} generic_gui_kind_t;
+
+typedef struct {
+	int id;
+	generic_gui_kind_t kind;
+	char const *label;
+	union {
+		struct {
+			void *data;
+			size_t data_size;
+		} input;
+
+		struct {
+			int value;
+		} text_int;
+
+		struct {
+			int value;
+			bool *selected;
+			float height;
+		} selectable_int;
+	};
+} generic_gui_t;
+
+void generic_gui(generic_gui_t *item);
+
+void ig_debug_draw();

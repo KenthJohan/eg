@@ -134,7 +134,7 @@ void igPushStyleColor_U32_HSV_hash32(uint32_t value)
 	igPushStyleColor_U32(ImGuiCol_Text, IM_COL32(r, g, b, 255));
 }
 
-uint32_t hash32_to_color32(uint32_t value)
+uint32_t hash32_to_color32(uint32_t value, uint8_t v)
 {
 	size_t hash;
 	hash = 5381;
@@ -148,6 +148,67 @@ uint32_t hash32_to_color32(uint32_t value)
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
-	color_hsv_to_rgb(h, s, 255, &r, &g, &b);
+	color_hsv_to_rgb(h, s, v, &r, &g, &b);
 	return IM_COL32(r, g, b, 255);
+}
+
+
+
+
+
+
+void generic_gui(generic_gui_t *item)
+{
+	igPushID_Int(item->id);
+	switch (item->kind) {
+	case GENERIC_GUI_KIND_TEXT_INT:
+		igText("%i", item->text_int.value);
+		break;
+
+	case GENERIC_GUI_KIND_TEXT_SELECTABLE_INT: {
+		char buf[128];
+		snprintf(buf, 128, "%i", item->text_int.value);
+		ImGuiSelectableFlags flags = ImGuiSelectableFlags_SpanAllColumns & 0;
+		*item->selectable_int.selected = igSelectable_Bool(buf, *item->selectable_int.selected, flags, (ImVec2){0, 0});
+	} break;
+
+	case GENERIC_GUI_KIND_INPUT_TEXT:
+		igPushItemWidth(-1);
+		igInputText(item->label, item->input.data, item->input.data_size, 0, 0, 0);
+		igPopItemWidth();
+		break;
+
+	case GENERIC_GUI_KIND_INPUT_INT:
+		igPushItemWidth(-1);
+		igInputInt(item->label, item->input.data, 0, 0, 0);
+		igPopItemWidth();
+		break;
+
+	case GENERIC_GUI_KIND_INPUT_FLOAT:
+		igPushItemWidth(-1);
+		igInputFloat(item->label, item->input.data, 0, 0, "%f", 0);
+		igPopItemWidth();
+		break;
+
+	case GENERIC_GUI_KIND_INPUT_DOUBLE:
+		igPushItemWidth(-1);
+		igInputDouble(item->label, item->input.data, 0, 0, "%f", 0);
+		igPopItemWidth();
+		break;
+
+	default:
+		break;
+	}
+	igPopID();
+}
+
+
+void ig_debug_draw()
+{
+	ImVec2 my_pos;
+	igGetCursorScreenPos(&my_pos);
+	if (igIsKeyDown_Nil(ImGuiKey_J)) {
+		igDebugDrawItemRect(4278190335U); // Helper to draw a rectangle between GetItemRectMin() and GetItemRectMax()
+		ImDrawList_AddCircleFilled(igGetForegroundDrawList_WindowPtr(NULL), my_pos, 3, IM_COL32(255, 0, 0, 255), 0);
+	}
 }

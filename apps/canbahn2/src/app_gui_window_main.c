@@ -8,15 +8,6 @@
 #include "ig.h"
 
 
-static void ig_debug_draw()
-{
-	ImVec2 my_pos;
-	igGetCursorScreenPos(&my_pos);
-	if (igIsKeyDown_Nil(ImGuiKey_J)) {
-		igDebugDrawItemRect(4278190335U); // Helper to draw a rectangle between GetItemRectMin() and GetItemRectMax()
-		ImDrawList_AddCircleFilled(igGetForegroundDrawList_Nil(), my_pos, 3, IM_COL32(255, 0, 0, 255), 0);
-	}
-}
 
 
 
@@ -37,6 +28,11 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 		igTableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(50, 50, 50, 255), -1);
 	}
 
+
+	for(int i = 0; i < metas_length; ++i) {
+		metas[i].hover2 = false;
+	}
+
 	int bitpos = 0;
 	for (int row = 0; row < message_length; row++) {
 		igTableNextRow(0, 0);
@@ -53,9 +49,13 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 			igTableSetColumnIndex(column + 1);
 			// igText("%c%c", 'A' + row, '0' + column);
 			int sigint = dbcsig_meta_bitpos_to_signal(metas, metas_length, bitpos);
+
 			char buf[128];
 			snprintf(buf, 128, "%i", sigint);
 			igSelectable_Bool(buf, false, 0, (ImVec2){0, 0});
+
+			
+
 			bitpos++;
 			// Change background of Cells B1->C2
 			// Demonstrate setting a cell background color with 'ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ...)'
@@ -66,8 +66,17 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 			//	igTableSetBgColor(ImGuiTableBgTarget_CellBg, cell_bg_color, -1);
 			//}
 			if (sigint >= 0) {
-				igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint), -1);
+				if (metas[sigint].hover1) {
+					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 255), -1);
+				} else {
+					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 200), -1);
+				}
+				metas[sigint].hover2 |= igIsItemHovered(0);
+				if (metas[sigint].hover2) {
+					//printf("sigint %i!\n", sigint);
+				}
 			}
+
 
 			igPopID();
 		}
@@ -75,82 +84,6 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 	}
 	igEndTable();
 }
-
-typedef enum {
-	GENERIC_GUI_KIND_TEXT_INT,
-	GENERIC_GUI_KIND_TEXT_SELECTABLE,
-	GENERIC_GUI_KIND_TEXT_SELECTABLE_INT,
-	GENERIC_GUI_KIND_INPUT_TEXT,
-	GENERIC_GUI_KIND_INPUT_INT,
-	GENERIC_GUI_KIND_INPUT_FLOAT,
-	GENERIC_GUI_KIND_INPUT_DOUBLE,
-} generic_gui_kind_t;
-
-typedef struct {
-	int id;
-	generic_gui_kind_t kind;
-	char const *label;
-	union {
-		struct {
-			void *data;
-			size_t data_size;
-		} input;
-
-		struct {
-			int value;
-		} text_int;
-
-		struct {
-			int value;
-			bool *selected;
-		} selectable_int;
-	};
-} generic_gui_t;
-
-static void generic_gui(generic_gui_t *item)
-{
-	igPushID_Int(item->id);
-	switch (item->kind) {
-	case GENERIC_GUI_KIND_TEXT_INT:
-		igText("%i", item->text_int.value);
-		break;
-
-	case GENERIC_GUI_KIND_TEXT_SELECTABLE_INT: {
-		char buf[128];
-		snprintf(buf, 128, "%i", item->text_int.value);
-		//*item->selectable_int.selected = igSelectable_Bool(buf, *item->selectable_int.selected, ImGuiSelectableFlags_SpanAllColumns, (ImVec2){0, 0});
-	} break;
-
-	case GENERIC_GUI_KIND_INPUT_TEXT:
-		igPushItemWidth(-1);
-		igInputText(item->label, item->input.data, item->input.data_size, 0, 0, 0);
-		igPopItemWidth();
-		break;
-
-	case GENERIC_GUI_KIND_INPUT_INT:
-		igPushItemWidth(-1);
-		igInputInt(item->label, item->input.data, 0, 0, 0);
-		igPopItemWidth();
-		break;
-
-	case GENERIC_GUI_KIND_INPUT_FLOAT:
-		igPushItemWidth(-1);
-		igInputFloat(item->label, item->input.data, 0, 0, "%f", 0);
-		igPopItemWidth();
-		break;
-
-	case GENERIC_GUI_KIND_INPUT_DOUBLE:
-		igPushItemWidth(-1);
-		igInputDouble(item->label, item->input.data, 0, 0, "%f", 0);
-		igPopItemWidth();
-		break;
-
-	default:
-		break;
-	}
-	igPopID();
-}
-
 
 
 static void show_table2(dbcsig_meta_t metas[], int metas_length)
@@ -177,19 +110,34 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 	static char buf[128];
 	static int start;
 	static float factor;
-	static bool selected[64] = {false};
+	float row_min_height = 24.0f;
+
+
 	for (int i = 0; i < metas_length; ++i) {
 		dbcsig_meta_t * meta = metas + i;
 
-		igTableNextColumn();
-		//igPushStyleColor_U32_HSV_hash32(i);
+		igTableNextRow(ImGuiTableRowFlags_None, row_min_height);
+		igPushID_Int(i);
 
-		igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(i), -1);
+
+
+		igTableNextColumn();
+		igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(i, 255), -1);
 		generic_gui(&(generic_gui_t){
 		.label = "##Select",
 		.kind = GENERIC_GUI_KIND_TEXT_SELECTABLE_INT,
+		.selectable_int.height = row_min_height,
 		.selectable_int.value = i,
-		.selectable_int.selected = selected + i});
+		.selectable_int.selected = &meta->selected});
+
+		meta->hover1 = igIsItemHovered(0);
+
+		if (meta->hover1) {
+			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
+		}
+		if (meta->hover2) {
+			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
+		}
 
 		igTableNextColumn();
 		generic_gui(&(generic_gui_t){
@@ -265,6 +213,9 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 
 		igTableNextColumn();
 		igText("hej11");
+
+
+		igPopID();
 	}
 
 	igEndTable();
@@ -308,13 +259,14 @@ void app_gui_window_main(app_t *app)
 	if (igBeginTabBar("tabs", 0)) {
 		// igText("Hello");
 		if (igBeginTabItem("Message", NULL, 0)) {
-			static dbcsig_meta_t metas[5] = {
+			#define METAS_COUNT 10
+			static dbcsig_meta_t metas[METAS_COUNT] = {
 			{.name = "WheelBased", .type = 0, .order = 0, .mode = 0, .start = 0, .length = 16, .factor = 0.01, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"},
 			{.name = "EngineSpeed", .type = 0, .order = 0, .mode = 0, .start = 24, .length = 16, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "rpm"}};
 
-			show_table1(metas, 5, 64);
+			show_table1(metas, METAS_COUNT, 64);
 			igSameLine(0, 10);
-			show_table2(metas, 5);
+			show_table2(metas, METAS_COUNT);
 			igEndTabItem();
 		}
 		if (igBeginTabItem("Tab2", NULL, 0)) {

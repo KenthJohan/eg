@@ -143,7 +143,9 @@
 		"mycontroller.h": "c",
 		"egbase.h": "c",
 		"myintersectors.h": "c",
-		"unordered_map": "cpp"
+		"unordered_map": "cpp",
+		"ig.h": "c",
+		"stdbool.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
