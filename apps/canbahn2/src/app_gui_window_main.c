@@ -33,7 +33,6 @@ static void ig_debug_draw()
 	}
 }
 
-
 /*
 https://www.csselectronics.com/pages/dbc-editor-can-bus-database
 */
@@ -79,14 +78,78 @@ static void show_table1(uint8_t value[], int length)
 	igEndTable();
 }
 
+typedef enum {
+	GENERIC_GUI_KIND_TEXT_INT,
+	GENERIC_GUI_KIND_TEXT_SELECTABLE,
+	GENERIC_GUI_KIND_TEXT_SELECTABLE_INT,
+	GENERIC_GUI_KIND_INPUT_TEXT,
+	GENERIC_GUI_KIND_INPUT_INT,
+	GENERIC_GUI_KIND_INPUT_FLOAT,
+} generic_gui_kind_t;
+
+typedef struct {
+	int id;
+	generic_gui_kind_t kind;
+	char const *label;
+	union {
+		struct {
+			void *data;
+			size_t data_size;
+		} input;
+
+		struct {
+			int value;
+		} text_int;
+	};
+} generic_gui_t;
+
+static void generic_gui(generic_gui_t *item)
+{
+	igPushID_Int(item->id);
+	switch (item->kind) {
+	case GENERIC_GUI_KIND_TEXT_INT:
+		igText("%i", item->text_int.value);
+		break;
+
+	case GENERIC_GUI_KIND_TEXT_SELECTABLE_INT: {
+		char buf[128];
+		snprintf(buf, 128, "%i", item->text_int.value);
+		igSelectable_Bool(buf, false, ImGuiSelectableFlags_SpanAllColumns, (ImVec2){0, 0});
+	} break;
+
+	case GENERIC_GUI_KIND_INPUT_TEXT:
+		igPushItemWidth(-1);
+		igInputText(item->label, item->input.data, item->input.data_size, 0, 0, 0);
+		igPopItemWidth();
+		break;
+
+	case GENERIC_GUI_KIND_INPUT_INT:
+		igPushItemWidth(-1);
+		igInputInt(item->label, item->input.data, 0, 0, 0);
+		igPopItemWidth();
+		break;
+
+	case GENERIC_GUI_KIND_INPUT_FLOAT:
+		igPushItemWidth(-1);
+		igInputFloat(item->label, item->input.data, 0, 0, "%f", 0);
+		igPopItemWidth();
+		break;
+
+	default:
+		break;
+	}
+	igPopID();
+}
+
 static void show_table2(uint8_t value[], int length)
 {
 	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-	if (igBeginTable("Signals", 11, flags, (ImVec2){0, 0}, 0) == false) {
+	if (igBeginTable("Signals", 12, flags, (ImVec2){0, 0}, 0) == false) {
 		return;
 	}
 	// igTableSetupColumn("bus", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
 	// igTableSetupColumn("sock", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultHide, 50, 0);
+	igTableSetupColumn("#", ImGuiTableColumnFlags_WidthFixed, 20, 0);
 	igTableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 	igTableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 	igTableSetupColumn("Order", ImGuiTableColumnFlags_WidthFixed, 100, 0);
@@ -101,41 +164,88 @@ static void show_table2(uint8_t value[], int length)
 	igTableHeadersRow();
 	static char buf[128];
 	static int start;
+	static float factor;
 	for (int i = 0; i < length; ++i) {
 
 		igTableNextColumn();
-        igPushID_Int(i);
-		igPushItemWidth(-1);
-		igInputText("##Name", buf, 128, 0, 0, 0);
-		igPopItemWidth();
-        igPopID();
+		generic_gui(&(generic_gui_t){
+		.label = "##Select",
+		.kind = GENERIC_GUI_KIND_TEXT_SELECTABLE_INT,
+		.text_int.value = i,
+		});
 
 		igTableNextColumn();
-		igText("hej2");
+		generic_gui(&(generic_gui_t){
+		.label = "##Name",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_TEXT,
+		.input.data = buf,
+		.input.data_size = sizeof(buf),
+		});
 
 		igTableNextColumn();
-		igText("hej3");
+		igText("Type");
 
 		igTableNextColumn();
-		igText("hej4");
+		igText("Order");
 
 		igTableNextColumn();
-        igPushID_Int(i);
-		igPushItemWidth(-1);
-		igInputInt("##Start", &start, 0, 0, 0);
-		igPopItemWidth();
-        igPopID();
+		igText("Mode");
 
 		igTableNextColumn();
-		igText("hej6");
+		generic_gui(&(generic_gui_t){
+		.label = "##Start",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_INT,
+		.input.data = &start,
+		.input.data_size = sizeof(start),
+		});
+
 		igTableNextColumn();
-		igText("hej7");
+		generic_gui(&(generic_gui_t){
+		.label = "##Length",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_INT,
+		.input.data = &start,
+		.input.data_size = sizeof(start),
+		});
+
 		igTableNextColumn();
-		igText("hej8");
+		generic_gui(&(generic_gui_t){
+		.label = "##Factor",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_FLOAT,
+		.input.data = &start,
+		.input.data_size = sizeof(start),
+		});
+
 		igTableNextColumn();
-		igText("hej9");
+		generic_gui(&(generic_gui_t){
+		.label = "##Offset",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_FLOAT,
+		.input.data = &start,
+		.input.data_size = sizeof(start),
+		});
+
 		igTableNextColumn();
-		igText("hej10");
+		generic_gui(&(generic_gui_t){
+		.label = "##Min",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_FLOAT,
+		.input.data = &start,
+		.input.data_size = sizeof(start),
+		});
+
+		igTableNextColumn();
+		generic_gui(&(generic_gui_t){
+		.label = "##Max",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_FLOAT,
+		.input.data = &start,
+		.input.data_size = sizeof(start),
+		});
+
 		igTableNextColumn();
 		igText("hej11");
 	}
@@ -182,7 +292,7 @@ void app_gui_window_main(app_t *app)
 		// igText("Hello");
 		if (igBeginTabItem("Message", NULL, 0)) {
 			show_table1(NULL, 64);
-			igSameLine(0,10);
+			igSameLine(0, 10);
 			show_table2(NULL, 64);
 			igEndTabItem();
 		}
