@@ -10,7 +10,7 @@
 
 #include <float.h>
 
-
+/*
 
 ecs_query_t * egimgui_query1(ecs_world_t *world)
 {
@@ -74,3 +74,4 @@ void EgImguiImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgColors);
 	ecs_set_name_prefix(world, "EgImgui");
 }
+*/
