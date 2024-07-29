@@ -168,7 +168,7 @@ void generic_gui(generic_gui_t *item)
 	case GENERIC_GUI_KIND_TEXT_SELECTABLE_INT: {
 		char buf[128];
 		snprintf(buf, 128, "%i", item->text_int.value);
-		ImGuiSelectableFlags flags = ImGuiSelectableFlags_SpanAllColumns & 0;
+		ImGuiSelectableFlags flags = ImGuiSelectableFlags_SpanAllColumns;
 		*item->selectable_int.selected = igSelectable_Bool(buf, *item->selectable_int.selected, flags, (ImVec2){0, 0});
 	} break;
 

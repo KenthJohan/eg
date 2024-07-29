@@ -125,12 +125,9 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 		igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(i, 255), -1);
 		generic_gui(&(generic_gui_t){
 		.label = "##Select",
-		.kind = GENERIC_GUI_KIND_TEXT_SELECTABLE_INT,
-		.selectable_int.height = row_min_height,
-		.selectable_int.value = i,
-		.selectable_int.selected = &meta->selected});
+		.kind = GENERIC_GUI_KIND_TEXT_INT,
+		.text_int.value = i});
 
-		meta->hover1 = igIsItemHovered(0);
 
 		if (meta->hover1) {
 			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
@@ -216,6 +213,12 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 
 
 		igPopID();
+		meta->hover1 = false;
+	}
+
+	int ri = igTableGetHoveredRow() - 1;
+	if ((ri >= 0) && (ri < metas_length)) {
+		metas[ri].hover1 = true;
 	}
 
 	igEndTable();
@@ -262,7 +265,9 @@ void app_gui_window_main(app_t *app)
 			#define METAS_COUNT 10
 			static dbcsig_meta_t metas[METAS_COUNT] = {
 			{.name = "WheelBased", .type = 0, .order = 0, .mode = 0, .start = 0, .length = 16, .factor = 0.01, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"},
-			{.name = "EngineSpeed", .type = 0, .order = 0, .mode = 0, .start = 24, .length = 16, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "rpm"}};
+			{.name = "EngineSpeed", .type = 0, .order = 0, .mode = 0, .start = 24, .length = 16, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "rpm"},
+			{.name = "WindSpeed1", .type = 0, .order = 0, .mode = 0, .start = 16, .length = 4, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"},
+			{.name = "WindSpeed2", .type = 0, .order = 0, .mode = 0, .start = 20, .length = 4, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"}};
 
 			show_table1(metas, METAS_COUNT, 64);
 			igSameLine(0, 10);
