@@ -59,6 +59,81 @@ typedef enum {
 } SgVertexFormat;
 
 typedef enum {
+	SgPixelFormatDEFAULT,
+	SgPixelFormatNONE,
+	SgPixelFormatR8,
+	SgPixelFormatR8SN,
+	SgPixelFormatR8UI,
+	SgPixelFormatR8SI,
+	SgPixelFormatR16,
+	SgPixelFormatR16SN,
+	SgPixelFormatR16UI,
+	SgPixelFormatR16SI,
+	SgPixelFormatR16F,
+	SgPixelFormatRG8,
+	SgPixelFormatRG8SN,
+	SgPixelFormatRG8UI,
+	SgPixelFormatRG8SI,
+	SgPixelFormatR32UI,
+	SgPixelFormatR32SI,
+	SgPixelFormatR32F,
+	SgPixelFormatRG16,
+	SgPixelFormatRG16SN,
+	SgPixelFormatRG16UI,
+	SgPixelFormatRG16SI,
+	SgPixelFormatRG16F,
+	SgPixelFormatRGBA8,
+	SgPixelFormatSRGB8A8,
+	SgPixelFormatRGBA8SN,
+	SgPixelFormatRGBA8UI,
+	SgPixelFormatRGBA8SI,
+	SgPixelFormatBGRA8,
+	SgPixelFormatRGB10A2,
+	SgPixelFormatRG11B10F,
+	SgPixelFormatRGB9E5,
+	SgPixelFormatRG32UI,
+	SgPixelFormatRG32SI,
+	SgPixelFormatRG32F,
+	SgPixelFormatRGBA16,
+	SgPixelFormatRGBA16SN,
+	SgPixelFormatRGBA16UI,
+	SgPixelFormatRGBA16SI,
+	SgPixelFormatRGBA16F,
+	SgPixelFormatRGBA32UI,
+	SgPixelFormatRGBA32SI,
+	SgPixelFormatRGBA32F,
+	SgPixelFormatDEPTH,
+	SgPixelFormatDEPTH_STENCIL,
+	SgPixelFormatBC1_RGBA,
+	SgPixelFormatBC2_RGBA,
+	SgPixelFormatBC3_RGBA,
+	SgPixelFormatBC3_SRGBA,
+	SgPixelFormatBC4_R,
+	SgPixelFormatBC4_RSN,
+	SgPixelFormatBC5_RG,
+	SgPixelFormatBC5_RGSN,
+	SgPixelFormatBC6H_RGBF,
+	SgPixelFormatBC6H_RGBUF,
+	SgPixelFormatBC7_RGBA,
+	SgPixelFormatBC7_SRGBA,
+	SgPixelFormatPVRTC_RGB_2BPP,      // FIXME: deprecated
+	SgPixelFormatPVRTC_RGB_4BPP,      // FIXME: deprecated
+	SgPixelFormatPVRTC_RGBA_2BPP,     // FIXME: deprecated
+	SgPixelFormatPVRTC_RGBA_4BPP,     // FIXME: deprecated
+	SgPixelFormatETC2_RGB8,
+	SgPixelFormatETC2_SRGB8,
+	SgPixelFormatETC2_RGB8A1,
+	SgPixelFormatETC2_RGBA8,
+	SgPixelFormatETC2_SRGB8A8,
+	SgPixelFormatETC2_RG11,
+	SgPixelFormatETC2_RG11SN,
+	SgPixelFormatASTC_4x4_RGBA,
+	SgPixelFormatASTC_4x4_SRGBA,
+	SgPixelFormatNUM,
+	SgPixelFormatFORCE_U32 = 0x7FFFFFFF
+} SgPixelFormat;
+
+typedef enum {
 	SgUniformTypeINVALID,
 	SgUniformTypeFLOAT,
 	SgUniformTypeFLOAT2,
@@ -80,6 +155,19 @@ typedef struct
 	ecs_i32_t step_rate;
 } SgVertexBufferLayout;
 
+
+typedef struct
+{
+	ecs_i32_t width;
+	ecs_i32_t height;
+	ecs_i32_t slices;
+	SgPixelFormat format;
+} SgImageCreate;
+
+typedef struct
+{
+	uint32_t id;
+} SgImage;
 
 typedef struct
 {
@@ -146,6 +234,9 @@ typedef struct
 	SgUniformType type;
 } SgUniform;
 
+
+extern ECS_COMPONENT_DECLARE(SgImageCreate);
+extern ECS_COMPONENT_DECLARE(SgImage);
 extern ECS_COMPONENT_DECLARE(SgPipelineCreate);
 extern ECS_COMPONENT_DECLARE(SgPipeline);
 extern ECS_COMPONENT_DECLARE(SgShaderCreate);
@@ -155,6 +246,7 @@ extern ECS_COMPONENT_DECLARE(SgLocation);
 extern ECS_COMPONENT_DECLARE(SgAttributes);
 extern ECS_COMPONENT_DECLARE(SgUniformBlocks);
 extern ECS_COMPONENT_DECLARE(SgVertexFormat);
+extern ECS_COMPONENT_DECLARE(SgPixelFormat);
 extern ECS_COMPONENT_DECLARE(SgUniformType);
 extern ECS_COMPONENT_DECLARE(SgIndexType);
 extern ECS_COMPONENT_DECLARE(SgPrimitiveType);

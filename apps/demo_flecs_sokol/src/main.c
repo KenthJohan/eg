@@ -265,7 +265,7 @@ static void frame_cb(app_t *app)
 				ImVec2 size;
 				igGetWindowSize(&size);
 				ImVec2 c[2] = {{vMin.x + p.x, vMin.y + p.y},{vMax.x + p.x, vMax.y + p.y}};
-				ImDrawList * dl = igGetForegroundDrawList_Nil();
+				ImDrawList * dl = igGetForegroundDrawList_ViewportPtr(NULL);
 				ImDrawList_AddRect(dl, c[0], c[1], IM_COL32( 255, 255, 0, 255 ), 0, 0, 1);
 				ImVec2 d = {vMax.x - vMin.x, vMax.y - vMin.y};
 				window->canvas_mouse_x = (window->mouse_x - vMin.x) * OFFSCREEN_WIDTH / d.x;

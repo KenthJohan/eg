@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <egbase.h>
 
+ECS_COMPONENT_DECLARE(SgImageCreate);
+ECS_COMPONENT_DECLARE(SgImage);
 ECS_COMPONENT_DECLARE(SgPipelineCreate);
 ECS_COMPONENT_DECLARE(SgPipeline);
 ECS_COMPONENT_DECLARE(SgShaderCreate);
@@ -13,6 +15,7 @@ ECS_COMPONENT_DECLARE(SgVertexBufferLayout);
 ECS_COMPONENT_DECLARE(SgAttributes);
 ECS_COMPONENT_DECLARE(SgUniformBlocks);
 ECS_COMPONENT_DECLARE(SgVertexFormat);
+ECS_COMPONENT_DECLARE(SgPixelFormat);
 ECS_COMPONENT_DECLARE(SgUniformType);
 ECS_COMPONENT_DECLARE(SgIndexType);
 ECS_COMPONENT_DECLARE(SgPrimitiveType);
@@ -98,7 +101,7 @@ static void iterate_shader_attrs(ecs_world_t *world, ecs_entity_t parent, sg_sha
 	while (ecs_children_next(&it)) {
 		for (int i = 0; i < it.count; i++) {
 			ecs_entity_t e = it.entities[i];
-			//ecs_doc_set_color(world, e, ENTITY_COLOR);
+			// ecs_doc_set_color(world, e, ENTITY_COLOR);
 			char const *name = ecs_get_name(world, e);
 			SgLocation const *loc = ecs_get(world, e, SgLocation);
 			descs[loc->index].name = name;
@@ -112,7 +115,7 @@ static void iterate_shader_uniforms(ecs_world_t *world, ecs_entity_t parent, sg_
 	while (ecs_children_next(&it)) {
 		for (int i = 0; i < it.count; i++) {
 			ecs_entity_t e = it.entities[i];
-			//ecs_doc_set_color(world, e, ENTITY_COLOR);
+			// ecs_doc_set_color(world, e, ENTITY_COLOR);
 			print_entity_from_it(&it, i);
 			char const *name = ecs_get_name(world, e);
 			SgUniform const *uniform = ecs_get(world, e, SgUniform);
@@ -130,7 +133,7 @@ static void iterate_shader_blocks(ecs_world_t *world, ecs_entity_t parent, sg_sh
 	while (ecs_children_next(&it)) {
 		for (int i = 0; i < it.count; i++) {
 			ecs_entity_t e = it.entities[i];
-			//ecs_doc_set_color(world, e, ENTITY_COLOR);
+			// ecs_doc_set_color(world, e, ENTITY_COLOR);
 			print_entity_from_it(&it, i);
 			// char const * name = ecs_get_name(world, e);
 			ecs_i32_t index = ecs_get(world, e, SgUniformBlock)->index;
@@ -149,7 +152,7 @@ static void iterate_vertex_attrs(ecs_world_t *world, ecs_entity_t parent, sg_ver
 		for (int i = 0; i < it.count; i++) {
 			ecs_entity_t e = it.entities[i];
 			print_entity_from_it(&it, i);
-			//ecs_doc_set_color(world, e, ENTITY_COLOR);
+			// ecs_doc_set_color(world, e, ENTITY_COLOR);
 			SgLocation *loc = ecs_get_mut(world, e, SgLocation);
 			sg_vertex_attr_state *outstate = descs + loc->index;
 			outstate->offset = loc->offset;
@@ -242,8 +245,8 @@ static void Shader_Create(ecs_iter_t *it)
 		ecs_warn("No ubs entity");
 		return;
 	}
-	char const * statustext = "";
-	char const * color = "";
+	char const *statustext = "";
+	char const *color = "";
 
 	ecs_log_set_level(1);
 	ecs_dbg("System Shader_Create() count:%i", it->count);
@@ -310,12 +313,58 @@ static void Shader_Create(ecs_iter_t *it)
 	ecs_log_set_level(0);
 }
 
+void Img_Create(ecs_iter_t *it)
+{
+	ecs_world_t *world = it->world;
+	SgImageCreate *create = ecs_field(it, SgImageCreate, 0);
+	char const *statustext = "";
+	char const *color = "";
+
+	ecs_log_set_level(1);
+	ecs_dbg("System Img_Create() count:%i", it->count);
+	ecs_log_push_1();
+	for (int i = 0; i < it->count; ++i, ++create) {
+		ecs_entity_t e = it->entities[i];
+		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
+		ecs_log_push_1();
+
+		sg_image img = sg_make_image(&(sg_image_desc){
+		.usage = SG_USAGE_STREAM,
+		.type = SG_IMAGETYPE_ARRAY,
+		.width = create->width,
+		.height = create->height,
+		.num_slices = create->slices,
+		.pixel_format = SG_PIXELFORMAT_RGBA8,
+		.data.subimage[0][0].ptr = 0,
+		.data.subimage[0][0].size = 0,
+		//.data.subimage[0][0] = SG_RANGE(pixels),
+		.label = "array-texture"});
+
+		statustext = "OK";
+		color = ENTITY_COLOR_OK;
+		SgImage *shader = ecs_ensure(world, e, SgImage);
+		shader->id = img.id;
+		ecs_dbg("sg_make_image() -> %i", img.id);
+	for_continue: {
+		char docname[128];
+		snprintf(docname, 128, "%s [%s]", ecs_get_name(world, e), statustext);
+		ecs_doc_set_name(world, e, docname);
+		ecs_doc_set_color(world, e, color);
+		ecs_log_pop_1();
+	}
+	} // END FOR LOOP
+	ecs_log_pop_1();
+	ecs_log_set_level(0);
+}
+
 void SgImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Sg);
 	ECS_IMPORT(world, EgBase);
 
 	ecs_set_name_prefix(world, "Sg");
+	ECS_COMPONENT_DEFINE(world, SgImageCreate);
+	ECS_COMPONENT_DEFINE(world, SgImage);
 	ECS_COMPONENT_DEFINE(world, SgPipelineCreate);
 	ECS_COMPONENT_DEFINE(world, SgPipeline);
 	ECS_COMPONENT_DEFINE(world, SgShaderCreate);
@@ -325,6 +374,7 @@ void SgImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, SgAttributes);
 	ECS_COMPONENT_DEFINE(world, SgUniformBlocks);
 	ECS_COMPONENT_DEFINE(world, SgVertexFormat);
+	ECS_COMPONENT_DEFINE(world, SgPixelFormat);
 	ECS_COMPONENT_DEFINE(world, SgUniformType);
 	ECS_COMPONENT_DEFINE(world, SgIndexType);
 	ECS_COMPONENT_DEFINE(world, SgPrimitiveType);
@@ -385,6 +435,81 @@ void SgImport(ecs_world_t *world)
 		{.name = "FORCE_U32", .value = SgVertexFormatFORCE_U32},
 		}});
 
+	ecs_enum(world, {.entity = ecs_id(SgPixelFormat), .constants = {
+		{.value = SgPixelFormatDEFAULT, .name = "DEFAULT"},
+		{.value = SgPixelFormatNONE, .name = "NONE"},
+		{.value = SgPixelFormatR8, .name = "R8"},
+		{.value = SgPixelFormatR8SN, .name = "R8SN"},
+		{.value = SgPixelFormatR8UI, .name = "R8UI"},
+		{.value = SgPixelFormatR8SI, .name = "R8SI"},
+		{.value = SgPixelFormatR16, .name = "R16"},
+		{.value = SgPixelFormatR16SN, .name = "R16SN"},
+		{.value = SgPixelFormatR16UI, .name = "R16UI"},
+		{.value = SgPixelFormatR16SI, .name = "R16SI"},
+		{.value = SgPixelFormatR16F, .name = "R16F"},
+		{.value = SgPixelFormatRG8, .name = "RG8"},
+		{.value = SgPixelFormatRG8SN, .name = "RG8SN"},
+		{.value = SgPixelFormatRG8UI, .name = "RG8UI"},
+		{.value = SgPixelFormatRG8SI, .name = "RG8SI"},
+		{.value = SgPixelFormatR32UI, .name = "R32UI"},
+		{.value = SgPixelFormatR32SI, .name = "R32SI"},
+		{.value = SgPixelFormatR32F, .name = "R32F"},
+		{.value = SgPixelFormatRG16, .name = "RG16"},
+		{.value = SgPixelFormatRG16SN, .name = "RG16SN"},
+		{.value = SgPixelFormatRG16UI, .name = "RG16UI"},
+		{.value = SgPixelFormatRG16SI, .name = "RG16SI"},
+		{.value = SgPixelFormatRG16F, .name = "RG16F"},
+		{.value = SgPixelFormatRGBA8, .name = "RGBA8"},
+		{.value = SgPixelFormatSRGB8A8, .name = "SRGB8A8"},
+		{.value = SgPixelFormatRGBA8SN, .name = "RGBA8SN"},
+		{.value = SgPixelFormatRGBA8UI, .name = "RGBA8UI"},
+		{.value = SgPixelFormatRGBA8SI, .name = "RGBA8SI"},
+		{.value = SgPixelFormatBGRA8, .name = "BGRA8"},
+		{.value = SgPixelFormatRGB10A2, .name = "RGB10A2"},
+		{.value = SgPixelFormatRG11B10F, .name = "RG11B10F"},
+		{.value = SgPixelFormatRGB9E5, .name = "RGB9E5"},
+		{.value = SgPixelFormatRG32UI, .name = "RG32UI"},
+		{.value = SgPixelFormatRG32SI, .name = "RG32SI"},
+		{.value = SgPixelFormatRG32F, .name = "RG32F"},
+		{.value = SgPixelFormatRGBA16, .name = "RGBA16"},
+		{.value = SgPixelFormatRGBA16SN, .name = "RGBA16SN"},
+		{.value = SgPixelFormatRGBA16UI, .name = "RGBA16UI"},
+		{.value = SgPixelFormatRGBA16SI, .name = "RGBA16SI"},
+		{.value = SgPixelFormatRGBA16F, .name = "RGBA16F"},
+		{.value = SgPixelFormatRGBA32UI, .name = "RGBA32UI"},
+		{.value = SgPixelFormatRGBA32SI, .name = "RGBA32SI"},
+		{.value = SgPixelFormatRGBA32F, .name = "RGBA32F"},
+		{.value = SgPixelFormatDEPTH, .name = "DEPTH"},
+		{.value = SgPixelFormatDEPTH_STENCIL, .name = "DEPTH_STENCIL"},
+		{.value = SgPixelFormatBC1_RGBA, .name = "BC1_RGBA"},
+		{.value = SgPixelFormatBC2_RGBA, .name = "BC2_RGBA"},
+		{.value = SgPixelFormatBC3_RGBA, .name = "BC3_RGBA"},
+		{.value = SgPixelFormatBC3_SRGBA, .name = "BC3_SRGBA"},
+		{.value = SgPixelFormatBC4_R, .name = "BC4_R"},
+		{.value = SgPixelFormatBC4_RSN, .name = "BC4_RSN"},
+		{.value = SgPixelFormatBC5_RG, .name = "BC5_RG"},
+		{.value = SgPixelFormatBC5_RGSN, .name = "BC5_RGSN"},
+		{.value = SgPixelFormatBC6H_RGBF, .name = "BC6H_RGBF"},
+		{.value = SgPixelFormatBC6H_RGBUF, .name = "BC6H_RGBUF"},
+		{.value = SgPixelFormatBC7_RGBA, .name = "BC7_RGBA"},
+		{.value = SgPixelFormatBC7_SRGBA, .name = "BC7_SRGBA"},
+		{.value = SgPixelFormatPVRTC_RGB_2BPP, .name = "PVRTC_RGB_2BPP"},
+		{.value = SgPixelFormatPVRTC_RGB_4BPP, .name = "PVRTC_RGB_4BPP"},
+		{.value = SgPixelFormatPVRTC_RGBA_2BPP, .name = "PVRTC_RGBA_2BPP"},
+		{.value = SgPixelFormatPVRTC_RGBA_4BPP, .name = "PVRTC_RGBA_4BPP"},
+		{.value = SgPixelFormatETC2_RGB8, .name = "ETC2_RGB8"},
+		{.value = SgPixelFormatETC2_SRGB8, .name = "ETC2_SRGB8"},
+		{.value = SgPixelFormatETC2_RGB8A1, .name = "ETC2_RGB8A1"},
+		{.value = SgPixelFormatETC2_RGBA8, .name = "ETC2_RGBA8"},
+		{.value = SgPixelFormatETC2_SRGB8A8, .name = "ETC2_SRGB8A8"},
+		{.value = SgPixelFormatETC2_RG11, .name = "ETC2_RG11"},
+		{.value = SgPixelFormatETC2_RG11SN, .name = "ETC2_RG11SN"},
+		{.value = SgPixelFormatASTC_4x4_RGBA, .name = "ASTC_4x4_RGBA"},
+		{.value = SgPixelFormatASTC_4x4_SRGBA, .name = "ASTC_4x4_SRGBA"},
+		{.value = SgPixelFormatNUM, .name = "NUM"},
+		{.value = SgPixelFormatFORCE_U32, .name = "FORCE_U3"},
+		}});
+
 	ecs_enum(world, {.entity = ecs_id(SgUniformType), .constants = {
 		{.name = "INVALID", .value = SgUniformTypeINVALID},
 		{.name = "FLOAT", .value = SgUniformTypeFLOAT},
@@ -399,7 +524,6 @@ void SgImport(ecs_world_t *world)
 		{.name = "NUM", .value = SgUniformTypeNUM},
 		{.name = "FORCE_U32", .value = SgUniformTypeFORCE_U32},
 		}});
-	// clang-format on
 
 	{
 		/*
@@ -433,6 +557,15 @@ void SgImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
+	{.entity = ecs_id(SgImageCreate),
+	.members = {
+	{.name = "width", .type = ecs_id(ecs_i32_t)},
+	{.name = "height", .type = ecs_id(ecs_i32_t)},
+	{.name = "slices", .type = ecs_id(ecs_i32_t)},
+	{.name = "format", .type = ecs_id(SgPixelFormat)},
+	}});
+
+	ecs_struct(world,
 	{.entity = ecs_id(SgPipelineCreate),
 	.members = {
 	{.name = "primtype", .type = ecs_id(SgPrimitiveType)},
@@ -456,6 +589,12 @@ void SgImport(ecs_world_t *world)
 	{.name = "filename_fs", .type = ecs_id(ecs_string_t)},
 	{.name = "ubs", .type = ecs_id(ecs_entity_t)},
 	{.name = "attrs", .type = ecs_id(ecs_entity_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(SgImage),
+	.members = {
+	{.name = "id", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct(world,
@@ -493,8 +632,18 @@ void SgImport(ecs_world_t *world)
 	{.name = "array_count", .type = ecs_id(ecs_i32_t)},
 	{.name = "type", .type = ecs_id(SgUniformType)},
 	}});
+	// clang-format on
 
 	// clang-format off
+	ecs_system(world, {
+		.entity = ecs_entity(world, {.name = "Img_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+		.callback = Img_Create,
+		.query.terms =
+		{
+		{.id = ecs_id(SgImageCreate), .src.id = EcsSelf},
+		{.id = ecs_id(SgImage), .oper = EcsNot}, // Adds this
+		}});
+
 	ecs_system(world, {
 		.entity = ecs_entity(world, {.name = "Pip_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 		.callback = Pip_Create,

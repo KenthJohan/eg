@@ -356,3 +356,14 @@ origin_xyz {
 		(eg.base.Use, vbuffers.lines)
 	}
 }
+
+
+
+img1 {
+	sg.ImageCreate : {
+		width : 100, 
+		height : 100, 
+		slices : 0,
+		format : RGBA8,
+	}
+}
