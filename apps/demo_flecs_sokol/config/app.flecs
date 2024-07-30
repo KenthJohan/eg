@@ -233,12 +233,17 @@ meshes {
 		eg.colors.V4U8_RGBA : {a: 255, r: 255, g: 255, b:255}
 		my.graphics.DrawCommand : {0,0,0}
 	}
+	box1 {
+		Box : {width: 1, height: 1, depth: 1, random_colors: 1}
+		eg.colors.V4U8_RGBA : {a: 255, r: 255, g: 255, b:255}
+		my.graphics.DrawCommand : {0,0,0}
+	}
 }
 
 
 cylbase {
 	(eg.base.Use, meshes)
-	(eg.base.Use, meshes.cylinder2)
+	(eg.base.Use, meshes.box1)
 	(eg.base.Use, cam)
 	EgRotateOrder1
 	Transformation
@@ -374,3 +379,5 @@ smp1 {
 		mag_filter : LINEAR,
 	}
 }
+
+

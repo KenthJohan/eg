@@ -2,6 +2,7 @@
 
 
 
+ECS_COMPONENT_DECLARE(Box);
 ECS_COMPONENT_DECLARE(Torus);
 ECS_COMPONENT_DECLARE(Cylinder);
 ECS_COMPONENT_DECLARE(Sphere);
@@ -13,11 +14,22 @@ void EgShapesImport(ecs_world_t *world)
 	ECS_MODULE(world, EgShapes);
 	ecs_set_name_prefix(world, "EgShapes");
 
+	ECS_COMPONENT_DEFINE(world, Box);
 	ECS_COMPONENT_DEFINE(world, Torus);
 	ECS_COMPONENT_DEFINE(world, Cylinder);
 	ECS_COMPONENT_DEFINE(world, Sphere);
 	ECS_COMPONENT_DEFINE(world, Line);
 	ECS_COMPONENT_DEFINE(world, Rectangle);
+
+	ecs_struct(world,
+	{.entity = ecs_id(Box),
+	.members = {
+	{.name = "width", .type = ecs_id(ecs_f32_t)},
+	{.name = "height", .type = ecs_id(ecs_f32_t)},
+	{.name = "depth", .type = ecs_id(ecs_f32_t)},
+	{.name = "random_colors", .type = ecs_id(ecs_i32_t)},
+	}});
+
 
 	ecs_struct(world,
 	{.entity = ecs_id(Line),

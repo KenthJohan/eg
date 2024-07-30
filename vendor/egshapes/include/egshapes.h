@@ -27,6 +27,13 @@ typedef struct {
 } Sphere;
 
 typedef struct {
+	float width;
+	float height;
+	float depth;
+	int32_t random_colors;
+} Box;
+
+typedef struct {
 	float a[3];
 	float b[3];
 } Line;
@@ -37,6 +44,7 @@ typedef struct {
 } Rectangle;
 
 
+extern ECS_COMPONENT_DECLARE(Box);
 extern ECS_COMPONENT_DECLARE(Torus);
 extern ECS_COMPONENT_DECLARE(Cylinder);
 extern ECS_COMPONENT_DECLARE(Sphere);

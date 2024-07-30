@@ -316,6 +316,28 @@ static void Shader_Create(ecs_iter_t *it)
 	ecs_log_set_level(0);
 }
 
+static void generate_dummy_image(void *data, int w, int h, int bytes_per_pixel)
+{
+	uint8_t *color = data;
+	for (uint32_t x = 0; x < w; ++x) {
+		for (uint32_t y = 0; y < h; ++y) {
+			switch (bytes_per_pixel) {
+			case 4:
+				color[3] = 0xFF;
+			case 3:
+				color[2] = x + y;
+			case 2:
+				color[1] = x ^ y;
+			case 1:
+				color[0] = x * y;
+			case 0:
+				break;
+			}
+			color += bytes_per_pixel;
+		}
+	}
+}
+
 static void Img_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
@@ -337,12 +359,24 @@ static void Img_Create(ecs_iter_t *it)
 		.width = create->width,
 		.height = create->height,
 		.num_slices = create->slices,
-		.pixel_format = SG_PIXELFORMAT_RGBA8,
+		.pixel_format = create->format,
 		.data.subimage[0][0].ptr = 0,
 		.data.subimage[0][0].size = 0,
 		//.data.subimage[0][0] = SG_RANGE(pixels),
 		.label = "array-texture"});
 		ecs_dbg("sg_make_image() -> %i", img.id);
+
+		{
+			sg_pixelformat_info info = sg_query_pixelformat(create->format);
+			int size = create->width * create->height * info.bytes_per_pixel;
+			void *data = ecs_os_calloc(size);
+			generate_dummy_image(data, create->width, create->height, info.bytes_per_pixel);
+			sg_update_image(img,
+			&(sg_image_data){
+			.subimage[0][0].ptr = data,
+			.subimage[0][0].size = size});
+			ecs_os_free(data);
+		}
 
 		statustext = "OK";
 		color = ENTITY_COLOR_OK;
@@ -376,8 +410,8 @@ static void Sampler_Create(ecs_iter_t *it)
 		ecs_log_push_1();
 
 		sg_sampler smp = sg_make_sampler(&(sg_sampler_desc){
-			.min_filter = SG_FILTER_LINEAR,
-			.mag_filter = SG_FILTER_LINEAR,
+		.min_filter = SG_FILTER_LINEAR,
+		.mag_filter = SG_FILTER_LINEAR,
 		});
 		ecs_dbg("sg_make_sampler() -> %i", smp.id);
 
@@ -396,12 +430,6 @@ static void Sampler_Create(ecs_iter_t *it)
 	ecs_log_pop_1();
 	ecs_log_set_level(0);
 }
-
-
-
-
-
-
 
 void SgImport(ecs_world_t *world)
 {

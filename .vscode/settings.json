@@ -13,7 +13,11 @@
 		"tuple": "c",
 		"type_traits": "c",
 		"utility": "c",
-		"typeinfo": "c"
+		"typeinfo": "c",
+		"sokol_app.h": "c",
+		"random": "c",
+		"compare": "cpp",
+		"cstdint": "cpp"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

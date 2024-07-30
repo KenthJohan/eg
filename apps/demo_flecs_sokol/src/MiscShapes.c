@@ -53,6 +53,18 @@ static void AddShapeSphere(ecs_iter_t *it)
 	}
 }
 
+static void AddShapeBox(ecs_iter_t *it)
+{
+	Box *box = ecs_field(it, Box, 0);                                    // self
+	EgColorsV4U8_RGBA *color = ecs_field(it, EgColorsV4U8_RGBA, 1);      // self
+	MyGraphicsDrawCommand *el = ecs_field(it, MyGraphicsDrawCommand, 2); // self
+	EgBaseMemory2 *b = ecs_field(it, EgBaseMemory2, 3);                  // shared
+	for (int i = 0; i < it->count; ++i, ++box, ++color, ++el) {
+		uint32_t c = (color->r << 0) | (color->g << 8) | (color->b << 16) | (color->a << 24);
+		ShapeBuffer_append(b, el, SSHAPE_BOX, box, c);
+	}
+}
+
 static void Flush(ecs_iter_t *it)
 {
 	EgBaseMemory2 *b = ecs_field(it, EgBaseMemory2, 0);
@@ -82,45 +94,51 @@ void MiscShapesImport(ecs_world_t *world)
 	ECS_IMPORT(world, Sg);
 	ECS_IMPORT(world, MyGraphics);
 
-	ecs_system(world,{
-	.entity = ecs_entity(world, {.name = "AddShapeTorus", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = AddShapeTorus,
-	.query.terms =
-	{
-	{.id = ecs_id(Torus), .src.id = EcsSelf},
-	{.id = ecs_id(EgColorsV4U8_RGBA), .src.id = EcsSelf},
-	{.id = ecs_id(MyGraphicsDrawCommand), .src.id = EcsSelf},
-	{.id = ecs_id(EgBaseMemory2), .trav = EcsChildOf, .src.id = EcsUp},
-	}});
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "AddShapeTorus", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	                  .callback = AddShapeTorus,
+	                  .query.terms =
+	                  {
+	                  {.id = ecs_id(Torus), .src.id = EcsSelf},
+	                  {.id = ecs_id(EgColorsV4U8_RGBA), .src.id = EcsSelf},
+	                  {.id = ecs_id(MyGraphicsDrawCommand), .src.id = EcsSelf},
+	                  {.id = ecs_id(EgBaseMemory2), .trav = EcsChildOf, .src.id = EcsUp},
+	                  }});
 
-	ecs_system(world,{
-	.entity = ecs_entity(world, {.name = "AddShapeCylinder", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = AddShapeCylinder,
-	.query.terms =
-	{
-	{.id = ecs_id(Cylinder), .src.id = EcsSelf},
-	{.id = ecs_id(EgColorsV4U8_RGBA), .src.id = EcsSelf},
-	{.id = ecs_id(MyGraphicsDrawCommand), .src.id = EcsSelf},
-	{.id = ecs_id(EgBaseMemory2), .trav = EcsChildOf, .src.id = EcsUp},
-	}});
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "AddShapeCylinder", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	                  .callback = AddShapeCylinder,
+	                  .query.terms =
+	                  {
+	                  {.id = ecs_id(Cylinder), .src.id = EcsSelf},
+	                  {.id = ecs_id(EgColorsV4U8_RGBA), .src.id = EcsSelf},
+	                  {.id = ecs_id(MyGraphicsDrawCommand), .src.id = EcsSelf},
+	                  {.id = ecs_id(EgBaseMemory2), .trav = EcsChildOf, .src.id = EcsUp},
+	                  }});
 
-	ecs_system(world,{
-	.entity = ecs_entity(world, {.name = "AddShapeSphere", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = AddShapeSphere,
-	.query.terms =
-	{
-	{.id = ecs_id(Sphere), .src.id = EcsSelf},
-	{.id = ecs_id(EgColorsV4U8_RGBA), .src.id = EcsSelf},
-	{.id = ecs_id(MyGraphicsDrawCommand), .src.id = EcsSelf},
-	{.id = ecs_id(EgBaseMemory2), .trav = EcsChildOf, .src.id = EcsUp},
-	}});
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "AddShapeSphere", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	                  .callback = AddShapeSphere,
+	                  .query.terms =
+	                  {
+	                  {.id = ecs_id(Sphere), .src.id = EcsSelf},
+	                  {.id = ecs_id(EgColorsV4U8_RGBA), .src.id = EcsSelf},
+	                  {.id = ecs_id(MyGraphicsDrawCommand), .src.id = EcsSelf},
+	                  {.id = ecs_id(EgBaseMemory2), .trav = EcsChildOf, .src.id = EcsUp},
+	                  }});
 
-	ecs_system(world,{
-	.entity = ecs_entity(world, {.name = "Flush", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Flush,
-	.query.terms =
-	{
-	{.id = ecs_id(EgBaseMemory2), .src.id = EcsSelf},
-	{.id = ecs_id(EgBaseShapeBuffer), .src.id = EcsSelf},
-	}});
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "AddShapeBox", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	                  .callback = AddShapeBox,
+	                  .query.terms =
+	                  {
+	                  {.id = ecs_id(Box), .src.id = EcsSelf},
+	                  {.id = ecs_id(EgColorsV4U8_RGBA), .src.id = EcsSelf},
+	                  {.id = ecs_id(MyGraphicsDrawCommand), .src.id = EcsSelf},
+	                  {.id = ecs_id(EgBaseMemory2), .trav = EcsChildOf, .src.id = EcsUp},
+	                  }});
+
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "Flush", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	                  .callback = Flush,
+	                  .query.terms =
+	                  {
+	                  {.id = ecs_id(EgBaseMemory2), .src.id = EcsSelf},
+	                  {.id = ecs_id(EgBaseShapeBuffer), .src.id = EcsSelf},
+	                  }});
 }

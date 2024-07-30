@@ -93,6 +93,25 @@ void ShapeBuffer_append(EgBaseMemory2 *b, MyGraphicsDrawCommand *el, sshape_t sh
 		break;
 	}
 
+	case SSHAPE_BOX: {
+		Box *box = data;
+		sshape_box_t info = {
+		.width = box->width,
+		.height = box->height,
+		.depth = box->depth,
+		.tiles = 1,
+		.color = color,
+		.random_colors = box->random_colors};
+		sshape_sizes_t sizes = sshape_box_sizes(1);
+		Memory_grow(b->mem + 0, sizes.indices.size);
+		Memory_grow(b->mem + 1, sizes.vertices.size);
+		buf = ShapeBuffer_convert(b);
+		buf = sshape_build_box(&buf, &info);
+		break;
+	}
+
+
+
 	default:
 		break;
 	}

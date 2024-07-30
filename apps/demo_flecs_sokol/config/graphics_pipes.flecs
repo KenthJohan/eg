@@ -24,7 +24,7 @@ instancing {
 shapes {
 	(eg.base.Use, graphics.shaders.shapes)
 	sg.PipelineCreate : {
-		primtype : LINES, 
+		primtype : TRIANGLES, 
 		cullmode : BACK, 
 		indextype : UINT16,
 		buflayout0 : {stride:24, step_func:0, step_rate:0}
