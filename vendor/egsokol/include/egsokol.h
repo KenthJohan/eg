@@ -148,6 +148,17 @@ typedef enum {
 	SgUniformTypeFORCE_U32 = 0x7FFFFFFF
 } SgUniformType;
 
+typedef enum {
+    EgSokol__SG_FILTER_DEFAULT, // value 0 reserved for default-init
+    EgSokol_SG_FILTER_NONE,     // FIXME: deprecated
+    EgSokol_SG_FILTER_NEAREST,
+    EgSokol_SG_FILTER_LINEAR,
+    EgSokol__SG_FILTER_NUM,
+    EgSokol__SG_FILTER_FORCE_U32 = 0x7FFFFFFF
+} SgFilter;
+
+
+
 typedef struct
 {
 	ecs_i32_t stride;
@@ -155,6 +166,17 @@ typedef struct
 	ecs_i32_t step_rate;
 } SgVertexBufferLayout;
 
+
+typedef struct
+{
+	SgFilter min_filter;
+	SgFilter mag_filter;
+} SgSamplerCreate;
+
+typedef struct
+{
+	uint32_t id;
+} SgSampler;
 
 typedef struct
 {
@@ -235,6 +257,9 @@ typedef struct
 } SgUniform;
 
 
+extern ECS_COMPONENT_DECLARE(SgFilter);
+extern ECS_COMPONENT_DECLARE(SgSamplerCreate);
+extern ECS_COMPONENT_DECLARE(SgSampler);
 extern ECS_COMPONENT_DECLARE(SgImageCreate);
 extern ECS_COMPONENT_DECLARE(SgImage);
 extern ECS_COMPONENT_DECLARE(SgPipelineCreate);

@@ -367,3 +367,10 @@ img1 {
 		format : RGBA8,
 	}
 }
+
+smp1 {
+	sg.SamplerCreate : {
+		min_filter : LINEAR,
+		mag_filter : LINEAR,
+	}
+}

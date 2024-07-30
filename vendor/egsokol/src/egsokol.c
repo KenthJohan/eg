@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <egbase.h>
 
+ECS_COMPONENT_DECLARE(SgFilter);
+ECS_COMPONENT_DECLARE(SgSamplerCreate);
+ECS_COMPONENT_DECLARE(SgSampler);
 ECS_COMPONENT_DECLARE(SgImageCreate);
 ECS_COMPONENT_DECLARE(SgImage);
 ECS_COMPONENT_DECLARE(SgPipelineCreate);
@@ -313,7 +316,7 @@ static void Shader_Create(ecs_iter_t *it)
 	ecs_log_set_level(0);
 }
 
-void Img_Create(ecs_iter_t *it)
+static void Img_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	SgImageCreate *create = ecs_field(it, SgImageCreate, 0);
@@ -339,12 +342,12 @@ void Img_Create(ecs_iter_t *it)
 		.data.subimage[0][0].size = 0,
 		//.data.subimage[0][0] = SG_RANGE(pixels),
 		.label = "array-texture"});
+		ecs_dbg("sg_make_image() -> %i", img.id);
 
 		statustext = "OK";
 		color = ENTITY_COLOR_OK;
 		SgImage *shader = ecs_ensure(world, e, SgImage);
 		shader->id = img.id;
-		ecs_dbg("sg_make_image() -> %i", img.id);
 	for_continue: {
 		char docname[128];
 		snprintf(docname, 128, "%s [%s]", ecs_get_name(world, e), statustext);
@@ -357,12 +360,58 @@ void Img_Create(ecs_iter_t *it)
 	ecs_log_set_level(0);
 }
 
+static void Sampler_Create(ecs_iter_t *it)
+{
+	ecs_world_t *world = it->world;
+	SgSamplerCreate *create = ecs_field(it, SgSamplerCreate, 0);
+	char const *statustext = "";
+	char const *color = "";
+
+	ecs_log_set_level(1);
+	ecs_dbg("System Sampler_Create() count:%i", it->count);
+	ecs_log_push_1();
+	for (int i = 0; i < it->count; ++i, ++create) {
+		ecs_entity_t e = it->entities[i];
+		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
+		ecs_log_push_1();
+
+		sg_sampler smp = sg_make_sampler(&(sg_sampler_desc){
+			.min_filter = SG_FILTER_LINEAR,
+			.mag_filter = SG_FILTER_LINEAR,
+		});
+		ecs_dbg("sg_make_sampler() -> %i", smp.id);
+
+		statustext = "OK";
+		color = ENTITY_COLOR_OK;
+		SgSampler *sampler = ecs_ensure(world, e, SgSampler);
+		sampler->id = smp.id;
+	for_continue: {
+		char docname[128];
+		snprintf(docname, 128, "%s [%s]", ecs_get_name(world, e), statustext);
+		ecs_doc_set_name(world, e, docname);
+		ecs_doc_set_color(world, e, color);
+		ecs_log_pop_1();
+	}
+	} // END FOR LOOP
+	ecs_log_pop_1();
+	ecs_log_set_level(0);
+}
+
+
+
+
+
+
+
 void SgImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, Sg);
 	ECS_IMPORT(world, EgBase);
 
 	ecs_set_name_prefix(world, "Sg");
+	ECS_COMPONENT_DEFINE(world, SgSamplerCreate);
+	ECS_COMPONENT_DEFINE(world, SgSampler);
+	ECS_COMPONENT_DEFINE(world, SgFilter);
 	ECS_COMPONENT_DEFINE(world, SgImageCreate);
 	ECS_COMPONENT_DEFINE(world, SgImage);
 	ECS_COMPONENT_DEFINE(world, SgPipelineCreate);
@@ -529,6 +578,17 @@ void SgImport(ecs_world_t *world)
 		{.name = "FORCE_U32" , .value = _SG_UNIFORMTYPE_FORCE_U32},
 		}});
 
+
+	
+	ecs_enum(world, {.entity = ecs_id(SgFilter), .constants = {
+		{.name ="DEFAULT"         ,.value = _SG_FILTER_DEFAULT   },
+		{.name ="NONE"            ,.value = SG_FILTER_NONE       },
+		{.name ="NEAREST"         ,.value = SG_FILTER_NEAREST    },
+		{.name ="LINEAR"          ,.value = SG_FILTER_LINEAR     },
+		{.name ="NUM"             ,.value = _SG_FILTER_NUM       },
+		{.name ="FORCE_U32"       ,.value = _SG_FILTER_FORCE_U32 },
+		}});
+
 	{
 		/*
 		sg_vertex_attr_state a0 = sshape_position_vertex_attr_state();
@@ -538,6 +598,7 @@ void SgImport(ecs_world_t *world)
 		sg_vertex_buffer_layout_state l = sshape_vertex_buffer_layout_state();
 		ecs_dbg_2("");
 		*/
+	//sg_sampler_desc
 	}
 
 	ecs_struct(world,
@@ -558,6 +619,13 @@ void SgImport(ecs_world_t *world)
 	{.name = "stride", .type = ecs_id(ecs_i32_t), .unit = EcsBytes},
 	{.name = "step_func", .type = ecs_id(ecs_i32_t)},
 	{.name = "step_rate", .type = ecs_id(ecs_i32_t), .unit = EcsBytes},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(SgSamplerCreate),
+	.members = {
+	{.name = "min_filter", .type = ecs_id(SgFilter)},
+	{.name = "mag_filter", .type = ecs_id(SgFilter)},
 	}});
 
 	ecs_struct(world,
@@ -593,6 +661,12 @@ void SgImport(ecs_world_t *world)
 	{.name = "filename_fs", .type = ecs_id(ecs_string_t)},
 	{.name = "ubs", .type = ecs_id(ecs_entity_t)},
 	{.name = "attrs", .type = ecs_id(ecs_entity_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(SgSampler),
+	.members = {
+	{.name = "id", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct(world,
@@ -639,6 +713,15 @@ void SgImport(ecs_world_t *world)
 	// clang-format on
 
 	// clang-format off
+	ecs_system(world, {
+		.entity = ecs_entity(world, {.name = "Sampler_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+		.callback = Sampler_Create,
+		.query.terms =
+		{
+		{.id = ecs_id(SgSamplerCreate), .src.id = EcsSelf},
+		{.id = ecs_id(SgSampler), .oper = EcsNot}, // Adds this
+		}});
+
 	ecs_system(world, {
 		.entity = ecs_entity(world, {.name = "Img_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 		.callback = Img_Create,
