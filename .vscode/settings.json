@@ -17,7 +17,11 @@
 		"sokol_app.h": "c",
 		"random": "c",
 		"compare": "cpp",
-		"cstdint": "cpp"
+		"cstdint": "cpp",
+		"egbase.h": "c",
+		"flecs.h": "c",
+		"string": "c",
+		"string_view": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
