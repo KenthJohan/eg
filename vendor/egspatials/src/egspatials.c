@@ -1,4 +1,5 @@
 #include "egspatials.h"
+#include <egbase.h>
 
 ECS_COMPONENT_DECLARE(Position2);
 ECS_COMPONENT_DECLARE(Position3);
@@ -14,6 +15,7 @@ ECS_COMPONENT_DECLARE(Orientation);
 ECS_COMPONENT_DECLARE(OrientationWorld);
 ECS_COMPONENT_DECLARE(EulerAngles);
 ECS_COMPONENT_DECLARE(Transformation);
+ECS_COMPONENT_DECLARE(TransformationCollector);
 ECS_COMPONENT_DECLARE(Sinewave);
 ECS_TAG_DECLARE(EgRotateOrder1);
 ECS_TAG_DECLARE(EgRotateOrder2);
@@ -189,6 +191,56 @@ static void EulerToQ(ecs_iter_t *it)
 	}
 }
 
+static void TransformationCollector_Append(ecs_iter_t *it)
+{
+	Transformation *t = ecs_field(it, Transformation, 0);                   // self
+	TransformationCollector *d = ecs_field(it, TransformationCollector, 1); // up, shared
+
+	int32_t sum = d->count + it->count;
+	if (sum > d->cap) {
+		d->cap = sum * 2;
+		ecs_trace("AppendTransforms::ecs_os_realloc_n");
+		d->data = ecs_os_realloc_n(d->data, m4f32, d->cap);
+	}
+
+	for (int i = 0; i < it->count; ++i, ++t) {
+		d->data[d->count] = t->matrix;
+		d->count++;
+	}
+}
+
+static void TransformationCollector_Reset(ecs_iter_t *it)
+{
+	TransformationCollector *d = ecs_field(it, TransformationCollector, 0);
+	for (int i = 0; i < it->count; ++i, ++d) {
+		d->total = d->count;
+		d->count = 0;
+	}
+}
+
+ECS_CTOR(TransformationCollector, ptr, {
+	ecs_trace("TransformationCollector::Ctor");
+	ecs_os_memset_t(ptr, 0, TransformationCollector);
+})
+
+ECS_DTOR(TransformationCollector, ptr, {
+	ecs_trace("TransformationCollector::Dtor");
+	ecs_os_free(ptr->data);
+})
+
+ECS_MOVE(TransformationCollector, dst, src, {
+	ecs_trace("TransformationCollector::Move");
+	ecs_os_free(dst->data);
+	dst->data = src->data;
+	src->data = NULL;
+})
+
+ECS_COPY(TransformationCollector, dst, src, {
+	ecs_trace("TransformationCollector::Copy");
+	ecs_os_free(dst->data);
+	dst->data = ecs_os_memdup_n(src->data, m4f32, src->count);
+})
+
 ECS_CTOR(Transformation, ptr, {
 	ptr->matrix = (m4f32)M4_IDENTITY;
 })
@@ -232,6 +284,7 @@ ECS_CTOR(Scale3, ptr, {
 void EgSpatialsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSpatials);
+	ECS_IMPORT(world, EgBase);
 	ecs_set_name_prefix(world, "EgSpatials");
 
 	ECS_COMPONENT_DEFINE(world, Position2);
@@ -247,6 +300,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EulerAngles);
 	ECS_COMPONENT_DEFINE(world, Rotate3);
 	ECS_COMPONENT_DEFINE(world, Transformation);
+	ECS_COMPONENT_DEFINE(world, TransformationCollector);
 	ECS_COMPONENT_DEFINE(world, RotMat3);
 	ECS_COMPONENT_DEFINE(world, Sinewave);
 
@@ -254,11 +308,20 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgRotateOrder2);
 	ECS_TAG_DEFINE(world, EgPositionWorldNoReset);
 
+
+
+	// clang-format off
 	ecs_set_hooks(world, Orientation, {.ctor = ecs_ctor(Orientation)});
 	ecs_set_hooks(world, OrientationWorld, {.ctor = ecs_ctor(OrientationWorld)});
 	ecs_set_hooks(world, Transformation, {.ctor = ecs_ctor(Transformation)});
 	ecs_set_hooks(world, RotMat3, {.ctor = ecs_ctor(RotMat3)});
 	ecs_set_hooks(world, Scale3, {.ctor = ecs_ctor(Scale3)});
+	ecs_set_hooks(world, TransformationCollector, {
+	.ctor = ecs_ctor(TransformationCollector),
+	.move = ecs_move(TransformationCollector),
+	.copy = ecs_copy(TransformationCollector),
+	.dtor = ecs_dtor(TransformationCollector),
+	});
 
 	ecs_struct(world,
 	{.entity = ecs_id(Position2),
@@ -365,6 +428,15 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.name = "c1", .type = ecs_id(Vector4)},
 	{.name = "c2", .type = ecs_id(Vector4)},
 	{.name = "c3", .type = ecs_id(Vector4)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(TransformationCollector),
+	.members = {
+	{.name = "data", .type = ecs_id(ecs_uptr_t)},
+	{.name = "count", .type = ecs_id(ecs_i32_t)},
+	{.name = "cap", .type = ecs_id(ecs_i32_t)},
+	{.name = "total", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct(world,
@@ -478,4 +550,20 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.id = ecs_id(OrientationWorld), .inout = EcsIn},
 	{.id = ecs_id(Scale3), .inout = EcsIn},
 	}});
+
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "TransformationCollector_Append", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+		.callback = TransformationCollector_Append,
+		.query.terms =
+		{
+		{.id = ecs_id(Transformation), .src.id = EcsSelf},
+		{.id = ecs_id(TransformationCollector), .trav = EgBaseUse, .src.id = EcsUp},
+		}});
+
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "TransformationCollector_Reset", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+		.callback = TransformationCollector_Reset,
+		.query.terms =
+		{
+		{.id = ecs_id(TransformationCollector), .src.id = EcsSelf},
+		}});
+	// clang-format on
 }

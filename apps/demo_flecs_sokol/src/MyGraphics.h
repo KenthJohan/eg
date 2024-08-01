@@ -8,10 +8,6 @@ typedef struct {
 	int32_t offset;
 	int32_t count;
 	int32_t instances;
-	m4f32 * transforms_data;
-	int32_t transforms_count;
-	int32_t transforms_cap;
-	int32_t transforms_total;
 } MyGraphicsDrawCommand;
 
 

@@ -227,16 +227,19 @@ meshes {
 		Cylinder : {radius: 1, height: 1, slices: 10, stacks: 1, random_colors: 1}
 		eg.colors.V4U8_RGBA : {a: 255, r: 255, g: 255, b:255}
 		my.graphics.DrawCommand : {0,0,0}
+		eg.spatials.TransformationCollector
 	}
 	cylinder2 {
 		Cylinder : {radius: 1, height: 1, slices: 20, stacks: 4, random_colors: 1}
 		eg.colors.V4U8_RGBA : {a: 255, r: 255, g: 255, b:255}
 		my.graphics.DrawCommand : {0,0,0}
+		eg.spatials.TransformationCollector
 	}
 	box1 {
 		Box : {width: 1, height: 1, depth: 1, random_colors: 1}
 		eg.colors.V4U8_RGBA : {a: 255, r: 255, g: 255, b:255}
 		my.graphics.DrawCommand : {0,0,0}
+		eg.spatials.TransformationCollector
 	}
 }
 

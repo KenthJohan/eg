@@ -21,7 +21,8 @@
 		"egbase.h": "c",
 		"flecs.h": "c",
 		"string": "c",
-		"string_view": "c"
+		"string_view": "c",
+		"egspatials.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

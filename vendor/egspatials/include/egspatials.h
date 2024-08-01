@@ -55,6 +55,13 @@ typedef struct {
 } Transformation;
 
 typedef struct {
+	m4f32 * data;
+	int32_t count;
+	int32_t cap;
+	int32_t total;
+} TransformationCollector;
+
+typedef struct {
 	float x;
 	float y;
 	float z;
@@ -110,6 +117,7 @@ extern ECS_COMPONENT_DECLARE(OrientationWorld);
 extern ECS_COMPONENT_DECLARE(EulerAngles);
 extern ECS_COMPONENT_DECLARE(Rotate3);
 extern ECS_COMPONENT_DECLARE(Transformation);
+extern ECS_COMPONENT_DECLARE(TransformationCollector);
 extern ECS_COMPONENT_DECLARE(RotMat3);
 extern ECS_COMPONENT_DECLARE(Sinewave);
 extern ECS_TAG_DECLARE(EgRotateOrder1);
