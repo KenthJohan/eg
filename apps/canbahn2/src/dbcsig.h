@@ -16,8 +16,9 @@ typedef struct {
 
 	//gui:
 	bool selected;
-	bool hover1;
-	bool hover2;
+	bool hover1; // Hover on signal table
+	bool hover2; // Hover on bit table
+	bool clicked; // Hover on bit table
 } dbcsig_meta_t;
 
 int dbcsig_meta_bitpos_to_signal(dbcsig_meta_t meta[], int length, int bitpos);

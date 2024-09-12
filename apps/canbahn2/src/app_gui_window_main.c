@@ -66,12 +66,19 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 			//	igTableSetBgColor(ImGuiTableBgTarget_CellBg, cell_bg_color, -1);
 			//}
 			if (sigint >= 0) {
-				if (metas[sigint].hover1) {
+				metas[sigint].hover2 |= igIsItemHovered(0);
+				metas[sigint].clicked ^= igIsItemClicked(0);
+
+				if (metas[sigint].clicked) {
+					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 255), -1);
+				} else if (metas[sigint].hover1) {
+					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 255), -1);
+				} else if (metas[sigint].hover2) {
 					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 255), -1);
 				} else {
-					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 200), -1);
+					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 100), -1);
 				}
-				metas[sigint].hover2 |= igIsItemHovered(0);
+				
 				if (metas[sigint].hover2) {
 					//printf("sigint %i!\n", sigint);
 				}
@@ -122,7 +129,7 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 
 
 		igTableNextColumn();
-		igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(i, 255), -1);
+		igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(i, 150), -1);
 		generic_gui(&(generic_gui_t){
 		.label = "##Select",
 		.kind = GENERIC_GUI_KIND_TEXT_INT,
@@ -133,6 +140,9 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
 		}
 		if (meta->hover2) {
+			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
+		}
+		if (meta->clicked) {
 			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
 		}
 
@@ -219,6 +229,7 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 	int ri = igTableGetHoveredRow() - 1;
 	if ((ri >= 0) && (ri < metas_length)) {
 		metas[ri].hover1 = true;
+		metas[ri].clicked ^= igIsMouseReleased_ID(ImGuiMouseButton_Left, 0);
 	}
 
 	igEndTable();
