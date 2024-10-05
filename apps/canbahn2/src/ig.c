@@ -66,7 +66,7 @@ static void color_hsv_to_rgb(uint8_t h, uint8_t s, uint8_t v, uint8_t *out_r, ui
 	out_b[0] = b;
 }
 
-static void color_rgb_to_hsv(uint8_t r, uint8_t g, uint8_t b, uint8_t *out_h, uint8_t *out_s, uint8_t *out_v)
+void color_rgb_to_hsv(uint8_t r, uint8_t g, uint8_t b, uint8_t *out_h, uint8_t *out_s, uint8_t *out_v)
 {
 	uint8_t rgbMin;
 	uint8_t rgbMax;

@@ -62,6 +62,9 @@ typedef struct {
 	};
 } generic_gui_t;
 
+
+void color_rgb_to_hsv(uint8_t r, uint8_t g, uint8_t b, uint8_t *out_h, uint8_t *out_s, uint8_t *out_v);
+
 void generic_gui(generic_gui_t *item);
 
 void ig_debug_draw();

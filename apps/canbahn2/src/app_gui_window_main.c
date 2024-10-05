@@ -114,9 +114,7 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 	igTableSetupColumn("Max", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 	igTableSetupColumn("Unit", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 	igTableHeadersRow();
-	static char buf[128];
-	static int start;
-	static float factor;
+	
 	float row_min_height = 24.0f;
 
 
