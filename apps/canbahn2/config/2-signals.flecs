@@ -4,7 +4,8 @@ using flecs.meta
 
 CanSig {
 	WheelBased {
-		can.dbc.Flags: {can.dbc.FlagsBacon}
+		can.dbc.Type: {Unsigned}
+		can.dbc.Order: {LitleEndian}
 	}
 }
 

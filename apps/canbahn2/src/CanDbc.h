@@ -16,13 +16,25 @@ typedef struct {
 	char unit[128];
 } CanDbcSignal;
 
-typedef uint32_t CanDbcFlags;
-#define CanDbcFlagsBacon 0x1
-#define CanDbcFlagsLettuce 0x2
-#define CanDbcFlagsTomato 0x4
+typedef enum {
+	CanDbcTypeUnsigned,
+	CanDbcTypeSigned,
+} CanDbcType;
+
+typedef enum {
+	CanDbcOrderBigEndian,
+	CanDbcOrderLitleEndian,
+} CanDbcOrder;
+
+typedef int32_t CanDbcStart;
+typedef int32_t CanDbcLength;
+
 
 extern ECS_COMPONENT_DECLARE(CanDbcSignal);
-extern ECS_COMPONENT_DECLARE(CanDbcFlags);
+extern ECS_COMPONENT_DECLARE(CanDbcType);
+extern ECS_COMPONENT_DECLARE(CanDbcOrder);
+extern ECS_COMPONENT_DECLARE(CanDbcStart);
+extern ECS_COMPONENT_DECLARE(CanDbcLength);
 
 int dbcsig_meta_bitpos_to_signal(CanDbcSignal meta[], int length, int bitpos);
 
