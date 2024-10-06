@@ -22,7 +22,14 @@
 		"flecs.h": "c",
 		"string": "c",
 		"string_view": "c",
-		"egspatials.h": "c"
+		"egspatials.h": "c",
+		"app_gui_window_main.h": "c",
+		"app_gui_main.h": "c",
+		"dbcsig.h": "c",
+		"cimgui.h": "c",
+		"app_gui_cansig.h": "c",
+		"ig.h": "c",
+		"app.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

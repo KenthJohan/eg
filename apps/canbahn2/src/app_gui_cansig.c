@@ -1,4 +1,4 @@
-#include "app_gui_window_main.h"
+#include "app_gui_cansig.h"
 
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
@@ -7,14 +7,10 @@
 #include "dbcsig.h"
 #include "ig.h"
 
-
-
-
-
 /*
 https://www.csselectronics.com/pages/dbc-editor-can-bus-database
 */
-static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_length)
+void app_gui_cansig_table1(dbcsig_meta_t metas[], int metas_length, int message_length)
 {
 	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoHostExtendX;
 	if (igBeginTable("Message", 9, flags, (ImVec2){(0.0F), (0.0F)}, (0.0F)) == false) {
@@ -28,8 +24,7 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 		igTableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(50, 50, 50, 255), -1);
 	}
 
-
-	for(int i = 0; i < metas_length; ++i) {
+	for (int i = 0; i < metas_length; ++i) {
 		metas[i].hover2 = false;
 	}
 
@@ -43,7 +38,7 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 		igTableSetColumnIndex(0);
 		igText("%02X", row);
 		igTableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(50, 50, 50, 255), -1);
-		
+
 		for (int column = 0; column < 8; column++) {
 			igPushID_Int(column);
 			igTableSetColumnIndex(column + 1);
@@ -54,14 +49,12 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 			snprintf(buf, 128, "%i", sigint);
 			igSelectable_Bool(buf, false, 0, (ImVec2){0, 0});
 
-			
-
 			bitpos++;
 			// Change background of Cells B1->C2
 			// Demonstrate setting a cell background color with 'ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg, ...)'
 			// (the CellBg color will be blended over the RowBg and ColumnBg colors)
 			// We can also pass a column number as a third parameter to TableSetBgColor() and do this outside the column loop.
-			//if (row >= 1 && row <= 2 && column >= 1 && column <= 2) {
+			// if (row >= 1 && row <= 2 && column >= 1 && column <= 2) {
 			//	ImU32 cell_bg_color = igGetColorU32_Vec4((ImVec4){0.3f, 0.3f, 0.7f, 0.65f});
 			//	igTableSetBgColor(ImGuiTableBgTarget_CellBg, cell_bg_color, -1);
 			//}
@@ -78,12 +71,11 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 				} else {
 					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 100), -1);
 				}
-				
+
 				if (metas[sigint].hover2) {
-					//printf("sigint %i!\n", sigint);
+					// printf("sigint %i!\n", sigint);
 				}
 			}
-
 
 			igPopID();
 		}
@@ -92,8 +84,7 @@ static void show_table1(dbcsig_meta_t metas[], int metas_length, int message_len
 	igEndTable();
 }
 
-
-static void show_table2(dbcsig_meta_t metas[], int metas_length)
+void app_gui_cansig_table2(dbcsig_meta_t metas[], int metas_length)
 {
 	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 	if (igBeginTable("Signals", 12, flags, (ImVec2){0, 0}, 0) == false) {
@@ -114,17 +105,14 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 	igTableSetupColumn("Max", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 	igTableSetupColumn("Unit", ImGuiTableColumnFlags_WidthFixed, 100, 0);
 	igTableHeadersRow();
-	
+
 	float row_min_height = 24.0f;
 
-
 	for (int i = 0; i < metas_length; ++i) {
-		dbcsig_meta_t * meta = metas + i;
+		dbcsig_meta_t *meta = metas + i;
 
 		igTableNextRow(ImGuiTableRowFlags_None, row_min_height);
 		igPushID_Int(i);
-
-
 
 		igTableNextColumn();
 		igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(i, 150), -1);
@@ -132,7 +120,6 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 		.label = "##Select",
 		.kind = GENERIC_GUI_KIND_TEXT_INT,
 		.text_int.value = i});
-
 
 		if (meta->hover1) {
 			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
@@ -219,7 +206,6 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 		igTableNextColumn();
 		igText("hej11");
 
-
 		igPopID();
 		meta->hover1 = false;
 	}
@@ -233,61 +219,4 @@ static void show_table2(dbcsig_meta_t metas[], int metas_length)
 	igEndTable();
 
 	// ig_debug_draw();
-}
-
-void app_gui_window_main_init(app_t *app)
-{
-}
-
-void app_gui_window_main(app_t *app)
-{
-	ImGuiViewport *viewport = igGetMainViewport();
-	igSetNextWindowPos(viewport->Pos, 0, (ImVec2){0, 0});
-	igSetNextWindowSize(viewport->Size, 0);
-	// igSetNextWindowViewport(viewport->ID);
-
-	ImGuiWindowFlags_ flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_MenuBar;
-	igBegin("Signal window", &app->show_window_main, flags);
-
-	if (igBeginMenuBar()) {
-		char buf[64];
-		snprintf(buf, 64, "%05u µs", (uint32_t)(app->gui_time_seconds * 1000.0 * 1000.0));
-		if (igBeginMenu(buf, true)) {
-			igEndMenu();
-		}
-		if (igBeginMenu("Extra", true)) {
-			app->show_window_extra1 = igMenuItem_Bool("extra1", NULL, false, true);
-			app->show_window_extra2 = igMenuItem_Bool("extra2", NULL, false, true);
-			igSeparatorText("Separator");
-			igMenuItem_Bool("Item3", NULL, false, true);
-			igMenuItem_Bool("Item4", NULL, false, true);
-			igMenuItem_Bool("Item5", NULL, false, true);
-			igMenuItem_Bool("Item6", NULL, false, true);
-			igEndMenu();
-		}
-		igEndMenuBar();
-	}
-
-	if (igBeginTabBar("tabs", 0)) {
-		// igText("Hello");
-		if (igBeginTabItem("Message", NULL, 0)) {
-			#define METAS_COUNT 10
-			static dbcsig_meta_t metas[METAS_COUNT] = {
-			{.name = "WheelBased", .type = 0, .order = 0, .mode = 0, .start = 0, .length = 16, .factor = 0.01, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"},
-			{.name = "EngineSpeed", .type = 0, .order = 0, .mode = 0, .start = 24, .length = 16, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "rpm"},
-			{.name = "WindSpeed1", .type = 0, .order = 0, .mode = 0, .start = 16, .length = 4, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"},
-			{.name = "WindSpeed2", .type = 0, .order = 0, .mode = 0, .start = 20, .length = 4, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"}};
-
-			show_table1(metas, METAS_COUNT, 64);
-			igSameLine(0, 10);
-			show_table2(metas, METAS_COUNT);
-			igEndTabItem();
-		}
-		if (igBeginTabItem("Tab2", NULL, 0)) {
-			igEndTabItem();
-		}
-
-		igEndTabBar();
-	}
-	igEnd();
 }

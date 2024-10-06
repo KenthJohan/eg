@@ -24,7 +24,7 @@
 
 #include "imgui_font.h"
 #include "app.h"
-#include "app_gui_window_main.h"
+#include "app_gui_main.h"
 
 void init(app_t *app)
 {
@@ -129,7 +129,7 @@ void frame(app_t *app)
 	}
 
 	if (app->show_window_main) {
-		app_gui_window_main(app);
+		app_gui_main(app);
 	}
 
 	app->gui_time_seconds = (app->gui_time_seconds * 0.99) + (ecs_time_measure(&gui_time_sec) * 0.01);
@@ -169,8 +169,6 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ecs_log_set_level(0);
 	ecs_script_run_file(app->world, "config/2-signals.flecs");
 	ecs_log_set_level(-1);
-
-	app_gui_window_main_init(app);
 
 	// https://www.flecs.dev/explorer/?remote=true
 	ecs_set(app->world, EcsWorld, EcsRest, {.port = 0});
