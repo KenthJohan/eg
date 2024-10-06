@@ -221,11 +221,28 @@ void app_gui_cansig_table2(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[
 	// ig_debug_draw();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void app_gui_cansig_table3(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[], int cansig_count)
 {
-	igPushItemWidth(200);
+	//igPushItemWidth(200);
 	
 	igBeginGroup();
+	igPushItemWidth(40);
 	for (int i = 0; i < cansig_count; ++i) {
 		CanDbcSignal *meta = metas + i;
 		app_gui_cansig_state_t *guisig = guisigs + i;
@@ -234,6 +251,7 @@ void app_gui_cansig_table3(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[
 		.kind = GENERIC_GUI_KIND_TEXT_INT,
 		.text_int.value = i});
 	}
+	igPopItemWidth();
 	igEndGroup();
 
 	igSameLine(0, 10);
@@ -257,6 +275,7 @@ void app_gui_cansig_table3(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[
 	igSameLine(0, 10);
 
 	igBeginGroup();
+	igPushItemWidth(40);
 	for (int i = 0; i < cansig_count; ++i) {
 		CanDbcSignal *meta = metas + i;
 		app_gui_cansig_state_t *guisig = guisigs + i;
@@ -268,11 +287,13 @@ void app_gui_cansig_table3(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[
 		.input.data_size = sizeof(meta->start),
 		});
 	}
+	igPopItemWidth();
 	igEndGroup();
 
 	igSameLine(0, 10);
 
 	igBeginGroup();
+	igPushItemWidth(40);
 	for (int i = 0; i < cansig_count; ++i) {
 		CanDbcSignal *meta = metas + i;
 		app_gui_cansig_state_t *guisig = guisigs + i;
@@ -284,11 +305,12 @@ void app_gui_cansig_table3(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[
 		.input.data_size = sizeof(meta->length),
 		});
 	}
+	igPopItemWidth();
 	igEndGroup();
 
 
 
-	igPopItemWidth();
+	//igPopItemWidth();
 
 	// ig_debug_draw();
 }

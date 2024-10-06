@@ -31,7 +31,8 @@
 		"ig.h": "c",
 		"app.h": "c",
 		"stdbool.h": "c",
-		"candbc.h": "c"
+		"candbc.h": "c",
+		"sokol_shape.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

@@ -16,8 +16,13 @@ typedef struct {
 	char unit[128];
 } CanDbcSignal;
 
+typedef uint32_t CanDbcFlags;
+#define CanDbcFlagsBacon 0x1
+#define CanDbcFlagsLettuce 0x2
+#define CanDbcFlagsTomato 0x4
 
 extern ECS_COMPONENT_DECLARE(CanDbcSignal);
+extern ECS_COMPONENT_DECLARE(CanDbcFlags);
 
 int dbcsig_meta_bitpos_to_signal(CanDbcSignal meta[], int length, int bitpos);
 

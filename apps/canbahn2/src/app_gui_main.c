@@ -48,8 +48,8 @@ void app_gui_main(app_t *app)
 			{.name = "WindSpeed1", .type = 0, .order = 0, .mode = 0, .start = 16, .length = 4, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"},
 			{.name = "WindSpeed2", .type = 0, .order = 0, .mode = 0, .start = 20, .length = 4, .factor = 0.125, .offset = 0, .min = 0, .max = 2500, .unit = "km/h"}};
 
-			//app_gui_cansig_table1(guistates, metas, CANSIG_COUNT, 64);
-			//igSameLine(0, 10);
+			app_gui_cansig_table1(guistates, metas, CANSIG_COUNT, 64);
+			igSameLine(0, 10);
 			//app_gui_cansig_table2(guistates, metas, CANSIG_COUNT);
 			app_gui_cansig_table3(guistates, metas, CANSIG_COUNT);
 			igEndTabItem();
