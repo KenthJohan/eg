@@ -29,7 +29,8 @@
 		"cimgui.h": "c",
 		"app_gui_cansig.h": "c",
 		"ig.h": "c",
-		"app.h": "c"
+		"app.h": "c",
+		"stdbool.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

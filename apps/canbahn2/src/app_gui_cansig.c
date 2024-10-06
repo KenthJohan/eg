@@ -10,7 +10,7 @@
 /*
 https://www.csselectronics.com/pages/dbc-editor-can-bus-database
 */
-void app_gui_cansig_table1(dbcsig_meta_t metas[], int metas_length, int message_length)
+void app_gui_cansig_table1(app_gui_cansig_state_t guisigs[], dbcsig_meta_t metas[], int cansig_count, int message_length)
 {
 	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoHostExtendX;
 	if (igBeginTable("Message", 9, flags, (ImVec2){(0.0F), (0.0F)}, (0.0F)) == false) {
@@ -24,8 +24,8 @@ void app_gui_cansig_table1(dbcsig_meta_t metas[], int metas_length, int message_
 		igTableSetBgColor(ImGuiTableBgTarget_CellBg, IM_COL32(50, 50, 50, 255), -1);
 	}
 
-	for (int i = 0; i < metas_length; ++i) {
-		metas[i].hover2 = false;
+	for (int i = 0; i < cansig_count; ++i) {
+		guisigs[i].hover2 = false;
 	}
 
 	int bitpos = 0;
@@ -43,7 +43,7 @@ void app_gui_cansig_table1(dbcsig_meta_t metas[], int metas_length, int message_
 			igPushID_Int(column);
 			igTableSetColumnIndex(column + 1);
 			// igText("%c%c", 'A' + row, '0' + column);
-			int sigint = dbcsig_meta_bitpos_to_signal(metas, metas_length, bitpos);
+			int sigint = dbcsig_meta_bitpos_to_signal(metas, cansig_count, bitpos);
 
 			char buf[128];
 			snprintf(buf, 128, "%i", sigint);
@@ -59,20 +59,20 @@ void app_gui_cansig_table1(dbcsig_meta_t metas[], int metas_length, int message_
 			//	igTableSetBgColor(ImGuiTableBgTarget_CellBg, cell_bg_color, -1);
 			//}
 			if (sigint >= 0) {
-				metas[sigint].hover2 |= igIsItemHovered(0);
-				metas[sigint].clicked ^= igIsItemClicked(0);
+				guisigs[sigint].hover2 |= igIsItemHovered(0);
+				guisigs[sigint].clicked ^= igIsItemClicked(0);
 
-				if (metas[sigint].clicked) {
+				if (guisigs[sigint].clicked) {
 					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 255), -1);
-				} else if (metas[sigint].hover1) {
+				} else if (guisigs[sigint].hover1) {
 					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 255), -1);
-				} else if (metas[sigint].hover2) {
+				} else if (guisigs[sigint].hover2) {
 					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 255), -1);
 				} else {
 					igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(sigint, 100), -1);
 				}
 
-				if (metas[sigint].hover2) {
+				if (guisigs[sigint].hover2) {
 					// printf("sigint %i!\n", sigint);
 				}
 			}
@@ -84,7 +84,7 @@ void app_gui_cansig_table1(dbcsig_meta_t metas[], int metas_length, int message_
 	igEndTable();
 }
 
-void app_gui_cansig_table2(dbcsig_meta_t metas[], int metas_length)
+void app_gui_cansig_table2(app_gui_cansig_state_t guisigs[], dbcsig_meta_t metas[], int cansig_count)
 {
 	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 	if (igBeginTable("Signals", 12, flags, (ImVec2){0, 0}, 0) == false) {
@@ -108,8 +108,9 @@ void app_gui_cansig_table2(dbcsig_meta_t metas[], int metas_length)
 
 	float row_min_height = 24.0f;
 
-	for (int i = 0; i < metas_length; ++i) {
+	for (int i = 0; i < cansig_count; ++i) {
 		dbcsig_meta_t *meta = metas + i;
+		app_gui_cansig_state_t *guisig = guisigs + i;
 
 		igTableNextRow(ImGuiTableRowFlags_None, row_min_height);
 		igPushID_Int(i);
@@ -121,13 +122,13 @@ void app_gui_cansig_table2(dbcsig_meta_t metas[], int metas_length)
 		.kind = GENERIC_GUI_KIND_TEXT_INT,
 		.text_int.value = i});
 
-		if (meta->hover1) {
+		if (guisig->hover1) {
 			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
 		}
-		if (meta->hover2) {
+		if (guisig->hover2) {
 			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
 		}
-		if (meta->clicked) {
+		if (guisig->clicked) {
 			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
 		}
 
@@ -207,13 +208,13 @@ void app_gui_cansig_table2(dbcsig_meta_t metas[], int metas_length)
 		igText("hej11");
 
 		igPopID();
-		meta->hover1 = false;
+		guisig->hover1 = false;
 	}
 
 	int ri = igTableGetHoveredRow() - 1;
-	if ((ri >= 0) && (ri < metas_length)) {
-		metas[ri].hover1 = true;
-		metas[ri].clicked ^= igIsMouseReleased_ID(ImGuiMouseButton_Left, 0);
+	if ((ri >= 0) && (ri < cansig_count)) {
+		guisigs[ri].hover1 = true;
+		guisigs[ri].clicked ^= igIsMouseReleased_ID(ImGuiMouseButton_Left, 0);
 	}
 
 	igEndTable();
