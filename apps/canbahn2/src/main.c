@@ -26,6 +26,9 @@
 #include "app.h"
 #include "app_gui_main.h"
 
+// Modules:
+#include "CanDbc.h"
+
 void init(app_t *app)
 {
 	// setup sokol-gfx, sokol-time and sokol-imgui
@@ -165,6 +168,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	app->world = ecs_init();
 	ECS_IMPORT(app->world, FlecsUnits);
 	ECS_IMPORT(app->world, FlecsDoc);
+	ECS_IMPORT(app->world, CanDbc);
 
 	ecs_log_set_level(0);
 	ecs_script_run_file(app->world, "config/2-signals.flecs");

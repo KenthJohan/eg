@@ -173,27 +173,27 @@ void generic_gui(generic_gui_t *item)
 	} break;
 
 	case GENERIC_GUI_KIND_INPUT_TEXT:
-		igPushItemWidth(-1);
+		//igPushItemWidth(-1);
 		igInputText(item->label, item->input.data, item->input.data_size, 0, 0, 0);
-		igPopItemWidth();
+		//igPopItemWidth();
 		break;
 
 	case GENERIC_GUI_KIND_INPUT_INT:
-		igPushItemWidth(-1);
+		//igPushItemWidth(-1);
 		igInputInt(item->label, item->input.data, 0, 0, 0);
-		igPopItemWidth();
+		//igPopItemWidth();
 		break;
 
 	case GENERIC_GUI_KIND_INPUT_FLOAT:
-		igPushItemWidth(-1);
+		//igPushItemWidth(-1);
 		igInputFloat(item->label, item->input.data, 0, 0, "%f", 0);
-		igPopItemWidth();
+		//igPopItemWidth();
 		break;
 
 	case GENERIC_GUI_KIND_INPUT_DOUBLE:
-		igPushItemWidth(-1);
+		//igPushItemWidth(-1);
 		igInputDouble(item->label, item->input.data, 0, 0, "%f", 0);
-		igPopItemWidth();
+		//igPopItemWidth();
 		break;
 
 	default:

@@ -4,13 +4,12 @@
 #include <cimgui.h>
 #include <egimgui.h>
 
-#include "dbcsig.h"
 #include "ig.h"
 
 /*
 https://www.csselectronics.com/pages/dbc-editor-can-bus-database
 */
-void app_gui_cansig_table1(app_gui_cansig_state_t guisigs[], dbcsig_meta_t metas[], int cansig_count, int message_length)
+void app_gui_cansig_table1(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[], int cansig_count, int message_length)
 {
 	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV | ImGuiTableFlags_ContextMenuInBody | ImGuiTableFlags_NoHostExtendX;
 	if (igBeginTable("Message", 9, flags, (ImVec2){(0.0F), (0.0F)}, (0.0F)) == false) {
@@ -84,7 +83,7 @@ void app_gui_cansig_table1(app_gui_cansig_state_t guisigs[], dbcsig_meta_t metas
 	igEndTable();
 }
 
-void app_gui_cansig_table2(app_gui_cansig_state_t guisigs[], dbcsig_meta_t metas[], int cansig_count)
+void app_gui_cansig_table2(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[], int cansig_count)
 {
 	ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 	if (igBeginTable("Signals", 12, flags, (ImVec2){0, 0}, 0) == false) {
@@ -109,7 +108,7 @@ void app_gui_cansig_table2(app_gui_cansig_state_t guisigs[], dbcsig_meta_t metas
 	float row_min_height = 24.0f;
 
 	for (int i = 0; i < cansig_count; ++i) {
-		dbcsig_meta_t *meta = metas + i;
+		CanDbcSignal *meta = metas + i;
 		app_gui_cansig_state_t *guisig = guisigs + i;
 
 		igTableNextRow(ImGuiTableRowFlags_None, row_min_height);
@@ -218,6 +217,78 @@ void app_gui_cansig_table2(app_gui_cansig_state_t guisigs[], dbcsig_meta_t metas
 	}
 
 	igEndTable();
+
+	// ig_debug_draw();
+}
+
+void app_gui_cansig_table3(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[], int cansig_count)
+{
+	igPushItemWidth(200);
+	
+	igBeginGroup();
+	for (int i = 0; i < cansig_count; ++i) {
+		CanDbcSignal *meta = metas + i;
+		app_gui_cansig_state_t *guisig = guisigs + i;
+		generic_gui(&(generic_gui_t){
+		.label = "##Select",
+		.kind = GENERIC_GUI_KIND_TEXT_INT,
+		.text_int.value = i});
+	}
+	igEndGroup();
+
+	igSameLine(0, 10);
+
+	igBeginGroup();
+	igPushItemWidth(40);
+	for (int i = 0; i < cansig_count; ++i) {
+		CanDbcSignal *meta = metas + i;
+		app_gui_cansig_state_t *guisig = guisigs + i;
+		generic_gui(&(generic_gui_t){
+		.label = "##Name",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_TEXT,
+		.input.data = meta->name,
+		.input.data_size = 128,
+		});
+	}
+	igPopItemWidth();
+	igEndGroup();
+
+	igSameLine(0, 10);
+
+	igBeginGroup();
+	for (int i = 0; i < cansig_count; ++i) {
+		CanDbcSignal *meta = metas + i;
+		app_gui_cansig_state_t *guisig = guisigs + i;
+		generic_gui(&(generic_gui_t){
+		.label = "##Start",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_INT,
+		.input.data = &meta->start,
+		.input.data_size = sizeof(meta->start),
+		});
+	}
+	igEndGroup();
+
+	igSameLine(0, 10);
+
+	igBeginGroup();
+	for (int i = 0; i < cansig_count; ++i) {
+		CanDbcSignal *meta = metas + i;
+		app_gui_cansig_state_t *guisig = guisigs + i;
+		generic_gui(&(generic_gui_t){
+		.label = "##Length",
+		.id = i,
+		.kind = GENERIC_GUI_KIND_INPUT_INT,
+		.input.data = &meta->length,
+		.input.data_size = sizeof(meta->length),
+		});
+	}
+	igEndGroup();
+
+
+
+	igPopItemWidth();
 
 	// ig_debug_draw();
 }

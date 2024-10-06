@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <flecs.h>
 
 typedef struct {
 	char name[128];
@@ -13,6 +14,11 @@ typedef struct {
 	double min;
 	double max;
 	char unit[128];
-} dbcsig_meta_t;
+} CanDbcSignal;
 
-int dbcsig_meta_bitpos_to_signal(dbcsig_meta_t meta[], int length, int bitpos);
+
+extern ECS_COMPONENT_DECLARE(CanDbcSignal);
+
+int dbcsig_meta_bitpos_to_signal(CanDbcSignal meta[], int length, int bitpos);
+
+void CanDbcImport(ecs_world_t *world);
