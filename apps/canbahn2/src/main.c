@@ -14,6 +14,7 @@
 #include <egcan.h>
 #include <egquantities.h>
 #include <egspatials.h>
+#include <egpolynomials.h>
 #include <egshapes.h>
 #include <egcolors.h>
 #include <egifaces.h>
@@ -169,6 +170,7 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ECS_IMPORT(app->world, FlecsUnits);
 	ECS_IMPORT(app->world, FlecsDoc);
 	ECS_IMPORT(app->world, CanDbc);
+	ECS_IMPORT(app->world, EgPolynomials);
 
 	ecs_log_set_level(0);
 	ecs_script_run_file(app->world, "config/2-signals.flecs");

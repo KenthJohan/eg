@@ -1,5 +1,7 @@
 #include "CanDbc.h"
 
+#include <egpolynomials.h>
+
 ECS_COMPONENT_DECLARE(CanDbcSignal);
 ECS_COMPONENT_DECLARE(CanDbcType);
 ECS_COMPONENT_DECLARE(CanDbcOrder);
@@ -21,6 +23,8 @@ int dbcsig_meta_bitpos_to_signal(CanDbcSignal metas[], int length, int bitpos)
 void CanDbcImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, CanDbc);
+	ECS_IMPORT(world, EgPolynomials);
+
 	ecs_set_name_prefix(world, "CanDbc");
 	ECS_COMPONENT_DEFINE(world, CanDbcSignal);
 	ECS_COMPONENT_DEFINE(world, CanDbcType);

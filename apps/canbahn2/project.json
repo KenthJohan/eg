@@ -29,6 +29,8 @@
 			"sokol_glue",
 			"sokol_imgui",
 			"cimgui",
+			"egquantities",
+			"egpolynomials",
 			"GL",
 			"X11",
 			"Xi",

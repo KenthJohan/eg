@@ -6,6 +6,7 @@ CanSig {
 	WheelBased {
 		can.dbc.Type: {Unsigned}
 		can.dbc.Order: {LitleEndian}
+		eg.polynomials.Linear: {k0:5.0, k1: 3.0}
 	}
 }
 
