@@ -34,7 +34,9 @@
 		"candbc.h": "c",
 		"sokol_shape.h": "c",
 		"egquantities.h": "c",
-		"egshapes.h": "c"
+		"egshapes.h": "c",
+		"egpolynomials.h": "c",
+		"app_gui_generic.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

@@ -2,8 +2,13 @@ module app
 using flecs.meta
 
 
-CanSig {
-	WheelBased {
+signals {
+	wheel {
+		can.dbc.Type: {Unsigned}
+		can.dbc.Order: {LitleEndian}
+		eg.polynomials.Linear: {k0:5.0, k1: 3.0}
+	}
+	temperature {
 		can.dbc.Type: {Unsigned}
 		can.dbc.Order: {LitleEndian}
 		eg.polynomials.Linear: {k0:5.0, k1: 3.0}

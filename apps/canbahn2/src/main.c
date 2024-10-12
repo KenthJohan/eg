@@ -172,6 +172,12 @@ sapp_desc sokol_main(int argc, char *argv[])
 	ECS_IMPORT(app->world, CanDbc);
 	ECS_IMPORT(app->world, EgPolynomials);
 
+	app->query_canids = ecs_query(app->world, {
+	.terms = {
+	{ .id = ecs_id(EgPolynomialsLinear) }
+	}
+	});
+
 	ecs_log_set_level(0);
 	ecs_script_run_file(app->world, "config/2-signals.flecs");
 	ecs_log_set_level(-1);

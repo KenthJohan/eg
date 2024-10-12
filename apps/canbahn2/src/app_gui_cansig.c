@@ -115,20 +115,20 @@ void app_gui_cansig_table2(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[
 		igPushID_Int(i);
 
 		igTableNextColumn();
-		igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(i, 150), -1);
+		igTableSetBgColor(ImGuiTableBgTarget_CellBg, hash32_to_color32(i, 80), -1);
 		generic_gui(&(generic_gui_t){
 		.label = "##Select",
 		.kind = GENERIC_GUI_KIND_TEXT_INT,
 		.text_int.value = i});
 
 		if (guisig->hover1) {
-			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
+			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 80), -1);
 		}
 		if (guisig->hover2) {
-			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
+			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 80), -1);
 		}
 		if (guisig->clicked) {
-			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 255), -1);
+			igTableSetBgColor(ImGuiTableBgTarget_RowBg1, hash32_to_color32(i, 100), -1);
 		}
 
 		igTableNextColumn();
@@ -314,3 +314,10 @@ void app_gui_cansig_table3(app_gui_cansig_state_t guisigs[], CanDbcSignal metas[
 
 	// ig_debug_draw();
 }
+
+
+
+
+
+
+
