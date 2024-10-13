@@ -36,7 +36,12 @@
 		"egquantities.h": "c",
 		"egshapes.h": "c",
 		"egpolynomials.h": "c",
-		"app_gui_generic.h": "c"
+		"app_gui_generic.h": "c",
+		"stdlib.h": "c",
+		"egimgui.h": "c",
+		"ratio": "c",
+		"variant": "c",
+		"sstream": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

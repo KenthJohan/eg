@@ -174,7 +174,9 @@ sapp_desc sokol_main(int argc, char *argv[])
 
 	app->query_canids = ecs_query(app->world, {
 	.terms = {
-	{ .id = ecs_id(EgPolynomialsLinear) }
+	{ .id = ecs_id(EgPolynomialsLinear) },
+	{ .id = ecs_id(CanDbcOrder) },
+	{ .id = ecs_id(CanDbcType) },
 	}
 	});
 
