@@ -20,7 +20,8 @@
 			"-Wall",
 			"-Wno-pedantic",
 			"-Wextra",
-			"-Wno-error=unused-variable"
+			"-Wno-error=unused-variable",
+			"-Wno-error=unused-function"
 		]
 	}
 }

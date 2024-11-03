@@ -11,12 +11,12 @@
 export MSYS_NO_PATHCONV=1
 
 # SPIR-V
-glslangValidator cube.glsl -V -S vert -o cube.vert.spv --quiet -DVERTEX
-glslangValidator cube.glsl -V -S frag -o cube.frag.spv --quiet
+glslangValidator cube.vs.glsl -V -S vert -o cube.vert.spv --quiet
+glslangValidator cube.fs.glsl -V -S frag -o cube.frag.spv --quiet
 xxd -i cube.vert.spv | perl -w -p -e 's/\Aunsigned /const unsigned /;' > cube.vert.h
 xxd -i cube.frag.spv | perl -w -p -e 's/\Aunsigned /const unsigned /;' > cube.frag.h
 cat cube.vert.h cube.frag.h > testgpu_spirv.h
-rm -f cube.vert.h cube.frag.h cube.vert.spv cube.frag.spv
+# rm -f cube.vert.h cube.frag.h cube.vert.spv cube.frag.spv
 
 # Platform-specific compilation
 if [[ "$OSTYPE" == "darwin"* ]]; then

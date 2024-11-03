@@ -43,7 +43,13 @@
 		"variant": "c",
 		"sstream": "c",
 		"sdl_main.h": "c",
-		"sdl_test_common.h": "c"
+		"sdl_test_common.h": "c",
+		"testgpu_spirv.h": "c",
+		"stdio.h": "c",
+		"stdint.h": "c",
+		"shader_spirv.h": "c",
+		"wait.h": "c",
+		"sdl_gpu.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

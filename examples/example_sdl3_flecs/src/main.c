@@ -20,9 +20,12 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
+#include <flecs.h>
 
 /* Regenerate the shaders with testgpu/build-shaders.sh */
 #include "../shaders/testgpu_spirv.h"
+
+#include "shader_spirv.h"
 
 #define TESTGPU_SUPPORTED_FORMATS (SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_METALLIB)
 
@@ -549,9 +552,11 @@ init_render_state(int msaa)
 
 	/* Create shaders */
 
-	vertex_shader = load_shader(true);
+	//vertex_shader = load_shader(true);
+	vertex_shader = shader_spirv_compile(gpu_device, "shaders/cube", SDL_GPU_SHADERSTAGE_VERTEX);
 	CHECK_CREATE(vertex_shader, "Vertex Shader")
-	fragment_shader = load_shader(false);
+	//fragment_shader = load_shader(false);
+	fragment_shader = shader_spirv_compile(gpu_device, "shaders/cube", SDL_GPU_SHADERSTAGE_FRAGMENT);
 	CHECK_CREATE(fragment_shader, "Fragment Shader")
 
 	/* Create buffers */
@@ -677,35 +682,27 @@ init_render_state(int msaa)
 	}
 }
 
-static int done = 0;
 
-void loop(void)
-{
-	SDL_Event event;
-	int i;
-
-	/* Check for events */
-	while (SDL_PollEvent(&event) && !done) {
-		SDLTest_CommonEvent(state, &event, &done);
-	}
-	if (!done) {
-		for (i = 0; i < state->num_windows; ++i) {
-			Render(state->windows[i], i);
-		}
-	}
-#ifdef __EMSCRIPTEN__
-	else {
-		emscripten_cancel_main_loop();
-	}
-#endif
-}
 
 int main(int argc, char *argv[])
 {
+
+	ecs_world_t * world = ecs_init();
+	ECS_IMPORT(world, FlecsUnits);
+	ECS_IMPORT(world, FlecsDoc);
+	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
+	printf("Remote: %s\n", "https://www.flecs.dev/explorer/?remote=true");
+
+	ecs_log_set_level(0);
+	ecs_script_run_file(world, "config/hello.flecs");
+	ecs_log_set_level(-1);
+
+	int done = 0;
 	int msaa;
 	int i;
 	const SDL_DisplayMode *mode;
 	Uint64 then, now;
+
 
 	/* Initialize params */
 	msaa = 0;
@@ -753,13 +750,23 @@ int main(int argc, char *argv[])
 	then = SDL_GetTicks();
 	done = 0;
 
-#ifdef __EMSCRIPTEN__
-	emscripten_set_main_loop(loop, 0, 1);
-#else
+
 	while (!done) {
-		loop();
+		ecs_progress(world, 0.0f);
+		SDL_Event event;
+		int i;
+
+		/* Check for events */
+		while (SDL_PollEvent(&event) && !done) {
+			SDLTest_CommonEvent(state, &event, &done);
+		}
+		if (!done) {
+			for (i = 0; i < state->num_windows; ++i) {
+				Render(state->windows[i], i);
+			}
+		}
 	}
-#endif
+
 
 	/* Print out some timing information */
 	now = SDL_GetTicks();
@@ -767,9 +774,8 @@ int main(int argc, char *argv[])
 		SDL_Log("%2.2f frames per second\n",
 		((double)frames * 1000) / (now - then));
 	}
-#if !defined(__ANDROID__)
+
 	quit(0);
-#endif
 	return 0;
 }
 
