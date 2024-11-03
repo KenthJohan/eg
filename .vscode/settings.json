@@ -49,7 +49,12 @@
 		"stdint.h": "c",
 		"shader_spirv.h": "c",
 		"wait.h": "c",
-		"sdl_gpu.h": "c"
+		"sdl_gpu.h": "c",
+		"eg_popen.h": "c",
+		"cstdlib": "c",
+		"eg_file.h": "c",
+		"stddef.h": "c",
+		"types.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

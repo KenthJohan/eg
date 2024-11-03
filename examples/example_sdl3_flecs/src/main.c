@@ -469,52 +469,7 @@ Render(SDL_Window *window, const int windownum)
 	++frames;
 }
 
-static SDL_GPUShader *
-load_shader(bool is_vertex)
-{
-	SDL_GPUShaderCreateInfo createinfo;
-	createinfo.num_samplers = 0;
-	createinfo.num_storage_buffers = 0;
-	createinfo.num_storage_textures = 0;
-	createinfo.num_uniform_buffers = is_vertex ? 1 : 0;
-	createinfo.props = 0;
 
-	/*
-	SDL_GPUShaderFormat format = SDL_GetGPUShaderFormats(gpu_device);
-	if (format & SDL_GPU_SHADERFORMAT_DXBC) {
-	    createinfo.format = SDL_GPU_SHADERFORMAT_DXBC;
-	    createinfo.code = is_vertex ? D3D11_CubeVert : D3D11_CubeFrag;
-	    createinfo.code_size = is_vertex ? SDL_arraysize(D3D11_CubeVert) : SDL_arraysize(D3D11_CubeFrag);
-	    createinfo.entrypoint = is_vertex ? "VSMain" : "PSMain";
-	} else if (format & SDL_GPU_SHADERFORMAT_DXIL) {
-	    createinfo.format = SDL_GPU_SHADERFORMAT_DXIL;
-	    createinfo.code = is_vertex ? D3D12_CubeVert : D3D12_CubeFrag;
-	    createinfo.code_size = is_vertex ? SDL_arraysize(D3D12_CubeVert) : SDL_arraysize(D3D12_CubeFrag);
-	    createinfo.entrypoint = is_vertex ? "VSMain" : "PSMain";
-	} else if (format & SDL_GPU_SHADERFORMAT_METALLIB) {
-	    createinfo.format = SDL_GPU_SHADERFORMAT_METALLIB;
-	    createinfo.code = is_vertex ? cube_vert_metallib : cube_frag_metallib;
-	    createinfo.code_size = is_vertex ? cube_vert_metallib_len : cube_frag_metallib_len;
-	    createinfo.entrypoint = is_vertex ? "vs_main" : "fs_main";
-	} else {
-	    createinfo.format = SDL_GPU_SHADERFORMAT_SPIRV;
-	    createinfo.code = is_vertex ? cube_vert_spv : cube_frag_spv;
-	    createinfo.code_size = is_vertex ? cube_vert_spv_len : cube_frag_spv_len;
-	    createinfo.entrypoint = "main";
-	}
-	*/
-	SDL_GPUShaderFormat format = SDL_GetGPUShaderFormats(gpu_device);
-	if (format != SDL_GPU_SHADERFORMAT_SPIRV) {
-		fprintf(stderr, "Format is not SDL_GPU_SHADERFORMAT_SPIRV");
-		quit(-1);
-	}
-	createinfo.format = SDL_GPU_SHADERFORMAT_SPIRV;
-	createinfo.code = is_vertex ? cube_vert_spv : cube_frag_spv;
-	createinfo.code_size = is_vertex ? cube_vert_spv_len : cube_frag_spv_len;
-	createinfo.entrypoint = "main";
-	createinfo.stage = is_vertex ? SDL_GPU_SHADERSTAGE_VERTEX : SDL_GPU_SHADERSTAGE_FRAGMENT;
-	return SDL_CreateGPUShader(gpu_device, &createinfo);
-}
 
 static void
 init_render_state(int msaa)
@@ -684,6 +639,51 @@ init_render_state(int msaa)
 
 
 
+
+static SDL_EnumerationResult SDLCALL enum_callback(void *userdata, const char *origdir, const char *fname)
+{
+    SDL_PathInfo info;
+    char *fullpath = NULL;
+
+    /* you can use '/' for a path separator on Windows, but to make the log output look correct, we'll #ifdef this... */
+    #ifdef SDL_PLATFORM_WINDOWS
+    const char *pathsep = "\\";
+    #else
+    const char *pathsep = "/";
+    #endif
+
+    if (SDL_asprintf(&fullpath, "%s%s%s", origdir, *origdir ? pathsep : "", fname) < 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory!");
+        return SDL_ENUM_FAILURE;
+    }
+
+    if (!SDL_GetPathInfo(fullpath, &info)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't stat '%s': %s", fullpath, SDL_GetError());
+    } else {
+        const char *type;
+        if (info.type == SDL_PATHTYPE_FILE) {
+            type = "FILE";
+        } else if (info.type == SDL_PATHTYPE_DIRECTORY) {
+            type = "DIRECTORY";
+        } else {
+            type = "OTHER";
+        }
+        SDL_Log("%s (type=%s, size=%" SDL_PRIu64 ", create=%" SDL_PRIu64 ", mod=%" SDL_PRIu64 ", access=%" SDL_PRIu64 ")",
+                fullpath, type, info.size, info.modify_time, info.create_time, info.access_time);
+
+        if (info.type == SDL_PATHTYPE_DIRECTORY) {
+            if (!SDL_EnumerateDirectory(fullpath, enum_callback, userdata)) {
+                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Enumeration failed!");
+            }
+        }
+    }
+
+    SDL_free(fullpath);
+    return SDL_ENUM_CONTINUE;  /* keep going */
+}
+
+
+
 int main(int argc, char *argv[])
 {
 
@@ -739,6 +739,11 @@ int main(int argc, char *argv[])
 		quit(2);
 		return 0;
 	}
+
+	if (!SDL_EnumerateDirectory(".", enum_callback, NULL)) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Base path enumeration failed!");
+	}
+
 
 	mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(state->windows[0]));
 	SDL_Log("Screen bpp: %d\n", SDL_BITSPERPIXEL(mode->format));
