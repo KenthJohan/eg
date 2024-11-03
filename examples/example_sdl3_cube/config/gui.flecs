@@ -1,0 +1,121 @@
+module app.gui
+
+
+
+const bar_thick = 60
+const bar_length = 200
+const bar_x = 10
+const bar_y = 10
+const bot_w = 350
+const bot_h = 200
+
+m1 : app.signals.motor_l0 {
+	- eg.colors.RGBA8888{100,120,100,255}
+	- eg.spatials.Position2{x:$bar_x, y:$bar_y}
+	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+m2 : app.signals.motor_r1 {
+	- eg.colors.RGBA8888{100,120,100,255}
+	- eg.spatials.Position2{x:$bar_x, y:$bar_y+$bot_h}
+	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+m3 : app.signals.motor_l1 {
+	- eg.colors.RGBA8888{100,120,100,255}
+	- eg.spatials.Position2{x:$bar_x + $bot_w, y:$bar_y}
+	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+m4 : app.signals.motor_r0 {
+	- eg.colors.RGBA8888{100,120,100,255}
+	- eg.spatials.Position2{x:$bar_x + $bot_w, y:$bar_y+$bot_h}
+	- eg.shapes.Rectangle{w:$bar_length, h:$bar_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+
+
+
+
+const bar1_thick = 20
+const bar1_stride = 30
+const bar1_length = 500
+const bar1_x = 10
+const bar1_y = 300
+
+
+
+r0 : app.signals.rc_channel_0 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*0}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+r1 : app.signals.rc_channel_1 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*1}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+r2 : app.signals.rc_channel_2 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*2}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+r3 : app.signals.rc_channel_3 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*3}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+r4 : app.signals.rc_channel_4 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*4}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+r5 : app.signals.rc_channel_5 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*5}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+r6 : app.signals.rc_channel_6 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*6}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+r7 : app.signals.rc_channel_7 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*7}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+r8 : app.signals.rc_channel_8 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*8}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+
+r9 : app.signals.rc_channel_9 {
+	- eg.colors.RGBA8888{0,100,140,255}
+	- eg.spatials.Position2{x:$bar1_x, y:$bar1_y+$bar1_stride*9}
+	- eg.shapes.Rectangle{w:$bar1_length, h:$bar1_thick}
+	- eg.quantities.Progress{min:-128, max:127, value:0}
+}
+

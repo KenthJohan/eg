@@ -41,7 +41,9 @@
 		"egimgui.h": "c",
 		"ratio": "c",
 		"variant": "c",
-		"sstream": "c"
+		"sstream": "c",
+		"sdl_main.h": "c",
+		"sdl_test_common.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
