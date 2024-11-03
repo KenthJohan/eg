@@ -472,6 +472,29 @@
 			}
 		},
 		{
+			"name": "Launch example_sdl3_flecs",
+			"type": "cppdbg",
+			"request": "launch",
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}/examples/example_sdl3_flecs",
+			"environment": [
+				{
+					"name": "LD_LIBRARY_PATH",
+					"value": "${workspaceFolder}/bin/x64-Linux-debug:${env:HOME}/bake/x64-Linux/debug/lib/:/usr/local/lib/"
+				},
+			],
+			"program": "${workspaceFolder}/examples/example_sdl3_flecs/bin/x64-Linux-debug/example_sdl3_flecs",
+			"args": [],
+			"osx": {
+				"MIMode": "lldb",
+				"targetArchitecture": "arm64",
+				"externalConsole": false,
+			},
+			"linux": {
+				"externalConsole": false,
+			}
+		},
+		{
 			"name": "Launch test_egmath",
 			"type": "cppdbg",
 			"request": "launch",

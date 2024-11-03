@@ -1,0 +1,26 @@
+{
+	"id": "example_sdl3_flecs",
+	"type": "application",
+	"value": {
+		"language": "c",
+		"public": false,
+		"use": [
+			"flecs"
+		]
+	},
+	"lang.c": {
+		"c-standard": "gnu99",
+		"defines": [],
+		"lib": [
+			"flecs",
+			"SDL3"
+		],
+		"cflags": [
+			"-Werror",
+			"-Wall",
+			"-Wno-pedantic",
+			"-Wextra",
+			"-Wno-error=unused-variable"
+		]
+	}
+}
