@@ -4,15 +4,12 @@
 	"value": {
 		"language": "c",
 		"public": false,
-		"use": [
-			"flecs"
-		]
+		"use": []
 	},
 	"lang.c": {
 		"c-standard": "gnu99",
 		"defines": [],
 		"lib": [
-			"flecs",
 			"SDL3"
 		],
 		"cflags": [
