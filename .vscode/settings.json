@@ -54,7 +54,10 @@
 		"cstdlib": "c",
 		"eg_file.h": "c",
 		"stddef.h": "c",
-		"types.h": "c"
+		"types.h": "c",
+		"vertex.h": "c",
+		"matrix.h": "c",
+		"eg_fs.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

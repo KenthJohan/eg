@@ -26,6 +26,10 @@
 #include "../shaders/testgpu_spirv.h"
 
 #include "shader_spirv.h"
+#include "vertex.h"
+#include "matrix.h"
+
+#include "eg_fs.h"
 
 #define TESTGPU_SUPPORTED_FORMATS (SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_METALLIB)
 
@@ -88,167 +92,8 @@ quit(int rc)
 	exit(rc);
 }
 
-/*
- * Simulates desktop's glRotatef. The matrix is returned in column-major
- * order.
- */
-static void
-rotate_matrix(float angle, float x, float y, float z, float *r)
-{
-	float radians, c, s, c1, u[3], length;
-	int i, j;
 
-	radians = angle * SDL_PI_F / 180.0f;
 
-	c = SDL_cosf(radians);
-	s = SDL_sinf(radians);
-
-	c1 = 1.0f - SDL_cosf(radians);
-
-	length = (float)SDL_sqrt(x * x + y * y + z * z);
-
-	u[0] = x / length;
-	u[1] = y / length;
-	u[2] = z / length;
-
-	for (i = 0; i < 16; i++) {
-		r[i] = 0.0;
-	}
-
-	r[15] = 1.0;
-
-	for (i = 0; i < 3; i++) {
-		r[i * 4 + (i + 1) % 3] = u[(i + 2) % 3] * s;
-		r[i * 4 + (i + 2) % 3] = -u[(i + 1) % 3] * s;
-	}
-
-	for (i = 0; i < 3; i++) {
-		for (j = 0; j < 3; j++) {
-			r[i * 4 + j] += c1 * u[i] * u[j] + (i == j ? c : 0.0f);
-		}
-	}
-}
-
-/*
- * Simulates gluPerspectiveMatrix
- */
-static void
-perspective_matrix(float fovy, float aspect, float znear, float zfar, float *r)
-{
-	int i;
-	float f;
-
-	f = 1.0f / SDL_tanf(fovy * 0.5f);
-
-	for (i = 0; i < 16; i++) {
-		r[i] = 0.0;
-	}
-
-	r[0] = f / aspect;
-	r[5] = f;
-	r[10] = (znear + zfar) / (znear - zfar);
-	r[11] = -1.0f;
-	r[14] = (2.0f * znear * zfar) / (znear - zfar);
-	r[15] = 0.0f;
-}
-
-/*
- * Multiplies lhs by rhs and writes out to r. All matrices are 4x4 and column
- * major. In-place multiplication is supported.
- */
-static void
-multiply_matrix(float *lhs, float *rhs, float *r)
-{
-	int i, j, k;
-	float tmp[16];
-
-	for (i = 0; i < 4; i++) {
-		for (j = 0; j < 4; j++) {
-			tmp[j * 4 + i] = 0.0;
-
-			for (k = 0; k < 4; k++) {
-				tmp[j * 4 + i] += lhs[k * 4 + i] * rhs[j * 4 + k];
-			}
-		}
-	}
-
-	for (i = 0; i < 16; i++) {
-		r[i] = tmp[i];
-	}
-}
-
-typedef struct VertexData {
-	float x, y, z;          /* 3D data. Vertex range -0.5..0.5 in all axes. Z -0.5 is near, 0.5 is far. */
-	float red, green, blue; /* intensity 0 to 1 (alpha is always 1). */
-} VertexData;
-
-static const VertexData vertex_data[] = {
-/* Front face. */
-/* Bottom left */
-{-0.5, 0.5, -0.5, 1.0, 0.0, 0.0},  /* red */
-{0.5, -0.5, -0.5, 0.0, 0.0, 1.0},  /* blue */
-{-0.5, -0.5, -0.5, 0.0, 1.0, 0.0}, /* green */
-
-/* Top right */
-{-0.5, 0.5, -0.5, 1.0, 0.0, 0.0}, /* red */
-{0.5, 0.5, -0.5, 1.0, 1.0, 0.0},  /* yellow */
-{0.5, -0.5, -0.5, 0.0, 0.0, 1.0}, /* blue */
-
-/* Left face */
-/* Bottom left */
-{-0.5, 0.5, 0.5, 1.0, 1.0, 1.0},   /* white */
-{-0.5, -0.5, -0.5, 0.0, 1.0, 0.0}, /* green */
-{-0.5, -0.5, 0.5, 0.0, 1.0, 1.0},  /* cyan */
-
-/* Top right */
-{-0.5, 0.5, 0.5, 1.0, 1.0, 1.0},   /* white */
-{-0.5, 0.5, -0.5, 1.0, 0.0, 0.0},  /* red */
-{-0.5, -0.5, -0.5, 0.0, 1.0, 0.0}, /* green */
-
-/* Top face */
-/* Bottom left */
-{-0.5, 0.5, 0.5, 1.0, 1.0, 1.0},  /* white */
-{0.5, 0.5, -0.5, 1.0, 1.0, 0.0},  /* yellow */
-{-0.5, 0.5, -0.5, 1.0, 0.0, 0.0}, /* red */
-
-/* Top right */
-{-0.5, 0.5, 0.5, 1.0, 1.0, 1.0}, /* white */
-{0.5, 0.5, 0.5, 0.0, 0.0, 0.0},  /* black */
-{0.5, 0.5, -0.5, 1.0, 1.0, 0.0}, /* yellow */
-
-/* Right face */
-/* Bottom left */
-{0.5, 0.5, -0.5, 1.0, 1.0, 0.0},  /* yellow */
-{0.5, -0.5, 0.5, 1.0, 0.0, 1.0},  /* magenta */
-{0.5, -0.5, -0.5, 0.0, 0.0, 1.0}, /* blue */
-
-/* Top right */
-{0.5, 0.5, -0.5, 1.0, 1.0, 0.0}, /* yellow */
-{0.5, 0.5, 0.5, 0.0, 0.0, 0.0},  /* black */
-{0.5, -0.5, 0.5, 1.0, 0.0, 1.0}, /* magenta */
-
-/* Back face */
-/* Bottom left */
-{0.5, 0.5, 0.5, 0.0, 0.0, 0.0},   /* black */
-{-0.5, -0.5, 0.5, 0.0, 1.0, 1.0}, /* cyan */
-{0.5, -0.5, 0.5, 1.0, 0.0, 1.0},  /* magenta */
-
-/* Top right */
-{0.5, 0.5, 0.5, 0.0, 0.0, 0.0},   /* black */
-{-0.5, 0.5, 0.5, 1.0, 1.0, 1.0},  /* white */
-{-0.5, -0.5, 0.5, 0.0, 1.0, 1.0}, /* cyan */
-
-/* Bottom face */
-/* Bottom left */
-{-0.5, -0.5, -0.5, 0.0, 1.0, 0.0}, /* green */
-{0.5, -0.5, 0.5, 1.0, 0.0, 1.0},   /* magenta */
-{-0.5, -0.5, 0.5, 0.0, 1.0, 1.0},  /* cyan */
-
-/* Top right */
-{-0.5, -0.5, -0.5, 0.0, 1.0, 0.0}, /* green */
-{0.5, -0.5, -0.5, 0.0, 0.0, 1.0},  /* blue */
-{0.5, -0.5, 0.5, 1.0, 0.0, 1.0}    /* magenta */
-};
 
 static SDL_GPUTexture *
 CreateDepthTexture(Uint32 drawablew, Uint32 drawableh)
@@ -640,47 +485,6 @@ init_render_state(int msaa)
 
 
 
-static SDL_EnumerationResult SDLCALL enum_callback(void *userdata, const char *origdir, const char *fname)
-{
-    SDL_PathInfo info;
-    char *fullpath = NULL;
-
-    /* you can use '/' for a path separator on Windows, but to make the log output look correct, we'll #ifdef this... */
-    #ifdef SDL_PLATFORM_WINDOWS
-    const char *pathsep = "\\";
-    #else
-    const char *pathsep = "/";
-    #endif
-
-    if (SDL_asprintf(&fullpath, "%s%s%s", origdir, *origdir ? pathsep : "", fname) < 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory!");
-        return SDL_ENUM_FAILURE;
-    }
-
-    if (!SDL_GetPathInfo(fullpath, &info)) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't stat '%s': %s", fullpath, SDL_GetError());
-    } else {
-        const char *type;
-        if (info.type == SDL_PATHTYPE_FILE) {
-            type = "FILE";
-        } else if (info.type == SDL_PATHTYPE_DIRECTORY) {
-            type = "DIRECTORY";
-        } else {
-            type = "OTHER";
-        }
-        SDL_Log("%s (type=%s, size=%" SDL_PRIu64 ", create=%" SDL_PRIu64 ", mod=%" SDL_PRIu64 ", access=%" SDL_PRIu64 ")",
-                fullpath, type, info.size, info.modify_time, info.create_time, info.access_time);
-
-        if (info.type == SDL_PATHTYPE_DIRECTORY) {
-            if (!SDL_EnumerateDirectory(fullpath, enum_callback, userdata)) {
-                SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Enumeration failed!");
-            }
-        }
-    }
-
-    SDL_free(fullpath);
-    return SDL_ENUM_CONTINUE;  /* keep going */
-}
 
 
 
@@ -740,9 +544,8 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	if (!SDL_EnumerateDirectory(".", enum_callback, NULL)) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Base path enumeration failed!");
-	}
+
+	ECS_IMPORT(world, EgFs);
 
 
 	mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(state->windows[0]));
