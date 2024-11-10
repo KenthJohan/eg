@@ -61,7 +61,9 @@
 		"sdl_filesystem.h": "c",
 		"eg_display.h": "c",
 		"egfs.h": "c",
-		"egdisplay.h": "c"
+		"egdisplay.h": "c",
+		"main_render.h": "c",
+		"main_types.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

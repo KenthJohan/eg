@@ -16,7 +16,6 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#include <SDL3/SDL_test_common.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
@@ -31,290 +30,29 @@
 
 #include "EgFs.h"
 #include "EgDisplay.h"
+#include "main_render.h"
+#include "main_types.h"
+#include "SDL_test_common.h"
 
 
 #define TESTGPU_SUPPORTED_FORMATS (SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_METALLIB)
 
-#define CHECK_CREATE(var, thing)                                         \
-	{                                                                    \
-		if (!(var)) {                                                    \
-			SDL_Log("Failed to create %s: %s\n", thing, SDL_GetError()); \
-			quit(2);                                                     \
-		}                                                                \
-	}
 
 static Uint32 frames = 0;
 
-typedef struct RenderState {
-	SDL_GPUBuffer *buf_vertex;
-	SDL_GPUGraphicsPipeline *pipeline;
-	SDL_GPUSampleCount sample_count;
-} RenderState;
-
-typedef struct WindowState {
-	int angle_x, angle_y, angle_z;
-	SDL_GPUTexture *tex_depth, *tex_msaa, *tex_resolve;
-	Uint32 prev_drawablew, prev_drawableh;
-} WindowState;
 
 static SDL_GPUDevice *gpu_device = NULL;
 static RenderState render_state;
 static SDLTest_CommonState *state = NULL;
 static WindowState *window_states = NULL;
 
-static void shutdownGPU(void)
-{
-	if (window_states) {
-		int i;
-		for (i = 0; i < state->num_windows; i++) {
-			WindowState *winstate = &window_states[i];
-			SDL_ReleaseGPUTexture(gpu_device, winstate->tex_depth);
-			SDL_ReleaseGPUTexture(gpu_device, winstate->tex_msaa);
-			SDL_ReleaseGPUTexture(gpu_device, winstate->tex_resolve);
-			SDL_ReleaseWindowFromGPUDevice(gpu_device, state->windows[i]);
-		}
-		SDL_free(window_states);
-		window_states = NULL;
-	}
-
-	SDL_ReleaseGPUBuffer(gpu_device, render_state.buf_vertex);
-	SDL_ReleaseGPUGraphicsPipeline(gpu_device, render_state.pipeline);
-	SDL_DestroyGPUDevice(gpu_device);
-
-	SDL_zero(render_state);
-	gpu_device = NULL;
-}
-
-/* Call this instead of exit(), so we can clean up SDL: atexit() is evil. */
-static void
-quit(int rc)
-{
-	shutdownGPU();
-	SDLTest_CommonQuit(state);
-	exit(rc);
-}
 
 
 
 
-static SDL_GPUTexture *
-CreateDepthTexture(Uint32 drawablew, Uint32 drawableh)
-{
-	SDL_GPUTextureCreateInfo createinfo;
-	SDL_GPUTexture *result;
 
-	createinfo.type = SDL_GPU_TEXTURETYPE_2D;
-	createinfo.format = SDL_GPU_TEXTUREFORMAT_D16_UNORM;
-	createinfo.width = drawablew;
-	createinfo.height = drawableh;
-	createinfo.layer_count_or_depth = 1;
-	createinfo.num_levels = 1;
-	createinfo.sample_count = render_state.sample_count;
-	createinfo.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
-	createinfo.props = 0;
 
-	result = SDL_CreateGPUTexture(gpu_device, &createinfo);
-	CHECK_CREATE(result, "Depth Texture")
 
-	return result;
-}
-
-static SDL_GPUTexture *
-CreateMSAATexture(Uint32 drawablew, Uint32 drawableh)
-{
-	SDL_GPUTextureCreateInfo createinfo;
-	SDL_GPUTexture *result;
-
-	if (render_state.sample_count == SDL_GPU_SAMPLECOUNT_1) {
-		return NULL;
-	}
-
-	createinfo.type = SDL_GPU_TEXTURETYPE_2D;
-	createinfo.format = SDL_GetGPUSwapchainTextureFormat(gpu_device, state->windows[0]);
-	createinfo.width = drawablew;
-	createinfo.height = drawableh;
-	createinfo.layer_count_or_depth = 1;
-	createinfo.num_levels = 1;
-	createinfo.sample_count = render_state.sample_count;
-	createinfo.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
-	createinfo.props = 0;
-
-	result = SDL_CreateGPUTexture(gpu_device, &createinfo);
-	CHECK_CREATE(result, "MSAA Texture")
-
-	return result;
-}
-
-static SDL_GPUTexture *
-CreateResolveTexture(Uint32 drawablew, Uint32 drawableh)
-{
-	SDL_GPUTextureCreateInfo createinfo;
-	SDL_GPUTexture *result;
-
-	if (render_state.sample_count == SDL_GPU_SAMPLECOUNT_1) {
-		return NULL;
-	}
-
-	createinfo.type = SDL_GPU_TEXTURETYPE_2D;
-	createinfo.format = SDL_GetGPUSwapchainTextureFormat(gpu_device, state->windows[0]);
-	createinfo.width = drawablew;
-	createinfo.height = drawableh;
-	createinfo.layer_count_or_depth = 1;
-	createinfo.num_levels = 1;
-	createinfo.sample_count = SDL_GPU_SAMPLECOUNT_1;
-	createinfo.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER;
-	createinfo.props = 0;
-
-	result = SDL_CreateGPUTexture(gpu_device, &createinfo);
-	CHECK_CREATE(result, "Resolve Texture")
-
-	return result;
-}
-
-static void
-Render(SDL_Window *window, const int windownum)
-{
-	WindowState *winstate = &window_states[windownum];
-	SDL_GPUTexture *swapchainTexture;
-	SDL_GPUColorTargetInfo color_target;
-	SDL_GPUDepthStencilTargetInfo depth_target;
-	float matrix_rotate[16], matrix_modelview[16], matrix_perspective[16], matrix_final[16];
-	SDL_GPUCommandBuffer *cmd;
-	SDL_GPURenderPass *pass;
-	SDL_GPUBufferBinding vertex_binding;
-	SDL_GPUBlitInfo blit_info;
-	Uint32 drawablew, drawableh;
-
-	/* Acquire the swapchain texture */
-
-	cmd = SDL_AcquireGPUCommandBuffer(gpu_device);
-	if (!cmd) {
-		SDL_Log("Failed to acquire command buffer :%s", SDL_GetError());
-		quit(2);
-	}
-	if (!SDL_AcquireGPUSwapchainTexture(cmd, state->windows[windownum], &swapchainTexture, &drawablew, &drawableh)) {
-		SDL_Log("Failed to acquire swapchain texture: %s", SDL_GetError());
-		quit(2);
-	}
-
-	if (swapchainTexture == NULL) {
-		/* No swapchain was acquired, probably too many frames in flight */
-		SDL_SubmitGPUCommandBuffer(cmd);
-		return;
-	}
-
-	/*
-	 * Do some rotation with Euler angles. It is not a fixed axis as
-	 * quaterions would be, but the effect is cool.
-	 */
-	rotate_matrix((float)winstate->angle_x, 1.0f, 0.0f, 0.0f, matrix_modelview);
-	rotate_matrix((float)winstate->angle_y, 0.0f, 1.0f, 0.0f, matrix_rotate);
-
-	multiply_matrix(matrix_rotate, matrix_modelview, matrix_modelview);
-
-	rotate_matrix((float)winstate->angle_z, 0.0f, 1.0f, 0.0f, matrix_rotate);
-
-	multiply_matrix(matrix_rotate, matrix_modelview, matrix_modelview);
-
-	/* Pull the camera back from the cube */
-	matrix_modelview[14] -= 2.5f;
-
-	perspective_matrix(45.0f, (float)drawablew / drawableh, 0.01f, 100.0f, matrix_perspective);
-	multiply_matrix(matrix_perspective, matrix_modelview, (float *)&matrix_final);
-
-	winstate->angle_x += 3;
-	winstate->angle_y += 2;
-	winstate->angle_z += 1;
-
-	if (winstate->angle_x >= 360)
-		winstate->angle_x -= 360;
-	if (winstate->angle_x < 0)
-		winstate->angle_x += 360;
-	if (winstate->angle_y >= 360)
-		winstate->angle_y -= 360;
-	if (winstate->angle_y < 0)
-		winstate->angle_y += 360;
-	if (winstate->angle_z >= 360)
-		winstate->angle_z -= 360;
-	if (winstate->angle_z < 0)
-		winstate->angle_z += 360;
-
-	/* Resize the depth buffer if the window size changed */
-
-	if (winstate->prev_drawablew != drawablew || winstate->prev_drawableh != drawableh) {
-		SDL_ReleaseGPUTexture(gpu_device, winstate->tex_depth);
-		SDL_ReleaseGPUTexture(gpu_device, winstate->tex_msaa);
-		SDL_ReleaseGPUTexture(gpu_device, winstate->tex_resolve);
-		winstate->tex_depth = CreateDepthTexture(drawablew, drawableh);
-		winstate->tex_msaa = CreateMSAATexture(drawablew, drawableh);
-		winstate->tex_resolve = CreateResolveTexture(drawablew, drawableh);
-	}
-	winstate->prev_drawablew = drawablew;
-	winstate->prev_drawableh = drawableh;
-
-	/* Set up the pass */
-
-	SDL_zero(color_target);
-	color_target.clear_color.a = 1.0f;
-	if (winstate->tex_msaa) {
-		color_target.load_op = SDL_GPU_LOADOP_CLEAR;
-		color_target.store_op = SDL_GPU_STOREOP_RESOLVE;
-		color_target.texture = winstate->tex_msaa;
-		color_target.resolve_texture = winstate->tex_resolve;
-		color_target.cycle = true;
-		color_target.cycle_resolve_texture = true;
-	} else {
-		color_target.load_op = SDL_GPU_LOADOP_CLEAR;
-		color_target.store_op = SDL_GPU_STOREOP_STORE;
-		color_target.texture = swapchainTexture;
-	}
-
-	SDL_zero(depth_target);
-	depth_target.clear_depth = 1.0f;
-	depth_target.load_op = SDL_GPU_LOADOP_CLEAR;
-	depth_target.store_op = SDL_GPU_STOREOP_DONT_CARE;
-	depth_target.stencil_load_op = SDL_GPU_LOADOP_DONT_CARE;
-	depth_target.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
-	depth_target.texture = winstate->tex_depth;
-	depth_target.cycle = true;
-
-	/* Set up the bindings */
-
-	vertex_binding.buffer = render_state.buf_vertex;
-	vertex_binding.offset = 0;
-
-	/* Draw the cube! */
-
-	SDL_PushGPUVertexUniformData(cmd, 0, matrix_final, sizeof(matrix_final));
-
-	pass = SDL_BeginGPURenderPass(cmd, &color_target, 1, &depth_target);
-	SDL_BindGPUGraphicsPipeline(pass, render_state.pipeline);
-	SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
-	SDL_DrawGPUPrimitives(pass, 36, 1, 0, 0);
-	SDL_EndGPURenderPass(pass);
-
-	/* Blit MSAA resolve target to swapchain, if needed */
-	if (render_state.sample_count > SDL_GPU_SAMPLECOUNT_1) {
-		SDL_zero(blit_info);
-		blit_info.source.texture = winstate->tex_resolve;
-		blit_info.source.w = drawablew;
-		blit_info.source.h = drawableh;
-
-		blit_info.destination.texture = swapchainTexture;
-		blit_info.destination.w = drawablew;
-		blit_info.destination.h = drawableh;
-
-		blit_info.load_op = SDL_GPU_LOADOP_DONT_CARE;
-		blit_info.filter = SDL_GPU_FILTER_LINEAR;
-
-		SDL_BlitGPUTexture(cmd, &blit_info);
-	}
-
-	/* Submit the command buffer! */
-	SDL_SubmitGPUCommandBuffer(cmd);
-
-	++frames;
-}
 
 
 
@@ -342,7 +80,9 @@ init_render_state(int msaa)
 	TESTGPU_SUPPORTED_FORMATS,
 	true,
 	state->gpudriver);
-	CHECK_CREATE(gpu_device, "GPU device");
+	if (gpu_device == NULL) {
+		quit(2, &render_state, window_states, state, gpu_device);
+	}
 
 	/* Claim the windows */
 
@@ -356,20 +96,27 @@ init_render_state(int msaa)
 
 	//vertex_shader = load_shader(true);
 	vertex_shader = shader_spirv_compile(gpu_device, "shaders/cube", SDL_GPU_SHADERSTAGE_VERTEX);
-	CHECK_CREATE(vertex_shader, "Vertex Shader")
+	if (vertex_shader == NULL) {
+		quit(2, &render_state, window_states, state, gpu_device);
+	}
+	
+
 	//fragment_shader = load_shader(false);
 	fragment_shader = shader_spirv_compile(gpu_device, "shaders/cube", SDL_GPU_SHADERSTAGE_FRAGMENT);
-	CHECK_CREATE(fragment_shader, "Fragment Shader")
+	if (fragment_shader == NULL) {
+		quit(2, &render_state, window_states, state, gpu_device);
+	}
 
 	/* Create buffers */
-
 	buffer_desc.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
 	buffer_desc.size = sizeof(vertex_data);
 	buffer_desc.props = 0;
 	render_state.buf_vertex = SDL_CreateGPUBuffer(
 	gpu_device,
 	&buffer_desc);
-	CHECK_CREATE(render_state.buf_vertex, "Static vertex buffer")
+	if (render_state.buf_vertex == NULL) {
+		quit(2, &render_state, window_states, state, gpu_device);
+	}
 
 	SDL_SetGPUBufferName(gpu_device, render_state.buf_vertex, "космонавт");
 
@@ -379,7 +126,10 @@ init_render_state(int msaa)
 	buf_transfer = SDL_CreateGPUTransferBuffer(
 	gpu_device,
 	&transfer_buffer_desc);
-	CHECK_CREATE(buf_transfer, "Vertex transfer buffer")
+
+	if (buf_transfer == NULL) {
+		quit(2, &render_state, window_states, state, gpu_device);
+	}
 
 	/* We just need to upload the static data once. */
 	map = SDL_MapGPUTransferBuffer(gpu_device, buf_transfer, false);
@@ -454,7 +204,10 @@ init_render_state(int msaa)
 	pipelinedesc.props = 0;
 
 	render_state.pipeline = SDL_CreateGPUGraphicsPipeline(gpu_device, &pipelinedesc);
-	CHECK_CREATE(render_state.pipeline, "Render Pipeline")
+	if (render_state.pipeline == NULL) {
+		quit(2, &render_state, window_states, state, gpu_device);
+	}
+
 
 	/* These are reference-counted; once the pipeline is created, you don't need to keep these. */
 	SDL_ReleaseGPUShader(gpu_device, vertex_shader);
@@ -465,7 +218,7 @@ init_render_state(int msaa)
 	window_states = (WindowState *)SDL_calloc(state->num_windows, sizeof(WindowState));
 	if (!window_states) {
 		SDL_Log("Out of memory!\n");
-		quit(2);
+		quit(2, &render_state, window_states, state, gpu_device);
 	}
 
 	for (i = 0; i < state->num_windows; i++) {
@@ -473,9 +226,9 @@ init_render_state(int msaa)
 
 		/* create a depth texture for the window */
 		SDL_GetWindowSizeInPixels(state->windows[i], (int *)&drawablew, (int *)&drawableh);
-		winstate->tex_depth = CreateDepthTexture(drawablew, drawableh);
-		winstate->tex_msaa = CreateMSAATexture(drawablew, drawableh);
-		winstate->tex_resolve = CreateResolveTexture(drawablew, drawableh);
+		winstate->tex_depth = CreateDepthTexture(&render_state, state, gpu_device, drawablew, drawableh);
+		winstate->tex_msaa = CreateMSAATexture(&render_state, state, gpu_device, drawablew, drawableh);
+		winstate->tex_resolve = CreateResolveTexture(&render_state, state, gpu_device, drawablew, drawableh);
 
 		/* make each window different */
 		winstate->angle_x = (i * 10) % 360;
@@ -520,7 +273,7 @@ int main(int argc, char *argv[])
 	state->window_flags |= SDL_WINDOW_RESIZABLE;
 
 	if (!SDLTest_CommonInit(state)) {
-		quit(2);
+		quit(2, &render_state, window_states, state, gpu_device);
 		return 0;
 	}
 
@@ -551,7 +304,7 @@ int main(int argc, char *argv[])
 		}
 		if (!done) {
 			for (i = 0; i < state->num_windows; ++i) {
-				Render(state->windows[i], i);
+				main_render(state, &render_state, state->windows, gpu_device, window_states, i);
 			}
 		}
 	}
@@ -564,7 +317,8 @@ int main(int argc, char *argv[])
 		((double)frames * 1000) / (now - then));
 	}
 
-	quit(0);
+
+	quit(0, &render_state, window_states, state, gpu_device);
 	return 0;
 }
 
