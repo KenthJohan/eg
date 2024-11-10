@@ -57,7 +57,11 @@
 		"types.h": "c",
 		"vertex.h": "c",
 		"matrix.h": "c",
-		"eg_fs.h": "c"
+		"eg_fs.h": "c",
+		"sdl_filesystem.h": "c",
+		"eg_display.h": "c",
+		"egfs.h": "c",
+		"egdisplay.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

@@ -29,7 +29,9 @@
 #include "vertex.h"
 #include "matrix.h"
 
-#include "eg_fs.h"
+#include "EgFs.h"
+#include "EgDisplay.h"
+
 
 #define TESTGPU_SUPPORTED_FORMATS (SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_METALLIB)
 
@@ -502,40 +504,18 @@ int main(int argc, char *argv[])
 	ecs_log_set_level(-1);
 
 	int done = 0;
-	int msaa;
 	int i;
 	const SDL_DisplayMode *mode;
 	Uint64 then, now;
-
-
-	/* Initialize params */
-	msaa = 0;
 
 	/* Initialize test framework */
 	state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
 	if (!state) {
 		return 1;
 	}
-	for (i = 1; i < argc;) {
-		int consumed;
 
-		consumed = SDLTest_CommonArg(state, i);
-		if (consumed == 0) {
-			if (SDL_strcasecmp(argv[i], "--msaa") == 0) {
-				++msaa;
-				consumed = 1;
-			} else {
-				consumed = -1;
-			}
-		}
-		if (consumed < 0) {
-			static const char *options[] = {"[--msaa]", NULL};
-			SDLTest_CommonLogUsage(state, argv[0], options);
-			quit(1);
-		}
-		i += consumed;
-	}
 
+	state->verbose = VERBOSE_VIDEO | VERBOSE_MODES | VERBOSE_RENDER | VERBOSE_EVENT | VERBOSE_AUDIO | VERBOSE_MOTION;
 	state->skip_renderer = 1;
 	state->window_flags |= SDL_WINDOW_RESIZABLE;
 
@@ -546,12 +526,13 @@ int main(int argc, char *argv[])
 
 
 	ECS_IMPORT(world, EgFs);
+	ECS_IMPORT(world, EgDisplay);
 
 
 	mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(state->windows[0]));
 	SDL_Log("Screen bpp: %d\n", SDL_BITSPERPIXEL(mode->format));
 
-	init_render_state(msaa);
+	init_render_state(0);
 
 	/* Main render loop */
 	frames = 0;

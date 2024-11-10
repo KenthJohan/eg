@@ -1,4 +1,4 @@
-#include "eg_fs.h"
+#include "EgFs.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,7 +29,7 @@ static SDL_EnumerationResult SDLCALL enum_callback(ecs_world_t *world, const cha
 
 
 		ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){
-			.name = fullpath+2,
+			.name = fullpath,
 			.sep = "/"
 		});
 
