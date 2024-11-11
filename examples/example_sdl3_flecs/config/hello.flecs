@@ -3,4 +3,7 @@ module hello
 
 default_gpu_device {
 	eg.gpu.DeviceCreateInfo : {debug: true}
+	window1 {
+		eg.windows.WindowCreateInfo : {debug: true}
+	}
 }

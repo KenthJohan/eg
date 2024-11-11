@@ -31,6 +31,7 @@
 #include "EgFs.h"
 #include "EgDisplay.h"
 #include "EgGpu.h"
+#include "EgWindows.h"
 #include "main_render.h"
 #include "main_types.h"
 #include "SDL_test_common.h"
@@ -276,6 +277,7 @@ int main(int argc, char *argv[])
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgDisplay);
 	ECS_IMPORT(world, EgGpu);
+	ECS_IMPORT(world, EgWindows);
 
 	ecs_log_set_level(0);
 	ecs_script_run_file(world, "config/hello.flecs");

@@ -68,7 +68,9 @@
 		"sdl_log.h": "c",
 		"complex": "c",
 		"chrono": "c",
-		"typeindex": "c"
+		"typeindex": "c",
+		"egwindows.h": "c",
+		"eggpu.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
