@@ -63,7 +63,12 @@
 		"egfs.h": "c",
 		"egdisplay.h": "c",
 		"main_render.h": "c",
-		"main_types.h": "c"
+		"main_types.h": "c",
+		"eggpus.h": "c",
+		"sdl_log.h": "c",
+		"complex": "c",
+		"chrono": "c",
+		"typeindex": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

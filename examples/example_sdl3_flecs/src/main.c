@@ -30,6 +30,7 @@
 
 #include "EgFs.h"
 #include "EgDisplay.h"
+#include "EgGpu.h"
 #include "main_render.h"
 #include "main_types.h"
 #include "SDL_test_common.h"
@@ -37,8 +38,6 @@
 
 #define TESTGPU_SUPPORTED_FORMATS (SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_METALLIB)
 
-
-static Uint32 frames = 0;
 
 
 static SDL_GPUDevice *gpu_device = NULL;
@@ -252,17 +251,13 @@ int main(int argc, char *argv[])
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
 	printf("Remote: %s\n", "https://www.flecs.dev/explorer/?remote=true");
 
-	ecs_log_set_level(0);
-	ecs_script_run_file(world, "config/hello.flecs");
-	ecs_log_set_level(-1);
+
 
 	int done = 0;
-	int i;
 	const SDL_DisplayMode *mode;
-	Uint64 then, now;
 
 	/* Initialize test framework */
-	state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	if (!state) {
 		return 1;
 	}
@@ -280,6 +275,11 @@ int main(int argc, char *argv[])
 
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgDisplay);
+	ECS_IMPORT(world, EgGpu);
+
+	ecs_log_set_level(0);
+	ecs_script_run_file(world, "config/hello.flecs");
+	ecs_log_set_level(-1);
 
 
 	mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(state->windows[0]));
@@ -287,12 +287,7 @@ int main(int argc, char *argv[])
 
 	init_render_state(0);
 
-	/* Main render loop */
-	frames = 0;
-	then = SDL_GetTicks();
 	done = 0;
-
-
 	while (!done) {
 		ecs_progress(world, 0.0f);
 		SDL_Event event;
@@ -310,12 +305,6 @@ int main(int argc, char *argv[])
 	}
 
 
-	/* Print out some timing information */
-	now = SDL_GetTicks();
-	if (now > then) {
-		SDL_Log("%2.2f frames per second\n",
-		((double)frames * 1000) / (now - then));
-	}
 
 
 	quit(0, &render_state, window_states, state, gpu_device);
