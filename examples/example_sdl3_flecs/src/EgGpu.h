@@ -14,13 +14,23 @@ typedef struct
 
 typedef struct
 {
-	void * device;
+	void * object;
 } EgGpuShader;
 
 typedef struct
 {
-	void * device;
+	uint32_t stage;
 } EgGpuShaderCreateInfo;
+
+typedef struct
+{
+	void * object;
+} EgGpuPipeline;
+
+typedef struct
+{
+	bool target_info_has_depth_stencil_target;
+} EgGpuPipelineCreateInfo;
 
 
 
@@ -28,6 +38,8 @@ extern ECS_COMPONENT_DECLARE(EgGpuDevice);
 extern ECS_COMPONENT_DECLARE(EgGpuDeviceCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgGpuShader);
 extern ECS_COMPONENT_DECLARE(EgGpuShaderCreateInfo);
+extern ECS_COMPONENT_DECLARE(EgGpuPipeline);
+extern ECS_COMPONENT_DECLARE(EgGpuPipelineCreateInfo);
 
 void EgGpuImport(ecs_world_t *world);
 

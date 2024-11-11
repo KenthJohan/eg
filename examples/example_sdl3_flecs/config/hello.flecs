@@ -3,7 +3,20 @@ module hello
 
 default_gpu_device {
 	eg.gpu.DeviceCreateInfo : {debug: true}
+	eg.gpu.ShaderFragmentCreateInfo : {}
 	window1 {
 		eg.windows.WindowCreateInfo : {debug: true}
 	}
+	pipeline {
+		eg.gpu.PipelineCreateInfo : {}
+		@brief "shaders/cube"
+		shader_fragment {
+			eg.gpu.ShaderCreateInfo : {stage: 0}
+		}
+		@brief "shaders/cube"
+		shader_vertex {
+			eg.gpu.ShaderCreateInfo : {stage: 1}
+		}
+	}
+	
 }

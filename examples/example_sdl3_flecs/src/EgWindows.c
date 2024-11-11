@@ -51,7 +51,6 @@ void EgWindowsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindow);
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindowCreateInfo);
 
-
 	ecs_struct(world,
 	{.entity = ecs_id(EgWindowsWindow),
 	.members = {
@@ -64,11 +63,12 @@ void EgWindowsImport(ecs_world_t *world)
 	{.name = "debug", .type = ecs_id(ecs_bool_t)},
 	}});
 
-	ecs_system(world, {.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	                  .callback = System_EgWindowsWindow_Create,
-	                  .query.terms =
-	                  {
-	                  {.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf},
-	                  {.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
-	                  }});
+	ecs_system(world,
+	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_EgWindowsWindow_Create,
+	.query.terms =
+	{
+	{.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
+	}});
 }
