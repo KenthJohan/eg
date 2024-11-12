@@ -15,12 +15,22 @@ typedef struct
 typedef struct
 {
 	void * object;
-} EgGpuShader;
+} EgGpuShaderVertex;
+
+typedef struct
+{
+	void * object;
+} EgGpuShaderFragment;
 
 typedef struct
 {
 	uint32_t stage;
-} EgGpuShaderCreateInfo;
+} EgGpuShaderVertexCreateInfo;
+
+typedef struct
+{
+	uint32_t stage;
+} EgGpuShaderFragmentCreateInfo;
 
 typedef struct
 {
@@ -29,6 +39,7 @@ typedef struct
 
 typedef struct
 {
+	uint32_t sample_count;
 	bool target_info_has_depth_stencil_target;
 } EgGpuPipelineCreateInfo;
 
@@ -36,8 +47,10 @@ typedef struct
 
 extern ECS_COMPONENT_DECLARE(EgGpuDevice);
 extern ECS_COMPONENT_DECLARE(EgGpuDeviceCreateInfo);
-extern ECS_COMPONENT_DECLARE(EgGpuShader);
-extern ECS_COMPONENT_DECLARE(EgGpuShaderCreateInfo);
+extern ECS_COMPONENT_DECLARE(EgGpuShaderVertex);
+extern ECS_COMPONENT_DECLARE(EgGpuShaderVertexCreateInfo);
+extern ECS_COMPONENT_DECLARE(EgGpuShaderFragment);
+extern ECS_COMPONENT_DECLARE(EgGpuShaderFragmentCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgGpuPipeline);
 extern ECS_COMPONENT_DECLARE(EgGpuPipelineCreateInfo);
 

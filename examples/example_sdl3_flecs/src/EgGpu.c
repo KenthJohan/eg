@@ -11,8 +11,10 @@
 
 ECS_COMPONENT_DECLARE(EgGpuDevice);
 ECS_COMPONENT_DECLARE(EgGpuDeviceCreateInfo);
-ECS_COMPONENT_DECLARE(EgGpuShader);
-ECS_COMPONENT_DECLARE(EgGpuShaderCreateInfo);
+ECS_COMPONENT_DECLARE(EgGpuShaderVertex);
+ECS_COMPONENT_DECLARE(EgGpuShaderVertexCreateInfo);
+ECS_COMPONENT_DECLARE(EgGpuShaderFragment);
+ECS_COMPONENT_DECLARE(EgGpuShaderFragmentCreateInfo);
 ECS_COMPONENT_DECLARE(EgGpuPipeline);
 ECS_COMPONENT_DECLARE(EgGpuPipelineCreateInfo);
 
@@ -56,14 +58,11 @@ static void System_EgGpuDevice_Create(ecs_iter_t *it)
 	ecs_log_set_level(0);
 }
 
-static void System_EgGpuShader_Create(ecs_iter_t *it)
+static void System_EgGpuShaderFragment_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgGpuDevice *gpu = ecs_field(it, EgGpuDevice, 0);
-	EgGpuShaderCreateInfo *create = ecs_field(it, EgGpuShaderCreateInfo, 1);
-	char const *statustext = "";
-	char const *color = "";
-
+	EgGpuShaderVertexCreateInfo *create = ecs_field(it, EgGpuShaderVertexCreateInfo, 1);
 	ecs_log_set_level(1);
 	ecs_dbg("System Sampler_Create() count:%i", it->count);
 	ecs_log_push_1();
@@ -72,14 +71,45 @@ static void System_EgGpuShader_Create(ecs_iter_t *it)
 		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_1();
 		{
-			SDL_GPUShaderStage stage = create->stage;
+			//SDL_GPUShaderStage stage = create->stage;
 			SDL_GPUShader *s = shader_spirv_compile(gpu->device, "shaders/cube", SDL_GPU_SHADERSTAGE_FRAGMENT);
 			if (s == NULL) {
 				ecs_enable(world, e, false);
 				continue;
 			}
-			ecs_set(world, e, EgGpuShader, {.object = s});
+			ecs_set(world, e, EgGpuShaderVertex, {.object = s});
 			ecs_dbg("shader_spirv_compile() -> %p", s);
+			//ecs_enable(world, e, false);
+		}
+		ecs_log_pop_1();
+
+	} // END FOR LOOP
+	ecs_log_pop_1();
+	ecs_log_set_level(0);
+}
+
+static void System_EgGpuShaderVertex_Create(ecs_iter_t *it)
+{
+	ecs_world_t *world = it->world;
+	EgGpuDevice *gpu = ecs_field(it, EgGpuDevice, 0);
+	EgGpuShaderFragmentCreateInfo *create = ecs_field(it, EgGpuShaderFragmentCreateInfo, 1);
+	ecs_log_set_level(1);
+	ecs_dbg("System Sampler_Create() count:%i", it->count);
+	ecs_log_push_1();
+	for (int i = 0; i < it->count; ++i, ++create) {
+		ecs_entity_t e = it->entities[i];
+		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
+		ecs_log_push_1();
+		{
+			//SDL_GPUShaderStage stage = create->stage;
+			SDL_GPUShader *s = shader_spirv_compile(gpu->device, "shaders/cube", SDL_GPU_SHADERSTAGE_VERTEX);
+			if (s == NULL) {
+				ecs_enable(world, e, false);
+				continue;
+			}
+			ecs_set(world, e, EgGpuShaderFragment, {.object = s});
+			ecs_dbg("shader_spirv_compile() -> %p", s);
+			//ecs_enable(world, e, false);
 		}
 		ecs_log_pop_1();
 
@@ -93,6 +123,8 @@ static void System_EgGpuPipeline_Create(ecs_iter_t *it)
 	ecs_world_t *world = it->world;
 	EgGpuDevice *gpu = ecs_field(it, EgGpuDevice, 0);
 	EgGpuPipelineCreateInfo *create = ecs_field(it, EgGpuPipelineCreateInfo, 1);
+	EgGpuShaderVertex *sv = ecs_field(it, EgGpuShaderVertex, 2);
+	EgGpuShaderFragment *sf = ecs_field(it, EgGpuShaderFragment, 3);
 	ecs_log_set_level(1);
 	ecs_dbg("System_EgGpuPipeline_Create() count:%i", it->count);
 	ecs_log_push_1();
@@ -101,12 +133,12 @@ static void System_EgGpuPipeline_Create(ecs_iter_t *it)
 		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_1();
 		{
-			SDL_GPUGraphicsPipelineCreateInfo desc = {0};
 			SDL_GPUColorTargetDescription color_target_desc;
 			SDL_GPUVertexAttribute vertex_attributes[2];
 			SDL_GPUVertexBufferDescription vertex_buffer_desc;
-			color_target_desc.format = SDL_GetGPUSwapchainTextureFormat(gpu->device, state->windows[0]);
-
+			SDL_GPUGraphicsPipelineCreateInfo pipelinedesc = {0};
+			//color_target_desc.format = SDL_GetGPUSwapchainTextureFormat(gpu->device, state->windows[0]);
+			color_target_desc.format = SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
 			pipelinedesc.target_info.num_color_targets = 1;
 			pipelinedesc.target_info.color_target_descriptions = &color_target_desc;
 			pipelinedesc.target_info.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM;
@@ -116,12 +148,12 @@ static void System_EgGpuPipeline_Create(ecs_iter_t *it)
 			pipelinedesc.depth_stencil_state.enable_depth_write = true;
 			pipelinedesc.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL;
 
-			pipelinedesc.multisample_state.sample_count = render_state.sample_count;
+			pipelinedesc.multisample_state.sample_count = create[i].sample_count;
 
 			pipelinedesc.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
 
-			pipelinedesc.vertex_shader = vertex_shader;
-			pipelinedesc.fragment_shader = fragment_shader;
+			pipelinedesc.vertex_shader = sv[i].object;
+			pipelinedesc.fragment_shader = sf[i].object;
 
 			vertex_buffer_desc.slot = 0;
 			vertex_buffer_desc.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
@@ -152,7 +184,6 @@ static void System_EgGpuPipeline_Create(ecs_iter_t *it)
 			}
 			ecs_set(world, e, EgGpuPipeline, {.object = pipeline});
 			ecs_dbg("SDL_CreateGPUGraphicsPipeline(%p) -> %p", gpu->device, pipeline);
-
 		}
 		ecs_log_pop_1();
 	} // END FOR LOOP
@@ -167,8 +198,10 @@ void EgGpuImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, EgGpuDevice);
 	ECS_COMPONENT_DEFINE(world, EgGpuDeviceCreateInfo);
-	ECS_COMPONENT_DEFINE(world, EgGpuShader);
-	ECS_COMPONENT_DEFINE(world, EgGpuShaderCreateInfo);
+	ECS_COMPONENT_DEFINE(world, EgGpuShaderVertex);
+	ECS_COMPONENT_DEFINE(world, EgGpuShaderVertexCreateInfo);
+	ECS_COMPONENT_DEFINE(world, EgGpuShaderFragment);
+	ECS_COMPONENT_DEFINE(world, EgGpuShaderFragmentCreateInfo);
 	ECS_COMPONENT_DEFINE(world, EgGpuPipeline);
 	ECS_COMPONENT_DEFINE(world, EgGpuPipelineCreateInfo);
 
@@ -185,13 +218,25 @@ void EgGpuImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(EgGpuShaderCreateInfo),
+	{.entity = ecs_id(EgGpuShaderVertexCreateInfo),
 	.members = {
 	{.name = "stage", .type = ecs_id(ecs_u32_t)},
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(EgGpuShader),
+	{.entity = ecs_id(EgGpuShaderVertex),
+	.members = {
+	{.name = "device", .type = ecs_id(ecs_uptr_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgGpuShaderFragmentCreateInfo),
+	.members = {
+	{.name = "stage", .type = ecs_id(ecs_u32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgGpuShaderFragment),
 	.members = {
 	{.name = "device", .type = ecs_id(ecs_uptr_t)},
 	}});
@@ -199,6 +244,7 @@ void EgGpuImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(EgGpuPipelineCreateInfo),
 	.members = {
+	{.name = "sample_count", .type = ecs_id(ecs_u32_t)},
 	{.name = "target_info_has_depth_stencil_target", .type = ecs_id(ecs_bool_t)},
 	}});
 
@@ -218,13 +264,23 @@ void EgGpuImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgGpuShader_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgGpuShader_Create,
+	{.entity = ecs_entity(world, {.name = "System_EgGpuShaderFragment_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_EgGpuShaderFragment_Create,
 	.query.terms =
 	{
 	{.id = ecs_id(EgGpuDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(EgGpuShaderCreateInfo), .src.id = EcsSelf},
-	{.id = ecs_id(EgGpuShader), .oper = EcsNot}, // Adds this
+	{.id = ecs_id(EgGpuShaderFragmentCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgGpuShaderFragment), .oper = EcsNot}, // Adds this
+	}});
+
+	ecs_system(world,
+	{.entity = ecs_entity(world, {.name = "System_EgGpuShaderVertex_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_EgGpuShaderVertex_Create,
+	.query.terms =
+	{
+	{.id = ecs_id(EgGpuDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgGpuShaderVertexCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgGpuShaderVertex), .oper = EcsNot}, // Adds this
 	}});
 
 	ecs_system(world,
@@ -234,6 +290,8 @@ void EgGpuImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(EgGpuDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgGpuPipelineCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgGpuShaderVertex), .trav = EcsDependsOn, .src.id = EcsUp},
+	{.id = ecs_id(EgGpuShaderFragment), .trav = EcsDependsOn, .src.id = EcsUp},
 	{.id = ecs_id(EgGpuPipeline), .oper = EcsNot}, // Adds this
 	}});
 }
