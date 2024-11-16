@@ -20,8 +20,8 @@ default_gpu_device {
 
 	pipeline {
 		eg.gpu.PipelineCreateInfo : {sample_count:0, target_info_has_depth_stencil_target:true}
-		(EcsDependsOn, shader_fragment)
-		(EcsDependsOn, shader_fragment)
+		(flecs.core.DependsOn, shader_fragment)
+		(flecs.core.DependsOn, shader_vertex)
 	}
 	
 }

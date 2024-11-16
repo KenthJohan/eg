@@ -77,7 +77,7 @@ static void System_EgGpuShaderFragment_Create(ecs_iter_t *it)
 				ecs_enable(world, e, false);
 				continue;
 			}
-			ecs_set(world, e, EgGpuShaderVertex, {.object = s});
+			ecs_set(world, e, EgGpuShaderFragment, {.object = s});
 			ecs_dbg("shader_spirv_compile() -> %p", s);
 			//ecs_enable(world, e, false);
 		}
@@ -107,7 +107,7 @@ static void System_EgGpuShaderVertex_Create(ecs_iter_t *it)
 				ecs_enable(world, e, false);
 				continue;
 			}
-			ecs_set(world, e, EgGpuShaderFragment, {.object = s});
+			ecs_set(world, e, EgGpuShaderVertex, {.object = s});
 			ecs_dbg("shader_spirv_compile() -> %p", s);
 			//ecs_enable(world, e, false);
 		}
@@ -133,9 +133,9 @@ static void System_EgGpuPipeline_Create(ecs_iter_t *it)
 		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_1();
 		{
-			SDL_GPUColorTargetDescription color_target_desc;
-			SDL_GPUVertexAttribute vertex_attributes[2];
-			SDL_GPUVertexBufferDescription vertex_buffer_desc;
+			SDL_GPUColorTargetDescription color_target_desc = {0};
+			SDL_GPUVertexAttribute vertex_attributes[2] = {0};
+			SDL_GPUVertexBufferDescription vertex_buffer_desc = {0};
 			SDL_GPUGraphicsPipelineCreateInfo pipelinedesc = {0};
 			//color_target_desc.format = SDL_GetGPUSwapchainTextureFormat(gpu->device, state->windows[0]);
 			color_target_desc.format = SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
