@@ -3,25 +3,30 @@ module hello
 
 default_gpu_device {
 	eg.gpu.DeviceCreateInfo : {debug: true}
+	eg.base.Update
 
 	window1 {
 		eg.windows.WindowCreateInfo : {debug: true}
+		eg.base.Update
 	}
 
 	@brief "shaders/cube"
 	shader_fragment {
 		eg.gpu.ShaderFragmentCreateInfo : {stage: 0}
+		eg.base.Update
 	}
 
 	@brief "shaders/cube"
 	shader_vertex {
 		eg.gpu.ShaderVertexCreateInfo : {stage: 1}
+		eg.base.Update
 	}
 
 	pipeline {
 		eg.gpu.PipelineCreateInfo : {sample_count:0, target_info_has_depth_stencil_target:true}
 		(flecs.core.DependsOn, shader_fragment)
 		(flecs.core.DependsOn, shader_vertex)
+		eg.base.Update
 	}
 	
 }

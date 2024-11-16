@@ -9,6 +9,7 @@ ECS_COMPONENT_DECLARE(EgBaseMemory2);
 ECS_TAG_DECLARE(EgBaseUse);
 ECS_TAG_DECLARE(EgBaseUpdate);
 ECS_TAG_DECLARE(EgBaseDraw);
+ECS_TAG_DECLARE(EgBaseError);
 
 ECS_CTOR(EgBaseShapeBuffer, ptr, {
 	ecs_os_memset_t(ptr, 0, EgBaseShapeBuffer);
@@ -28,6 +29,7 @@ void EgBaseImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgBaseUse);
 	ECS_TAG_DEFINE(world, EgBaseUpdate);
 	ECS_TAG_DEFINE(world, EgBaseDraw);
+	ECS_TAG_DEFINE(world, EgBaseError);
 
 	ecs_add_id(world, EgBaseUse, EcsTraversable);
 	ecs_add_id(world, EgBaseUpdate, EcsTraversable);

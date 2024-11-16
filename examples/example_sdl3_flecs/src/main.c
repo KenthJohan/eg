@@ -20,6 +20,7 @@
 #include <SDL3/SDL_main.h>
 #include <stdio.h>
 #include <flecs.h>
+#include <egbase.h>
 
 /* Regenerate the shaders with testgpu/build-shaders.sh */
 #include "../shaders/testgpu_spirv.h"
@@ -249,6 +250,7 @@ int main(int argc, char *argv[])
 	ecs_world_t * world = ecs_init();
 	ECS_IMPORT(world, FlecsUnits);
 	ECS_IMPORT(world, FlecsDoc);
+	ECS_IMPORT(world, EgBase);
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
 	printf("Remote: %s\n", "https://www.flecs.dev/explorer/?remote=true");
 
@@ -264,7 +266,9 @@ int main(int argc, char *argv[])
 	}
 
 
+	
 	state->verbose = VERBOSE_VIDEO | VERBOSE_MODES | VERBOSE_RENDER | VERBOSE_EVENT | VERBOSE_AUDIO | VERBOSE_MOTION;
+	state->verbose = 0;
 	state->skip_renderer = 1;
 	state->window_flags |= SDL_WINDOW_RESIZABLE;
 

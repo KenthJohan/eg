@@ -49,5 +49,6 @@ extern ECS_COMPONENT_DECLARE(EgBaseMemory2);
 extern ECS_TAG_DECLARE(EgBaseUse);
 extern ECS_TAG_DECLARE(EgBaseUpdate);
 extern ECS_TAG_DECLARE(EgBaseDraw);
+extern ECS_TAG_DECLARE(EgBaseError);
 
 void EgBaseImport(ecs_world_t *world);

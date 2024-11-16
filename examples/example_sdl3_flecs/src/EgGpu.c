@@ -5,6 +5,7 @@
 
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_gpu.h>
+#include <egbase.h>
 
 #include "shader_spirv.h"
 #include "vertex.h"
@@ -68,13 +69,15 @@ static void System_EgGpuShaderFragment_Create(ecs_iter_t *it)
 	ecs_log_push_1();
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
+		ecs_remove(world, e, EgBaseUpdate);
+
 		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_1();
 		{
 			//SDL_GPUShaderStage stage = create->stage;
 			SDL_GPUShader *s = shader_spirv_compile(gpu->device, "shaders/cube", SDL_GPU_SHADERSTAGE_FRAGMENT);
 			if (s == NULL) {
-				ecs_enable(world, e, false);
+				ecs_add(world, e, EgBaseError);
 				continue;
 			}
 			ecs_set(world, e, EgGpuShaderFragment, {.object = s});
@@ -98,13 +101,15 @@ static void System_EgGpuShaderVertex_Create(ecs_iter_t *it)
 	ecs_log_push_1();
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
+		ecs_remove(world, e, EgBaseUpdate);
+
 		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_1();
 		{
 			//SDL_GPUShaderStage stage = create->stage;
 			SDL_GPUShader *s = shader_spirv_compile(gpu->device, "shaders/cube", SDL_GPU_SHADERSTAGE_VERTEX);
 			if (s == NULL) {
-				ecs_enable(world, e, false);
+				ecs_add(world, e, EgBaseError);
 				continue;
 			}
 			ecs_set(world, e, EgGpuShaderVertex, {.object = s});
@@ -130,6 +135,8 @@ static void System_EgGpuPipeline_Create(ecs_iter_t *it)
 	ecs_log_push_1();
 	for (int i = 0; i < it->count; ++i, ++create) {
 		ecs_entity_t e = it->entities[i];
+		ecs_remove(world, e, EgBaseUpdate);
+
 		ecs_dbg("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_1();
 		{
@@ -179,7 +186,7 @@ static void System_EgGpuPipeline_Create(ecs_iter_t *it)
 
 			SDL_GPUGraphicsPipeline *pipeline = SDL_CreateGPUGraphicsPipeline(gpu->device, &pipelinedesc);
 			if (pipeline == NULL) {
-				ecs_enable(world, e, false);
+				ecs_add(world, e, EgBaseError);
 				continue;
 			}
 			ecs_set(world, e, EgGpuPipeline, {.object = pipeline});
@@ -261,6 +268,8 @@ void EgGpuImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(EgGpuDeviceCreateInfo), .src.id = EcsSelf},
 	{.id = ecs_id(EgGpuDevice), .oper = EcsNot}, // Adds this
+	{.id = EgBaseUpdate},
+	{.id = EgBaseError, .oper = EcsNot}
 	}});
 
 	ecs_system(world,
@@ -271,6 +280,8 @@ void EgGpuImport(ecs_world_t *world)
 	{.id = ecs_id(EgGpuDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgGpuShaderFragmentCreateInfo), .src.id = EcsSelf},
 	{.id = ecs_id(EgGpuShaderFragment), .oper = EcsNot}, // Adds this
+	{.id = EgBaseUpdate},
+	{.id = EgBaseError, .oper = EcsNot}
 	}});
 
 	ecs_system(world,
@@ -281,6 +292,8 @@ void EgGpuImport(ecs_world_t *world)
 	{.id = ecs_id(EgGpuDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgGpuShaderVertexCreateInfo), .src.id = EcsSelf},
 	{.id = ecs_id(EgGpuShaderVertex), .oper = EcsNot}, // Adds this
+	{.id = EgBaseUpdate},
+	{.id = EgBaseError, .oper = EcsNot}
 	}});
 
 	ecs_system(world,
@@ -293,5 +306,7 @@ void EgGpuImport(ecs_world_t *world)
 	{.id = ecs_id(EgGpuShaderVertex), .trav = EcsDependsOn, .src.id = EcsUp},
 	{.id = ecs_id(EgGpuShaderFragment), .trav = EcsDependsOn, .src.id = EcsUp},
 	{.id = ecs_id(EgGpuPipeline), .oper = EcsNot}, // Adds this
+	{.id = EgBaseUpdate},
+	{.id = EgBaseError, .oper = EcsNot}
 	}});
 }
