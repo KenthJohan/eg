@@ -37,25 +37,12 @@
 #include "main_types.h"
 #include "SDL_test_common.h"
 
-
 #define TESTGPU_SUPPORTED_FORMATS (SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_METALLIB)
-
-
 
 static SDL_GPUDevice *gpu_device = NULL;
 static RenderState render_state;
 static SDLTest_CommonState *state = NULL;
 static WindowState *window_states = NULL;
-
-
-
-
-
-
-
-
-
-
 
 static void
 init_render_state(int msaa)
@@ -77,10 +64,7 @@ init_render_state(int msaa)
 	SDL_GPUShader *fragment_shader;
 	int i;
 
-	gpu_device = SDL_CreateGPUDevice(
-	TESTGPU_SUPPORTED_FORMATS,
-	true,
-	state->gpudriver);
+	gpu_device = SDL_CreateGPUDevice(TESTGPU_SUPPORTED_FORMATS,true,state->gpudriver);
 	if (gpu_device == NULL) {
 		quit(2, &render_state, window_states, state, gpu_device);
 	}
@@ -95,14 +79,13 @@ init_render_state(int msaa)
 
 	/* Create shaders */
 
-	//vertex_shader = load_shader(true);
+	// vertex_shader = load_shader(true);
 	vertex_shader = shader_spirv_compile(gpu_device, "shaders/cube", SDL_GPU_SHADERSTAGE_VERTEX);
 	if (vertex_shader == NULL) {
 		quit(2, &render_state, window_states, state, gpu_device);
 	}
-	
 
-	//fragment_shader = load_shader(false);
+	// fragment_shader = load_shader(false);
 	fragment_shader = shader_spirv_compile(gpu_device, "shaders/cube", SDL_GPU_SHADERSTAGE_FRAGMENT);
 	if (fragment_shader == NULL) {
 		quit(2, &render_state, window_states, state, gpu_device);
@@ -209,7 +192,6 @@ init_render_state(int msaa)
 		quit(2, &render_state, window_states, state, gpu_device);
 	}
 
-
 	/* These are reference-counted; once the pipeline is created, you don't need to keep these. */
 	SDL_ReleaseGPUShader(gpu_device, vertex_shader);
 	SDL_ReleaseGPUShader(gpu_device, fragment_shader);
@@ -238,26 +220,15 @@ init_render_state(int msaa)
 	}
 }
 
-
-
-
-
-
-
 int main(int argc, char *argv[])
 {
 
-	ecs_world_t * world = ecs_init();
+	ecs_world_t *world = ecs_init();
 	ECS_IMPORT(world, FlecsUnits);
 	ECS_IMPORT(world, FlecsDoc);
 	ECS_IMPORT(world, EgBase);
 	ecs_set(world, EcsWorld, EcsRest, {.port = 0});
 	printf("Remote: %s\n", "https://www.flecs.dev/explorer/?remote=true");
-
-
-
-	int done = 0;
-	const SDL_DisplayMode *mode;
 
 	/* Initialize test framework */
 	state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO | SDL_INIT_AUDIO);
@@ -265,8 +236,6 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-
-	
 	state->verbose = VERBOSE_VIDEO | VERBOSE_MODES | VERBOSE_RENDER | VERBOSE_EVENT | VERBOSE_AUDIO | VERBOSE_MOTION;
 	state->verbose = 0;
 	state->skip_renderer = 1;
@@ -277,7 +246,6 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgDisplay);
 	ECS_IMPORT(world, EgGpu);
@@ -287,34 +255,29 @@ int main(int argc, char *argv[])
 	ecs_script_run_file(world, "config/hello.flecs");
 	ecs_log_set_level(-1);
 
-
-	mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(state->windows[0]));
+	const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(state->windows[0]));
 	SDL_Log("Screen bpp: %d\n", SDL_BITSPERPIXEL(mode->format));
 
 	init_render_state(0);
 
-	done = 0;
-	while (!done) {
+	while (1) {
 		ecs_progress(world, 0.0f);
 		SDL_Event event;
 		int i;
 
 		/* Check for events */
+		int done = 0;
 		while (SDL_PollEvent(&event) && !done) {
 			SDLTest_CommonEvent(state, &event, &done);
 		}
-		if (!done) {
-			for (i = 0; i < state->num_windows; ++i) {
-				main_render(state, &render_state, state->windows, gpu_device, window_states, i);
-			}
+		if (done) {
+			break;
+		}
+		for (i = 0; i < state->num_windows; ++i) {
+			main_render(state, &render_state, state->windows, gpu_device, window_states, i);
 		}
 	}
-
-
-
 
 	quit(0, &render_state, window_states, state, gpu_device);
 	return 0;
 }
-
-/* vi: set ts=4 sw=4 expandtab: */

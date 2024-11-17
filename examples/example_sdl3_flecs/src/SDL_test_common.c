@@ -1376,8 +1376,7 @@ bool SDLTest_CommonInit(SDLTest_CommonState *state)
             }
 
             if (state->num_windows > 1) {
-                (void)SDL_snprintf(title, SDL_arraysize(title), "%s %d",
-                                   state->window_title, i + 1);
+                (void)SDL_snprintf(title, SDL_arraysize(title), "%s %d", state->window_title, i + 1);
             } else {
                 SDL_strlcpy(title, state->window_title, SDL_arraysize(title));
             }
@@ -1391,8 +1390,7 @@ bool SDLTest_CommonInit(SDLTest_CommonState *state)
             state->windows[i] = SDL_CreateWindowWithProperties(props);
             SDL_DestroyProperties(props);
             if (!state->windows[i]) {
-                SDL_Log("Couldn't create window: %s\n",
-                        SDL_GetError());
+                SDL_Log("Couldn't create window: %s\n", SDL_GetError());
                 return false;
             }
             if (state->window_minW || state->window_minH) {

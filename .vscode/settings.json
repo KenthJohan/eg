@@ -70,7 +70,11 @@
 		"chrono": "c",
 		"typeindex": "c",
 		"egwindows.h": "c",
-		"eggpu.h": "c"
+		"eggpu.h": "c",
+		"eggpushader.h": "c",
+		"eggpu_system_eggpushader.h": "c",
+		"eggpu_system_eggpupipeline.h": "c",
+		"eggpu_system_eggpudevice.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""
