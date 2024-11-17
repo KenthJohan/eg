@@ -74,7 +74,13 @@
 		"eggpushader.h": "c",
 		"eggpu_system_eggpushader.h": "c",
 		"eggpu_system_eggpupipeline.h": "c",
-		"eggpu_system_eggpudevice.h": "c"
+		"eggpu_system_eggpudevice.h": "c",
+		"map": "c",
+		"format": "c",
+		"*.ipp": "c",
+		"bitset": "c",
+		"initializer_list": "c",
+		"span": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

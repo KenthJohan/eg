@@ -44,17 +44,48 @@ static RenderState render_state;
 static SDLTest_CommonState *state = NULL;
 static WindowState *window_states = NULL;
 
-static void
-init_render_state(int msaa)
+
+static int g_copy(SDL_GPUDevice * device, void const * data, size_t size, SDL_GPUBuffer * gpubuf)
 {
-	SDL_GPUCommandBuffer *cmd;
-	SDL_GPUTransferBuffer *buf_transfer;
-	void *map;
-	SDL_GPUTransferBufferLocation buf_location;
-	SDL_GPUBufferRegion dst_region;
-	SDL_GPUCopyPass *copy_pass;
-	SDL_GPUBufferCreateInfo buffer_desc;
-	SDL_GPUTransferBufferCreateInfo transfer_buffer_desc;
+	SDL_GPUTransferBufferCreateInfo desc = {0};
+	desc.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+	desc.size = sizeof(vertex_data);
+	desc.props = 0;
+	SDL_GPUTransferBuffer * transfer = SDL_CreateGPUTransferBuffer(device, &desc);
+	if (transfer == NULL) {
+		return -1;
+	}
+	void *map = SDL_MapGPUTransferBuffer(device, transfer, false);
+	if (map == NULL) {
+		return -2;
+	}
+	SDL_memcpy(map, data, size);
+	SDL_UnmapGPUTransferBuffer(device, transfer);
+
+	SDL_GPUCommandBuffer *cmd = SDL_AcquireGPUCommandBuffer(device);
+	if (cmd == NULL) {
+		return -3;
+	}
+	SDL_GPUCopyPass *pass = SDL_BeginGPUCopyPass(cmd);
+	if (pass == NULL) {
+		return -3;
+	}
+	SDL_GPUTransferBufferLocation src;
+	src.transfer_buffer = transfer;
+	src.offset = 0;
+	SDL_GPUBufferRegion dst;
+	dst.buffer = gpubuf;
+	dst.offset = 0;
+	dst.size = sizeof(vertex_data);
+	SDL_UploadToGPUBuffer(pass, &src, &dst, false);
+	SDL_EndGPUCopyPass(pass);
+	SDL_SubmitGPUCommandBuffer(cmd);
+	SDL_ReleaseGPUTransferBuffer(device, transfer);
+	return 0;
+}
+
+static void init_render_state(int msaa)
+{
 	SDL_GPUGraphicsPipelineCreateInfo pipelinedesc;
 	SDL_GPUColorTargetDescription color_target_desc;
 	Uint32 drawablew, drawableh;
@@ -92,46 +123,27 @@ init_render_state(int msaa)
 	}
 
 	/* Create buffers */
+	SDL_GPUBufferCreateInfo buffer_desc;
 	buffer_desc.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
 	buffer_desc.size = sizeof(vertex_data);
 	buffer_desc.props = 0;
-	render_state.buf_vertex = SDL_CreateGPUBuffer(
-	gpu_device,
-	&buffer_desc);
+	render_state.buf_vertex = SDL_CreateGPUBuffer(gpu_device, &buffer_desc);
 	if (render_state.buf_vertex == NULL) {
 		quit(2, &render_state, window_states, state, gpu_device);
 	}
 
 	SDL_SetGPUBufferName(gpu_device, render_state.buf_vertex, "космонавт");
 
-	transfer_buffer_desc.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-	transfer_buffer_desc.size = sizeof(vertex_data);
-	transfer_buffer_desc.props = 0;
-	buf_transfer = SDL_CreateGPUTransferBuffer(
-	gpu_device,
-	&transfer_buffer_desc);
-
-	if (buf_transfer == NULL) {
-		quit(2, &render_state, window_states, state, gpu_device);
+	{
+		/* We just need to upload the static data once. */
+		int r = g_copy(gpu_device, vertex_data, sizeof(vertex_data), render_state.buf_vertex);
+		if (r < 0) {
+			quit(2, &render_state, window_states, state, gpu_device);
+		}
 	}
 
-	/* We just need to upload the static data once. */
-	map = SDL_MapGPUTransferBuffer(gpu_device, buf_transfer, false);
-	SDL_memcpy(map, vertex_data, sizeof(vertex_data));
-	SDL_UnmapGPUTransferBuffer(gpu_device, buf_transfer);
 
-	cmd = SDL_AcquireGPUCommandBuffer(gpu_device);
-	copy_pass = SDL_BeginGPUCopyPass(cmd);
-	buf_location.transfer_buffer = buf_transfer;
-	buf_location.offset = 0;
-	dst_region.buffer = render_state.buf_vertex;
-	dst_region.offset = 0;
-	dst_region.size = sizeof(vertex_data);
-	SDL_UploadToGPUBuffer(copy_pass, &buf_location, &dst_region, false);
-	SDL_EndGPUCopyPass(copy_pass);
-	SDL_SubmitGPUCommandBuffer(cmd);
 
-	SDL_ReleaseGPUTransferBuffer(gpu_device, buf_transfer);
 
 	/* Determine which sample count to use */
 	render_state.sample_count = SDL_GPU_SAMPLECOUNT_1;
