@@ -1,7 +1,7 @@
 module hello
 
 
-default_gpu_device {
+default_gpu {
 	eg.gpu.DeviceCreateInfo : {debug: true}
 	eg.base.Update
 

@@ -17,8 +17,6 @@ void System_EgGpuDevice_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgGpuDeviceCreateInfo *create = ecs_field(it, EgGpuDeviceCreateInfo, 0);
-	char const *statustext = "";
-	char const *color = "";
 
 	ecs_log_set_level(1);
 	ecs_dbg("System Sampler_Create() count:%i", it->count);
@@ -36,13 +34,13 @@ void System_EgGpuDevice_Create(ecs_iter_t *it)
 			ecs_set(world, e, EgGpuDevice, {.device = device});
 			ecs_dbg("SDL_CreateGPUDevice() -> %p", device);
 			char buf[128];
-			snprintf(buf, 128, "%s [%s]", ecs_get_name(world, e), statustext);
+			snprintf(buf, 128, "%s", ecs_get_name(world, e));
 			ecs_doc_set_name(world, e, buf);
 			char const *driver = SDL_GetGPUDeviceDriver(device);
 			SDL_GPUShaderFormat formats = SDL_GetGPUShaderFormats(device);
 			snprintf(buf, 128, "Driver: %s, %08X", driver, formats);
 			ecs_doc_set_brief(world, e, buf);
-			ecs_doc_set_color(world, e, color);
+			//ecs_doc_set_color(world, e, color);
 		}
 		ecs_log_pop_1();
 

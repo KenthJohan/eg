@@ -95,17 +95,14 @@ static void init_render_state(int msaa)
 	SDL_GPUShader *fragment_shader;
 	int i;
 
-	gpu_device = SDL_CreateGPUDevice(TESTGPU_SUPPORTED_FORMATS,true,state->gpudriver);
+	gpu_device = SDL_CreateGPUDevice(TESTGPU_SUPPORTED_FORMATS, true, state->gpudriver);
 	if (gpu_device == NULL) {
 		quit(2, &render_state, window_states, state, gpu_device);
 	}
 
 	/* Claim the windows */
-
 	for (i = 0; i < state->num_windows; i++) {
-		SDL_ClaimWindowForGPUDevice(
-		gpu_device,
-		state->windows[i]);
+		SDL_ClaimWindowForGPUDevice(gpu_device, state->windows[i]);
 	}
 
 	/* Create shaders */
