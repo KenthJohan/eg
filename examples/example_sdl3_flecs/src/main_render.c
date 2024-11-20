@@ -83,6 +83,25 @@ SDL_GPUTexture * CreateResolveTexture(RenderState * render_state, SDLTest_Common
 }
 
 
+
+
+
+
+void draw_function(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass, const SDL_GPUBufferBinding *bindings, float mat[16])
+{
+	for (int i = 0; i < 16; i++) {
+		mat[15] = i;
+		SDL_PushGPUVertexUniformData(cmd, 0, mat, sizeof(float)*16);
+		SDL_BindGPUVertexBuffers(pass, 0, bindings, 1);
+		SDL_DrawGPUPrimitives(pass, 36, 1, 0, 0);
+	}
+}
+
+
+
+
+
+
 void main_render(SDLTest_CommonState *state, RenderState * render_state, SDL_Window ** windows, SDL_GPUDevice *gpu_device, WindowState * window_states, const int windownum)
 {
 	WindowState *winstate = &window_states[windownum];
@@ -196,12 +215,13 @@ void main_render(SDLTest_CommonState *state, RenderState * render_state, SDL_Win
 
 	/* Draw the cube! */
 
-	SDL_PushGPUVertexUniformData(cmd, 0, matrix_final, sizeof(matrix_final));
 
 	pass = SDL_BeginGPURenderPass(cmd, &color_target, 1, &depth_target);
 	SDL_BindGPUGraphicsPipeline(pass, render_state->pipeline);
-	SDL_BindGPUVertexBuffers(pass, 0, &vertex_binding, 1);
-	SDL_DrawGPUPrimitives(pass, 36, 1, 0, 0);
+
+	// draw
+	draw_function(cmd, pass, &vertex_binding, (float *)&matrix_final);
+
 	SDL_EndGPURenderPass(pass);
 
 	/* Blit MSAA resolve target to swapchain, if needed */
