@@ -19,7 +19,10 @@
 
 /* Headers of public dependencies */
 #include <flecs.h>
+#include <egmath.h>
 #include <egbase.h>
+#include <egcameras.h>
+#include <egspatials.h>
 
 #endif
 

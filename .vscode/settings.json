@@ -80,7 +80,8 @@
 		"*.ipp": "c",
 		"bitset": "c",
 		"initializer_list": "c",
-		"span": "c"
+		"span": "c",
+		"egcameras.h": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

@@ -6,8 +6,11 @@
 		"public": false,
 		"use": [
 			"flecs",
+			"egmath",
 			"egbase",
-			"egmisc"
+			"egmisc",
+			"egcameras",
+			"egspatials"
 		]
 	},
 	"lang.c": {
@@ -17,7 +20,11 @@
 			"flecs",
 			"egbase",
 			"egmisc",
-			"SDL3"
+			"egcameras",
+			"egspatials",
+			"egmath",
+			"SDL3",
+			"m"
 		],
 		"cflags": [
 			"-Werror",

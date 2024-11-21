@@ -13,6 +13,7 @@ ECS_COMPONENT_DECLARE(EgGpuShaderFragment);
 ECS_COMPONENT_DECLARE(EgGpuShaderFragmentCreateInfo);
 ECS_COMPONENT_DECLARE(EgGpuPipeline);
 ECS_COMPONENT_DECLARE(EgGpuPipelineCreateInfo);
+ECS_COMPONENT_DECLARE(EgGpuDrawCube);
 
 
 void EgGpuImport(ecs_world_t *world)
@@ -29,6 +30,7 @@ void EgGpuImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgGpuShaderFragmentCreateInfo);
 	ECS_COMPONENT_DEFINE(world, EgGpuPipeline);
 	ECS_COMPONENT_DEFINE(world, EgGpuPipelineCreateInfo);
+	ECS_COMPONENT_DEFINE(world, EgGpuDrawCube);
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgGpuDeviceCreateInfo),
