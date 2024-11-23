@@ -81,7 +81,9 @@
 		"bitset": "c",
 		"initializer_list": "c",
 		"span": "c",
-		"egcameras.h": "c"
+		"egcameras.h": "c",
+		"eggpu_system_eggpubuffer.h": "c",
+		"numbers": "c"
 	},
 	"terminal.integrated.env.linux": {
 		"GTK_PATH": ""

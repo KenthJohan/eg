@@ -42,195 +42,11 @@
 
 #define TESTGPU_SUPPORTED_FORMATS (SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXBC | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_METALLIB)
 
-static SDL_GPUDevice *gpu_device = NULL;
-static RenderState render_state;
 static SDLTest_CommonState *state = NULL;
 static WindowState *window_states = NULL;
 
 
-static int g_copy(SDL_GPUDevice * device, void const * data, size_t size, SDL_GPUBuffer * gpubuf)
-{
-	SDL_GPUTransferBufferCreateInfo desc = {0};
-	desc.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-	desc.size = sizeof(vertex_data);
-	desc.props = 0;
-	SDL_GPUTransferBuffer * transfer = SDL_CreateGPUTransferBuffer(device, &desc);
-	if (transfer == NULL) {
-		return -1;
-	}
-	void *map = SDL_MapGPUTransferBuffer(device, transfer, false);
-	if (map == NULL) {
-		return -2;
-	}
-	SDL_memcpy(map, data, size);
-	SDL_UnmapGPUTransferBuffer(device, transfer);
 
-	SDL_GPUCommandBuffer *cmd = SDL_AcquireGPUCommandBuffer(device);
-	if (cmd == NULL) {
-		return -3;
-	}
-	SDL_GPUCopyPass *pass = SDL_BeginGPUCopyPass(cmd);
-	if (pass == NULL) {
-		return -3;
-	}
-	SDL_GPUTransferBufferLocation src;
-	src.transfer_buffer = transfer;
-	src.offset = 0;
-	SDL_GPUBufferRegion dst;
-	dst.buffer = gpubuf;
-	dst.offset = 0;
-	dst.size = sizeof(vertex_data);
-	SDL_UploadToGPUBuffer(pass, &src, &dst, false);
-	SDL_EndGPUCopyPass(pass);
-	SDL_SubmitGPUCommandBuffer(cmd);
-	SDL_ReleaseGPUTransferBuffer(device, transfer);
-	return 0;
-}
-
-static void init_render_state(int msaa)
-{
-	SDL_GPUGraphicsPipelineCreateInfo pipelinedesc;
-	SDL_GPUColorTargetDescription color_target_desc;
-	Uint32 drawablew, drawableh;
-	SDL_GPUVertexAttribute vertex_attributes[2];
-	SDL_GPUVertexBufferDescription vertex_buffer_desc;
-	SDL_GPUShader *vertex_shader;
-	SDL_GPUShader *fragment_shader;
-	int i;
-
-	gpu_device = SDL_CreateGPUDevice(TESTGPU_SUPPORTED_FORMATS, true, state->gpudriver);
-	if (gpu_device == NULL) {
-		quit(2, &render_state, window_states, state, gpu_device);
-	}
-
-	/* Claim the windows */
-	for (i = 0; i < state->num_windows; i++) {
-		SDL_ClaimWindowForGPUDevice(gpu_device, state->windows[i]);
-	}
-
-	/* Create shaders */
-
-	// vertex_shader = load_shader(true);
-	vertex_shader = shader_spirv_compile(gpu_device, "shaders/cube", SDL_GPU_SHADERSTAGE_VERTEX);
-	if (vertex_shader == NULL) {
-		quit(2, &render_state, window_states, state, gpu_device);
-	}
-
-	// fragment_shader = load_shader(false);
-	fragment_shader = shader_spirv_compile(gpu_device, "shaders/cube", SDL_GPU_SHADERSTAGE_FRAGMENT);
-	if (fragment_shader == NULL) {
-		quit(2, &render_state, window_states, state, gpu_device);
-	}
-
-	/* Create buffers */
-	SDL_GPUBufferCreateInfo buffer_desc;
-	buffer_desc.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
-	buffer_desc.size = sizeof(vertex_data);
-	buffer_desc.props = 0;
-	render_state.buf_vertex = SDL_CreateGPUBuffer(gpu_device, &buffer_desc);
-	if (render_state.buf_vertex == NULL) {
-		quit(2, &render_state, window_states, state, gpu_device);
-	}
-
-	SDL_SetGPUBufferName(gpu_device, render_state.buf_vertex, "космонавт");
-
-	{
-		/* We just need to upload the static data once. */
-		int r = g_copy(gpu_device, vertex_data, sizeof(vertex_data), render_state.buf_vertex);
-		if (r < 0) {
-			quit(2, &render_state, window_states, state, gpu_device);
-		}
-	}
-
-
-
-
-	/* Determine which sample count to use */
-	render_state.sample_count = SDL_GPU_SAMPLECOUNT_1;
-	if (msaa && SDL_GPUTextureSupportsSampleCount(
-	            gpu_device,
-	            SDL_GetGPUSwapchainTextureFormat(gpu_device, state->windows[0]),
-	            SDL_GPU_SAMPLECOUNT_4)) {
-		render_state.sample_count = SDL_GPU_SAMPLECOUNT_4;
-	}
-
-	/* Set up the graphics pipeline */
-
-	SDL_zero(pipelinedesc);
-	SDL_zero(color_target_desc);
-
-	color_target_desc.format = SDL_GetGPUSwapchainTextureFormat(gpu_device, state->windows[0]);
-
-	pipelinedesc.target_info.num_color_targets = 1;
-	pipelinedesc.target_info.color_target_descriptions = &color_target_desc;
-	pipelinedesc.target_info.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D16_UNORM;
-	pipelinedesc.target_info.has_depth_stencil_target = true;
-
-	pipelinedesc.depth_stencil_state.enable_depth_test = true;
-	pipelinedesc.depth_stencil_state.enable_depth_write = true;
-	pipelinedesc.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL;
-
-	pipelinedesc.multisample_state.sample_count = render_state.sample_count;
-
-	pipelinedesc.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
-
-	pipelinedesc.vertex_shader = vertex_shader;
-	pipelinedesc.fragment_shader = fragment_shader;
-
-	vertex_buffer_desc.slot = 0;
-	vertex_buffer_desc.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
-	vertex_buffer_desc.instance_step_rate = 0;
-	vertex_buffer_desc.pitch = sizeof(VertexData);
-
-	vertex_attributes[0].buffer_slot = 0;
-	vertex_attributes[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
-	vertex_attributes[0].location = 0;
-	vertex_attributes[0].offset = 0;
-
-	vertex_attributes[1].buffer_slot = 0;
-	vertex_attributes[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
-	vertex_attributes[1].location = 1;
-	vertex_attributes[1].offset = sizeof(float) * 3;
-
-	pipelinedesc.vertex_input_state.num_vertex_buffers = 1;
-	pipelinedesc.vertex_input_state.vertex_buffer_descriptions = &vertex_buffer_desc;
-	pipelinedesc.vertex_input_state.num_vertex_attributes = 2;
-	pipelinedesc.vertex_input_state.vertex_attributes = (SDL_GPUVertexAttribute *)&vertex_attributes;
-
-	pipelinedesc.props = 0;
-
-	render_state.pipeline = SDL_CreateGPUGraphicsPipeline(gpu_device, &pipelinedesc);
-	if (render_state.pipeline == NULL) {
-		quit(2, &render_state, window_states, state, gpu_device);
-	}
-
-	/* These are reference-counted; once the pipeline is created, you don't need to keep these. */
-	SDL_ReleaseGPUShader(gpu_device, vertex_shader);
-	SDL_ReleaseGPUShader(gpu_device, fragment_shader);
-
-	/* Set up per-window state */
-
-	window_states = (WindowState *)SDL_calloc(state->num_windows, sizeof(WindowState));
-	if (!window_states) {
-		SDL_Log("Out of memory!\n");
-		quit(2, &render_state, window_states, state, gpu_device);
-	}
-
-	for (i = 0; i < state->num_windows; i++) {
-		WindowState *winstate = &window_states[i];
-
-		/* create a depth texture for the window */
-		SDL_GetWindowSizeInPixels(state->windows[i], (int *)&drawablew, (int *)&drawableh);
-		winstate->tex_depth = CreateDepthTexture(&render_state, state, gpu_device, drawablew, drawableh);
-		winstate->tex_msaa = CreateMSAATexture(&render_state, state, gpu_device, drawablew, drawableh);
-		winstate->tex_resolve = CreateResolveTexture(&render_state, state, gpu_device, drawablew, drawableh);
-
-		/* make each window different */
-		winstate->angle_x = (i * 10) % 360;
-		winstate->angle_y = (i * 20) % 360;
-		winstate->angle_z = (i * 30) % 360;
-	}
-}
 
 int main(int argc, char *argv[])
 {
@@ -255,7 +71,6 @@ int main(int argc, char *argv[])
 	state->window_flags |= SDL_WINDOW_RESIZABLE;
 
 	if (!SDLTest_CommonInit(state)) {
-		quit(2, &render_state, window_states, state, gpu_device);
 		return 0;
 	}
 
@@ -271,7 +86,57 @@ int main(int argc, char *argv[])
 	const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(state->windows[0]));
 	SDL_Log("Screen bpp: %d\n", SDL_BITSPERPIXEL(mode->format));
 
-	init_render_state(0);
+
+	ecs_entity_t e_gpu = ecs_lookup(world, "hello.default_gpu");
+	ecs_entity_t e_pipeline = ecs_lookup(world, "hello.default_gpu.pipeline");
+	ecs_entity_t e_vert1 = ecs_lookup(world, "hello.default_gpu.vert1");
+
+	EgGpuPipeline const *c_pipeline = NULL;
+	EgGpuDevice const *c_gpu = NULL;
+	EgGpuBuffer const *c_buf = NULL;
+	while (1) {
+		ecs_progress(world, 0.0f);
+		c_pipeline = ecs_get(world, e_pipeline, EgGpuPipeline);
+		c_gpu = ecs_get(world, e_gpu, EgGpuDevice);
+		c_buf = ecs_get(world, e_vert1, EgGpuBuffer);
+		if (c_pipeline == NULL) {
+			continue;
+		}
+		if (c_gpu == NULL) {
+			continue;
+		}
+		if (c_buf == NULL) {
+			continue;
+		}
+		break;
+	}
+
+
+
+	window_states = (WindowState *)SDL_calloc(state->num_windows, sizeof(WindowState));
+	if (!window_states) {
+		SDL_Log("Out of memory!\n");
+		return 1;
+	}
+
+	for (int i = 0; i < state->num_windows; i++) {
+		WindowState *winstate = &window_states[i];
+		/* create a depth texture for the window */
+		Uint32 drawablew, drawableh;
+		SDL_GetWindowSizeInPixels(state->windows[i], (int *)&drawablew, (int *)&drawableh);
+		winstate->tex_depth = CreateDepthTexture(SDL_GPU_SAMPLECOUNT_1, state, c_gpu->device, drawablew, drawableh);
+		winstate->tex_msaa = CreateMSAATexture(SDL_GPU_SAMPLECOUNT_1, state, c_gpu->device, drawablew, drawableh);
+		winstate->tex_resolve = CreateResolveTexture(SDL_GPU_SAMPLECOUNT_1, state, c_gpu->device, drawablew, drawableh);
+		/* make each window different */
+		winstate->angle_x = (i * 10) % 360;
+		winstate->angle_y = (i * 20) % 360;
+		winstate->angle_z = (i * 30) % 360;
+	}
+
+	/* Claim the windows */
+	for (int i = 0; i < state->num_windows; i++) {
+		SDL_ClaimWindowForGPUDevice(c_gpu->device, state->windows[i]);
+	}
 
 	while (1) {
 		ecs_progress(world, 0.0f);
@@ -287,10 +152,9 @@ int main(int argc, char *argv[])
 			break;
 		}
 		for (i = 0; i < state->num_windows; ++i) {
-			main_render(state, &render_state, state->windows, gpu_device, window_states, i);
+			main_render(state, state->windows, c_gpu->device, window_states, i, c_pipeline->object, c_buf->object);
 		}
 	}
 
-	quit(0, &render_state, window_states, state, gpu_device);
 	return 0;
 }

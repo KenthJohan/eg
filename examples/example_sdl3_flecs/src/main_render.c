@@ -14,7 +14,7 @@
 		}                                                                \
 	}
 
-SDL_GPUTexture * CreateDepthTexture(RenderState * render_state, SDLTest_CommonState *state, SDL_GPUDevice *gpu_device, Uint32 drawablew, Uint32 drawableh)
+SDL_GPUTexture * CreateDepthTexture(SDL_GPUSampleCount sample_count, SDLTest_CommonState *state, SDL_GPUDevice *gpu_device, Uint32 drawablew, Uint32 drawableh)
 {
 	SDL_GPUTextureCreateInfo createinfo;
 	SDL_GPUTexture *result;
@@ -25,7 +25,7 @@ SDL_GPUTexture * CreateDepthTexture(RenderState * render_state, SDLTest_CommonSt
 	createinfo.height = drawableh;
 	createinfo.layer_count_or_depth = 1;
 	createinfo.num_levels = 1;
-	createinfo.sample_count = render_state->sample_count;
+	createinfo.sample_count = sample_count;
 	createinfo.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
 	createinfo.props = 0;
 
@@ -34,12 +34,12 @@ SDL_GPUTexture * CreateDepthTexture(RenderState * render_state, SDLTest_CommonSt
 	return result;
 }
 
-SDL_GPUTexture * CreateMSAATexture(RenderState * render_state, SDLTest_CommonState *state, SDL_GPUDevice *gpu_device, Uint32 drawablew, Uint32 drawableh)
+SDL_GPUTexture * CreateMSAATexture(SDL_GPUSampleCount sample_count, SDLTest_CommonState *state, SDL_GPUDevice *gpu_device, Uint32 drawablew, Uint32 drawableh)
 {
 	SDL_GPUTextureCreateInfo createinfo;
 	SDL_GPUTexture *result;
 
-	if (render_state->sample_count == SDL_GPU_SAMPLECOUNT_1) {
+	if (sample_count == SDL_GPU_SAMPLECOUNT_1) {
 		return NULL;
 	}
 
@@ -49,7 +49,7 @@ SDL_GPUTexture * CreateMSAATexture(RenderState * render_state, SDLTest_CommonSta
 	createinfo.height = drawableh;
 	createinfo.layer_count_or_depth = 1;
 	createinfo.num_levels = 1;
-	createinfo.sample_count = render_state->sample_count;
+	createinfo.sample_count = sample_count;
 	createinfo.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
 	createinfo.props = 0;
 
@@ -58,12 +58,12 @@ SDL_GPUTexture * CreateMSAATexture(RenderState * render_state, SDLTest_CommonSta
 	return result;
 }
 
-SDL_GPUTexture * CreateResolveTexture(RenderState * render_state, SDLTest_CommonState *state, SDL_GPUDevice *gpu_device, Uint32 drawablew, Uint32 drawableh)
+SDL_GPUTexture * CreateResolveTexture(SDL_GPUSampleCount sample_count, SDLTest_CommonState *state, SDL_GPUDevice *gpu_device, Uint32 drawablew, Uint32 drawableh)
 {
 	SDL_GPUTextureCreateInfo createinfo;
 	SDL_GPUTexture *result;
 
-	if (render_state->sample_count == SDL_GPU_SAMPLECOUNT_1) {
+	if (sample_count == SDL_GPU_SAMPLECOUNT_1) {
 		return NULL;
 	}
 
@@ -102,7 +102,7 @@ void draw_function(SDL_GPUCommandBuffer *cmd, SDL_GPURenderPass *pass, const SDL
 
 
 
-void main_render(SDLTest_CommonState *state, RenderState * render_state, SDL_Window ** windows, SDL_GPUDevice *gpu_device, WindowState * window_states, const int windownum)
+void main_render(SDLTest_CommonState *state, SDL_Window ** windows, SDL_GPUDevice *gpu_device, WindowState * window_states, const int windownum, SDL_GPUGraphicsPipeline *pipeline, SDL_GPUBuffer *buf_vertex)
 {
 	WindowState *winstate = &window_states[windownum];
 	SDL_GPUTexture *swapchainTexture;
@@ -114,17 +114,18 @@ void main_render(SDLTest_CommonState *state, RenderState * render_state, SDL_Win
 	SDL_GPUBufferBinding vertex_binding;
 	SDL_GPUBlitInfo blit_info;
 	Uint32 drawablew, drawableh;
+	SDL_GPUSampleCount sample_count = SDL_GPU_SAMPLECOUNT_1;
 
 	/* Acquire the swapchain texture */
 
 	cmd = SDL_AcquireGPUCommandBuffer(gpu_device);
 	if (!cmd) {
 		SDL_Log("Failed to acquire command buffer :%s", SDL_GetError());
-		quit(2, render_state, window_states, state, gpu_device);
+		return;
 	}
 	if (!SDL_AcquireGPUSwapchainTexture(cmd, windows[windownum], &swapchainTexture, &drawablew, &drawableh)) {
 		SDL_Log("Failed to acquire swapchain texture: %s", SDL_GetError());
-		quit(2, render_state, window_states, state, gpu_device);
+		return;
 	}
 
 	if (swapchainTexture == NULL) {
@@ -175,9 +176,9 @@ void main_render(SDLTest_CommonState *state, RenderState * render_state, SDL_Win
 		SDL_ReleaseGPUTexture(gpu_device, winstate->tex_depth);
 		SDL_ReleaseGPUTexture(gpu_device, winstate->tex_msaa);
 		SDL_ReleaseGPUTexture(gpu_device, winstate->tex_resolve);
-		winstate->tex_depth = CreateDepthTexture(render_state, state, gpu_device, drawablew, drawableh);
-		winstate->tex_msaa = CreateMSAATexture(render_state, state, gpu_device, drawablew, drawableh);
-		winstate->tex_resolve = CreateResolveTexture(render_state, state, gpu_device, drawablew, drawableh);
+		winstate->tex_depth = CreateDepthTexture(sample_count, state, gpu_device, drawablew, drawableh);
+		winstate->tex_msaa = CreateMSAATexture(sample_count, state, gpu_device, drawablew, drawableh);
+		winstate->tex_resolve = CreateResolveTexture(sample_count, state, gpu_device, drawablew, drawableh);
 	}
 	winstate->prev_drawablew = drawablew;
 	winstate->prev_drawableh = drawableh;
@@ -210,14 +211,14 @@ void main_render(SDLTest_CommonState *state, RenderState * render_state, SDL_Win
 
 	/* Set up the bindings */
 
-	vertex_binding.buffer = render_state->buf_vertex;
+	vertex_binding.buffer = buf_vertex;
 	vertex_binding.offset = 0;
 
 	/* Draw the cube! */
 
 
 	pass = SDL_BeginGPURenderPass(cmd, &color_target, 1, &depth_target);
-	SDL_BindGPUGraphicsPipeline(pass, render_state->pipeline);
+	SDL_BindGPUGraphicsPipeline(pass, pipeline);
 
 	// draw
 	draw_function(cmd, pass, &vertex_binding, (float *)&matrix_final);
@@ -225,7 +226,7 @@ void main_render(SDLTest_CommonState *state, RenderState * render_state, SDL_Win
 	SDL_EndGPURenderPass(pass);
 
 	/* Blit MSAA resolve target to swapchain, if needed */
-	if (render_state->sample_count > SDL_GPU_SAMPLECOUNT_1) {
+	if (sample_count > SDL_GPU_SAMPLECOUNT_1) {
 		SDL_zero(blit_info);
 		blit_info.source.texture = winstate->tex_resolve;
 		blit_info.source.w = drawablew;

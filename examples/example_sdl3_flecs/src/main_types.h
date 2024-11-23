@@ -4,8 +4,6 @@
 #include "SDL_test_common.h"
 
 typedef struct RenderState {
-	SDL_GPUBuffer *buf_vertex;
-	SDL_GPUGraphicsPipeline *pipeline;
 	SDL_GPUSampleCount sample_count;
 } RenderState;
 

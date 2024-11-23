@@ -29,6 +29,11 @@ default_gpu {
 		eg.base.Update
 	}
 	
+	vert1 {
+		eg.gpu.BufferCreateInfo : {usage: 0}
+		eg.base.Update
+	}
+
 }
 
 drawobjs
@@ -45,3 +50,5 @@ drawobjs
 		eg.spatials.Rotate3 : {dx: 1, dy: 1, dz: 1}
 	}
 }
+
+

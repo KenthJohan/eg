@@ -50,6 +50,15 @@ typedef struct
 } EgGpuDrawCube;
 
 
+typedef struct
+{
+	void * object;
+} EgGpuBuffer;
+
+typedef struct
+{
+	uint32_t usage;
+} EgGpuBufferCreateInfo;
 
 extern ECS_COMPONENT_DECLARE(EgGpuDevice);
 extern ECS_COMPONENT_DECLARE(EgGpuDeviceCreateInfo);
@@ -60,6 +69,8 @@ extern ECS_COMPONENT_DECLARE(EgGpuShaderFragmentCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgGpuPipeline);
 extern ECS_COMPONENT_DECLARE(EgGpuPipelineCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgGpuDrawCube);
+extern ECS_COMPONENT_DECLARE(EgGpuBuffer);
+extern ECS_COMPONENT_DECLARE(EgGpuBufferCreateInfo);
 
 void EgGpuImport(ecs_world_t *world);
 
