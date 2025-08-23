@@ -1,1 +1,1 @@
-# eg
+# flecs_sdl3_example
