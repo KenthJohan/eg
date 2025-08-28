@@ -95,7 +95,7 @@ static void System_enumerate_directory(ecs_iter_t *it)
 	ecs_log_set_level(0);
 }
 
-static void System_open(ecs_iter_t *it)
+static void Observer_open(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	EgFsStream *s = ecs_field(it, EgFsStream, 0);
@@ -122,7 +122,8 @@ static void System_read_file(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++c, ++s) {
 		ecs_entity_t e = it->entities[i];
 		char const *name = ecs_get_name(world, e);
-		ecs_vec_t * vec = &c->buf;
+		ecs_vec_t *vec = &c->buf;
+		//char *code = SDL_LoadFile("shaders/cube.vert.glsl", NULL);
 		if (!vec) {
 			ecs_err("Failed to allocate memory for file '%s'", name);
 			ecs_remove_id(world, e, ecs_id(EgFsStream));
@@ -137,7 +138,7 @@ static void System_read_file(ecs_iter_t *it)
 			ecs_remove_id(world, e, EgFsRead);
 			ecs_add_id(world, e, EgFsEof);
 		} else {
-			char * ptr = ecs_vec_grow_t(NULL, vec, char, r);
+			char *ptr = ecs_vec_grow_t(NULL, vec, char, r);
 			memcpy(ptr, chunk, r);
 			ecs_trace("Read %zu bytes from file '%s'", r, name);
 		}
@@ -187,32 +188,33 @@ ECS_COPY(EgFsStream, dst, src, {
 	// dst->stream = SDL_DuplicateFile(src->stream);
 })
 
-void EgFsContent_init(EgFsContent *c){
+void EgFsContent_init(EgFsContent *c)
+{
 	ecs_vec_init_t(NULL, &c->buf, char, 0);
 }
 
 ECS_CTOR(EgFsContent, ptr, {
-	//printf("Ctor\n");
+	// printf("Ctor\n");
 	EgFsContent_init(ptr);
-	//ecs_vec_init_t(NULL, &ptr->buf, char, 8);
+	// ecs_vec_init_t(NULL, &ptr->buf, char, 8);
 })
 
 ECS_DTOR(EgFsContent, ptr, {
-	//printf("Dtor\n");
+	// printf("Dtor\n");
 	ecs_vec_fini_t(NULL, &ptr->buf, char);
 })
 
 ECS_MOVE(EgFsContent, dst, src, {
-	//printf("Move\n");
+	// printf("Move\n");
 	ecs_vec_fini_t(NULL, &dst->buf, char);
 	dst->buf = src->buf;
 	src->buf = (ecs_vec_t){0};
 })
 
 ECS_COPY(EgFsContent, dst, src, {
-	//printf("Copy\n");
-	//ecs_vec_fini_t(NULL, &dst->buf, char);
-	//dst->buf = ecs_vec_copy_t(NULL, &src->buf, char);
+	printf("Copy\n");
+	// ecs_vec_fini_t(NULL, &dst->buf, char);
+	// dst->buf = ecs_vec_copy_t(NULL, &src->buf, char);
 })
 
 void hook_callback(ecs_iter_t *it)
@@ -222,10 +224,9 @@ void hook_callback(ecs_iter_t *it)
 
 	for (int i = 0; i < it->count; i++) {
 		ecs_entity_t e = it->entities[i];
-		printf("%s: %s\n",ecs_get_name(world, event), ecs_get_name(world, e));
+		printf("%s: %s\n", ecs_get_name(world, event), ecs_get_name(world, e));
 	}
 }
-
 
 void EgFsImport(ecs_world_t *world)
 {
@@ -268,11 +269,10 @@ void EgFsImport(ecs_world_t *world)
 	.move = ecs_move(EgFsContent),
 	.dtor = ecs_dtor(EgFsContent),
 	.copy = ecs_copy(EgFsContent),
-
-	/* Lifecycle hooks. These hooks should be used for application logic. */
 	.on_add = hook_callback,
 	.on_remove = hook_callback,
-	.on_set = hook_callback});
+	.on_set = hook_callback,
+	});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -289,7 +289,6 @@ void EgFsImport(ecs_world_t *world)
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "System_read_file", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_read_file,
-	.immediate = true,
 	.query.terms = {
 	{.id = ecs_id(EgFsContent)},
 	{.id = ecs_id(EgFsStream)},
@@ -300,22 +299,19 @@ void EgFsImport(ecs_world_t *world)
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
 	.events = {EcsOnAdd},
-	.callback = System_open,
+	.callback = Observer_open,
 	.query.terms = {
 	{.id = ecs_id(EgFsStream)},
 	{.id = ecs_pair(ecs_id(EcsDocDescription), EcsName), .inout = EcsInOutFilter},
 	{.id = EgFsFile},
 	}});
 
-
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "System_print", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_print,
-	.immediate = true,
 	.query.terms = {
 	{.id = ecs_id(EgFsContent)},
 	{.id = EgFsPrint},
 	}});
-
 }
