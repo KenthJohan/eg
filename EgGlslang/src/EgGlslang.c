@@ -26,72 +26,87 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 ECS_COMPONENT_DECLARE(EgGlslangCreate);
 ECS_COMPONENT_DECLARE(EgGlslangProgram);
 
+EgGlslangProgram compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *shaderSource, const char *fileName)
+{
+	const glslang_input_t input = {
+	.language = GLSLANG_SOURCE_GLSL,
+	.stage = stage,
+	.client = GLSLANG_CLIENT_VULKAN,
+	.client_version = GLSLANG_TARGET_VULKAN_1_2,
+	.target_language = GLSLANG_TARGET_SPV,
+	.target_language_version = GLSLANG_TARGET_SPV_1_5,
+	.code = shaderSource,
+	.default_version = 100,
+	.default_profile = GLSLANG_NO_PROFILE,
+	.force_default_version_and_profile = false,
+	.forward_compatible = false,
+	.messages = GLSLANG_MSG_DEFAULT_BIT,
+	.resource = glslang_default_resource(),
+	};
+
+	glslang_shader_t *shader = glslang_shader_create(&input);
+
+	EgGlslangProgram bin = {
+	.words = NULL,
+	.words_size = 0,
+	};
+	if (!glslang_shader_preprocess(shader, &input)) {
+		printf("GLSL preprocessing failed %s\n", fileName);
+		printf("%s\n", glslang_shader_get_info_log(shader));
+		printf("%s\n", glslang_shader_get_info_debug_log(shader));
+		printf("%s\n", input.code);
+		glslang_shader_delete(shader);
+		return bin;
+	}
+
+	if (!glslang_shader_parse(shader, &input)) {
+		printf("GLSL parsing failed %s\n", fileName);
+		printf("%s\n", glslang_shader_get_info_log(shader));
+		printf("%s\n", glslang_shader_get_info_debug_log(shader));
+		printf("%s\n", glslang_shader_get_preprocessed_code(shader));
+		glslang_shader_delete(shader);
+		return bin;
+	}
+
+	glslang_program_t *program = glslang_program_create();
+	glslang_program_add_shader(program, shader);
+
+	if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT)) {
+		printf("GLSL linking failed %s\n", fileName);
+		printf("%s\n", glslang_program_get_info_log(program));
+		printf("%s\n", glslang_program_get_info_debug_log(program));
+		glslang_program_delete(program);
+		glslang_shader_delete(shader);
+		return bin;
+	}
+
+	glslang_program_SPIRV_generate(program, stage);
+
+	bin.words_size = glslang_program_SPIRV_get_size(program);
+	bin.words = malloc(bin.words_size * sizeof(uint32_t));
+	glslang_program_SPIRV_get(program, bin.words);
+
+	const char *spirv_messages = glslang_program_SPIRV_get_messages(program);
+	if (spirv_messages)
+		printf("(%s) %s\b", fileName, spirv_messages);
+
+	glslang_program_delete(program);
+	glslang_shader_delete(shader);
+
+	return bin;
+}
+
 static void EgGlslang_create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgGlslangCreate *g = ecs_field(it, EgGlslangCreate, 0); // self
 	EgFsContent *c = ecs_field(it, EgFsContent, 1);         // shared
 
-	for (int i = 0; i < it->count; ++i, ++c) {
+	for (int i = 0; i < it->count; ++i, ++g) {
 		ecs_entity_t e = it->entities[i];
 		char const *name = ecs_get_name(world, e);
 		char const *code = ecs_vec_first_t(&c->buf, char);
-		const glslang_input_t input =
-		{
-		.language = GLSLANG_SOURCE_GLSL,
-		.stage = GLSLANG_STAGE_VERTEX,
-		.client = GLSLANG_CLIENT_VULKAN,
-		.client_version = GLSLANG_TARGET_VULKAN_1_1,
-		.target_language = GLSLANG_TARGET_SPV,
-		.target_language_version = GLSLANG_TARGET_SPV_1_3,
-		.code = code,
-		.default_version = 100,
-		.default_profile = GLSLANG_NO_PROFILE,
-		.force_default_version_and_profile = false,
-		.forward_compatible = false,
-		.messages = GLSLANG_MSG_DEFAULT_BIT,
-		.resource = glslang_default_resource(),
-		};
-
-		glslang_shader_t *shader = glslang_shader_create(&input);
-
-		if (!glslang_shader_preprocess(shader, &input)) {
-			// use glslang_shader_get_info_log() and glslang_shader_get_info_debug_log()
-			const char *info_log = glslang_shader_get_info_log(shader);
-			const char *debug_log = glslang_shader_get_info_debug_log(shader);
-			ecs_err("Failed to preprocess shader: %s\n%s", info_log, debug_log);
-			ecs_enable(world, e, false);
-			continue;
-		}
-
-		if (!glslang_shader_parse(shader, &input)) {
-			// use glslang_shader_get_info_log() and glslang_shader_get_info_debug_log()
-			const char *info_log = glslang_shader_get_info_log(shader);
-			const char *debug_log = glslang_shader_get_info_debug_log(shader);
-			ecs_err("Failed to parse shader: %s\n%s", info_log, debug_log);
-			ecs_enable(world, e, false);
-			continue;
-		}
-
-		glslang_program_t *program = glslang_program_create();
-		glslang_program_add_shader(program, shader);
-
-		if (!glslang_program_link(program, GLSLANG_MSG_SPV_RULES_BIT | GLSLANG_MSG_VULKAN_RULES_BIT)) {
-			ecs_err("%s\n", glslang_program_get_info_log(program));
-			ecs_err("%s\n", glslang_program_get_info_debug_log(program));
-			glslang_program_delete(program);
-			glslang_shader_delete(shader);
-			ecs_enable(world, e, false);
-			continue;
-		}
-
-		EgGlslangProgram p;
-
-		glslang_program_SPIRV_generate(program, input.stage);
-		p.words_size = glslang_program_SPIRV_get_size(program);
-		p.words = malloc(p.words_size * sizeof(uint32_t));
-		glslang_program_SPIRV_get(program, p.words);
-
+		EgGlslangProgram p = compileShaderToSPIRV_Vulkan(g->dummy, code, name);
 		ecs_set_ptr(world, e, EgGlslangProgram, &p);
 	}
 }
@@ -110,6 +125,13 @@ void EgGlslangImport(ecs_world_t *world)
 	.members = {
 	{.name = "words", .type = ecs_id(ecs_uptr_t)},
 	{.name = "words_size", .type = ecs_id(ecs_i32_t)},
+	}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity = ecs_id(EgGlslangCreate),
+	.members = {
+	{.name = "dummy", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	glslang_initialize_process();
