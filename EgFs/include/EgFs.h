@@ -1,25 +1,44 @@
 #pragma once
 #include <flecs.h>
 
-typedef struct
-{
-	ecs_vec_t buf;
-} EgFsContent;
+
+#define EGFS_FD_ENTITY_START 1000
 
 typedef struct
 {
-	void * stream;
-} EgFsStream;
+	char *value;
+	ecs_size_t length;
+	uint64_t hash;
+} EgFsPath;
+
+typedef struct
+{
+	int fd;
+	ecs_map_t map;
+} EgFsEpoll;
+
+typedef struct
+{
+	int fd;
+} EgFsInotify;
+
+typedef struct
+{
+	int fd;
+	ecs_entity_t file;
+} EgFsWatch;
+
+typedef struct
+{
+	ecs_hashmap_t hm;
+} EgFsLookup;
 
 
-extern ECS_COMPONENT_DECLARE(EgFsContent);
-extern ECS_COMPONENT_DECLARE(EgFsStream);
 
-extern ECS_TAG_DECLARE(EgFsDir);
-extern ECS_TAG_DECLARE(EgFsFile);
-extern ECS_TAG_DECLARE(EgFsUpdate);
-extern ECS_TAG_DECLARE(EgFsRead);
-extern ECS_TAG_DECLARE(EgFsPrint);
-extern ECS_TAG_DECLARE(EgFsEof);
+extern ECS_COMPONENT_DECLARE(EgFsPath);
+extern ECS_COMPONENT_DECLARE(EgFsEpoll);
+extern ECS_COMPONENT_DECLARE(EgFsInotify);
+extern ECS_COMPONENT_DECLARE(EgFsWatch);
+extern ECS_COMPONENT_DECLARE(EgFsLookup);
 
 void EgFsImport(ecs_world_t *world);

@@ -26,8 +26,10 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 ECS_COMPONENT_DECLARE(EgGlslangCreate);
 ECS_COMPONENT_DECLARE(EgGlslangProgram);
 
-EgGlslangProgram compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *shaderSource, const char *fileName)
+ecs_vec_t compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *shaderSource, const char *fileName)
 {
+	printf("fileName: %s:::\n", fileName);
+	printf("%s\n", shaderSource);
 	const glslang_input_t input = {
 	.language = GLSLANG_SOURCE_GLSL,
 	.stage = stage,
@@ -46,10 +48,8 @@ EgGlslangProgram compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *
 
 	glslang_shader_t *shader = glslang_shader_create(&input);
 
-	EgGlslangProgram bin = {
-	.words = NULL,
-	.words_size = 0,
-	};
+
+	ecs_vec_t bin = {NULL, 0};
 	if (!glslang_shader_preprocess(shader, &input)) {
 		printf("GLSL preprocessing failed %s\n", fileName);
 		printf("%s\n", glslang_shader_get_info_log(shader));
@@ -82,9 +82,10 @@ EgGlslangProgram compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *
 
 	glslang_program_SPIRV_generate(program, stage);
 
-	bin.words_size = glslang_program_SPIRV_get_size(program);
-	bin.words = malloc(bin.words_size * sizeof(uint32_t));
-	glslang_program_SPIRV_get(program, bin.words);
+	int32_t word_size = glslang_program_SPIRV_get_size(program);
+	ecs_vec_init(NULL, &bin, sizeof(uint32_t), word_size);
+	bin.count = word_size;
+	glslang_program_SPIRV_get(program, bin.array);
 
 	const char *spirv_messages = glslang_program_SPIRV_get_messages(program);
 	if (spirv_messages)
@@ -106,8 +107,8 @@ static void EgGlslang_create(ecs_iter_t *it)
 		ecs_entity_t e = it->entities[i];
 		char const *name = ecs_get_name(world, e);
 		char const *code = ecs_vec_first_t(&c->buf, char);
-		EgGlslangProgram p = compileShaderToSPIRV_Vulkan(g->dummy, code, name);
-		ecs_set_ptr(world, e, EgGlslangProgram, &p);
+		ecs_vec_t bin = compileShaderToSPIRV_Vulkan(g->dummy, code, name);
+		ecs_set(world, e, EgFsContent, {bin});
 	}
 }
 
@@ -144,6 +145,6 @@ void EgGlslangImport(ecs_world_t *world)
 	{.id = ecs_id(EgGlslangCreate)},
 	{.id = ecs_id(EgFsContent), .trav = EcsDependsOn, .src.id = EcsUp, .inout = EcsIn},
 	{.id = EgFsEof, .trav = EcsDependsOn, .src.id = EcsUp},
-	{.id = ecs_id(EgGlslangProgram), .oper = EcsNot}, // Creates this
+	{.id = ecs_id(EgFsContent), .oper = EcsNot}, // Creates this
 	}});
 }
