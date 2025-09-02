@@ -2,11 +2,11 @@
 #include <flecs.h>
 
 
-#define EGFS_FD_ENTITY_START 1000
+#define EGFS_FD_ENTITY_OFFSET 1024
 
 typedef struct
 {
-	char *value;
+	char const *value;
 	ecs_size_t length;
 	uint64_t hash;
 } EgFsPath;
@@ -16,6 +16,11 @@ typedef struct
 	int fd;
 	ecs_map_t map;
 } EgFsEpoll;
+
+typedef struct
+{
+	int fd;
+} EgFsFanotify;
 
 typedef struct
 {
@@ -37,8 +42,11 @@ typedef struct
 
 extern ECS_COMPONENT_DECLARE(EgFsPath);
 extern ECS_COMPONENT_DECLARE(EgFsEpoll);
+extern ECS_COMPONENT_DECLARE(EgFsFanotify);
 extern ECS_COMPONENT_DECLARE(EgFsInotify);
 extern ECS_COMPONENT_DECLARE(EgFsWatch);
 extern ECS_COMPONENT_DECLARE(EgFsLookup);
+extern ECS_ENTITY_DECLARE(EgFsFiles);
+extern ECS_ENTITY_DECLARE(EgFsDescriptors);
 
 void EgFsImport(ecs_world_t *world);
