@@ -13,36 +13,9 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #include "EgFs.h"
 #include "EgFs/EgFsPath.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <ecsx.h>
-#include <egmisc.h>
-#include <sys/inotify.h>
-#include <sys/epoll.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/fanotify.h>
-#include <linux/limits.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/fanotify.h>
-#include <sys/epoll.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-
 #include "fd.h"
 
 ECS_COMPONENT_DECLARE(EgFsPath);
-ECS_COMPONENT_DECLARE(EgFsEpoll);
 ECS_COMPONENT_DECLARE(EgFsWatch);
 ECS_COMPONENT_DECLARE(EgFsLookup);
 ECS_ENTITY_DECLARE(EgFs);
@@ -104,11 +77,6 @@ ECS_COPY(EgFsPath, dst, src, {
 	ecs_os_free((void *)dst->value);
 	dst->value = ecs_os_strdup(src->value);
 })
-
-
-
-
-
 
 static void lookup(const ecs_function_ctx_t *ctx, int argc, const ecs_value_t *argv, ecs_value_t *result)
 {

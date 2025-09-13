@@ -132,7 +132,7 @@ static void EgFsWatch_EcsOnSet_inotify_add_watch(ecs_iter_t *it)
 static void Observer_inotify_rm_watch(ecs_iter_t *it)
 {
 	// ecs_world_t *world = it->world;
-	EgFsWatch *w = ecs_field(it, EgFsWatch, 0); // self
+	EgFsWatch *w = ecs_field(it, EgFsWatch, 0);     // self
 	EgFsEpollFd *l = ecs_field(it, EgFsEpollFd, 1); // shared
 	for (int i = 0; i < it->count; ++i, ++w) {
 		int rv = inotify_rm_watch(l->fd, w->fd);
@@ -141,8 +141,6 @@ static void Observer_inotify_rm_watch(ecs_iter_t *it)
 		}
 	} // END FOR LOOP
 }
-
-
 
 static void Observer_epoll_ctl(ecs_iter_t *it)
 {

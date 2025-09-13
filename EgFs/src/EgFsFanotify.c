@@ -68,9 +68,7 @@ static void EgFsWatch_EcsOnSet_fannotify_add_watch(ecs_iter_t *it)
 		ecs_entity_t e = it->entities[i];
 		ecs_assert(w->file != 0, ECS_INVALID_PARAMETER, NULL);
 		EgFsPath const *p = ecs_get(world, w->file, EgFsPath);
-		int r = fanotify_mark(y->fd,
-		FAN_MARK_ADD | FAN_MARK_MOUNT, FAN_CREATE | FAN_DELETE | FAN_MODIFY | FAN_ACCESS, AT_FDCWD,
-		p->value);
+		int r = fanotify_mark(y->fd, FAN_MARK_ADD, FAN_MODIFY | FAN_OPEN | FAN_EVENT_ON_CHILD, AT_FDCWD, p->value);
 		if (r) {
 			perror("fanotify_mark");
 		} else {
@@ -79,10 +77,35 @@ static void EgFsWatch_EcsOnSet_fannotify_add_watch(ecs_iter_t *it)
 	} // END FOR LOOP
 }
 
+static void Observer_epoll_ctl_EgFsFanotifyFd(ecs_iter_t *it)
+{
+	ecs_world_t *world = it->world;
+	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 0); // self
+	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);     // shared
+	for (int i = 0; i < it->count; ++i, ++y) {
+		ecs_entity_t e = it->entities[i];
+		if (it->event == EcsOnRemove) {
+			ecs_map_remove(&o->map, y->fd);
+		} else if (it->event == EcsOnAdd) {
+			ecs_trace("Adding fanotify fd (%s) to epoll (%s)", ecs_get_name(world, e), ecs_get_name(world, ecs_field_src(it, 1)));
+			struct epoll_event event;
+			event.events = EPOLLIN;
+			event.data.fd = y->fd;
+			if (epoll_ctl(o->fd, EPOLL_CTL_ADD, y->fd, &event) == 0) {
+				ecs_map_insert(&o->map, y->fd, e);
+			} else {
+				perror("epoll_ctl");
+			}
+		}
+	}
+}
+
 
 
 void EgFsFanotifyImport(ecs_world_t *world)
 {
+	ECS_IMPORT(world, EgFsEpoll);
+
 	ECS_MODULE(world, EgFsFanotify);
 	ecs_set_name_prefix(world, "EgFsFanotify");
 
@@ -112,9 +135,14 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	{.id = ecs_id(EgFsWatch)},
 	{.id = ecs_id(EgFsFanotifyFd), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
 	}});
-}
 
-/*
-FLECS_IDEgFsFanotifyID_
-FLECS_IDEgFsFanotifyFdID_
-*/
+	ecs_observer_init(world,
+	&(ecs_observer_desc_t){
+	.entity = ecs_entity(world, {.name = "Observer_epoll_ctl", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = Observer_epoll_ctl_EgFsFanotifyFd,
+	.events = {EcsOnAdd, EcsOnRemove},
+	.query.terms = {
+	{.id = ecs_id(EgFsFanotifyFd)},
+	{.id = ecs_id(EgFsEpollFd), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
+	}});
+}

@@ -28,6 +28,7 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +40,14 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/sysmacros.h>
+
+#ifndef FILEID_INO32_GEN
+#define FILEID_INO32_GEN 1
+#endif
+#ifndef FILEID_INVALID
+#define FILEID_INVALID 0xff
+#endif
 
 #include "fd.h"
 
@@ -98,6 +107,48 @@ static void enqueue_inotify_event(ecs_world_t *world, int fd)
 	}
 }
 
+int open_mount_by_fsid(__kernel_fsid_t fsid, char *mount_path, size_t mount_path_len)
+{
+	FILE *fp = fopen("/proc/self/mountinfo", "r");
+	if (!fp)
+		return -1;
+
+	char line[PATH_MAX * 2];
+	int found = 0;
+	while (fgets(line, sizeof(line), fp)) {
+		// mountinfo fields:
+		// 1: mount ID
+		// 2: parent ID
+		// 3: major:minor
+		// 4: root
+		// 5: mount point
+		char *saveptr = NULL;
+		char *token = strtok_r(line, " ", &saveptr); // mount ID
+		token = strtok_r(NULL, " ", &saveptr);       // parent ID
+		token = strtok_r(NULL, " ", &saveptr);       // major:minor
+		unsigned int major = 0, minor = 0;
+		if (sscanf(token, "%u:%u", &major, &minor) != 2)
+			continue;
+		dev_t dev = makedev(major, minor);
+
+		token = strtok_r(NULL, " ", &saveptr); // root
+		token = strtok_r(NULL, " ", &saveptr); // mount point
+		char *mountpoint = token;
+
+		if (fsid.val[0] == dev) {
+			strncpy(mount_path, mountpoint, mount_path_len - 1);
+			mount_path[mount_path_len - 1] = '\0';
+			found = 1;
+			break;
+		}
+	}
+	fclose(fp);
+	if (!found)
+		return -1;
+	int fd = open(mount_path, O_PATH);
+	return fd;
+}
+
 #define FANOTIFY_BUF_SIZE 4096
 
 static void enqueue_fanotify_event(ecs_world_t *world, int fd)
@@ -139,6 +190,50 @@ static void enqueue_fanotify_event(ecs_world_t *world, int fd)
 	}
 }
 
+static void info_header_print(struct fanotify_event_metadata *metadata, char *buf, int len)
+{
+	char path[PATH_MAX];
+
+	struct fanotify_event_info_header *hdr = (struct fanotify_event_info_header *)(metadata + 1);
+	while ((char *)hdr < (char *)metadata + metadata->event_len) {
+		if (hdr->info_type == FAN_EVENT_INFO_TYPE_DFID_NAME) {
+			struct fanotify_event_info_fid *fid_info = (struct fanotify_event_info_fid *)hdr;
+			struct file_handle *fh = (struct file_handle *)fid_info->handle;
+			char *file_name = fh->f_handle + fh->handle_bytes;
+			char mount_path[PATH_MAX] = {0};
+			int mountfd = open_mount_by_fsid(fid_info->fsid, mount_path, sizeof(mount_path));
+			printf("File name: %s\n", file_name);
+		}
+		hdr = (struct fanotify_event_info_header *)((char *)hdr + hdr->len);
+	}
+}
+
+static void handle_notifications(char *buffer, int len)
+{
+	struct fanotify_event_metadata *event = (struct fanotify_event_metadata *)buffer;
+	/*
+	struct fanotify_event_info_header *info;
+	struct fanotify_event_info_error *err;
+	struct fanotify_event_info_fid *fid;
+	*/
+	for (; FAN_EVENT_OK(event, len); event = FAN_EVENT_NEXT(event, len)) {
+		if (event->fd == FAN_NOFD) {
+			info_header_print(event, buffer, len);
+		}
+	}
+}
+
+void handle_fanotify_response(ecs_world_t *world, int fd)
+{
+	char buf[FANOTIFY_BUF_SIZE];
+	ssize_t len = read(fd, buf, sizeof(buf));
+	if (len < 0) {
+		perror("read from fanotify fd");
+		return;
+	}
+	handle_notifications(buf, len);
+}
+
 static void System_epoll(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
@@ -162,7 +257,7 @@ static void System_epoll(ecs_iter_t *it)
 				enqueue_inotify_event(world, events[j].data.fd);
 			}
 			if (ecs_has(world, *e, EgFsFanotifyFd)) {
-				enqueue_fanotify_event(world, events[j].data.fd);
+				handle_fanotify_response(world, events[j].data.fd);
 			}
 		}
 	} // END FOR LOOP

@@ -9,10 +9,11 @@
 #include <sys/fanotify.h>
 #include <sys/inotify.h>
 #include <unistd.h>
+#include <sys/epoll.h>
 
 int fd_fanotify_init()
 {
-	int fd = fanotify_init(FAN_CLASS_NOTIF | FAN_REPORT_DFID_NAME, O_RDONLY);
+	int fd = fanotify_init(FAN_CLASS_NOTIF | FAN_REPORT_DFID_NAME | FAN_REPORT_FID, O_RDONLY);
 	if (fd < 0) {
 		perror("fanotify_init");
 		return -1;
