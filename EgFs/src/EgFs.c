@@ -18,6 +18,9 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 ECS_COMPONENT_DECLARE(EgFsPath);
 ECS_COMPONENT_DECLARE(EgFsWatch);
 ECS_COMPONENT_DECLARE(EgFsLookup);
+ECS_COMPONENT_DECLARE(EgFsFd);
+ECS_COMPONENT_DECLARE(EgFsReady);
+
 ECS_ENTITY_DECLARE(EgFs);
 ECS_ENTITY_DECLARE(EgFsFiles);
 ECS_ENTITY_DECLARE(EgFsDescriptors);
@@ -78,6 +81,27 @@ ECS_COPY(EgFsPath, dst, src, {
 	dst->value = ecs_os_strdup(src->value);
 })
 
+
+
+
+
+
+ECS_CTOR(EgFsFd, ptr, {
+	ptr->fd = -1;
+})
+
+// The destructor should free resources.
+ECS_DTOR(EgFsFd, ptr, {
+	fd_close_valid(ptr->fd);
+})
+
+ECS_MOVE(EgFsFd, dst, src, {
+	fd_close_valid(dst->fd);
+	dst->fd = src->fd;
+	src->fd = -1; // Invalidate the source fd
+})
+
+
 static void lookup(const ecs_function_ctx_t *ctx, int argc, const ecs_value_t *argv, ecs_value_t *result)
 {
 	(void)ctx;
@@ -106,6 +130,8 @@ void EgFsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgFsPath);
 	ECS_COMPONENT_DEFINE(world, EgFsWatch);
 	ECS_COMPONENT_DEFINE(world, EgFsLookup);
+	ECS_COMPONENT_DEFINE(world, EgFsFd);
+	ECS_COMPONENT_DEFINE(world, EgFsReady);
 	ECS_ENTITY_DEFINE(world, EgFsFiles);
 	ECS_ENTITY_DEFINE(world, EgFsDescriptors);
 
@@ -119,6 +145,14 @@ void EgFsImport(ecs_world_t *world)
 		.callback = lookup});
 		ecs_doc_set_brief(world, m, "Lookup child by name");
 	}
+
+	ecs_set_hooks_id(world, ecs_id(EgFsFd),
+	&(ecs_type_hooks_t){
+	.flags = ECS_TYPE_HOOK_COPY_ILLEGAL,
+	.move = ecs_move(EgFsFd),
+	.dtor = ecs_dtor(EgFsFd),
+	.ctor = ecs_ctor(EgFsFd),
+	});
 
 	ecs_set_hooks_id(world, ecs_id(EgFsLookup),
 	&(ecs_type_hooks_t){

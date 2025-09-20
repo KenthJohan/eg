@@ -1,5 +1,6 @@
 #pragma once
 
+#include <flecs.h>
 
 /*
 The fanotify API provides notification and interception of
@@ -29,3 +30,15 @@ int fd_close_valid(int fd);
 int fd_epoll_create();
 
 int fd_inotify_init1();
+
+int fd_epoll_add(int epoll_fd, int fd);
+
+int fd_epoll_rm(int epoll_fd, int fd);
+
+int fd_fanotify_mark_add(int fd, const char *pathname);
+
+int fd_fanotify_mark_rm(int fd, const char *pathname);
+
+void fd_epoll_ecs_wait(ecs_world_t *world, int epoll_fd, const ecs_map_t *map, ecs_id_t component,size_t size,const void *ptr);
+
+void handle_fanotify_response(ecs_world_t *world, int fd);

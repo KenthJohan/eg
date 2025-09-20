@@ -24,12 +24,22 @@ typedef struct {
 } EgFsWatch;
 
 typedef struct {
+  int fd;
+} EgFsFd;
+
+typedef struct {
+  int dummy;
+} EgFsReady;
+
+typedef struct {
   ecs_hashmap_t hm;
 } EgFsLookup;
 
 extern ECS_COMPONENT_DECLARE(EgFsPath);
 extern ECS_COMPONENT_DECLARE(EgFsWatch);
 extern ECS_COMPONENT_DECLARE(EgFsLookup);
+extern ECS_COMPONENT_DECLARE(EgFsFd);
+extern ECS_COMPONENT_DECLARE(EgFsReady);
 extern ECS_ENTITY_DECLARE(EgFsFiles);
 extern ECS_ENTITY_DECLARE(EgFsDescriptors);
 

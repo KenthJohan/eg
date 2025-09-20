@@ -7,39 +7,9 @@ https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4
 https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/test/testautomation_iostream.c#L477
 */
 
-// Define _GNU_SOURCE, Otherwise we don't get O_LARGEFILE
-#define _GNU_SOURCE
-
 #include "EgFs.h"
 #include "EgFs/EgFsPath.h"
 #include "EgFs/EgFsFanotify.h"
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <ecsx.h>
-#include <egmisc.h>
-#include <sys/inotify.h>
-#include <sys/epoll.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/fanotify.h>
-#include <linux/limits.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/fanotify.h>
-#include <sys/epoll.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-
 #include "fd.h"
 
 ECS_COMPONENT_DECLARE(EgFsFanotifyFd);
@@ -59,20 +29,28 @@ ECS_MOVE(EgFsFanotifyFd, dst, src, {
 	src->fd = -1; // Invalidate the source fd
 })
 
-static void EgFsWatch_EcsOnSet_fannotify_add_watch(ecs_iter_t *it)
+
+
+
+static void EgFsWatch_EcsOnSet_fannotify_mark(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgFsWatch *w = ecs_field(it, EgFsWatch, 0);           // self
 	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 1); // shared
 	for (int i = 0; i < it->count; ++i, ++w) {
-		ecs_entity_t e = it->entities[i];
 		ecs_assert(w->file != 0, ECS_INVALID_PARAMETER, NULL);
 		EgFsPath const *p = ecs_get(world, w->file, EgFsPath);
-		int r = fanotify_mark(y->fd, FAN_MARK_ADD, FAN_MODIFY | FAN_OPEN | FAN_EVENT_ON_CHILD, AT_FDCWD, p->value);
+		ecs_entity_t e = it->entities[i];
+		int r = 0;
+		if (it->event == EcsOnRemove) {
+			ecs_trace("Removed fanotify watch for %s on entity %s", p->value, ecs_get_name(world, e));
+			fd_fanotify_mark_rm(y->fd, p->value);
+		} else if (it->event == EcsOnSet) {
+			ecs_trace("Setting fanotify watch for %s on entity %s", p->value, ecs_get_name(world, e));
+			fd_fanotify_mark_add(y->fd, p->value);
+		}
 		if (r) {
-			perror("fanotify_mark");
-		} else {
-			ecs_trace("Added fanotify watch for %s on entity %s", p->value, ecs_get_name(world, e));
+			ecs_enable(world, e, false);
 		}
 	} // END FOR LOOP
 }
@@ -84,21 +62,38 @@ static void Observer_epoll_ctl_EgFsFanotifyFd(ecs_iter_t *it)
 	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);     // shared
 	for (int i = 0; i < it->count; ++i, ++y) {
 		ecs_entity_t e = it->entities[i];
+		int r = 0;
 		if (it->event == EcsOnRemove) {
-			ecs_map_remove(&o->map, y->fd);
-		} else if (it->event == EcsOnAdd) {
-			ecs_trace("Adding fanotify fd (%s) to epoll (%s)", ecs_get_name(world, e), ecs_get_name(world, ecs_field_src(it, 1)));
-			struct epoll_event event;
-			event.events = EPOLLIN;
-			event.data.fd = y->fd;
-			if (epoll_ctl(o->fd, EPOLL_CTL_ADD, y->fd, &event) == 0) {
-				ecs_map_insert(&o->map, y->fd, e);
-			} else {
-				perror("epoll_ctl");
+			r = fd_epoll_rm(o->fd, y->fd);
+			if (r == 0) {
+				ecs_map_remove(&o->map, y->fd);
 			}
+		} else if (it->event == EcsOnAdd) {
+			r = fd_epoll_add(o->fd, y->fd);
+			if (r == 0) {
+				ecs_map_insert(&o->map, y->fd, e);
+			}
+		}
+		if (r) {
+			ecs_enable(world, e, false);
 		}
 	}
 }
+
+static void System_Read(ecs_iter_t *it)
+{
+	ecs_log_set_level(1);
+	ecs_world_t *world = it->world;
+	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 0); // self
+	EgFsReady *r = ecs_field(it, EgFsReady, 1);     // shared
+	for (int i = 0; i < it->count; ++i, ++y) {
+		ecs_trace("handle_fanotify_response fd=%d for entity '%s'", y->fd, ecs_get_name(world, it->entities[i]));
+		handle_fanotify_response(world, y->fd);
+		ecs_remove(world, it->entities[i], EgFsReady);
+	}
+	ecs_log_set_level(0);
+}
+
 
 
 
@@ -128,9 +123,9 @@ void EgFsFanotifyImport(ecs_world_t *world)
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "EgFsWatch_EcsOnSet_fannotify_add_watch", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = EgFsWatch_EcsOnSet_fannotify_add_watch,
-	.events = {EcsOnSet},
+	.entity = ecs_entity(world, {.name = "EgFsWatch_EcsOnSet_fannotify_mark", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = EgFsWatch_EcsOnSet_fannotify_mark,
+	.events = {EcsOnSet, EcsOnRemove},
 	.query.terms = {
 	{.id = ecs_id(EgFsWatch)},
 	{.id = ecs_id(EgFsFanotifyFd), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
@@ -144,5 +139,16 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	.query.terms = {
 	{.id = ecs_id(EgFsFanotifyFd)},
 	{.id = ecs_id(EgFsEpollFd), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
+	}});
+
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "System_Read", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_Read,
+	.query.terms =
+	{
+	{.id = ecs_id(EgFsFanotifyFd), .src.id = EcsSelf},
+	{.id = ecs_id(EgFsReady), .src.id = EcsSelf},
 	}});
 }
