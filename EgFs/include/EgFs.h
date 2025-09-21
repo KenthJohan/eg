@@ -4,7 +4,7 @@
 #include "EgFs/EgFsEpoll.h"
 #include "EgFs/EgFsFanotify.h"
 #include "EgFs/EgFsInotify.h"
-#include "EgFs/EgFsPath.h"
+#include "EgFs/EgFsPaths.h"
 
 #define EGFS_FD_ENTITY_OFFSET 1024
 
@@ -12,11 +12,7 @@
 extern "C" {
 #endif
 
-typedef struct {
-  char const *value;
-  ecs_size_t length;
-  uint64_t hash;
-} EgFsPath;
+
 
 typedef struct {
   int fd;
@@ -31,19 +27,17 @@ typedef struct {
   int dummy;
 } EgFsReady;
 
-typedef struct {
-  ecs_hashmap_t hm;
-} EgFsLookup;
 
-extern ECS_COMPONENT_DECLARE(EgFsPath);
 extern ECS_COMPONENT_DECLARE(EgFsWatch);
-extern ECS_COMPONENT_DECLARE(EgFsLookup);
 extern ECS_COMPONENT_DECLARE(EgFsFd);
 extern ECS_COMPONENT_DECLARE(EgFsReady);
+
 extern ECS_ENTITY_DECLARE(EgFsFiles);
 extern ECS_ENTITY_DECLARE(EgFsDescriptors);
 
 void EgFsImport(ecs_world_t *world);
+
+
 
 #ifdef __cplusplus
 }

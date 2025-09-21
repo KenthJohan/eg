@@ -9,7 +9,7 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 
 
 #include "EgFs.h"
-#include "EgFs/EgFsPath.h"
+#include "EgFs/EgFsPaths.h"
 #include "EgFs/EgFsEpoll.h"
 #include "fd.h"
 
@@ -21,9 +21,6 @@ multiple file descriptors to see if I/O is possible on any of
 them.  The epoll API can be used either as an edge-triggered or a
 level-triggered interface and scales well to large numbers of
 watched file descriptors.
-
-The destructor should free resources.
-The move hook should move resources from one location to another.
 */
 
 ECS_CTOR(EgFsEpollFd, ptr, {

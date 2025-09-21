@@ -8,7 +8,7 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 */
 
 #include "EgFs.h"
-#include "EgFs/EgFsPath.h"
+#include "EgFs/EgFsPaths.h"
 #include "EgFs/EgFsFanotify.h"
 #include "fd.h"
 
@@ -39,7 +39,7 @@ static void EgFsWatch_EcsOnSet_fannotify_mark(ecs_iter_t *it)
 	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 1); // shared
 	for (int i = 0; i < it->count; ++i, ++w) {
 		ecs_assert(w->file != 0, ECS_INVALID_PARAMETER, NULL);
-		EgFsPath const *p = ecs_get(world, w->file, EgFsPath);
+		EgFsPathsHashed const *p = ecs_get(world, w->file, EgFsPathsHashed);
 		ecs_entity_t e = it->entities[i];
 		int r = 0;
 		if (it->event == EcsOnRemove) {

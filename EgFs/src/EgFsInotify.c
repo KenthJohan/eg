@@ -11,7 +11,7 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #define _GNU_SOURCE
 
 #include "EgFs.h"
-#include "EgFs/EgFsPath.h"
+#include "EgFs/EgFsPaths.h"
 #include "EgFs/EgFsInotify.h"
 
 #include <stdlib.h>
@@ -105,7 +105,7 @@ static void EgFsWatch_EcsOnSet_inotify_add_watch(ecs_iter_t *it)
 		// print entity
 		ecs_trace("Adding watch for entity %s", ecs_get_name(world, e));
 		ecs_assert(w->file != 0, ECS_INVALID_PARAMETER, NULL);
-		EgFsPath const *p = ecs_get(world, w->file, EgFsPath);
+		EgFsPathsHashed const *p = ecs_get(world, w->file, EgFsPathsHashed);
 		if (!p) {
 			ecs_err("Failed to get filename for watch");
 			continue;
