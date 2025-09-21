@@ -206,7 +206,9 @@ void handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t e
 	for (; FAN_EVENT_OK(metadata, len); metadata = FAN_EVENT_NEXT(metadata, len)) {
 		if (metadata->fd == FAN_NOFD) {
 			//print_fanotify_mask(metadata->mask);
-			info_header_print(world, event, entity, metadata);
+			if (metadata->mask & FAN_MODIFY) {
+				info_header_print(world, event, entity, metadata);
+			}
 		}
 	}
 }
