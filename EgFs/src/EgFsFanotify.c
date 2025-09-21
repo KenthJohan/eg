@@ -29,10 +29,7 @@ ECS_MOVE(EgFsFanotifyFd, dst, src, {
 	src->fd = -1; // Invalidate the source fd
 })
 
-
-
-
-static void EgFsWatch_EcsOnSet_fannotify_mark(ecs_iter_t *it)
+static void Observer_fanotify_mark(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgFsWatch *w = ecs_field(it, EgFsWatch, 0);           // self
@@ -55,11 +52,11 @@ static void EgFsWatch_EcsOnSet_fannotify_mark(ecs_iter_t *it)
 	} // END FOR LOOP
 }
 
-static void Observer_epoll_ctl_EgFsFanotifyFd(ecs_iter_t *it)
+static void Observer_epoll_ctl(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 0); // self
-	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);     // shared
+	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);       // shared
 	for (int i = 0; i < it->count; ++i, ++y) {
 		ecs_entity_t e = it->entities[i];
 		int r = 0;
@@ -82,20 +79,38 @@ static void Observer_epoll_ctl_EgFsFanotifyFd(ecs_iter_t *it)
 
 static void System_Read(ecs_iter_t *it)
 {
-	ecs_log_set_level(1);
+	ecs_log_set_level(-1);
 	ecs_world_t *world = it->world;
 	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 0); // self
-	EgFsReady *r = ecs_field(it, EgFsReady, 1);     // shared
+	EgFsReady *r = ecs_field(it, EgFsReady, 1);           // shared
 	for (int i = 0; i < it->count; ++i, ++y) {
-		ecs_trace("handle_fanotify_response fd=%d for entity '%s'", y->fd, ecs_get_name(world, it->entities[i]));
-		handle_fanotify_response(world, y->fd);
-		ecs_remove(world, it->entities[i], EgFsReady);
+		ecs_entity_t e = it->entities[i];
+		ecs_trace("handle_fanotify_response fd=%d for entity '%s'", y->fd, ecs_get_name(world, e));
+		// Should be large enough to hold at least one full fanotify event and its associated info records. 
+		// The kernel will return as many events as fit in the buffer, 
+		// but you might not get all pending events if your buffer is too small.
+		char buf[4096];
+		int len = fd_read(y->fd, buf, sizeof(buf));
+		if (len < 0) {
+			ecs_enable(world, e, false);
+			return;
+		}
+		handle_notifications(world, EgFsEventOpen, e, buf, len);
+		ecs_remove(world, e, EgFsReady);
+	}
+	ecs_log_set_level(-1);
+}
+
+static void Observer_OnOpen(ecs_iter_t *it)
+{
+	ecs_log_set_level(1);
+	ecs_world_t *world = it->world;
+	for (int i = 0; i < it->count; ++i) {
+		ecs_entity_t e = it->entities[i];
+		ecs_trace("EgFsEventOpen received for entity '%s'", ecs_get_name(world, e));
 	}
 	ecs_log_set_level(0);
 }
-
-
-
 
 void EgFsFanotifyImport(ecs_world_t *world)
 {
@@ -124,7 +139,7 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
 	.entity = ecs_entity(world, {.name = "EgFsWatch_EcsOnSet_fannotify_mark", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = EgFsWatch_EcsOnSet_fannotify_mark,
+	.callback = Observer_fanotify_mark,
 	.events = {EcsOnSet, EcsOnRemove},
 	.query.terms = {
 	{.id = ecs_id(EgFsWatch)},
@@ -134,13 +149,12 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
 	.entity = ecs_entity(world, {.name = "Observer_epoll_ctl", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Observer_epoll_ctl_EgFsFanotifyFd,
+	.callback = Observer_epoll_ctl,
 	.events = {EcsOnAdd, EcsOnRemove},
 	.query.terms = {
 	{.id = ecs_id(EgFsFanotifyFd)},
 	{.id = ecs_id(EgFsEpollFd), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
 	}});
-
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -150,5 +164,15 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(EgFsFanotifyFd), .src.id = EcsSelf},
 	{.id = ecs_id(EgFsReady), .src.id = EcsSelf},
+	}});
+
+
+	ecs_observer_init(world,
+	&(ecs_observer_desc_t){
+	.entity = ecs_entity(world, {.name = "Observer_OnOpen"}),
+	.callback = Observer_OnOpen,
+	.events = {EgFsEventOpen},
+	.query.terms = {
+	{.id = EcsAny},
 	}});
 }

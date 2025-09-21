@@ -34,6 +34,7 @@ extern ECS_COMPONENT_DECLARE(EgFsReady);
 
 extern ECS_ENTITY_DECLARE(EgFsFiles);
 extern ECS_ENTITY_DECLARE(EgFsDescriptors);
+extern ECS_ENTITY_DECLARE(EgFsEventOpen);
 
 void EgFsImport(ecs_world_t *world);
 

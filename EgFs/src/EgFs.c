@@ -17,6 +17,7 @@ ECS_COMPONENT_DECLARE(EgFsReady);
 ECS_ENTITY_DECLARE(EgFs);
 ECS_ENTITY_DECLARE(EgFsFiles);
 ECS_ENTITY_DECLARE(EgFsDescriptors);
+ECS_ENTITY_DECLARE(EgFsEventOpen);
 
 ECS_CTOR(EgFsFd, ptr, {
 	ptr->fd = -1;
@@ -42,6 +43,7 @@ void EgFsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgFsReady);
 	ECS_ENTITY_DEFINE(world, EgFsFiles);
 	ECS_ENTITY_DEFINE(world, EgFsDescriptors);
+	ECS_ENTITY_DEFINE(world, EgFsEventOpen);
 
 	ecs_set_hooks_id(world, ecs_id(EgFsFd),
 	&(ecs_type_hooks_t){

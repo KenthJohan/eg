@@ -47,13 +47,13 @@ ECS_MOVE(EgFsEpollFd, dst, src, {
 
 static void System_epoll(ecs_iter_t *it)
 {
-	ecs_log_set_level(1);
+	ecs_log_set_level(-1);
 	ecs_world_t *world = it->world;
 	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 0); // self
 	for (int i = 0; i < it->count; ++i, ++o) {
 		fd_epoll_ecs_wait(world, o->fd, &o->map, ecs_id(EgFsReady), sizeof(EgFsReady), &(EgFsReady){0});
 	} // END FOR LOOP
-	ecs_log_set_level(0);
+	ecs_log_set_level(-1);
 }
 
 void EgFsEpollImport(ecs_world_t *world)
@@ -80,7 +80,7 @@ void EgFsEpollImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "System_epoll", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.entity = ecs_entity(world, {.name = "System_epoll", .add = ecs_ids(ecs_dependson(EcsOnValidate))}),
 	.callback = System_epoll,
 	.query.terms =
 	{

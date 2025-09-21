@@ -41,4 +41,6 @@ int fd_fanotify_mark_rm(int fd, const char *pathname);
 
 void fd_epoll_ecs_wait(ecs_world_t *world, int epoll_fd, const ecs_map_t *map, ecs_id_t component,size_t size,const void *ptr);
 
-void handle_fanotify_response(ecs_world_t *world, int fd);
+int fd_read(int fd, void *buf, size_t count);
+
+void handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t entity, char *buffer, int len);
