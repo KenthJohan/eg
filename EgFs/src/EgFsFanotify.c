@@ -8,7 +8,6 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 */
 
 #include "EgFs.h"
-#include "EgFs/EgFsPaths.h"
 #include "EgFs/EgFsFanotify.h"
 #include "fd.h"
 
@@ -36,14 +35,12 @@ static void Observer_fanotify_mark(ecs_iter_t *it)
 	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 1); // shared
 	for (int i = 0; i < it->count; ++i, ++w) {
 		ecs_assert(w->file != 0, ECS_INVALID_PARAMETER, NULL);
-		EgFsPathsHashed const *p = ecs_get(world, w->file, EgFsPathsHashed);
+		EcsIdentifier const *p = ecs_get_pair(world, w->file, EcsIdentifier, EcsName);
 		ecs_entity_t e = it->entities[i];
 		int r = 0;
 		if (it->event == EcsOnRemove) {
-			ecs_trace("Removed fanotify watch for %s on entity %s", p->value, ecs_get_name(world, e));
 			fd_fanotify_mark_rm(y->fd, p->value);
 		} else if (it->event == EcsOnSet) {
-			ecs_trace("Setting fanotify watch for %s on entity %s", p->value, ecs_get_name(world, e));
 			fd_fanotify_mark_add(y->fd, p->value);
 		}
 		if (r) {
@@ -100,7 +97,8 @@ static void System_Read(ecs_iter_t *it)
 			ecs_enable(world, e, false);
 			return;
 		}
-		handle_notifications(world, EgFsEventOpen, e, buf, len);
+		handle_notifications(world, EgFsEventOpen, e, FD_FAN_OPEN, buf, len);
+		handle_notifications(world, EgFsEventModify, e, FD_FAN_MODIFY, buf, len);
 		ecs_remove(world, e, EgFsReady);
 	}
 	ecs_log_set_level(-1);
@@ -110,9 +108,22 @@ static void Observer_OnOpen(ecs_iter_t *it)
 {
 	ecs_log_set_level(1);
 	ecs_world_t *world = it->world;
+	EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
-		ecs_trace("EgFsEventOpen received for entity '%s'", ecs_get_name(world, e));
+		ecs_trace("EgFsEventOpen received for entity '%s' %s", ecs_get_name(world, e), p->value);
+	}
+	ecs_log_set_level(0);
+}
+
+static void Observer_OnModify(ecs_iter_t *it)
+{
+	ecs_log_set_level(1);
+	ecs_world_t *world = it->world;
+	EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
+	for (int i = 0; i < it->count; ++i) {
+		ecs_entity_t e = it->entities[i];
+		ecs_trace("EgFsEventModify received for entity '%s' %s", ecs_get_name(world, e), p->value);
 	}
 	ecs_log_set_level(0);
 }
@@ -178,6 +189,15 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	.callback = Observer_OnOpen,
 	.events = {EgFsEventOpen},
 	.query.terms = {
-	{.id = EcsAny},
+	{.id = ecs_pair(ecs_id(EcsIdentifier), EcsName)},
+	}});
+
+	ecs_observer_init(world,
+	&(ecs_observer_desc_t){
+	.entity = ecs_entity(world, {.name = "Observer_OnModify"}),
+	.callback = Observer_OnModify,
+	.events = {EgFsEventModify},
+	.query.terms = {
+	{.id = ecs_pair(ecs_id(EcsIdentifier), EcsName)},
 	}});
 }

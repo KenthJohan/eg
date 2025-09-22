@@ -4,7 +4,6 @@
 #include "EgFs/EgFsEpoll.h"
 #include "EgFs/EgFsFanotify.h"
 #include "EgFs/EgFsInotify.h"
-#include "EgFs/EgFsPaths.h"
 
 #define EGFS_FD_ENTITY_OFFSET 1024
 
@@ -35,6 +34,7 @@ extern ECS_COMPONENT_DECLARE(EgFsReady);
 extern ECS_ENTITY_DECLARE(EgFsFiles);
 extern ECS_ENTITY_DECLARE(EgFsDescriptors);
 extern ECS_ENTITY_DECLARE(EgFsEventOpen);
+extern ECS_ENTITY_DECLARE(EgFsEventModify);
 
 void EgFsImport(ecs_world_t *world);
 

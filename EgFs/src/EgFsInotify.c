@@ -11,7 +11,6 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #define _GNU_SOURCE
 
 #include "EgFs.h"
-#include "EgFs/EgFsPaths.h"
 #include "EgFs/EgFsInotify.h"
 
 #include <stdlib.h>
@@ -95,36 +94,25 @@ ECS_MOVE(EgFsInotifyFd, dst, src, {
 	src->fd = -1; // Invalidate the source fd
 })
 
-static void EgFsWatch_EcsOnSet_inotify_add_watch(ecs_iter_t *it)
+static void Observer_inotify_ctl(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgFsWatch *w = ecs_field(it, EgFsWatch, 0);         // self
 	EgFsInotifyFd *y = ecs_field(it, EgFsInotifyFd, 1); // shared
 	for (int i = 0; i < it->count; ++i, ++w) {
 		ecs_entity_t e = it->entities[i];
-		// print entity
-		ecs_trace("Adding watch for entity %s", ecs_get_name(world, e));
-		ecs_assert(w->file != 0, ECS_INVALID_PARAMETER, NULL);
-		EgFsPathsHashed const *p = ecs_get(world, w->file, EgFsPathsHashed);
-		if (!p) {
-			ecs_err("Failed to get filename for watch");
-			continue;
+		int rv = 0;
+		if (it->event == EcsOnRemove) {
+			ecs_trace("Removing watch fd (%s) from inotify (%s)", ecs_get_name(world, e), ecs_get_name(world, ecs_field_src(it, 1)));
+			rv = inotify_rm_watch(y->fd, w->fd);
+		} else if (it->event == EcsOnSet) {
+			ecs_trace("Adding watch fd (%s) to epoll (%s)", ecs_get_name(world, e), ecs_get_name(world, ecs_field_src(it, 1)));
+			EcsIdentifier const *p = ecs_get_pair(world, w->file, EcsIdentifier, EcsName);
+			rv = inotify_add_watch(y->fd, p->value, IN_ALL_EVENTS);
 		}
-		ecs_doc_set_name(world, e, p->value);
-		ecs_trace("Adding watch fd (%s) to epoll (%s)", ecs_get_name(world, e), ecs_get_name(world, ecs_field_src(it, 1)));
-		int wd = inotify_add_watch(y->fd, p->value, IN_ALL_EVENTS);
-		if (w->fd >= 0) {
-			// Remove previous watch
-			int rv = inotify_rm_watch(y->fd, w->fd);
-			if (rv < 0) {
-				perror("inotify_rm_watch");
-			}
-		}
-		if (wd < 0) {
-			perror("inotify_add_watch");
-			w->fd = -1;
-		} else {
-			w->fd = wd;
+		if (rv < 0) {
+			perror("inotify_ctl");
+			ecs_enable(it->world, e, false);
 		}
 	} // END FOR LOOP
 }
@@ -165,6 +153,84 @@ static void Observer_epoll_ctl(ecs_iter_t *it)
 	}
 }
 
+static void /* Display information from inotify_event structure */
+displayInotifyEvent(struct inotify_event *i)
+{
+	printf("    wd =%2d; ", i->wd);
+	if (i->cookie > 0)
+		printf("cookie =%4d; ", i->cookie);
+
+	printf("mask = ");
+	if (i->mask & IN_ACCESS)
+		printf("IN_ACCESS ");
+	if (i->mask & IN_ATTRIB)
+		printf("IN_ATTRIB ");
+	if (i->mask & IN_CLOSE_NOWRITE)
+		printf("IN_CLOSE_NOWRITE ");
+	if (i->mask & IN_CLOSE_WRITE)
+		printf("IN_CLOSE_WRITE ");
+	if (i->mask & IN_CREATE)
+		printf("IN_CREATE ");
+	if (i->mask & IN_DELETE)
+		printf("IN_DELETE ");
+	if (i->mask & IN_DELETE_SELF)
+		printf("IN_DELETE_SELF ");
+	if (i->mask & IN_IGNORED)
+		printf("IN_IGNORED ");
+	if (i->mask & IN_ISDIR)
+		printf("IN_ISDIR ");
+	if (i->mask & IN_MODIFY)
+		printf("IN_MODIFY ");
+	if (i->mask & IN_MOVE_SELF)
+		printf("IN_MOVE_SELF ");
+	if (i->mask & IN_MOVED_FROM)
+		printf("IN_MOVED_FROM ");
+	if (i->mask & IN_MOVED_TO)
+		printf("IN_MOVED_TO ");
+	if (i->mask & IN_OPEN)
+		printf("IN_OPEN ");
+	if (i->mask & IN_Q_OVERFLOW)
+		printf("IN_Q_OVERFLOW ");
+	if (i->mask & IN_UNMOUNT)
+		printf("IN_UNMOUNT ");
+	printf("\n");
+
+	if (i->len > 0)
+		printf("        name = %s\n", i->name);
+}
+
+static void System_Read(ecs_iter_t *it)
+{
+	ecs_log_set_level(0);
+	ecs_world_t *world = it->world;
+	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 0); // self
+	EgFsReady *r = ecs_field(it, EgFsReady, 1);           // shared
+	for (int i = 0; i < it->count; ++i, ++y) {
+		ecs_entity_t e = it->entities[i];
+		// ecs_trace("handle_fanotify_response fd=%d for entity '%s'", y->fd, ecs_get_name(world, e));
+		//  Should be large enough to hold at least one full fanotify event and its associated info records.
+		//  The kernel will return as many events as fit in the buffer,
+		//  but you might not get all pending events if your buffer is too small.
+		char buf[4096];
+		int len = fd_read(y->fd, buf, sizeof(buf));
+		ecs_trace("fd_read returned len=%d", len);
+		if (len < 0) {
+			ecs_enable(world, e, false);
+			return;
+		}
+
+		for (char *p = buf; p < buf + len;) {
+			struct inotify_event *event = (struct inotify_event *)p;
+
+			displayInotifyEvent(event);
+			p += sizeof(struct inotify_event) + event->len;
+		}
+
+		ecs_remove(world, e, EgFsReady);
+	}
+	ecs_log_set_level(-1);
+}
+
 void EgFsInotifyImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgFsInotify);
@@ -199,21 +265,21 @@ void EgFsInotifyImport(ecs_world_t *world)
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "EgFsWatch_EcsOnSet_inotify_add_watch", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = EgFsWatch_EcsOnSet_inotify_add_watch,
-	.events = {EcsOnSet},
+	.entity = ecs_entity(world, {.name = "Observer_inotify_ctl", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = Observer_inotify_ctl,
+	.events = {EcsOnSet, EcsOnRemove},
 	.query.terms = {
 	{.id = ecs_id(EgFsWatch)},
 	{.id = ecs_id(EgFsInotifyFd), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
 	}});
 
-	ecs_observer_init(world,
-	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "Observer_inotify_rm_watch", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Observer_inotify_rm_watch,
-	.events = {EcsOnRemove},
-	.query.terms = {
-	{.id = ecs_id(EgFsWatch)},
-	{.id = ecs_id(EgFsInotifyFd), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "System_Read", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_Read,
+	.query.terms =
+	{
+	{.id = ecs_id(EgFsInotifyFd), .src.id = EcsSelf},
+	{.id = ecs_id(EgFsReady), .src.id = EcsSelf},
 	}});
 }

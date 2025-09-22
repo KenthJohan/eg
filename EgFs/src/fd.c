@@ -146,8 +146,20 @@ static void info_header_print(ecs_world_t *world, ecs_entity_t event, ecs_entity
 			struct file_handle *fh = (struct file_handle *)fid_info->handle;
 			char *file_name = fh->f_handle + fh->handle_bytes;
 			iterations++;
-			//printf("File name: %i %s %i\n", iterations, file_name, fid_info->hdr.info_type);
-			ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = entity});
+			printf("File name: %i %s %i\n", iterations, file_name, fid_info->hdr.info_type);
+			//ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = entity});
+
+			/*
+			char fullpath[1024];
+			if (path[0] == '.') {
+				snprintf(fullpath, sizeof(fullpath), "%s%s", "$CWD", path + 1);
+			} else {
+				snprintf(fullpath, sizeof(fullpath), "%s", path);
+			}
+			printf("fullpath = '%s'\n", fullpath);
+			ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = fullpath, .sep = "/", .parent = EgFsFiles });
+			*/
+
 		}
 		hdr = (struct fanotify_event_info_header *)((char *)hdr + hdr->len);
 	}
@@ -195,7 +207,7 @@ void print_fanotify_mask(uint64_t mask)
 	}
 }
 
-void handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t entity, char *buffer, int len)
+void handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t entity, uint32_t mask, char *buffer, int len)
 {
 	struct fanotify_event_metadata *metadata = (struct fanotify_event_metadata *)buffer;
 	/*
@@ -206,7 +218,8 @@ void handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t e
 	for (; FAN_EVENT_OK(metadata, len); metadata = FAN_EVENT_NEXT(metadata, len)) {
 		if (metadata->fd == FAN_NOFD) {
 			//print_fanotify_mask(metadata->mask);
-			if (metadata->mask & FAN_MODIFY) {
+			// FAN_MODIFY
+			if (metadata->mask & mask) {
 				info_header_print(world, event, entity, metadata);
 			}
 		}

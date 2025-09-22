@@ -9,7 +9,6 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 
 
 #include "EgFs.h"
-#include "EgFs/EgFsPaths.h"
 #include "EgFs/EgFsEpoll.h"
 #include "fd.h"
 
