@@ -12,6 +12,16 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <errno.h>
+#include "EgFs.h"
+
+/*
+https://wiki.libsdl.org/SDL3/SDL_ReadIO
+https://github.com/SanderMertens/flecs/blob/master/examples/c/entities/hooks/src/main.c
+https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4289d/src/datastructures/vec.c#L118
+https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4289d/include/flecs/datastructures/vec.h
+https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4289d/src/addons/alerts.c#L39
+https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/test/testautomation_iostream.c#L477
+*/
 
 int fd_fanotify_init()
 {
@@ -57,7 +67,7 @@ int fd_inotify_init1()
 	return fd;
 }
 
-int fd_inotify_add(int fd, char const * path, uint32_t mask)
+int fd_inotify_add(int fd, char const *path, uint32_t mask)
 {
 	int r = inotify_add_watch(fd, path, mask);
 	if (r < 0) {
@@ -165,19 +175,18 @@ static void info_header_print(ecs_world_t *world, ecs_entity_t event, ecs_entity
 			char *file_name = fh->f_handle + fh->handle_bytes;
 			iterations++;
 			printf("File name: %i %s %i\n", iterations, file_name, fid_info->hdr.info_type);
-			//ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = entity});
+			// ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = entity});
 
 			/*
 			char fullpath[1024];
 			if (path[0] == '.') {
-				snprintf(fullpath, sizeof(fullpath), "%s%s", "$CWD", path + 1);
+			    snprintf(fullpath, sizeof(fullpath), "%s%s", "$CWD", path + 1);
 			} else {
-				snprintf(fullpath, sizeof(fullpath), "%s", path);
+			    snprintf(fullpath, sizeof(fullpath), "%s", path);
 			}
 			printf("fullpath = '%s'\n", fullpath);
 			ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = fullpath, .sep = "/", .parent = EgFsFiles });
 			*/
-
 		}
 		hdr = (struct fanotify_event_info_header *)((char *)hdr + hdr->len);
 	}
@@ -225,7 +234,7 @@ void print_fanotify_mask(uint64_t mask)
 	}
 }
 
-void handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t entity, uint32_t mask, char *buffer, int len)
+void fan_handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t entity, uint32_t mask, char *buffer, int len)
 {
 	struct fanotify_event_metadata *metadata = (struct fanotify_event_metadata *)buffer;
 	/*
@@ -235,11 +244,85 @@ void handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t e
 	*/
 	for (; FAN_EVENT_OK(metadata, len); metadata = FAN_EVENT_NEXT(metadata, len)) {
 		if (metadata->fd == FAN_NOFD) {
-			//print_fanotify_mask(metadata->mask);
-			// FAN_MODIFY
+			// print_fanotify_mask(metadata->mask);
+			//  FAN_MODIFY
 			if (metadata->mask & mask) {
 				info_header_print(world, event, entity, metadata);
 			}
 		}
+	}
+}
+
+/* Display information from inotify_event structure */
+void displayInotifyEvent(struct inotify_event *i)
+{
+	printf("    wd =%2d; ", i->wd);
+	if (i->cookie > 0)
+		printf("cookie =%4d; ", i->cookie);
+
+	printf("mask = ");
+	if (i->mask & IN_ACCESS)
+		printf("IN_ACCESS ");
+	if (i->mask & IN_ATTRIB)
+		printf("IN_ATTRIB ");
+	if (i->mask & IN_CLOSE_NOWRITE)
+		printf("IN_CLOSE_NOWRITE ");
+	if (i->mask & IN_CLOSE_WRITE)
+		printf("IN_CLOSE_WRITE ");
+	if (i->mask & IN_CREATE)
+		printf("IN_CREATE ");
+	if (i->mask & IN_DELETE)
+		printf("IN_DELETE ");
+	if (i->mask & IN_DELETE_SELF)
+		printf("IN_DELETE_SELF ");
+	if (i->mask & IN_IGNORED)
+		printf("IN_IGNORED ");
+	if (i->mask & IN_ISDIR)
+		printf("IN_ISDIR ");
+	if (i->mask & IN_MODIFY)
+		printf("IN_MODIFY ");
+	if (i->mask & IN_MOVE_SELF)
+		printf("IN_MOVE_SELF ");
+	if (i->mask & IN_MOVED_FROM)
+		printf("IN_MOVED_FROM ");
+	if (i->mask & IN_MOVED_TO)
+		printf("IN_MOVED_TO ");
+	if (i->mask & IN_OPEN)
+		printf("IN_OPEN ");
+	if (i->mask & IN_Q_OVERFLOW)
+		printf("IN_Q_OVERFLOW ");
+	if (i->mask & IN_UNMOUNT)
+		printf("IN_UNMOUNT ");
+	printf("\n");
+	if (i->len > 0)
+		printf("        name = %s\n", i->name);
+}
+
+void fd_handle_inotify_events(ecs_world_t *world, ecs_entity_t event, ecs_entity_t parent, uint32_t mask, ecs_map_t *map, char *buffer, int len)
+{
+	struct inotify_event *i;
+	for (char *p = buffer; p < buffer + len; p += sizeof(struct inotify_event) + i->len) {
+		i = (struct inotify_event *)p;
+		if (i->len <= 0) {
+			continue;
+		}
+		if ((i->mask & mask) == 0) {
+			continue;
+		}
+		//displayInotifyEvent(i);
+ 		ecs_entity_t *e = ecs_map_get(map, i->wd);
+		if (e == NULL) {
+			continue;
+		}
+		EgFsWatch *w = ecs_get(world, *e, EgFsWatch);
+		char const * parent_path = ecs_get_name(world, w->file);
+
+		//ecs_get_path_w_sep(world, 0, w->file, NULL);
+		char fullpath[1024];
+		char const * name = i->name;
+		snprintf(fullpath, sizeof(fullpath), "$CWD/%s/%s", parent_path, name);
+		printf("fullpath = '%s'\n", fullpath);
+		ecs_entity_t e1 = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = parent});
+		ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = e1});
 	}
 }

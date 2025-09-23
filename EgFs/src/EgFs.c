@@ -1,14 +1,6 @@
-/*
-https://wiki.libsdl.org/SDL3/SDL_ReadIO
-https://github.com/SanderMertens/flecs/blob/master/examples/c/entities/hooks/src/main.c
-https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4289d/src/datastructures/vec.c#L118
-https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4289d/include/flecs/datastructures/vec.h
-https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4289d/src/addons/alerts.c#L39
-https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/test/testautomation_iostream.c#L477
-*/
-
 #include "EgFs.h"
 #include "fd.h"
+#include <stdio.h>
 
 ECS_COMPONENT_DECLARE(EgFsWatch);
 ECS_COMPONENT_DECLARE(EgFsFd);
@@ -34,28 +26,48 @@ ECS_MOVE(EgFsFd, dst, src, {
 	src->fd = -1; // Invalidate the source fd
 })
 
-
-
 static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_value_t *argv, ecs_value_t *result)
 {
 	(void)ctx;
 	(void)argc;
 	ecs_world_t *world = ctx->world;
 	const char *path = *(char **)argv[0].ptr;
-	//char cwd[1024];
-	//getcwd(cwd, sizeof(cwd));
+	// char cwd[1024];
+	// getcwd(cwd, sizeof(cwd));
 	char fullpath[1024];
 	if (path[0] == '.') {
-		snprintf(fullpath, sizeof(fullpath), "%s%s", "$CWD", path + 1);
+		ecs_os_snprintf(fullpath, sizeof(fullpath), "%s%s", "$CWD", path + 1);
 	} else {
-		snprintf(fullpath, sizeof(fullpath), "%s", path);
+		ecs_os_snprintf(fullpath, sizeof(fullpath), "%s", path);
 	}
-	printf("fullpath = '%s'\n", fullpath);
-	ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = fullpath, .sep = "/", .parent = EgFsFiles });
+	ecs_trace("fullpath = '%s'", fullpath);
+	ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = EgFsFiles});
 	*(int64_t *)result->ptr = e;
 }
 
+static void Observer_OnOpen(ecs_iter_t *it)
+{
+	ecs_log_set_level(0);
+	ecs_world_t *world = it->world;
+	EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
+	for (int i = 0; i < it->count; ++i) {
+		ecs_entity_t e = it->entities[i];
+		ecs_trace("EgFsEventOpen received for entity '%s' %s", ecs_get_name(world, e), p->value);
+	}
+	ecs_log_set_level(-1);
+}
 
+static void Observer_OnModify(ecs_iter_t *it)
+{
+	ecs_log_set_level(0);
+	ecs_world_t *world = it->world;
+	EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
+	for (int i = 0; i < it->count; ++i) {
+		ecs_entity_t e = it->entities[i];
+		ecs_trace("EgFsEventModify received for entity '%s' %s", ecs_get_name(world, e), p->value);
+	}
+	ecs_log_set_level(-1);
+}
 
 void EgFsImport(ecs_world_t *world)
 {
@@ -95,6 +107,24 @@ void EgFsImport(ecs_world_t *world)
 		.callback = callback_newpath});
 		ecs_doc_set_brief(world, m, "Lookup child by name");
 	}
+
+	ecs_observer_init(world,
+	&(ecs_observer_desc_t){
+	.entity = ecs_entity(world, {.name = "Observer_OnOpen"}),
+	.callback = Observer_OnOpen,
+	.events = {EgFsEventOpen},
+	.query.terms = {
+	{.id = ecs_pair(ecs_id(EcsIdentifier), EcsName)},
+	}});
+
+	ecs_observer_init(world,
+	&(ecs_observer_desc_t){
+	.entity = ecs_entity(world, {.name = "Observer_OnModify"}),
+	.callback = Observer_OnModify,
+	.events = {EgFsEventModify},
+	.query.terms = {
+	{.id = ecs_pair(ecs_id(EcsIdentifier), EcsName)},
+	}});
 
 	/*
 	ecs_entity_t e1 = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = "a", .sep = "/" });

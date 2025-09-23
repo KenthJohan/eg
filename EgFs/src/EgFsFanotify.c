@@ -97,36 +97,14 @@ static void System_Read(ecs_iter_t *it)
 			ecs_enable(world, e, false);
 			return;
 		}
-		handle_notifications(world, EgFsEventOpen, e, FD_FAN_OPEN, buf, len);
-		handle_notifications(world, EgFsEventModify, e, FD_FAN_MODIFY, buf, len);
+		fan_handle_notifications(world, EgFsEventOpen, e, FD_FAN_OPEN, buf, len);
+		fan_handle_notifications(world, EgFsEventModify, e, FD_FAN_MODIFY, buf, len);
 		ecs_remove(world, e, EgFsReady);
 	}
 	ecs_log_set_level(-1);
 }
 
-static void Observer_OnOpen(ecs_iter_t *it)
-{
-	ecs_log_set_level(1);
-	ecs_world_t *world = it->world;
-	EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
-	for (int i = 0; i < it->count; ++i) {
-		ecs_entity_t e = it->entities[i];
-		ecs_trace("EgFsEventOpen received for entity '%s' %s", ecs_get_name(world, e), p->value);
-	}
-	ecs_log_set_level(0);
-}
 
-static void Observer_OnModify(ecs_iter_t *it)
-{
-	ecs_log_set_level(1);
-	ecs_world_t *world = it->world;
-	EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
-	for (int i = 0; i < it->count; ++i) {
-		ecs_entity_t e = it->entities[i];
-		ecs_trace("EgFsEventModify received for entity '%s' %s", ecs_get_name(world, e), p->value);
-	}
-	ecs_log_set_level(0);
-}
 
 void EgFsFanotifyImport(ecs_world_t *world)
 {
@@ -183,21 +161,5 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	}});
 
 
-	ecs_observer_init(world,
-	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "Observer_OnOpen"}),
-	.callback = Observer_OnOpen,
-	.events = {EgFsEventOpen},
-	.query.terms = {
-	{.id = ecs_pair(ecs_id(EcsIdentifier), EcsName)},
-	}});
 
-	ecs_observer_init(world,
-	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "Observer_OnModify"}),
-	.callback = Observer_OnModify,
-	.events = {EgFsEventModify},
-	.query.terms = {
-	{.id = ecs_pair(ecs_id(EcsIdentifier), EcsName)},
-	}});
 }

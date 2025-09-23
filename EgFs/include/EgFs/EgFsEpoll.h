@@ -5,10 +5,9 @@
 extern "C" {
 #endif
 
-typedef struct
-{
-	int fd;
-	ecs_map_t map;
+typedef struct {
+  int fd;
+  ecs_map_t map;
 } EgFsEpollFd;
 
 extern ECS_COMPONENT_DECLARE(EgFsEpollFd);

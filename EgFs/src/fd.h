@@ -2,19 +2,49 @@
 
 #include <flecs.h>
 
-#define FD_FAN_ACCESS        0x00000001 /* File was accessed */
-#define FD_FAN_MODIFY        0x00000002 /* File was modified */
-#define FD_FAN_ATTRIB        0x00000004 /* Metadata changed */
-#define FD_FAN_CLOSE_WRITE   0x00000008 /* Writtable file closed */
-#define FD_FAN_CLOSE_NOWRITE 0x00000010 /* Unwrittable file closed */
-#define FD_FAN_OPEN          0x00000020 /* File was opened */
-#define FD_FAN_MOVED_FROM    0x00000040 /* File was moved from X */
-#define FD_FAN_MOVED_TO      0x00000080 /* File was moved to Y */
-#define FD_FAN_CREATE        0x00000100 /* Subfile was created */
-#define FD_FAN_DELETE        0x00000200 /* Subfile was deleted */
-#define FD_FAN_DELETE_SELF   0x00000400 /* Self was deleted */
-#define FD_FAN_MOVE_SELF     0x00000800 /* Self was moved */
-#define FD_FAN_OPEN_EXEC     0x00001000 /* File was opened for exec */
+
+
+int fd_read(int fd, void *buf, size_t count);
+
+int fd_close(int fd);
+
+int fd_close_valid(int fd);
+
+/*
+The inotify API provides a mechanism for monitoring filesystem
+events.  Inotify can be used to monitor individual files, or to
+monitor directories.  When a directory is monitored, inotify will
+return events for the directory itself, and for files inside the
+directory.
+
+The following system calls are used with this API:
+
+•  inotify_init(2) creates an inotify instance and returns a file
+    descriptor referring to the inotify instance.  The more recent
+    inotify_init1(2) is like inotify_init(2), but has a flags
+    argument that provides access to some extra functionality.
+
+•  inotify_add_watch(2) manipulates the "watch list" associated
+    with an inotify instance.  Each item ("watch") in the watch
+    list specifies the pathname of a file or directory, along with
+    some set of events that the kernel should monitor for the file
+    referred to by that pathname.  inotify_add_watch(2) either
+    creates a new watch item, or modifies an existing watch.  Each
+    watch has a unique "watch descriptor", an integer returned by
+    inotify_add_watch(2) when the watch is created.
+
+•  When events occur for monitored files and directories, those
+    events are made available to the application as structured data
+    that can be read from the inotify file descriptor using read(2)
+    (see below).
+
+•  inotify_rm_watch(2) removes an item from an inotify watch list.
+
+•  When all file descriptors referring to an inotify instance have
+    been closed (using close(2)), the underlying object and its
+    resources are freed for reuse by the kernel; all associated
+    watches are automatically freed.
+*/
 
 #define FD_IN_ACCESS        0x00000001                          /* File was accessed.  */
 #define FD_IN_MODIFY        0x00000002                          /* File was modified.  */
@@ -42,6 +72,15 @@
 #define FD_IN_MASK_ADD      0x20000000                          /* Add to the mask of an alreadyexisting watch.  */
 #define FD_IN_ISDIR         0x40000000                          /* Event occurred against dir.  */
 #define FD_IN_ONESHOT       0x80000000                          /* Only send event once.  */
+#define FD_IN_ALL_EVENTS    (FD_IN_ACCESS | FD_IN_MODIFY | FD_IN_ATTRIB | FD_IN_CLOSE_WRITE | FD_IN_CLOSE_NOWRITE | FD_IN_OPEN | FD_IN_MOVED_FROM | FD_IN_MOVED_TO | FD_IN_CREATE | FD_IN_DELETE | FD_IN_DELETE_SELF | FD_IN_MOVE_SELF)
+
+int fd_inotify_init1();
+
+int fd_inotify_add(int fd, char const *path, uint32_t mask);
+
+int fd_inotify_rm(int fd, int wd);
+
+void fd_handle_inotify_events(ecs_world_t *world, ecs_entity_t event, ecs_entity_t parent, uint32_t mask, ecs_map_t *map, char *buffer, int len);
 
 /*
 The fanotify API provides notification and interception of
@@ -61,19 +100,69 @@ The fanotify API provides notification and interception of
     fanotify_init(2), fanotify_mark(2), read(2), write(2), and
     close(2).
 */
+
+#define FD_FAN_ACCESS        0x00000001 /* File was accessed */
+#define FD_FAN_MODIFY        0x00000002 /* File was modified */
+#define FD_FAN_ATTRIB        0x00000004 /* Metadata changed */
+#define FD_FAN_CLOSE_WRITE   0x00000008 /* Writtable file closed */
+#define FD_FAN_CLOSE_NOWRITE 0x00000010 /* Unwrittable file closed */
+#define FD_FAN_OPEN          0x00000020 /* File was opened */
+#define FD_FAN_MOVED_FROM    0x00000040 /* File was moved from X */
+#define FD_FAN_MOVED_TO      0x00000080 /* File was moved to Y */
+#define FD_FAN_CREATE        0x00000100 /* Subfile was created */
+#define FD_FAN_DELETE        0x00000200 /* Subfile was deleted */
+#define FD_FAN_DELETE_SELF   0x00000400 /* Self was deleted */
+#define FD_FAN_MOVE_SELF     0x00000800 /* Self was moved */
+#define FD_FAN_OPEN_EXEC     0x00001000 /* File was opened for exec */
+
 int fd_fanotify_init();
 
-int fd_close(int fd);
+int fd_fanotify_mark_add(int fd, const char *pathname);
 
-int fd_close_valid(int fd);
+int fd_fanotify_mark_rm(int fd, const char *pathname);
+
+void fan_handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t entity, uint32_t mask, char *buffer, int len);
+
+
+/*
+The epoll API performs a similar task to poll(2): monitoring
+       multiple file descriptors to see if I/O is possible on any of
+       them.  The epoll API can be used either as an edge-triggered or a
+       level-triggered interface and scales well to large numbers of
+       watched file descriptors.
+
+       The central concept of the epoll API is the epoll instance, an in-
+       kernel data structure which, from a user-space perspective, can be
+       considered as a container for two lists:
+
+       •  The interest list (sometimes also called the epoll set): the
+          set of file descriptors that the process has registered an
+          interest in monitoring.
+
+       •  The ready list: the set of file descriptors that are "ready"
+          for I/O.  The ready list is a subset of (or, more precisely, a
+          set of references to) the file descriptors in the interest
+          list.  The ready list is dynamically populated by the kernel as
+          a result of I/O activity on those file descriptors.
+
+       The following system calls are provided to create and manage an
+       epoll instance:
+
+       •  epoll_create(2) creates a new epoll instance and returns a file
+          descriptor referring to that instance.  (The more recent
+          epoll_create1(2) extends the functionality of epoll_create(2).)
+
+       •  Interest in particular file descriptors is then registered via
+          epoll_ctl(2), which adds items to the interest list of the
+          epoll instance.
+
+       •  epoll_wait(2) waits for I/O events, blocking the calling thread
+          if no events are currently available.  (This system call can be
+          thought of as fetching items from the ready list of the epoll
+          instance.)
+*/
 
 int fd_epoll_create();
-
-int fd_inotify_init1();
-
-int fd_inotify_add(int fd, char const * path, uint32_t mask);
-
-int fd_inotify_rm(int fd, int wd);
 
 // Returns 0 in case of success
 int fd_epoll_add(int epoll_fd, int fd);
@@ -81,12 +170,6 @@ int fd_epoll_add(int epoll_fd, int fd);
 // Returns 0 in case of success
 int fd_epoll_rm(int epoll_fd, int fd);
 
-int fd_fanotify_mark_add(int fd, const char *pathname);
-
-int fd_fanotify_mark_rm(int fd, const char *pathname);
-
 void fd_epoll_ecs_wait(ecs_world_t *world, int epoll_fd, const ecs_map_t *map, ecs_id_t component, size_t size, const void *ptr);
 
-int fd_read(int fd, void *buf, size_t count);
 
-void handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t entity, uint32_t mask, char *buffer, int len);

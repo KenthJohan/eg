@@ -7,7 +7,6 @@ https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4
 https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/test/testautomation_iostream.c#L477
 */
 
-
 #include "EgFs.h"
 #include "EgFs/EgFsEpoll.h"
 #include "fd.h"
