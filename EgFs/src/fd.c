@@ -57,6 +57,24 @@ int fd_inotify_init1()
 	return fd;
 }
 
+int fd_inotify_add(int fd, char const * path, uint32_t mask)
+{
+	int r = inotify_add_watch(fd, path, mask);
+	if (r < 0) {
+		perror("inotify_add_watch");
+	}
+	return r;
+}
+
+int fd_inotify_rm(int fd, int wd)
+{
+	int r = inotify_rm_watch(fd, wd);
+	if (r < 0) {
+		perror("inotify_rm_watch");
+	}
+	return r;
+}
+
 int fd_epoll_add(int epoll_fd, int fd)
 {
 	struct epoll_event event;

@@ -96,61 +96,64 @@ ECS_MOVE(EgFsInotifyFd, dst, src, {
 
 static void Observer_inotify_ctl(ecs_iter_t *it)
 {
+	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
 	EgFsWatch *w = ecs_field(it, EgFsWatch, 0);         // self
 	EgFsInotifyFd *y = ecs_field(it, EgFsInotifyFd, 1); // shared
 	for (int i = 0; i < it->count; ++i, ++w) {
 		ecs_entity_t e = it->entities[i];
+		ecs_entity_t parent = ecs_field_src(it, 1);
 		int rv = 0;
 		if (it->event == EcsOnRemove) {
-			ecs_trace("Removing watch fd (%s) from inotify (%s)", ecs_get_name(world, e), ecs_get_name(world, ecs_field_src(it, 1)));
-			rv = inotify_rm_watch(y->fd, w->fd);
+			ecs_trace("Removing watch fd=%i (%s) from inotify fd=%i (%s)", w->fd, ecs_get_name(world, parent), y->fd, ecs_get_name(world, e));
+			rv = fd_inotify_rm(y->fd, w->fd);
 		} else if (it->event == EcsOnSet) {
-			ecs_trace("Adding watch fd (%s) to epoll (%s)", ecs_get_name(world, e), ecs_get_name(world, ecs_field_src(it, 1)));
 			EcsIdentifier const *p = ecs_get_pair(world, w->file, EcsIdentifier, EcsName);
-			rv = inotify_add_watch(y->fd, p->value, IN_ALL_EVENTS);
+			ecs_trace("Adding watch '%s' (%s) to epoll fd=%i (%s)", p->value, ecs_get_name(world, parent), y->fd, ecs_get_name(world, e));
+			rv = fd_inotify_add(y->fd, p->value, IN_ALL_EVENTS);
+			if (rv >= 0) {
+				w->fd = rv; // Store the watch descriptor
+			} else {
+				w->fd = -1;
+				ecs_enable(it->world, e, false);
+			}
 		}
 		if (rv < 0) {
-			perror("inotify_ctl");
 			ecs_enable(it->world, e, false);
 		}
 	} // END FOR LOOP
+	ecs_log_set_level(-1);
 }
 
-static void Observer_inotify_rm_watch(ecs_iter_t *it)
-{
-	// ecs_world_t *world = it->world;
-	EgFsWatch *w = ecs_field(it, EgFsWatch, 0);     // self
-	EgFsEpollFd *l = ecs_field(it, EgFsEpollFd, 1); // shared
-	for (int i = 0; i < it->count; ++i, ++w) {
-		int rv = inotify_rm_watch(l->fd, w->fd);
-		if (rv < 0) {
-			perror("inotify_rm_watch");
-		}
-	} // END FOR LOOP
-}
 
 static void Observer_epoll_ctl(ecs_iter_t *it)
 {
+	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
 	EgFsInotifyFd *y = ecs_field(it, EgFsInotifyFd, 0); // self
 	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);     // shared
 	for (int i = 0; i < it->count; ++i, ++y) {
 		ecs_entity_t e = it->entities[i];
+		ecs_entity_t parent = ecs_field_src(it, 1);
+		int rv = 0;
 		if (it->event == EcsOnRemove) {
-			ecs_map_remove(&o->map, y->fd);
+			rv = fd_epoll_rm(o->fd, y->fd);
+			ecs_trace("Removing inotify fd=%i (%s) from epoll fd=%i (%s)", y->fd, ecs_get_name(world, e), o->fd, ecs_get_name(world, parent));
+			if (rv == 0) {
+				ecs_map_remove(&o->map, y->fd);
+			}
 		} else if (it->event == EcsOnAdd) {
-			ecs_trace("Adding inotify fd (%s) to epoll (%s)", ecs_get_name(world, e), ecs_get_name(world, ecs_field_src(it, 1)));
-			struct epoll_event event;
-			event.events = EPOLLIN;
-			event.data.fd = y->fd;
-			if (epoll_ctl(o->fd, EPOLL_CTL_ADD, y->fd, &event) == 0) {
+			ecs_trace("Adding inotify fd=%i (%s) to epoll fd=%i (%s)", y->fd, ecs_get_name(world, e), o->fd, ecs_get_name(world, parent));
+			rv = fd_epoll_add(o->fd, y->fd);
+			if (rv == 0) {
 				ecs_map_insert(&o->map, y->fd, e);
-			} else {
-				perror("epoll_ctl");
 			}
 		}
+		if (rv != 0) {
+			ecs_enable(it->world, e, false);
+		}
 	}
+	ecs_log_set_level(-1);
 }
 
 static void /* Display information from inotify_event structure */
@@ -221,7 +224,6 @@ static void System_Read(ecs_iter_t *it)
 
 		for (char *p = buf; p < buf + len;) {
 			struct inotify_event *event = (struct inotify_event *)p;
-
 			displayInotifyEvent(event);
 			p += sizeof(struct inotify_event) + event->len;
 		}
