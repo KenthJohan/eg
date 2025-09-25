@@ -313,11 +313,11 @@ void fd_handle_inotify_events(ecs_world_t *world, ecs_entity_t event, ecs_entity
  		ecs_entity_t *e = ecs_map_get(map, i->wd);
 		if (e == NULL) {
 			continue;
-		}
+		} 
 		EgFsWatch *w = ecs_get(world, *e, EgFsWatch);
 		char const * parent_path = ecs_get_name(world, w->file);
 
-		//ecs_get_path_w_sep(world, 0, w->file, NULL);
+		//ecs_get_path_w_sep(world, 0, w->file, NULL); a a
 		char fullpath[1024];
 		char const * name = i->name;
 		snprintf(fullpath, sizeof(fullpath), "$CWD/%s/%s", parent_path, name);

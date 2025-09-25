@@ -89,7 +89,7 @@ static void Observer_epoll_ctl(ecs_iter_t *it)
 
 static void System_Read(ecs_iter_t *it)
 {
-	ecs_log_set_level(0);
+	ecs_log_set_level(-1);
 	ecs_world_t *world = it->world;
 	EgFsInotifyFd *y = ecs_field(it, EgFsInotifyFd, 0); // self
 	EgFsReady *r = ecs_field(it, EgFsReady, 1);         // self
@@ -106,7 +106,7 @@ static void System_Read(ecs_iter_t *it)
 			ecs_enable(world, e, false);
 			return;
 		}
-		fd_handle_inotify_events(world, EgFsEventModify, EgFsFiles, FD_IN_ALL_EVENTS, &y->map, buf, len);
+		fd_handle_inotify_events(world, EgFsEventModify, EgFsCwd, FD_IN_MODIFY, &y->map, buf, len);
 		ecs_remove(world, e, EgFsReady);
 	}
 	ecs_log_set_level(-1);
