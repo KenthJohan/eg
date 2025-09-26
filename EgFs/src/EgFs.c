@@ -16,6 +16,7 @@ ECS_ENTITY_DECLARE(EgFsFiles);
 ECS_ENTITY_DECLARE(EgFsDescriptors);
 ECS_ENTITY_DECLARE(EgFsEventOpen);
 ECS_ENTITY_DECLARE(EgFsEventModify);
+ECS_ENTITY_DECLARE(EgFsDump);
 
 ECS_CTOR(EgFsFd, ptr, {
 	ptr->fd = -1;
@@ -29,6 +30,21 @@ ECS_MOVE(EgFsFd, dst, src, {
 	fd_close_valid(dst->fd);
 	dst->fd = src->fd;
 	src->fd = -1; // Invalidate the source fd
+})
+
+static ECS_COPY(EgFsContent, dst, src, {
+	ecs_trace("COPY EgFsContent");
+	if (dst) {
+		ecs_os_free(dst->data);
+	}
+	if (src->data && (src->size > 0)) {
+		dst->data = ecs_os_malloc(src->size);
+		ecs_os_memcpy_n(dst->data, src->data, char, src->size);
+		dst->size = src->size;
+	} else {
+		dst->data = NULL;
+		dst->size = 0;
+	}
 })
 
 ECS_CTOR(EgFsContent, ptr, {
@@ -54,8 +70,10 @@ static ECS_MOVE(EgFsContent, dst, src, {
 })
 
 static ECS_DTOR(EgFsContent, ptr, {
-	ecs_trace("DTOR EgFsContent");
+	ecs_log_set_level(0);
+	ecs_trace("DTOR EgFsContent %i", ptr->size);
 	ecs_os_free(ptr->data);
+	ecs_log_set_level(-1);
 })
 
 
@@ -120,7 +138,7 @@ static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_
 		ecs_os_snprintf(fullpath, sizeof(fullpath), "%s", path);
 	}
 	ecs_trace("fullpath = '%s'", fullpath);
-	ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = EgFsFiles});
+	ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = EgFsCwd});
 	*(int64_t *)result->ptr = e;
 }
 
@@ -136,6 +154,18 @@ static void Observer_OnOpen(ecs_iter_t *it)
 	ecs_log_set_level(-1);
 }
 
+
+char * load_file(ecs_world_t *world, ecs_entity_t e, size_t * size)
+{
+	ecs_trace("load_file from path entity '%s'", ecs_get_name(world, e));
+	char * path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", NULL); // a a
+	path[3] = '.'; // $CWD/src/main.c
+	void * content = flecs_load_from_file(path+3, size);
+	ecs_os_free(path);
+	return content;
+}
+
+
 static void Observer_OnModify(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
@@ -143,13 +173,36 @@ static void Observer_OnModify(ecs_iter_t *it)
 	//EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
-		char * a = ecs_get_path_w_sep(world, EgFsCwd, e, "/", NULL); // a a
-		a[3] = '.'; // $CWD/src/main.c
-		ecs_trace("EgFsEventModify received for entity '%s' %s", ecs_get_name(world, e), a+3);
 		size_t size = 0;
-		void * b = flecs_load_from_file(a+3, &size);
-		ecs_set(world, e, EgFsContent, {b, (uint32_t)size});
-		ecs_os_free(a);
+		void * b = load_file(world, e, &size);
+		if (!b) {
+			ecs_err("failed to load file for entity '%s'", ecs_get_name(world, e));
+			continue;
+		} else {
+			ecs_set(world, e, EgFsContent, {b, (uint32_t)size});
+		}
+	}
+	ecs_log_set_level(-1);
+}
+
+
+static void System_Dump(ecs_iter_t *it)
+{
+	ecs_log_set_level(0);
+	ecs_world_t *world = it->world;
+	EgFsContent *c = ecs_field(it, EgFsContent, 0);
+	(void)world;
+	for (int i = 0; i < it->count; ++i) {
+		ecs_entity_t e = it->entities[i];
+		ecs_remove(world, e, EgFsDump);
+		ecs_trace("System_Dump for entity '%s'", ecs_get_name(world, e));
+		if (c[i].data && (c[i].size > 0)) {
+			printf("---- content (%u bytes) ----\n", c[i].size);
+			fwrite(c[i].data, 1, c[i].size, stdout);
+			printf("\n---- end of content ----\n");
+		} else {
+			printf("---- no content ----\n");
+		}
 	}
 	ecs_log_set_level(-1);
 }
@@ -169,6 +222,7 @@ void EgFsImport(ecs_world_t *world)
 	ECS_ENTITY_DEFINE(world, EgFsDescriptors);
 	ECS_ENTITY_DEFINE(world, EgFsEventOpen);
 	ECS_ENTITY_DEFINE(world, EgFsEventModify);
+	ECS_ENTITY_DEFINE(world, EgFsDump);
 
 	ecs_set_hooks_id(world, ecs_id(EgFsFd),
 	&(ecs_type_hooks_t){
@@ -180,7 +234,7 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_set_hooks_id(world, ecs_id(EgFsContent),
 	&(ecs_type_hooks_t){
-	.flags = ECS_TYPE_HOOK_COPY_ILLEGAL,
+	.copy = ecs_copy(EgFsContent),
 	.move = ecs_move(EgFsContent),
 	.dtor = ecs_dtor(EgFsContent),
 	.ctor = ecs_ctor(EgFsContent),
@@ -229,6 +283,16 @@ void EgFsImport(ecs_world_t *world)
 	.events = {EgFsEventModify},
 	.query.terms = {
 	{ .id = EcsAny },
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "System_Dump", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_Dump,
+	.query.terms =
+	{
+	{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
+	{.id = EgFsDump, .src.id = EcsSelf},
 	}});
 
 	/*

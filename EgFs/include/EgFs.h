@@ -33,12 +33,14 @@ extern ECS_COMPONENT_DECLARE(EgFsWatch);
 extern ECS_COMPONENT_DECLARE(EgFsFd);
 extern ECS_COMPONENT_DECLARE(EgFsReady);
 extern ECS_COMPONENT_DECLARE(EgFsContent);
+extern ECS_COMPONENT_DECLARE(EgFsContent);
 
 extern ECS_ENTITY_DECLARE(EgFsCwd);
 extern ECS_ENTITY_DECLARE(EgFsFiles);
 extern ECS_ENTITY_DECLARE(EgFsDescriptors);
 extern ECS_ENTITY_DECLARE(EgFsEventOpen);
 extern ECS_ENTITY_DECLARE(EgFsEventModify);
+extern ECS_ENTITY_DECLARE(EgFsDump);
 
 void EgFsImport(ecs_world_t *world);
 
