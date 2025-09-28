@@ -11,6 +11,7 @@ ECS_COMPONENT_DECLARE(EgFsContent);
 
 
 ECS_ENTITY_DECLARE(EgFs);
+ECS_ENTITY_DECLARE(EgFsSockets);
 ECS_ENTITY_DECLARE(EgFsCwd);
 ECS_ENTITY_DECLARE(EgFsFiles);
 ECS_ENTITY_DECLARE(EgFsDescriptors);
@@ -33,7 +34,8 @@ ECS_MOVE(EgFsFd, dst, src, {
 })
 
 static ECS_COPY(EgFsContent, dst, src, {
-	ecs_trace("COPY EgFsContent");
+	ecs_log_set_level(0);
+	ecs_trace("COPY EgFsContent %i", src->size);
 	if (dst) {
 		ecs_os_free(dst->data);
 	}
@@ -45,16 +47,20 @@ static ECS_COPY(EgFsContent, dst, src, {
 		dst->data = NULL;
 		dst->size = 0;
 	}
+	ecs_log_set_level(-1);
 })
 
 ECS_CTOR(EgFsContent, ptr, {
+	ecs_log_set_level(0);
 	ecs_trace("CTOR EgFsContent");
 	ptr->data = NULL;
 	ptr->size = 0;
+	ecs_log_set_level(-1);
 })
 
 static ECS_MOVE(EgFsContent, dst, src, {
-	ecs_trace("MOVE EgFsContent");
+	ecs_log_set_level(0);
+	ecs_trace("MOVE EgFsContent %i", src->size);
 	if (dst) {
 		ecs_os_free(dst->data);
 	}
@@ -67,6 +73,7 @@ static ECS_MOVE(EgFsContent, dst, src, {
 		dst->data = NULL;
 		dst->size = 0;
 	}
+	ecs_log_set_level(-1);
 })
 
 static ECS_DTOR(EgFsContent, ptr, {
@@ -122,24 +129,49 @@ error:
 }
 
 
-
+/*
+https://github.com/nanomsg/nng
+https://nng.nanomsg.org/ref/tran/udp.html
+https://nng.nanomsg.org/man/v1.10.0/index.html
+https://www.flecs.dev/flecs/group__liveliness.html#ga7995e931b0f8b7588f0519ae88b6e4c0
+https://github.com/copilot/c/caff1387-5a8d-4db9-a850-e167ba83926d
+*/
 static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_value_t *argv, ecs_value_t *result)
 {
+	ecs_log_set_level(0);
 	(void)ctx;
 	(void)argc;
 	ecs_world_t *world = ctx->world;
 	const char *path = *(char **)argv[0].ptr;
 	// char cwd[1024];
 	// getcwd(cwd, sizeof(cwd));
+	ecs_entity_t e = 0;
 	char fullpath[1024];
 	if (path[0] == '.') {
 		ecs_os_snprintf(fullpath, sizeof(fullpath), "%s%s", "$CWD", path + 1);
+		e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = EgFsCwd});
+	} else if (strncmp(path, "udp://", 6) == 0) {
+		//fd_create_udp_socket
+		e = ecs_lookup_path_w_sep(world, EgFsSockets, path, "", NULL, false);
+		if (e == 0) {
+			int fd = fd_create_udp_socket(NULL, 5000);
+			if (fd < 0) {
+				e = 0;
+			} else {
+				e = fd + EGFS_FD_ENTITY_OFFSET;
+				ecs_make_alive(world, e);
+				ecs_add_path_w_sep(world, e, EgFsSockets, path, "", NULL);
+			}
+		}
+		//e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = path, .sep = ":", .parent = EgFsCwd});
 	} else {
-		ecs_os_snprintf(fullpath, sizeof(fullpath), "%s", path);
+		e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = path, .sep = "/", .parent = EgFsCwd});
 	}
-	ecs_trace("fullpath = '%s'", fullpath);
-	ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = EgFsCwd});
+	char * p = ecs_get_path_w_sep(world, EgFsSockets, e, ":", NULL);
+	ecs_trace("path '%s' -> '%s' %16i", path, p, e);
+	ecs_os_free(p);
 	*(int64_t *)result->ptr = e;
+	ecs_log_set_level(-1);
 }
 
 static void Observer_OnOpen(ecs_iter_t *it)
@@ -207,6 +239,23 @@ static void System_Dump(ecs_iter_t *it)
 	ecs_log_set_level(-1);
 }
 
+static void System_Dump1(ecs_iter_t *it)
+{
+	ecs_log_set_level(0);
+	ecs_world_t *world = it->world;
+	for (int i = 0; i < it->count; ++i) {
+		ecs_entity_t e = it->entities[i];
+		ecs_remove(world, e, EgFsDump);
+		// print entity integer and name
+		printf("Entity %16i '%s'\n", (uint32_t)e, ecs_get_name(world, e));
+	}
+	ecs_log_set_level(-1);
+}
+
+
+
+
+
 void EgFsImport(ecs_world_t *world)
 {
 	ECS_MODULE_DEFINE(world, EgFs);
@@ -218,6 +267,7 @@ void EgFsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgFsContent);
 
 	ECS_ENTITY_DEFINE(world, EgFsCwd);
+	ECS_ENTITY_DEFINE(world, EgFsSockets);
 	ECS_ENTITY_DEFINE(world, EgFsFiles);
 	ECS_ENTITY_DEFINE(world, EgFsDescriptors);
 	ECS_ENTITY_DEFINE(world, EgFsEventOpen);
@@ -292,6 +342,15 @@ void EgFsImport(ecs_world_t *world)
 	.query.terms =
 	{
 	{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
+	{.id = EgFsDump, .src.id = EcsSelf},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "System_Dump1", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_Dump1,
+	.query.terms =
+	{
 	{.id = EgFsDump, .src.id = EcsSelf},
 	}});
 

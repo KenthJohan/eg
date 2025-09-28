@@ -12,6 +12,17 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include "EgFs.h"
 
 /*
@@ -22,6 +33,7 @@ https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4
 https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4289d/src/addons/alerts.c#L39
 https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/test/testautomation_iostream.c#L477
 */
+
 
 int fd_fanotify_init()
 {
@@ -325,4 +337,33 @@ void fd_handle_inotify_events(ecs_world_t *world, ecs_entity_t event, ecs_entity
 		ecs_entity_t e1 = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = parent});
 		ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = e1});
 	}
+}
+
+
+
+int fd_create_udp_socket(const char *ip, int port)
+{
+	int sockfd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0);
+	if (sockfd < 0) {
+		perror("socket");
+		return sockfd;
+	}
+
+	struct sockaddr_in servaddr;
+	memset(&servaddr, 0, sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	if (ip == NULL) {
+		servaddr.sin_addr.s_addr = INADDR_ANY;
+	} else {
+		servaddr.sin_addr.s_addr = inet_addr(ip);
+	}
+	servaddr.sin_port = htons(port);
+
+	if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+		perror("bind");
+		close(sockfd);
+		return -1;
+	}
+
+	return sockfd;
 }

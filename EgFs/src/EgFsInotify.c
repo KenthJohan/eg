@@ -62,7 +62,7 @@ static void Observer_epoll_ctl(ecs_iter_t *it)
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
 	EgFsInotifyFd *y = ecs_field(it, EgFsInotifyFd, 0); // self
-	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);     // shared
+	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);     // shared, parent
 	for (int i = 0; i < it->count; ++i, ++y) {
 		ecs_entity_t e = it->entities[i];
 		ecs_entity_t parent = ecs_field_src(it, 1);

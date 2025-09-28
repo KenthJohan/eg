@@ -173,3 +173,4 @@ int fd_epoll_rm(int epoll_fd, int fd);
 void fd_epoll_ecs_wait(ecs_world_t *world, int epoll_fd, const ecs_map_t *map, ecs_id_t component, size_t size, const void *ptr);
 
 
+int fd_create_udp_socket(const char *ip, int port);

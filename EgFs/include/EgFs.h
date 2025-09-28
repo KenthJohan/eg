@@ -4,8 +4,9 @@
 #include "EgFs/EgFsEpoll.h"
 #include "EgFs/EgFsFanotify.h"
 #include "EgFs/EgFsInotify.h"
+#include "EgFs/EgFsSocket.h"
 
-#define EGFS_FD_ENTITY_OFFSET 1024
+#define EGFS_FD_ENTITY_OFFSET 1000
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,6 +36,8 @@ extern ECS_COMPONENT_DECLARE(EgFsReady);
 extern ECS_COMPONENT_DECLARE(EgFsContent);
 extern ECS_COMPONENT_DECLARE(EgFsContent);
 
+extern ECS_ENTITY_DECLARE(EgFs);
+extern ECS_ENTITY_DECLARE(EgFsSockets);
 extern ECS_ENTITY_DECLARE(EgFsCwd);
 extern ECS_ENTITY_DECLARE(EgFsFiles);
 extern ECS_ENTITY_DECLARE(EgFsDescriptors);
