@@ -82,49 +82,7 @@ static ECS_DTOR(EgFsContent, ptr, {
 	ecs_log_set_level(-1);
 })
 
-char *flecs_load_from_file(const char *filename, size_t *size)
-{
-	FILE *file;
-	char *content = NULL;
-	int32_t bytes;
 
-	/* Open file for reading */
-	ecs_os_fopen(&file, filename, "r");
-	if (!file) {
-		ecs_err("%s (%s)", ecs_os_strerror(errno), filename);
-		goto error;
-	}
-
-	/* Determine file size */
-	fseek(file, 0, SEEK_END);
-	bytes = (int32_t)ftell(file);
-	if (bytes == -1) {
-		goto error;
-	}
-	fseek(file, 0, SEEK_SET);
-
-	/* Load contents in memory */
-	content = ecs_os_malloc(bytes + 1);
-	*size = (size_t)bytes;
-	if (!(*size = fread(content, 1, *size, file)) && bytes) {
-		ecs_err("%s: read zero bytes instead of %d", filename, *size);
-		ecs_os_free(content);
-		content = NULL;
-		goto error;
-	} else {
-		content[*size] = '\0';
-	}
-
-	fclose(file);
-
-	return content;
-error:
-	if (file) {
-		fclose(file);
-	}
-	ecs_os_free(content);
-	return NULL;
-}
 
 /*
 https://github.com/nanomsg/nng
@@ -186,8 +144,8 @@ static void Observer_OnOpen(ecs_iter_t *it)
 char *load_file(ecs_world_t *world, ecs_entity_t e, size_t *size)
 {
 	ecs_trace("load_file from path entity '%s'", ecs_get_name(world, e));
-	char *path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", NULL); // a a                                                 // $CWD/src/main.c
-	void *content = flecs_load_from_file(path, size);
+	char *path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", NULL);
+	void *content = load_from_file(path, size);
 	ecs_os_free(path);
 	return content;
 }

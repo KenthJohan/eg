@@ -6,16 +6,10 @@ extern "C" {
 #endif
 
 typedef struct {
-  char * addr;
-  int port;
-} EgFsSocketInfo;
+  ecs_entity_t path;
+} EgFsSocketCreate;
 
-typedef struct {
-  ecs_entity_t s;
-} EgFsSocketUdp;
-
-extern ECS_COMPONENT_DECLARE(EgFsSocketUdp);
-extern ECS_COMPONENT_DECLARE(EgFsSocketInfo);
+extern ECS_COMPONENT_DECLARE(EgFsSocketCreate);
 
 void EgFsSocketImport(ecs_world_t *world);
 

@@ -171,4 +171,8 @@ void fd_epoll_ecs_wait(ecs_world_t *world, int epoll_fd, const ecs_map_t *map, e
 
 int fd_create_udp_socket(const char *ip, int port);
 
+char *load_from_file(const char *filename, size_t *size);
+
 int test_inotify(char *path);
+
+void fd_udp_test_recv_send(int sockfd);
