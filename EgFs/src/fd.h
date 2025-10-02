@@ -2,8 +2,6 @@
 
 #include <flecs.h>
 
-
-
 int fd_read(int fd, void *buf, size_t count);
 
 int fd_close(int fd);
@@ -123,7 +121,6 @@ int fd_fanotify_mark_rm(int fd, const char *pathname);
 
 void fan_handle_notifications(ecs_world_t *world, ecs_entity_t event, ecs_entity_t entity, uint32_t mask, char *buffer, int len);
 
-
 /*
 The epoll API performs a similar task to poll(2): monitoring
        multiple file descriptors to see if I/O is possible on any of
@@ -172,5 +169,6 @@ int fd_epoll_rm(int epoll_fd, int fd);
 
 void fd_epoll_ecs_wait(ecs_world_t *world, int epoll_fd, const ecs_map_t *map, ecs_id_t component, size_t size, const void *ptr);
 
-
 int fd_create_udp_socket(const char *ip, int port);
+
+int test_inotify(char *path);

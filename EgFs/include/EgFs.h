@@ -13,16 +13,16 @@ extern "C" {
 #endif
 
 typedef struct {
-	int fd;
-	ecs_entity_t file;
+	int32_t fd;
+	ecs_entity_t epath;
 } EgFsWatch;
 
 typedef struct {
-	int fd;
+	int32_t fd;
 } EgFsFd;
 
 typedef struct {
-	int dummy;
+	int32_t dummy;
 } EgFsReady;
 
 typedef struct {

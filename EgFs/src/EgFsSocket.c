@@ -5,35 +5,6 @@
 ECS_COMPONENT_DECLARE(EgFsSocketUdp);
 ECS_COMPONENT_DECLARE(EgFsSocketInfo);
 
-static void Observer_epoll_ctl(ecs_iter_t *it)
-{
-	ecs_log_set_level(0);
-	ecs_world_t *world = it->world;
-	EgFsSocketUdp *y = ecs_field(it, EgFsSocketUdp, 0); // self
-	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);     // shared
-	for (int i = 0; i < it->count; ++i, ++y) {
-		ecs_entity_t e = it->entities[i];
-		ecs_entity_t parent = ecs_field_src(it, 1);
-		int rv = 0;
-		if (it->event == EcsOnRemove) {
-			rv = fd_epoll_rm(o->fd, y->s);
-			ecs_trace("Removing inotify fd=%i (%s) from epoll fd=%i (%s)", y->s, ecs_get_name(world, e), o->fd, ecs_get_name(world, parent));
-			if (rv == 0) {
-				ecs_map_remove(&o->map, y->s);
-			}
-		} else if (it->event == EcsOnAdd) {
-			ecs_trace("Adding inotify fd=%i (%s) to epoll fd=%i (%s)", y->s, ecs_get_name(world, e), o->fd, ecs_get_name(world, parent));
-			rv = fd_epoll_add(o->fd, y->s);
-			if (rv == 0) {
-				ecs_map_insert(&o->map, y->s, e);
-			}
-		}
-		if (rv != 0) {
-			ecs_enable(it->world, e, false);
-		}
-	}
-	ecs_log_set_level(-1);
-}
 
 /*
 static void System_Create_Socket_Udp(ecs_iter_t *it)
@@ -80,15 +51,6 @@ void EgFsSocketImport(ecs_world_t *world)
 	{.name = "port", .type = ecs_id(ecs_i32_t)},
 	}});
 
-	ecs_observer_init(world,
-	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "Observer_epoll_ctl"}),
-	.callback = Observer_epoll_ctl,
-	.events = {EcsOnAdd, EcsOnRemove},
-	.query.terms = {
-	{.id = ecs_id(EgFsSocketUdp)},
-	{.id = ecs_id(EgFsEpollFd), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
-	}});
 
 	/*
 	ecs_system_init(world,

@@ -6,11 +6,10 @@ extern "C" {
 #endif
 
 typedef struct {
-  int fd;
   ecs_map_t map;
-} EgFsInotifyFd;
+} EgFsInotifyCreate;
 
-extern ECS_COMPONENT_DECLARE(EgFsInotifyFd);
+extern ECS_COMPONENT_DECLARE(EgFsInotifyCreate);
 
 void EgFsInotifyImport(ecs_world_t *world);
 

@@ -11,6 +11,7 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #include "EgFs/EgFsFanotify.h"
 #include "fd.h"
 
+/*
 ECS_COMPONENT_DECLARE(EgFsFanotifyFd);
 
 ECS_CTOR(EgFsFanotifyFd, ptr, {
@@ -103,7 +104,7 @@ static void System_Read(ecs_iter_t *it)
 	}
 	ecs_log_set_level(-1);
 }
-
+*/
 
 
 void EgFsFanotifyImport(ecs_world_t *world)
@@ -113,6 +114,7 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	ECS_MODULE(world, EgFsFanotify);
 	ecs_set_name_prefix(world, "EgFsFanotify");
 
+	/*
 	ECS_COMPONENT_DEFINE(world, EgFsFanotifyFd);
 
 	ecs_struct_init(world,
@@ -159,6 +161,7 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	{.id = ecs_id(EgFsFanotifyFd), .src.id = EcsSelf},
 	{.id = ecs_id(EgFsReady), .src.id = EcsSelf},
 	}});
+	*/
 
 
 

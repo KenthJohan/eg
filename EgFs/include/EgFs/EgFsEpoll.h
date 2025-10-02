@@ -6,11 +6,10 @@ extern "C" {
 #endif
 
 typedef struct {
-  int fd;
   ecs_map_t map;
-} EgFsEpollFd;
+} EgFsEpollCreate;
 
-extern ECS_COMPONENT_DECLARE(EgFsEpollFd);
+extern ECS_COMPONENT_DECLARE(EgFsEpollCreate);
 
 void EgFsEpollImport(ecs_world_t *world);
 

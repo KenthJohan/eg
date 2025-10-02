@@ -2,13 +2,12 @@
 #include "fd.h"
 #include <stdio.h>
 #include <errno.h>
+#include <ecsx/ecsx_trace.h>
 
 ECS_COMPONENT_DECLARE(EgFsWatch);
 ECS_COMPONENT_DECLARE(EgFsFd);
 ECS_COMPONENT_DECLARE(EgFsReady);
 ECS_COMPONENT_DECLARE(EgFsContent);
-
-
 
 ECS_ENTITY_DECLARE(EgFs);
 ECS_ENTITY_DECLARE(EgFsSockets);
@@ -35,7 +34,7 @@ ECS_MOVE(EgFsFd, dst, src, {
 
 static ECS_COPY(EgFsContent, dst, src, {
 	ecs_log_set_level(0);
-	ecs_trace("COPY EgFsContent %i", src->size);
+	ecs_trace("COPY EgFsContent %i -> %i", dst->size, src->size);
 	if (dst) {
 		ecs_os_free(dst->data);
 	}
@@ -83,51 +82,49 @@ static ECS_DTOR(EgFsContent, ptr, {
 	ecs_log_set_level(-1);
 })
 
-
-char* flecs_load_from_file( const char *filename, size_t *size )
+char *flecs_load_from_file(const char *filename, size_t *size)
 {
-    FILE* file;
-    char* content = NULL;
-    int32_t bytes;
+	FILE *file;
+	char *content = NULL;
+	int32_t bytes;
 
-    /* Open file for reading */
-    ecs_os_fopen(&file, filename, "r");
-    if (!file) {
-        ecs_err("%s (%s)", ecs_os_strerror(errno), filename);
-        goto error;
-    }
+	/* Open file for reading */
+	ecs_os_fopen(&file, filename, "r");
+	if (!file) {
+		ecs_err("%s (%s)", ecs_os_strerror(errno), filename);
+		goto error;
+	}
 
-    /* Determine file size */
-    fseek(file, 0, SEEK_END);
-    bytes = (int32_t)ftell(file);
-    if (bytes == -1) {
-        goto error;
-    }
-    fseek(file, 0, SEEK_SET);
+	/* Determine file size */
+	fseek(file, 0, SEEK_END);
+	bytes = (int32_t)ftell(file);
+	if (bytes == -1) {
+		goto error;
+	}
+	fseek(file, 0, SEEK_SET);
 
-    /* Load contents in memory */
-    content = ecs_os_malloc(bytes + 1);
-    *size = (size_t)bytes;
-    if (!(*size = fread(content, 1, *size, file)) && bytes) {
-        ecs_err("%s: read zero bytes instead of %d", filename, *size);
-        ecs_os_free(content);
-        content = NULL;
-        goto error;
-    } else {
-        content[*size] = '\0';
-    }
+	/* Load contents in memory */
+	content = ecs_os_malloc(bytes + 1);
+	*size = (size_t)bytes;
+	if (!(*size = fread(content, 1, *size, file)) && bytes) {
+		ecs_err("%s: read zero bytes instead of %d", filename, *size);
+		ecs_os_free(content);
+		content = NULL;
+		goto error;
+	} else {
+		content[*size] = '\0';
+	}
 
-    fclose(file);
+	fclose(file);
 
-    return content;
+	return content;
 error:
-    if (file) {
-        fclose(file);
-    }
-    ecs_os_free(content);
-    return NULL;
+	if (file) {
+		fclose(file);
+	}
+	ecs_os_free(content);
+	return NULL;
 }
-
 
 /*
 https://github.com/nanomsg/nng
@@ -147,11 +144,11 @@ static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_
 	// getcwd(cwd, sizeof(cwd));
 	ecs_entity_t e = 0;
 	char fullpath[1024];
-	if (path[0] == '.') {
-		ecs_os_snprintf(fullpath, sizeof(fullpath), "%s%s", "$CWD", path + 1);
+	if ((path[0] == '.') && (path[1] == '/')) {
+		ecs_os_snprintf(fullpath, sizeof(fullpath), "%s", path+2);
 		e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = EgFsCwd});
 	} else if (strncmp(path, "udp://", 6) == 0) {
-		//fd_create_udp_socket
+		// fd_create_udp_socket
 		e = ecs_lookup_path_w_sep(world, EgFsSockets, path, "", NULL, false);
 		if (e == 0) {
 			int fd = fd_create_udp_socket(NULL, 5000);
@@ -163,11 +160,11 @@ static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_
 				ecs_add_path_w_sep(world, e, EgFsSockets, path, "", NULL);
 			}
 		}
-		//e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = path, .sep = ":", .parent = EgFsCwd});
+		// e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = path, .sep = ":", .parent = EgFsCwd});
 	} else {
 		e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = path, .sep = "/", .parent = EgFsCwd});
 	}
-	char * p = ecs_get_path_w_sep(world, EgFsSockets, e, ":", NULL);
+	char *p = ecs_get_path_w_sep(world, EgFsSockets, e, ":", NULL);
 	ecs_trace("path '%s' -> '%s' %16i", path, p, e);
 	ecs_os_free(p);
 	*(int64_t *)result->ptr = e;
@@ -186,27 +183,24 @@ static void Observer_OnOpen(ecs_iter_t *it)
 	ecs_log_set_level(-1);
 }
 
-
-char * load_file(ecs_world_t *world, ecs_entity_t e, size_t * size)
+char *load_file(ecs_world_t *world, ecs_entity_t e, size_t *size)
 {
 	ecs_trace("load_file from path entity '%s'", ecs_get_name(world, e));
-	char * path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", NULL); // a a
-	path[3] = '.'; // $CWD/src/main.c
-	void * content = flecs_load_from_file(path+3, size);
+	char *path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", NULL); // a a                                                 // $CWD/src/main.c
+	void *content = flecs_load_from_file(path, size);
 	ecs_os_free(path);
 	return content;
 }
-
 
 static void Observer_OnModify(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	//EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
+	// EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
 		size_t size = 0;
-		void * b = load_file(world, e, &size);
+		void *b = load_file(world, e, &size);
 		if (!b) {
 			ecs_err("failed to load file for entity '%s'", ecs_get_name(world, e));
 			continue;
@@ -216,7 +210,6 @@ static void Observer_OnModify(ecs_iter_t *it)
 	}
 	ecs_log_set_level(-1);
 }
-
 
 static void System_Dump(ecs_iter_t *it)
 {
@@ -253,9 +246,6 @@ static void System_Dump1(ecs_iter_t *it)
 }
 
 
-
-
-
 void EgFsImport(ecs_world_t *world)
 {
 	ECS_MODULE_DEFINE(world, EgFs);
@@ -276,7 +266,6 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_set_hooks_id(world, ecs_id(EgFsFd),
 	&(ecs_type_hooks_t){
-	.flags = ECS_TYPE_HOOK_COPY_ILLEGAL,
 	.move = ecs_move(EgFsFd),
 	.dtor = ecs_dtor(EgFsFd),
 	.ctor = ecs_ctor(EgFsFd),
@@ -292,10 +281,17 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
+	.entity = ecs_id(EgFsFd),
+	.members = {
+	{.name = "fd", .type = ecs_id(ecs_i32_t)}
+	}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
 	.entity = ecs_id(EgFsWatch),
 	.members = {
 	{.name = "fd", .type = ecs_id(ecs_i32_t)},
-	{.name = "file", .type = ecs_id(ecs_entity_t)},
+	{.name = "path", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_struct_init(world,
@@ -305,7 +301,6 @@ void EgFsImport(ecs_world_t *world)
 	{.name = "data", .type = ecs_id(ecs_uptr_t)},
 	{.name = "size", .type = ecs_id(ecs_u32_t)},
 	}});
-
 
 	{
 		ecs_entity_t m = ecs_function_init(world,
@@ -332,7 +327,7 @@ void EgFsImport(ecs_world_t *world)
 	.callback = Observer_OnModify,
 	.events = {EgFsEventModify},
 	.query.terms = {
-	{ .id = EcsAny },
+	{.id = EcsAny},
 	}});
 
 	ecs_system_init(world,
@@ -353,6 +348,8 @@ void EgFsImport(ecs_world_t *world)
 	{
 	{.id = EgFsDump, .src.id = EcsSelf},
 	}});
+
+
 
 	/*
 

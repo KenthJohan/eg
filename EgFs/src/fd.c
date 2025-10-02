@@ -34,7 +34,6 @@ https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4
 https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/test/testautomation_iostream.c#L477
 */
 
-
 int fd_fanotify_init()
 {
 	int fd = fanotify_init(FAN_CLASS_NOTIF | FAN_REPORT_DFID_NAME | FAN_REPORT_FID | FAN_NONBLOCK, O_RDONLY);
@@ -62,6 +61,7 @@ int fd_close_valid(int fd)
 int fd_epoll_create()
 {
 	int fd = epoll_create1(0);
+	ecs_trace("fd_epoll_create() -> %i", fd);
 	if (fd < 0) {
 		perror("epoll_create1");
 		return fd;
@@ -72,6 +72,7 @@ int fd_epoll_create()
 int fd_inotify_init1()
 {
 	int fd = inotify_init1(IN_NONBLOCK);
+	ecs_trace("fd_inotify_init1() -> %i", fd);
 	if (fd < 0) {
 		perror("inotify_init1");
 		return fd;
@@ -82,6 +83,7 @@ int fd_inotify_init1()
 int fd_inotify_add(int fd, char const *path, uint32_t mask)
 {
 	int r = inotify_add_watch(fd, path, mask);
+	ecs_trace("fd_inotify_add(%i, '%s', #[green]%0x#[reset]) -> %i", fd, path, mask, r);
 	if (r < 0) {
 		perror("inotify_add_watch");
 	}
@@ -91,6 +93,7 @@ int fd_inotify_add(int fd, char const *path, uint32_t mask)
 int fd_inotify_rm(int fd, int wd)
 {
 	int r = inotify_rm_watch(fd, wd);
+	ecs_trace("fd_inotify_rm(%i, %i) -> %i", fd, wd, r);
 	if (r < 0) {
 		perror("inotify_rm_watch");
 	}
@@ -103,6 +106,7 @@ int fd_epoll_add(int epoll_fd, int fd)
 	event.events = EPOLLIN;
 	event.data.fd = fd;
 	int r = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event);
+	ecs_trace("fd_epoll_add(%i, %i) -> %i", epoll_fd, fd, r);
 	if (r < 0) {
 		perror("epoll_ctl EPOLL_CTL_ADD");
 	}
@@ -115,6 +119,7 @@ int fd_epoll_rm(int epoll_fd, int fd)
 	event.events = EPOLLIN;
 	event.data.fd = fd;
 	int r = epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &event);
+	ecs_trace("fd_epoll_rm(%i, %i) -> %i", epoll_fd, fd, r);
 	if (r < 0) {
 		perror("epoll_ctl EPOLL_CTL_DEL");
 	}
@@ -144,6 +149,7 @@ int fd_fanotify_mark_rm(int fd, const char *pathname)
 int fd_read(int fd, void *buf, size_t count)
 {
 	ssize_t len = read(fd, buf, count);
+	ecs_trace("fd_read(%d, %p, %zu) -> %zd", fd, buf, count, len);
 	if (len < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			perror("read");
@@ -184,7 +190,7 @@ static void info_header_print(ecs_world_t *world, ecs_entity_t event, ecs_entity
 		if (hdr->info_type == FAN_EVENT_INFO_TYPE_DFID_NAME) {
 			struct fanotify_event_info_fid *fid_info = (struct fanotify_event_info_fid *)hdr;
 			struct file_handle *fh = (struct file_handle *)fid_info->handle;
-			char *file_name = fh->f_handle + fh->handle_bytes;
+			unsigned char *file_name = fh->f_handle + (int)fh->handle_bytes;
 			iterations++;
 			printf("File name: %i %s %i\n", iterations, file_name, fid_info->hdr.info_type);
 			// ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = entity});
@@ -321,25 +327,22 @@ void fd_handle_inotify_events(ecs_world_t *world, ecs_entity_t event, ecs_entity
 		if ((i->mask & mask) == 0) {
 			continue;
 		}
-		//displayInotifyEvent(i);
- 		ecs_entity_t *e = ecs_map_get(map, i->wd);
+		// displayInotifyEvent(i);
+		ecs_entity_t *e = ecs_map_get(map, i->wd);
 		if (e == NULL) {
 			continue;
-		} 
-		EgFsWatch *w = ecs_get(world, *e, EgFsWatch);
-		char const * parent_path = ecs_get_name(world, w->file);
+		}
+		EgFsWatch const *w = ecs_get(world, *e, EgFsWatch);
+		char const *parent_path = ecs_get_name(world, w->epath);
 
-		//ecs_get_path_w_sep(world, 0, w->file, NULL); a a
+		// ecs_get_path_w_sep(world, 0, w->file, NULL); a a
 		char fullpath[1024];
-		char const * name = i->name;
-		snprintf(fullpath, sizeof(fullpath), "$CWD/%s/%s", parent_path, name);
+		snprintf(fullpath, sizeof(fullpath), "%s/%s", parent_path, i->name);
 		printf("fullpath = '%s'\n", fullpath);
 		ecs_entity_t e1 = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = parent});
 		ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = e1});
 	}
 }
-
-
 
 int fd_create_udp_socket(const char *ip, int port)
 {
@@ -366,4 +369,81 @@ int fd_create_udp_socket(const char *ip, int port)
 	}
 
 	return sockfd;
+}
+
+#define EVENT_BUF_LEN (1024 * (sizeof(struct inotify_event) + 16))
+#define MAX_EVENTS1    10
+int test_inotify(char *path)
+{
+
+	int inotify_fd = fd_inotify_init1();
+	if (inotify_fd < 0) {
+		perror("inotify_init1");
+		return EXIT_FAILURE;
+	}
+
+	int wd = fd_inotify_add(inotify_fd, path, IN_ALL_EVENTS);
+	if (wd < 0) {
+		perror("inotify_add_watch");
+		close(inotify_fd);
+		return EXIT_FAILURE;
+	}
+
+	int epoll_fd = fd_epoll_create();
+	if (epoll_fd < 0) {
+		perror("epoll_create1");
+		close(inotify_fd);
+		return EXIT_FAILURE;
+	}
+
+	struct epoll_event events[MAX_EVENTS1];
+
+	int ctl_ret = fd_epoll_add(epoll_fd, inotify_fd);
+	if (ctl_ret < 0) {
+		perror("epoll_ctl");
+		close(epoll_fd);
+		close(inotify_fd);
+		return EXIT_FAILURE;
+	}
+
+	printf("Watching '%s'. Press Ctrl+C to exit.\n", path);
+	char buf[EVENT_BUF_LEN];
+
+	while (1) {
+		int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+		printf("epoll_wait(epoll_fd=%d, events, MAX_EVENTS=%d, -1) = %d\n", epoll_fd, MAX_EVENTS, nfds);
+		if (nfds < 0) {
+			if (errno == EINTR)
+				continue;
+			perror("epoll_wait");
+			break;
+		}
+
+		for (int i = 0; i < nfds; ++i) {
+			if (events[i].data.fd == inotify_fd) {
+				ssize_t len = fd_read(inotify_fd, buf, sizeof(buf));
+				printf("read(inotify_fd=%d, buf, sizeof(buf)=%zu) = %zd\n", inotify_fd, sizeof(buf), len);
+				if (len < 0 && errno != EAGAIN) {
+					perror("read");
+					break;
+				}
+
+				ssize_t j = 0;
+				while (j < len) {
+					struct inotify_event *event = (struct inotify_event *)&buf[j];
+					printf("Event: wd=%d mask=0x%x cookie=%u len=%u", event->wd, event->mask, event->cookie, event->len);
+					if (event->len)
+						printf(" name=%s", event->name);
+					printf("\n");
+					j += sizeof(struct inotify_event) + event->len;
+				}
+			}
+		}
+	}
+
+	printf("close(epoll_fd=%d)\n", epoll_fd);
+	close(epoll_fd);
+	printf("close(inotify_fd=%d)\n", inotify_fd);
+	close(inotify_fd);
+	return EXIT_SUCCESS;
 }
