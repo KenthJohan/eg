@@ -1,8 +1,8 @@
 #include "EgFs.h"
 #include "fd.h"
-#include <stdio.h>
-#include <errno.h>
+#include "fs.h"
 #include <ecsx/ecsx_trace.h>
+#include <stdio.h>
 
 ECS_COMPONENT_DECLARE(EgFsWatch);
 ECS_COMPONENT_DECLARE(EgFsFd);
@@ -10,9 +10,11 @@ ECS_COMPONENT_DECLARE(EgFsReady);
 ECS_COMPONENT_DECLARE(EgFsContent);
 
 ECS_ENTITY_DECLARE(EgFs);
-ECS_ENTITY_DECLARE(EgFsSockets);
+ECS_ENTITY_DECLARE(EgFsFile);
+ECS_ENTITY_DECLARE(EgFsPath);
+ECS_ENTITY_DECLARE(EgFsRoot);
 ECS_ENTITY_DECLARE(EgFsCwd);
-ECS_ENTITY_DECLARE(EgFsFiles);
+ECS_ENTITY_DECLARE(EgFsSockets);
 ECS_ENTITY_DECLARE(EgFsDescriptors);
 ECS_ENTITY_DECLARE(EgFsEventOpen);
 ECS_ENTITY_DECLARE(EgFsEventModify);
@@ -32,22 +34,24 @@ ECS_MOVE(EgFsFd, dst, src, {
 	src->fd = -1; // Invalidate the source fd
 })
 
+/*
 static ECS_COPY(EgFsContent, dst, src, {
-	ecs_log_set_level(0);
-	ecs_trace("COPY EgFsContent %i -> %i", dst->size, src->size);
-	if (dst) {
-		ecs_os_free(dst->data);
-	}
-	if (src->data && (src->size > 0)) {
-		dst->data = ecs_os_malloc(src->size);
-		ecs_os_memcpy_n(dst->data, src->data, char, src->size);
-		dst->size = src->size;
-	} else {
-		dst->data = NULL;
-		dst->size = 0;
-	}
-	ecs_log_set_level(-1);
+    ecs_log_set_level(0);
+    ecs_trace("COPY EgFsContent %i -> %i", dst->size, src->size);
+    if (dst) {
+        ecs_os_free(dst->data);
+    }
+    if (src->data && (src->size > 0)) {
+        dst->data = ecs_os_malloc(src->size);
+        ecs_os_memcpy_n(dst->data, src->data, char, src->size);
+        dst->size = src->size;
+    } else {
+        dst->data = NULL;
+        dst->size = 0;
+    }
+    ecs_log_set_level(-1);
 })
+*/
 
 ECS_CTOR(EgFsContent, ptr, {
 	ecs_log_set_level(0);
@@ -59,7 +63,7 @@ ECS_CTOR(EgFsContent, ptr, {
 
 static ECS_MOVE(EgFsContent, dst, src, {
 	ecs_log_set_level(0);
-	ecs_trace("MOVE EgFsContent %i", src->size);
+	ecs_trace("MOVE EgFsContent src=%i, dst=%i", src->size, dst->size);
 	if (dst) {
 		ecs_os_free(dst->data);
 	}
@@ -82,7 +86,38 @@ static ECS_DTOR(EgFsContent, ptr, {
 	ecs_log_set_level(-1);
 })
 
-
+ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
+{
+	ecs_entity_t parent = 0;
+	uint32_t flags = 0;
+	if ((path[0] == '.') && (path[1] == '/')) {
+		parent = EgFsCwd;
+		flags = fs_get_path_flags(path);
+		path += 2;
+	} else if (path[0] == '/') {
+		parent = EgFsRoot;
+		flags = fs_get_path_flags(path);
+		path += 1;
+	} else {
+		return 0;
+	}
+	ecs_id_t f = 0;
+	if (flags & FS_PATH_FILE) {
+		f = ecs_id(EgFsFile);
+	} else if (flags & FS_PATH_FOLDER) {
+		f = ecs_id(EgFsPath);
+	} else {
+		return 0;
+	}
+	ecs_entity_t e = ecs_entity_init(world,
+	&(ecs_entity_desc_t){
+	.name = path,
+	.sep = "/",
+	.parent = parent,
+	.add = (ecs_id_t[]){f, 0},
+	});
+	return e;
+}
 
 /*
 https://github.com/nanomsg/nng
@@ -101,10 +136,11 @@ static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_
 	// char cwd[1024];
 	// getcwd(cwd, sizeof(cwd));
 	ecs_entity_t e = 0;
-	char fullpath[1024];
-	if ((path[0] == '.') && (path[1] == '/')) {
-		ecs_os_snprintf(fullpath, sizeof(fullpath), "%s", path+2);
-		e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = EgFsCwd});
+	e = EgFs_create_path_entity(world, path);
+	if (e) {
+		char *p = ecs_get_path_w_sep(world, EgFsSockets, e, ":", NULL);
+		ecs_trace("path '%s' -> '%s' %16i", path, p, e);
+		ecs_os_free(p);
 	} else if (strncmp(path, "udp://", 6) == 0) {
 		// fd_create_udp_socket
 		e = ecs_lookup_path_w_sep(world, EgFsSockets, path, "", NULL, false);
@@ -118,13 +154,7 @@ static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_
 				ecs_add_path_w_sep(world, e, EgFsSockets, path, "", NULL);
 			}
 		}
-		// e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = path, .sep = ":", .parent = EgFsCwd});
-	} else {
-		e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = path, .sep = "/", .parent = EgFsCwd});
 	}
-	char *p = ecs_get_path_w_sep(world, EgFsSockets, e, ":", NULL);
-	ecs_trace("path '%s' -> '%s' %16i", path, p, e);
-	ecs_os_free(p);
 	*(int64_t *)result->ptr = e;
 	ecs_log_set_level(-1);
 }
@@ -141,15 +171,6 @@ static void Observer_OnOpen(ecs_iter_t *it)
 	ecs_log_set_level(-1);
 }
 
-char *load_file(ecs_world_t *world, ecs_entity_t e, size_t *size)
-{
-	ecs_trace("load_file from path entity '%s'", ecs_get_name(world, e));
-	char *path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", NULL);
-	void *content = load_from_file(path, size);
-	ecs_os_free(path);
-	return content;
-}
-
 static void Observer_OnModify(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
@@ -158,12 +179,17 @@ static void Observer_OnModify(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
 		size_t size = 0;
-		void *b = load_file(world, e, &size);
-		if (!b) {
+		void *content = NULL;
+		char *path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./"); // Allocates
+		uint32_t flags = fs_get_path_flags(path);
+		if (flags & FS_PATH_FILE) {
+			content = fs_load_from_file(path, &size);
+		}
+		ecs_os_free(path);
+		if (!content) {
 			ecs_err("failed to load file for entity '%s'", ecs_get_name(world, e));
-			continue;
 		} else {
-			ecs_set(world, e, EgFsContent, {b, (uint32_t)size});
+			ecs_set(world, e, EgFsContent, {content, (uint32_t)size});
 		}
 	}
 	ecs_log_set_level(-1);
@@ -203,7 +229,6 @@ static void System_Dump1(ecs_iter_t *it)
 	ecs_log_set_level(-1);
 }
 
-
 void EgFsImport(ecs_world_t *world)
 {
 	ECS_MODULE_DEFINE(world, EgFs);
@@ -215,12 +240,14 @@ void EgFsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgFsContent);
 
 	ECS_ENTITY_DEFINE(world, EgFsCwd);
+	ECS_ENTITY_DEFINE(world, EgFsRoot);
 	ECS_ENTITY_DEFINE(world, EgFsSockets);
-	ECS_ENTITY_DEFINE(world, EgFsFiles);
 	ECS_ENTITY_DEFINE(world, EgFsDescriptors);
 	ECS_ENTITY_DEFINE(world, EgFsEventOpen);
 	ECS_ENTITY_DEFINE(world, EgFsEventModify);
 	ECS_ENTITY_DEFINE(world, EgFsDump);
+	ECS_ENTITY_DEFINE(world, EgFsFile);
+	ECS_ENTITY_DEFINE(world, EgFsPath);
 
 	ecs_set_hooks_id(world, ecs_id(EgFsFd),
 	&(ecs_type_hooks_t){
@@ -231,7 +258,6 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_set_hooks_id(world, ecs_id(EgFsContent),
 	&(ecs_type_hooks_t){
-	.copy = ecs_copy(EgFsContent),
 	.move = ecs_move(EgFsContent),
 	.dtor = ecs_dtor(EgFsContent),
 	.ctor = ecs_ctor(EgFsContent),
@@ -241,8 +267,7 @@ void EgFsImport(ecs_world_t *world)
 	&(ecs_struct_desc_t){
 	.entity = ecs_id(EgFsFd),
 	.members = {
-	{.name = "fd", .type = ecs_id(ecs_i32_t)}
-	}});
+	{.name = "fd", .type = ecs_id(ecs_i32_t)}}});
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
@@ -306,8 +331,6 @@ void EgFsImport(ecs_world_t *world)
 	{
 	{.id = EgFsDump, .src.id = EcsSelf},
 	}});
-
-
 
 	/*
 

@@ -37,15 +37,19 @@ extern ECS_COMPONENT_DECLARE(EgFsContent);
 extern ECS_COMPONENT_DECLARE(EgFsContent);
 
 extern ECS_ENTITY_DECLARE(EgFs);
-extern ECS_ENTITY_DECLARE(EgFsSockets);
+extern ECS_ENTITY_DECLARE(EgFsPath);
+extern ECS_ENTITY_DECLARE(EgFsFile);
+extern ECS_ENTITY_DECLARE(EgFsRoot);
 extern ECS_ENTITY_DECLARE(EgFsCwd);
-extern ECS_ENTITY_DECLARE(EgFsFiles);
+extern ECS_ENTITY_DECLARE(EgFsSockets);
 extern ECS_ENTITY_DECLARE(EgFsDescriptors);
 extern ECS_ENTITY_DECLARE(EgFsEventOpen);
 extern ECS_ENTITY_DECLARE(EgFsEventModify);
 extern ECS_ENTITY_DECLARE(EgFsDump);
 
 void EgFsImport(ecs_world_t *world);
+
+ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path);
 
 #ifdef __cplusplus
 }

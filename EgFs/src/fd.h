@@ -72,6 +72,15 @@ The following system calls are used with this API:
 #define FD_IN_ONESHOT       0x80000000                          /* Only send event once.  */
 #define FD_IN_ALL_EVENTS    (FD_IN_ACCESS | FD_IN_MODIFY | FD_IN_ATTRIB | FD_IN_CLOSE_WRITE | FD_IN_CLOSE_NOWRITE | FD_IN_OPEN | FD_IN_MOVED_FROM | FD_IN_MOVED_TO | FD_IN_CREATE | FD_IN_DELETE | FD_IN_DELETE_SELF | FD_IN_MOVE_SELF)
 
+typedef struct
+{
+	int wd;              /* Watch descriptor.  */
+	uint32_t mask;       /* Watch mask.  */
+	uint32_t cookie;     /* Cookie to synchronize two events.  */
+	uint32_t len;        /* Length (including NULs) of name.  */
+	char name __flexarr; /* Name.  */
+} fd_inotify_event;
+
 int fd_inotify_init1();
 
 int fd_inotify_add(int fd, char const *path, uint32_t mask);
@@ -170,8 +179,6 @@ int fd_epoll_rm(int epoll_fd, int fd);
 void fd_epoll_ecs_wait(ecs_world_t *world, int epoll_fd, const ecs_map_t *map, ecs_id_t component, size_t size, const void *ptr);
 
 int fd_create_udp_socket(const char *ip, int port);
-
-char *load_from_file(const char *filename, size_t *size);
 
 int test_inotify(char *path);
 

@@ -106,9 +106,14 @@ static void EgGlslang_create(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++g) {
 		ecs_entity_t e = it->entities[i];
 		char const *name = ecs_get_name(world, e);
-		char const *code = ecs_vec_first_t(&c->buf, char);
+		char const *code = c->data;
+		if (code == NULL) {
+			ecs_err("EgGlslang: No code found");
+			ecs_enable(world, e, false);
+			continue;
+		}
 		ecs_vec_t bin = compileShaderToSPIRV_Vulkan(g->dummy, code, name);
-		ecs_set(world, e, EgFsContent, {bin});
+		//ecs_set(world, e, EgFsContent, {bin});
 	}
 }
 
@@ -137,6 +142,7 @@ void EgGlslangImport(ecs_world_t *world)
 
 	glslang_initialize_process();
 
+	/*
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "EgGlslang_create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
@@ -147,4 +153,5 @@ void EgGlslangImport(ecs_world_t *world)
 	{.id = EgFsEof, .trav = EcsDependsOn, .src.id = EcsUp},
 	{.id = ecs_id(EgFsContent), .oper = EcsNot}, // Creates this
 	}});
+	*/
 }

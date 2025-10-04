@@ -316,33 +316,7 @@ void displayInotifyEvent(struct inotify_event *i)
 		printf("        name = %s\n", i->name);
 }
 
-void fd_handle_inotify_events(ecs_world_t *world, ecs_entity_t event, ecs_entity_t parent, uint32_t mask, ecs_map_t *map, char *buffer, int len)
-{
-	struct inotify_event *i;
-	for (char *p = buffer; p < buffer + len; p += sizeof(struct inotify_event) + i->len) {
-		i = (struct inotify_event *)p;
-		if (i->len <= 0) {
-			continue;
-		}
-		if ((i->mask & mask) == 0) {
-			continue;
-		}
-		// displayInotifyEvent(i);
-		ecs_entity_t *e = ecs_map_get(map, i->wd);
-		if (e == NULL) {
-			continue;
-		}
-		EgFsWatch const *w = ecs_get(world, *e, EgFsWatch);
-		char const *parent_path = ecs_get_name(world, w->epath);
 
-		// ecs_get_path_w_sep(world, 0, w->file, NULL); a a
-		char fullpath[1024];
-		snprintf(fullpath, sizeof(fullpath), "%s/%s", parent_path, i->name);
-		printf("fullpath = '%s'\n", fullpath);
-		ecs_entity_t e1 = ecs_entity_init(world, &(ecs_entity_desc_t){.name = fullpath, .sep = "/", .parent = parent});
-		ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = e1});
-	}
-}
 
 int fd_create_udp_socket(const char *ip, int port)
 {
@@ -392,50 +366,9 @@ void fd_udp_test_recv_send(int sockfd)
 	(struct sockaddr *)&cliaddr, len);
 }
 
-char *load_from_file(const char *filename, size_t *size)
-{
-	FILE *file;
-	char *content = NULL;
-	int32_t bytes;
 
-	/* Open file for reading */
-	ecs_os_fopen(&file, filename, "r");
-	if (!file) {
-		ecs_err("%s (%s)", ecs_os_strerror(errno), filename);
-		goto error;
-	}
 
-	/* Determine file size */
-	fseek(file, 0, SEEK_END);
-	bytes = (int32_t)ftell(file);
-	if (bytes == -1) {
-		goto error;
-	}
-	fseek(file, 0, SEEK_SET);
-
-	/* Load contents in memory */
-	content = ecs_os_malloc(bytes + 1);
-	*size = (size_t)bytes;
-	if (!(*size = fread(content, 1, *size, file)) && bytes) {
-		ecs_err("%s: read zero bytes instead of %d", filename, *size);
-		ecs_os_free(content);
-		content = NULL;
-		goto error;
-	} else {
-		content[*size] = '\0';
-	}
-
-	fclose(file);
-
-	return content;
-error:
-	if (file) {
-		fclose(file);
-	}
-	ecs_os_free(content);
-	return NULL;
-}
-
+/*
 #define EVENT_BUF_LEN (1024 * (sizeof(struct inotify_event) + 16))
 #define MAX_EVENTS1   10
 int test_inotify(char *path)
@@ -512,3 +445,4 @@ int test_inotify(char *path)
 	close(inotify_fd);
 	return EXIT_SUCCESS;
 }
+*/

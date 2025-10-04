@@ -36,9 +36,6 @@ static void Observer_inotify_ctl(ecs_iter_t *it)
 	EgFsFd *y = ecs_field(it, EgFsFd, 1);                       // shared, inotify fd
 	EgFsInotifyCreate *c = ecs_field(it, EgFsInotifyCreate, 2); // shared
 	ecs_entity_t parent = ecs_field_src(it, 1);
-	ecs_trace("Observer_inotify_ctl event %s. parent '%s'", it->event == EcsOnSet ? "EcsOnSet" : it->event == EcsOnRemove ? "EcsOnRemove"
-	                                                                                                                      : "UNKNOWN",
-	ecs_get_name(world, parent));
 	for (int i = 0; i < it->count; ++i, ++w) {
 		ecs_entity_t e = it->entities[i];
 		char path[1024];
@@ -64,6 +61,47 @@ static void Observer_inotify_ctl(ecs_iter_t *it)
 	ecs_log_set_level(-1);
 }
 
+void handle_events(ecs_world_t *world, ecs_map_t *map, char *buffer, int len)
+{
+	uint32_t mask = FD_IN_MODIFY;
+	fd_inotify_event *i;
+	for (char *p = buffer; p < buffer + len; p += sizeof(fd_inotify_event) + i->len) {
+		i = (fd_inotify_event *)p;
+		if (i->len <= 0) {
+			continue;
+		}
+		if ((i->mask & mask) == 0) {
+			continue;
+		}
+		// displayInotifyEvent(i);
+		ecs_entity_t *e = ecs_map_get(map, i->wd);
+		if (e == NULL) {
+			continue;
+		}
+		EgFsWatch const *w = ecs_get(world, *e, EgFsWatch);
+		if (w == NULL) {
+			continue;
+		}
+		if (w->epath == 0) {
+			continue;
+		}
+		char const *parent_path = ecs_get_name(world, w->epath);
+
+		char fullpath[1024];
+		snprintf(fullpath, sizeof(fullpath), "./%s/%s", parent_path, i->name);
+		printf("fullpath = '%s'\n", fullpath);
+
+		ecs_entity_t e1 = EgFs_create_path_entity(world, fullpath);
+		if (e1 == 0) {
+			continue;
+		}
+
+		if (i->mask & FD_IN_MODIFY) {
+			ecs_enqueue(world, &(ecs_event_desc_t){.event = EgFsEventModify, .entity = e1});
+		}
+	}
+}
+
 static void System_Read(ecs_iter_t *it)
 {
 	ecs_log_set_level(-1);
@@ -83,7 +121,7 @@ static void System_Read(ecs_iter_t *it)
 			ecs_enable(world, e, false);
 			return;
 		}
-		fd_handle_inotify_events(world, EgFsEventModify, EgFsCwd, FD_IN_MODIFY, &c->map, buf, len);
+		handle_events(world, &c->map, buf, len);
 		ecs_remove(world, e, EgFsReady);
 	}
 	ecs_log_set_level(-1);
@@ -147,7 +185,7 @@ void EgFsInotifyImport(ecs_world_t *world)
 	ecs_doc_set_detail(world, ecs_id(EgFsInotifyCreate), "Component that keeps track of inotify watches. ");
 
 	ecs_log_set_level(0);
-	//test_inotify("./config");
+	// test_inotify("./config");
 	ecs_log_set_level(-1);
 
 	ecs_observer_init(world,
