@@ -5,25 +5,17 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/fanotify.h>
 #include <sys/inotify.h>
-#include <unistd.h>
-#include <sys/epoll.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-#include "EgFs.h"
 
 /*
 https://wiki.libsdl.org/SDL3/SDL_ReadIO
@@ -316,33 +308,28 @@ void displayInotifyEvent(struct inotify_event *i)
 		printf("        name = %s\n", i->name);
 }
 
-
-
 int fd_create_udp_socket(const char *ip, int port)
 {
-	int sockfd = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0);
-	if (sockfd < 0) {
+	int s = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0);
+	if (s < 0) {
 		perror("socket");
-		return sockfd;
+		return s;
 	}
-
-	struct sockaddr_in servaddr;
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
+	struct sockaddr_in a;
+	memset(&a, 0, sizeof(a));
+	a.sin_family = AF_INET;
 	if (ip == NULL) {
-		servaddr.sin_addr.s_addr = INADDR_ANY;
+		a.sin_addr.s_addr = INADDR_ANY;
 	} else {
-		servaddr.sin_addr.s_addr = inet_addr(ip);
+		a.sin_addr.s_addr = inet_addr(ip);
 	}
-	servaddr.sin_port = htons(port);
-
-	if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
+	a.sin_port = htons(port);
+	if (bind(s, (const struct sockaddr *)&a, sizeof(a)) < 0) {
 		perror("bind");
-		close(sockfd);
+		close(s);
 		return -1;
 	}
-
-	return sockfd;
+	return s;
 }
 
 #define BUF_SIZE 1024
@@ -366,83 +353,81 @@ void fd_udp_test_recv_send(int sockfd)
 	(struct sockaddr *)&cliaddr, len);
 }
 
-
-
 /*
 #define EVENT_BUF_LEN (1024 * (sizeof(struct inotify_event) + 16))
 #define MAX_EVENTS1   10
 int test_inotify(char *path)
 {
 
-	int inotify_fd = fd_inotify_init1();
-	if (inotify_fd < 0) {
-		perror("inotify_init1");
-		return EXIT_FAILURE;
-	}
+    int inotify_fd = fd_inotify_init1();
+    if (inotify_fd < 0) {
+        perror("inotify_init1");
+        return EXIT_FAILURE;
+    }
 
-	int wd = fd_inotify_add(inotify_fd, path, IN_ALL_EVENTS);
-	if (wd < 0) {
-		perror("inotify_add_watch");
-		close(inotify_fd);
-		return EXIT_FAILURE;
-	}
+    int wd = fd_inotify_add(inotify_fd, path, IN_ALL_EVENTS);
+    if (wd < 0) {
+        perror("inotify_add_watch");
+        close(inotify_fd);
+        return EXIT_FAILURE;
+    }
 
-	int epoll_fd = fd_epoll_create();
-	if (epoll_fd < 0) {
-		perror("epoll_create1");
-		close(inotify_fd);
-		return EXIT_FAILURE;
-	}
+    int epoll_fd = fd_epoll_create();
+    if (epoll_fd < 0) {
+        perror("epoll_create1");
+        close(inotify_fd);
+        return EXIT_FAILURE;
+    }
 
-	struct epoll_event events[MAX_EVENTS1];
+    struct epoll_event events[MAX_EVENTS1];
 
-	int ctl_ret = fd_epoll_add(epoll_fd, inotify_fd);
-	if (ctl_ret < 0) {
-		perror("epoll_ctl");
-		close(epoll_fd);
-		close(inotify_fd);
-		return EXIT_FAILURE;
-	}
+    int ctl_ret = fd_epoll_add(epoll_fd, inotify_fd);
+    if (ctl_ret < 0) {
+        perror("epoll_ctl");
+        close(epoll_fd);
+        close(inotify_fd);
+        return EXIT_FAILURE;
+    }
 
-	printf("Watching '%s'. Press Ctrl+C to exit.\n", path);
-	char buf[EVENT_BUF_LEN];
+    printf("Watching '%s'. Press Ctrl+C to exit.\n", path);
+    char buf[EVENT_BUF_LEN];
 
-	while (1) {
-		int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
-		printf("epoll_wait(epoll_fd=%d, events, MAX_EVENTS=%d, -1) = %d\n", epoll_fd, MAX_EVENTS, nfds);
-		if (nfds < 0) {
-			if (errno == EINTR)
-				continue;
-			perror("epoll_wait");
-			break;
-		}
+    while (1) {
+        int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+        printf("epoll_wait(epoll_fd=%d, events, MAX_EVENTS=%d, -1) = %d\n", epoll_fd, MAX_EVENTS, nfds);
+        if (nfds < 0) {
+            if (errno == EINTR)
+                continue;
+            perror("epoll_wait");
+            break;
+        }
 
-		for (int i = 0; i < nfds; ++i) {
-			if (events[i].data.fd == inotify_fd) {
-				ssize_t len = fd_read(inotify_fd, buf, sizeof(buf));
-				printf("read(inotify_fd=%d, buf, sizeof(buf)=%zu) = %zd\n", inotify_fd, sizeof(buf), len);
-				if (len < 0 && errno != EAGAIN) {
-					perror("read");
-					break;
-				}
+        for (int i = 0; i < nfds; ++i) {
+            if (events[i].data.fd == inotify_fd) {
+                ssize_t len = fd_read(inotify_fd, buf, sizeof(buf));
+                printf("read(inotify_fd=%d, buf, sizeof(buf)=%zu) = %zd\n", inotify_fd, sizeof(buf), len);
+                if (len < 0 && errno != EAGAIN) {
+                    perror("read");
+                    break;
+                }
 
-				ssize_t j = 0;
-				while (j < len) {
-					struct inotify_event *event = (struct inotify_event *)&buf[j];
-					printf("Event: wd=%d mask=0x%x cookie=%u len=%u", event->wd, event->mask, event->cookie, event->len);
-					if (event->len)
-						printf(" name=%s", event->name);
-					printf("\n");
-					j += sizeof(struct inotify_event) + event->len;
-				}
-			}
-		}
-	}
+                ssize_t j = 0;
+                while (j < len) {
+                    struct inotify_event *event = (struct inotify_event *)&buf[j];
+                    printf("Event: wd=%d mask=0x%x cookie=%u len=%u", event->wd, event->mask, event->cookie, event->len);
+                    if (event->len)
+                        printf(" name=%s", event->name);
+                    printf("\n");
+                    j += sizeof(struct inotify_event) + event->len;
+                }
+            }
+        }
+    }
 
-	printf("close(epoll_fd=%d)\n", epoll_fd);
-	close(epoll_fd);
-	printf("close(inotify_fd=%d)\n", inotify_fd);
-	close(inotify_fd);
-	return EXIT_SUCCESS;
+    printf("close(epoll_fd=%d)\n", epoll_fd);
+    close(epoll_fd);
+    printf("close(inotify_fd=%d)\n", inotify_fd);
+    close(inotify_fd);
+    return EXIT_SUCCESS;
 }
 */

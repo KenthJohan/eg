@@ -35,7 +35,7 @@ static void Observer_inotify_ctl(ecs_iter_t *it)
 	EgFsWatch *w = ecs_field(it, EgFsWatch, 0);                 // self, string path
 	EgFsFd *y = ecs_field(it, EgFsFd, 1);                       // shared, inotify fd
 	EgFsInotifyCreate *c = ecs_field(it, EgFsInotifyCreate, 2); // shared
-	ecs_entity_t parent = ecs_field_src(it, 1);
+	// ecs_entity_t parent = ecs_field_src(it, 1);
 	for (int i = 0; i < it->count; ++i, ++w) {
 		ecs_entity_t e = it->entities[i];
 		char path[1024];
@@ -74,11 +74,11 @@ void handle_events(ecs_world_t *world, ecs_map_t *map, char *buffer, int len)
 			continue;
 		}
 		// displayInotifyEvent(i);
-		ecs_entity_t *e = ecs_map_get(map, i->wd);
-		if (e == NULL) {
+		ecs_entity_t *ew = ecs_map_get(map, i->wd);
+		if (ew == NULL) {
 			continue;
 		}
-		EgFsWatch const *w = ecs_get(world, *e, EgFsWatch);
+		EgFsWatch const *w = ecs_get(world, *ew, EgFsWatch);
 		if (w == NULL) {
 			continue;
 		}
@@ -91,13 +91,18 @@ void handle_events(ecs_world_t *world, ecs_map_t *map, char *buffer, int len)
 		snprintf(fullpath, sizeof(fullpath), "./%s/%s", parent_path, i->name);
 		printf("fullpath = '%s'\n", fullpath);
 
-		ecs_entity_t e1 = EgFs_create_path_entity(world, fullpath);
-		if (e1 == 0) {
+		ecs_entity_t e = EgFs_create_path_entity(world, fullpath);
+		if (e == 0) {
 			continue;
 		}
 
 		if (i->mask & FD_IN_MODIFY) {
-			ecs_enqueue(world, &(ecs_event_desc_t){.event = EgFsEventModify, .entity = e1});
+			ecs_enqueue(world,
+			&(ecs_event_desc_t){
+			.event = EgFsEventModify,
+			.entity = e,
+			.ids = &(ecs_type_t){(ecs_id_t[]){EgFsFile}, 1},
+			});
 		}
 	}
 }

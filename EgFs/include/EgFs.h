@@ -37,7 +37,7 @@ extern ECS_COMPONENT_DECLARE(EgFsContent);
 extern ECS_COMPONENT_DECLARE(EgFsContent);
 
 extern ECS_ENTITY_DECLARE(EgFs);
-extern ECS_ENTITY_DECLARE(EgFsPath);
+extern ECS_ENTITY_DECLARE(EgFsDir);
 extern ECS_ENTITY_DECLARE(EgFsFile);
 extern ECS_ENTITY_DECLARE(EgFsRoot);
 extern ECS_ENTITY_DECLARE(EgFsCwd);

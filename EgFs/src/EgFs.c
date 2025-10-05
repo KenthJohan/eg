@@ -11,7 +11,7 @@ ECS_COMPONENT_DECLARE(EgFsContent);
 
 ECS_ENTITY_DECLARE(EgFs);
 ECS_ENTITY_DECLARE(EgFsFile);
-ECS_ENTITY_DECLARE(EgFsPath);
+ECS_ENTITY_DECLARE(EgFsDir);
 ECS_ENTITY_DECLARE(EgFsRoot);
 ECS_ENTITY_DECLARE(EgFsCwd);
 ECS_ENTITY_DECLARE(EgFsSockets);
@@ -104,8 +104,8 @@ ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 	ecs_id_t f = 0;
 	if (flags & FS_PATH_FILE) {
 		f = ecs_id(EgFsFile);
-	} else if (flags & FS_PATH_FOLDER) {
-		f = ecs_id(EgFsPath);
+	} else if (flags & FS_PATH_DIR) {
+		f = ecs_id(EgFsDir);
 	} else {
 		return 0;
 	}
@@ -247,7 +247,7 @@ void EgFsImport(ecs_world_t *world)
 	ECS_ENTITY_DEFINE(world, EgFsEventModify);
 	ECS_ENTITY_DEFINE(world, EgFsDump);
 	ECS_ENTITY_DEFINE(world, EgFsFile);
-	ECS_ENTITY_DEFINE(world, EgFsPath);
+	ECS_ENTITY_DEFINE(world, EgFsDir);
 
 	ecs_set_hooks_id(world, ecs_id(EgFsFd),
 	&(ecs_type_hooks_t){
@@ -288,11 +288,11 @@ void EgFsImport(ecs_world_t *world)
 	{
 		ecs_entity_t m = ecs_function_init(world,
 		&(ecs_function_desc_t){
-		.name = "new",
+		.name = "path1",
 		.return_type = ecs_id(ecs_entity_t),
-		.params = {{.name = "path", .type = ecs_id(ecs_string_t)}},
+		.params = {{.name = "name", .type = ecs_id(ecs_string_t)}},
 		.callback = callback_newpath});
-		ecs_doc_set_brief(world, m, "Lookup child by name");
+		ecs_doc_set_brief(world, m, "Lookup child by name11");
 	}
 
 	ecs_observer_init(world,
@@ -310,7 +310,7 @@ void EgFsImport(ecs_world_t *world)
 	.callback = Observer_OnModify,
 	.events = {EgFsEventModify},
 	.query.terms = {
-	{.id = EcsAny},
+	{.id = EgFsFile},
 	}});
 
 	ecs_system_init(world,
@@ -332,14 +332,4 @@ void EgFsImport(ecs_world_t *world)
 	{.id = EgFsDump, .src.id = EcsSelf},
 	}});
 
-	/*
-
-ecs_pair(ecs_id(EcsIdentifier), EcsName)
-
-	ecs_entity_t e1 = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = "a", .sep = "/" });
-	ecs_entity_t e33 = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = "a.c", .sep = "/" });
-	ecs_entity_t e2 = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = "a/b", .sep = "/" });
-	ecs_entity_t e3 = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = "a/a<>", .sep = "/" });
-	ecs_entity_t e4 = ecs_entity_init(world, &(ecs_entity_desc_t){ .name = "a/a<>/banana.sasd", .sep = "/" });
-	*/
 }

@@ -16,7 +16,7 @@ uint32_t fs_get_path_flags(const char *path)
 	if (S_ISREG(path_stat.st_mode)) {
 		return FS_PATH_FILE;
 	} else if (S_ISDIR(path_stat.st_mode)) {
-		return FS_PATH_FOLDER;
+		return FS_PATH_DIR;
 	} else {
 		return FS_PATH_OTHER;
 	}
