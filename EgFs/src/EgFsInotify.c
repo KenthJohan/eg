@@ -39,7 +39,7 @@ static void Observer_inotify_ctl(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++w) {
 		ecs_entity_t e = it->entities[i];
 		char path[1024];
-		get_entity_path(world, w->epath, path, sizeof(path));
+		get_entity_path(world, w->path1, path, sizeof(path));
 		int rv = 0;
 		if (it->event == EcsOnRemove) {
 			rv = fd_inotify_rm(y->fd, w->fd);
@@ -82,18 +82,21 @@ void handle_events(ecs_world_t *world, ecs_map_t *map, char *buffer, int len)
 		if (w == NULL) {
 			continue;
 		}
-		if (w->epath == 0) {
+		if (w->path1 == 0) {
 			continue;
 		}
-		char const *parent_path = ecs_get_name(world, w->epath);
+		char const *parent_path = ecs_get_name(world, w->path1);
 
 		char fullpath[1024];
 		snprintf(fullpath, sizeof(fullpath), "./%s/%s", parent_path, i->name);
-		printf("fullpath = '%s'\n", fullpath);
+		ecs_trace("fullpath = '%s'\n", fullpath);
 
 		ecs_entity_t e = EgFs_create_path_entity(world, fullpath);
 		if (e == 0) {
 			continue;
+		}
+		if (w->prefab) {
+			ecs_add_pair(world, e, EcsIsA, w->prefab);
 		}
 
 		if (i->mask & FD_IN_MODIFY) {

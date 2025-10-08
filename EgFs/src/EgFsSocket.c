@@ -11,7 +11,7 @@ static void System_Create_Socket_Udp(ecs_iter_t *it)
 	EgFsSocketCreate *y = ecs_field(it, EgFsSocketCreate, 0); // self
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
-		char *name = ecs_get_name(world, y->path);
+		char const *name = ecs_get_name(world, y->path1);
 		ecs_trace("System_Create_Socket_Udp for entity '%s' path='%s'", ecs_get_name(world, e), name);
 		(void)e;
 
@@ -54,7 +54,7 @@ void EgFsSocketImport(ecs_world_t *world)
 	&(ecs_struct_desc_t){
 	.entity = ecs_id(EgFsSocketCreate),
 	.members = {
-	{.name = "path", .type = ecs_id(ecs_entity_t)},
+	{.name = "path1", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_system_init(world,

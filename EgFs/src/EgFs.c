@@ -175,9 +175,16 @@ static void Observer_OnModify(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	// EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
+	EgFsContent *c = ecs_field(it, EgFsContent, 1); // self
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
+		if (c[i].data) {
+			// Free previous content
+			ecs_trace("free %i bytes previous EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
+			ecs_os_free(c[i].data);
+			c[i].data = NULL;
+			c[i].size = 0;
+		}
 		size_t size = 0;
 		void *content = NULL;
 		char *path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./"); // Allocates
@@ -189,7 +196,11 @@ static void Observer_OnModify(ecs_iter_t *it)
 		if (!content) {
 			ecs_err("failed to load file for entity '%s'", ecs_get_name(world, e));
 		} else {
-			ecs_set(world, e, EgFsContent, {content, (uint32_t)size});
+			c[i].data = content;
+			c[i].size = (uint32_t)size;
+			ecs_trace("loaded %u bytes into EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
+			// Add EgFsDump to dump content in System_Dump
+			// ecs_add(world, e, EgFsDump);
 		}
 	}
 	ecs_log_set_level(-1);
@@ -274,7 +285,8 @@ void EgFsImport(ecs_world_t *world)
 	.entity = ecs_id(EgFsWatch),
 	.members = {
 	{.name = "fd", .type = ecs_id(ecs_i32_t)},
-	{.name = "path", .type = ecs_id(ecs_entity_t)},
+	{.name = "path1", .type = ecs_id(ecs_entity_t)},
+	{.name = "prefab", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_struct_init(world,
@@ -311,6 +323,7 @@ void EgFsImport(ecs_world_t *world)
 	.events = {EgFsEventModify},
 	.query.terms = {
 	{.id = EgFsFile},
+	{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter}
 	}});
 
 	ecs_system_init(world,
