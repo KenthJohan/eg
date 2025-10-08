@@ -7,6 +7,7 @@ https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4
 https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/test/testautomation_iostream.c#L477
 */
 
+#include "EgShadercross.h"
 #include "EgFs.h"
 
 #include <stdlib.h>
@@ -20,6 +21,8 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #include <ecsx.h>
 #include <egmisc.h>
 
+
+
 void EgShadercrossImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgShadercross);
@@ -30,4 +33,7 @@ void EgShadercrossImport(ecs_world_t *world)
 		ecs_err("Failed to initialize SDL_ShaderCross");
 		return;
 	}
+
+
+
 }

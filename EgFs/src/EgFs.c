@@ -199,6 +199,12 @@ static void Observer_OnModify(ecs_iter_t *it)
 			c[i].data = content;
 			c[i].size = (uint32_t)size;
 			ecs_trace("loaded %u bytes into EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
+			ecs_enqueue(world,
+			&(ecs_event_desc_t){
+			.event = ecs_id(EgFsContent),
+			.entity = e,
+			.ids = &(ecs_type_t){(ecs_id_t[]){ecs_id(EgFsContent)}, 1},
+			});
 			// Add EgFsDump to dump content in System_Dump
 			// ecs_add(world, e, EgFsDump);
 		}

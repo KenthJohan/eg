@@ -5,6 +5,22 @@ https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4
 https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4289d/include/flecs/datastructures/vec.h
 https://github.com/SanderMertens/flecs/blob/733591da5682cea01857ecf2316ff6a635f4289d/src/addons/alerts.c#L39
 https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/test/testautomation_iostream.c#L477
+
+
+
+
+Required libs: -lglslang -lSPIRV-Tools -lSPIRV-Tools-opt
+"glslang-default-resource-limits",
+"glslang",
+"SPIRV-Tools-opt",
+"SPIRV-Tools",
+"stdc++",
+
+
+
+
+
+
 */
 
 #include "EgGlslang.h"
@@ -47,7 +63,6 @@ ecs_vec_t compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *shaderS
 	};
 
 	glslang_shader_t *shader = glslang_shader_create(&input);
-
 
 	ecs_vec_t bin = {NULL, 0};
 	if (!glslang_shader_preprocess(shader, &input)) {
@@ -97,23 +112,39 @@ ecs_vec_t compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *shaderS
 	return bin;
 }
 
+
+
+static void Observer_OnModify(ecs_iter_t *it)
+{
+	ecs_log_set_level(0);
+	ecs_world_t *world = it->world;
+	EgFsContent *c = ecs_field(it, EgFsContent, 0); // self
+	for (int i = 0; i < it->count; ++i) {
+		ecs_entity_t e = it->entities[i];
+	}
+	ecs_log_set_level(-1);
+}
+
+
 static void EgGlslang_create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgGlslangCreate *g = ecs_field(it, EgGlslangCreate, 0); // self
-	EgFsContent *c = ecs_field(it, EgFsContent, 1);         // shared
 
 	for (int i = 0; i < it->count; ++i, ++g) {
 		ecs_entity_t e = it->entities[i];
-		char const *name = ecs_get_name(world, e);
-		char const *code = c->data;
-		if (code == NULL) {
-			ecs_err("EgGlslang: No code found");
-			ecs_enable(world, e, false);
-			continue;
-		}
-		ecs_vec_t bin = compileShaderToSPIRV_Vulkan(g->dummy, code, name);
-		//ecs_set(world, e, EgFsContent, {bin});
+		ecs_add(world, e, EgGlslangProgram);
+
+		ecs_observer_init(it->real_world,
+		&(ecs_observer_desc_t){
+		.entity = ecs_entity(it->real_world, {.parent = e}),
+		.callback = Observer_OnModify,
+		.events = {ecs_id(EgFsContent)},
+		.query.terms = {
+		{.id = ecs_id(EgFsContent), .src.id = g[i].path1},
+		//{.id = ecs_id(EgGlslangProgram), .inout = EcsInOutFilter},
+	}});
+
 	}
 }
 
@@ -137,21 +168,21 @@ void EgGlslangImport(ecs_world_t *world)
 	&(ecs_struct_desc_t){
 	.entity = ecs_id(EgGlslangCreate),
 	.members = {
-	{.name = "dummy", .type = ecs_id(ecs_i32_t)},
+	{.name = "path1", .type = ecs_id(ecs_entity_t)},
+	{.name = "stage", .type = ecs_id(ecs_i32_t)}, // 0=vert, 4=frag, ...
 	}});
 
 	glslang_initialize_process();
 
-	/*
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "EgGlslang_create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = EgGlslang_create,
+	.immediate = true,
 	.query.terms = {
 	{.id = ecs_id(EgGlslangCreate)},
-	{.id = ecs_id(EgFsContent), .trav = EcsDependsOn, .src.id = EcsUp, .inout = EcsIn},
-	{.id = EgFsEof, .trav = EcsDependsOn, .src.id = EcsUp},
-	{.id = ecs_id(EgFsContent), .oper = EcsNot}, // Creates this
+	{.id = ecs_id(EgGlslangProgram), .oper = EcsNot}, // Creates this
 	}});
-	*/
+
+
 }
