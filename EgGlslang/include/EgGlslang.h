@@ -4,7 +4,6 @@
 
 typedef struct
 {
-	ecs_entity_t path1;
 	ecs_i32_t stage; // 0=vert, 4=frag, ...
 } EgGlslangCreate;
 

@@ -173,10 +173,17 @@ static void Observer_OnOpen(ecs_iter_t *it)
 
 static void Observer_OnModify_extra(ecs_world_t * world, ecs_entity_t e)
 {
-    ecs_iter_t it = ecs_each_id(world, ecs_pair(EgFsEventModify, e));
+	ecs_id_t comp = ecs_pair(EgFsEventModify, e);
+    ecs_iter_t it = ecs_each_id(world, comp);
     while (ecs_each_next(&it)) {
         for (int i = 0; i < it.count; i ++) {
             printf("%s\n", ecs_get_name(world, it.entities[i]));
+			ecs_enqueue(world,
+			&(ecs_event_desc_t){
+			.event = EgFsEventModify,
+			.entity = it.entities[i],
+			.ids = &(ecs_type_t){(ecs_id_t[]){}, 0},
+			});
         }
     }
 }
@@ -209,12 +216,6 @@ static void Observer_OnModify(ecs_iter_t *it)
 			c[i].data = content;
 			c[i].size = (uint32_t)size;
 			ecs_trace("loaded %u bytes into EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
-			ecs_enqueue(world,
-			&(ecs_event_desc_t){
-			.event = ecs_id(EgFsContent),
-			.entity = e,
-			.ids = &(ecs_type_t){(ecs_id_t[]){ecs_id(EgFsContent)}, 1},
-			});
 			Observer_OnModify_extra(world, e);
 			// Add EgFsDump to dump content in System_Dump
 			// ecs_add(world, e, EgFsDump);
