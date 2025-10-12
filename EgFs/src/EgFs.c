@@ -171,6 +171,16 @@ static void Observer_OnOpen(ecs_iter_t *it)
 	ecs_log_set_level(-1);
 }
 
+static void Observer_OnModify_extra(ecs_world_t * world, ecs_entity_t e)
+{
+    ecs_iter_t it = ecs_each_id(world, ecs_pair(EgFsEventModify, e));
+    while (ecs_each_next(&it)) {
+        for (int i = 0; i < it.count; i ++) {
+            printf("%s\n", ecs_get_name(world, it.entities[i]));
+        }
+    }
+}
+
 static void Observer_OnModify(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
@@ -205,6 +215,7 @@ static void Observer_OnModify(ecs_iter_t *it)
 			.entity = e,
 			.ids = &(ecs_type_t){(ecs_id_t[]){ecs_id(EgFsContent)}, 1},
 			});
+			Observer_OnModify_extra(world, e);
 			// Add EgFsDump to dump content in System_Dump
 			// ecs_add(world, e, EgFsDump);
 		}
@@ -329,14 +340,14 @@ void EgFsImport(ecs_world_t *world)
 	.events = {EgFsEventModify},
 	.query.terms = {
 	{.id = EgFsFile},
-	{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter}}});
+	{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter},
+	}});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "System_Dump", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_Dump,
-	.query.terms =
-	{
+	.query.terms = {
 	{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
 	{.id = EgFsDump, .src.id = EcsSelf},
 	}});
@@ -345,8 +356,7 @@ void EgFsImport(ecs_world_t *world)
 	&(ecs_system_desc_t){
 	.entity = ecs_entity(world, {.name = "System_Dump1", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_Dump1,
-	.query.terms =
-	{
+	.query.terms = {
 	{.id = EgFsDump, .src.id = EcsSelf},
 	}});
 }

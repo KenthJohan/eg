@@ -7,7 +7,10 @@ extern "C" {
 
 typedef struct {
 	ecs_map_t map;
+	int32_t mask; // Bitmask of events
 } EgFsInotifyCreate;
+
+
 
 extern ECS_COMPONENT_DECLARE(EgFsInotifyCreate);
 
