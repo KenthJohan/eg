@@ -12,6 +12,7 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #include "fd.h"
 
 ECS_COMPONENT_DECLARE(EgFsEpollCreate);
+ECS_COMPONENT_DECLARE(EgFsEpollEvent);
 
 /*
 The epoll API performs a similar task to poll(2): monitoring
@@ -37,7 +38,7 @@ ECS_MOVE(EgFsEpollCreate, dst, src, {
 
 #define MAX_EVENTS 10
 
-static void System_epoll(ecs_iter_t *it)
+static void System_wait_epoll(ecs_iter_t *it)
 {
 	ecs_log_set_level(-1);
 	ecs_world_t *world = it->world;
@@ -104,6 +105,14 @@ void EgFsEpollImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgFsEpoll");
 
 	ECS_COMPONENT_DEFINE(world, EgFsEpollCreate);
+	ECS_COMPONENT_DEFINE(world, EgFsEpollEvent);
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity = ecs_id(EgFsEpollEvent),
+	.members = {
+	{.name = "event", .type = ecs_id(ecs_i32_t)},
+	}});
 
 	ecs_set_hooks_id(world, ecs_id(EgFsEpollCreate),
 	&(ecs_type_hooks_t){
@@ -115,8 +124,8 @@ void EgFsEpollImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "System_epoll", .add = ecs_ids(ecs_dependson(EcsOnValidate))}),
-	.callback = System_epoll,
+	.entity = ecs_entity(world, {.name = "System_wait_epoll", .add = ecs_ids(ecs_dependson(EcsOnValidate))}),
+	.callback = System_wait_epoll,
 	.query.terms =
 	{
 	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsEpollCreate)), .src.id = EcsSelf},
@@ -142,5 +151,6 @@ void EgFsEpollImport(ecs_world_t *world)
 	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsEpollCreate)), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
 	{.id = ecs_id(EgFsEpollCreate), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
 	{.id = ecs_pair(ecs_id(EgFsFd), EcsWildcard), .src.id = EcsSelf},
+	{.id = ecs_id(EgFsEpollEvent), .src.id = EcsSelf, .inout = EcsInOutFilter},
 	}});
 }

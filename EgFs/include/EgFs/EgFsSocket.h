@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 typedef struct {
-  ecs_entity_t path1;
+	ecs_entity_t path1;
 } EgFsSocketCreate;
 
 extern ECS_COMPONENT_DECLARE(EgFsSocketCreate);

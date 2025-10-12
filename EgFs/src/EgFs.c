@@ -284,13 +284,13 @@ void EgFsImport(ecs_world_t *world)
 	&(ecs_struct_desc_t){
 	.entity = ecs_id(EgFsFd),
 	.members = {
-	{.name = "fd", .type = ecs_id(ecs_i32_t)}}});
+	{.name = "fd", .type = ecs_id(ecs_i32_t)},
+	}});
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
 	.entity = ecs_id(EgFsWatch),
 	.members = {
-	{.name = "fd", .type = ecs_id(ecs_i32_t)},
 	{.name = "path1", .type = ecs_id(ecs_entity_t)},
 	{.name = "prefab", .type = ecs_id(ecs_entity_t)},
 	}});
@@ -329,8 +329,7 @@ void EgFsImport(ecs_world_t *world)
 	.events = {EgFsEventModify},
 	.query.terms = {
 	{.id = EgFsFile},
-	{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter}
-	}});
+	{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter}}});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -350,5 +349,4 @@ void EgFsImport(ecs_world_t *world)
 	{
 	{.id = EgFsDump, .src.id = EcsSelf},
 	}});
-
 }

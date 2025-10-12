@@ -13,7 +13,6 @@ extern "C" {
 #endif
 
 typedef struct {
-	int32_t fd;
 	ecs_entity_t path1;
 	ecs_entity_t prefab;
 } EgFsWatch;

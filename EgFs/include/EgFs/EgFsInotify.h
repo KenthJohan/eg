@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 typedef struct {
-  ecs_map_t map;
+	ecs_map_t map;
 } EgFsInotifyCreate;
 
 extern ECS_COMPONENT_DECLARE(EgFsInotifyCreate);

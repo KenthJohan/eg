@@ -6,8 +6,12 @@ extern "C" {
 #endif
 
 typedef struct {
-  ecs_map_t map;
+	ecs_map_t map;
 } EgFsEpollCreate;
+
+typedef struct {
+	int32_t events; // Bitmask of events that occurred
+} EgFsEpollEvent;
 
 extern ECS_COMPONENT_DECLARE(EgFsEpollCreate);
 

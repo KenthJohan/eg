@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 typedef struct {
-  int fd;
+	int fd;
 } EgFsFanotifyFd;
 
 extern ECS_COMPONENT_DECLARE(EgFsFanotifyFd);
