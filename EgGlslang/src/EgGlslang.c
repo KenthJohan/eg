@@ -128,23 +128,18 @@ static void EgGlslang_create(ecs_iter_t *it)
 	}
 }
 
-static void Observer_OnModify(ecs_iter_t *it)
+static void System_OnModify(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
-	EgFsContent *g = ecs_field(it, EgFsContent, 0); // self
-	EgGlslangProgram *p = ecs_field(it, EgGlslangProgram, 1); // self
-
-
-
-	for (int i = 0; i < it->count; ++i, ++g, ++p) {
+	EgGlslangProgram *p = ecs_field(it, EgGlslangProgram, 0); // self
+	EgFsContent *g = ecs_field(it, EgFsContent, 1); // shared, up
+	for (int i = 0; i < it->count; ++i, ++p) {
 		ecs_entity_t e = it->entities[i];
-
+		ecs_remove(world, e, EgFsEventModify);
 		if (p == NULL) {
 			p = ecs_get_mut(world, e, EgGlslangProgram);
 		}
-
-		printf("Observer_OnModify: entity name: %s\n", ecs_get_name(world, e));
-
+		printf("System_OnModify: entity name: %s\n", ecs_get_name(world, e));
 		EgGlslangProgram program = compileShaderToSPIRV_Vulkan(GLSLANG_STAGE_VERTEX, g->data);
 		*p = program;
 	}
@@ -185,13 +180,13 @@ void EgGlslangImport(ecs_world_t *world)
 	{.id = ecs_id(EgGlslangProgram), .oper = EcsNot}, // Creates this
 	}});
 
-	ecs_observer_init(world,
-	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "Observer_OnModify", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Observer_OnModify,
-	.events = {EgFsEventModify},
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity = ecs_entity(world, {.name = "System_OnModify", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_OnModify,
 	.query.terms = {
-	//{.id = ecs_id(EgFsContent)},
-	//{.id = ecs_id(EgGlslangProgram), .inout = EcsInOutFilter, .oper = EcsOptional}, // Optional
+	{.id = ecs_id(EgGlslangProgram), .src.id = EcsSelf},
+	{.id = ecs_id(EgFsContent), .trav = EgFsEventModify, .src.id = EcsUp},
+	{.id = EgFsEventModify, .src.id = EcsSelf},
 	}});
 }

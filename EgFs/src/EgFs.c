@@ -178,12 +178,7 @@ static void Observer_OnModify_extra(ecs_world_t * world, ecs_entity_t e)
     while (ecs_each_next(&it)) {
         for (int i = 0; i < it.count; i ++) {
             printf("%s\n", ecs_get_name(world, it.entities[i]));
-			ecs_enqueue(world,
-			&(ecs_event_desc_t){
-			.event = EgFsEventModify,
-			.entity = it.entities[i],
-			.ids = &(ecs_type_t){(ecs_id_t[]){}, 0},
-			});
+			ecs_add(world, it.entities[i], EgFsEventModify);
         }
     }
 }
@@ -277,6 +272,10 @@ void EgFsImport(ecs_world_t *world)
 	ECS_ENTITY_DEFINE(world, EgFsDump);
 	ECS_ENTITY_DEFINE(world, EgFsFile);
 	ECS_ENTITY_DEFINE(world, EgFsDir);
+
+	ecs_add_id(world, EgFsEventModify, EcsTraversable);
+	ecs_add_id(world, EgFsEventOpen, EcsTraversable);
+
 
 	ecs_set_hooks_id(world, ecs_id(EgFsFd),
 	&(ecs_type_hooks_t){
