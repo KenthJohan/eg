@@ -10,6 +10,7 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #include "EgFs.h"
 #include "EgFs/EgFsFanotify.h"
 #include "fd.h"
+#include <ecsx.h>
 
 /*
 ECS_COMPONENT_DECLARE(EgFsFanotifyFd);

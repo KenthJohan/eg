@@ -1,6 +1,7 @@
 #include "EgFs.h"
 #include "EgFs/EgFsSocket.h"
 #include "fd.h"
+#include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgFsSocketCreate);
 
@@ -8,7 +9,7 @@ static void System_Create_Socket_Udp(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	EgFsSocketCreate *y = ecs_field(it, EgFsSocketCreate, 0); // self
+	EgFsSocketCreate *y = ecs_field_self(it, EgFsSocketCreate, 0); // self
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
 		char const *name = ecs_get_name(world, y->path1);
@@ -32,9 +33,9 @@ static void System_Recv(ecs_iter_t *it)
 {
 	ecs_log_set_level(-1);
 	ecs_world_t *world = it->world;
-	EgFsFd *y = ecs_field(it, EgFsFd, 0);                     // self
-	EgFsSocketCreate *c = ecs_field(it, EgFsSocketCreate, 1); // self
-	EgFsReady *r = ecs_field(it, EgFsReady, 2);               // self
+	EgFsFd *y = ecs_field_self(it, EgFsFd, 0);                     // self
+	EgFsSocketCreate *c = ecs_field_self(it, EgFsSocketCreate, 1); // self
+	EgFsReady *r = ecs_field_self(it, EgFsReady, 2);               // self
 	for (int i = 0; i < it->count; ++i, ++y, ++r, ++c) {
 		ecs_entity_t e = it->entities[i];
 		fd_udp_test_recv_send(y->fd);

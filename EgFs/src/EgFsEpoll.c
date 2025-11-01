@@ -10,7 +10,7 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #include "EgFs.h"
 #include "EgFs/EgFsEpoll.h"
 #include "fd.h"
-#include "ecsx.h"
+#include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgFsEpollCreate);
 ECS_COMPONENT_DECLARE(EgFsEpollEvent);
@@ -43,8 +43,8 @@ static void System_wait_epoll(ecs_iter_t *it)
 {
 	ecs_log_set_level(-1);
 	ecs_world_t *world = it->world;
-	EgFsFd *o = ecs_field(it, EgFsFd, 0);                   // self
-	EgFsEpollCreate *c = ecs_field(it, EgFsEpollCreate, 1); // self
+	EgFsFd *o = ecs_field_self(it, EgFsFd, 0);                   // self
+	EgFsEpollCreate *c = ecs_field_self(it, EgFsEpollCreate, 1); // self
 	for (int i = 0; i < it->count; ++i, ++o, ++c) {
 		fd_epoll_ecs_wait(world, o->fd, &c->map, ecs_id(EgFsReady), sizeof(EgFsReady), &(EgFsReady){0});
 	} // END FOR LOOP

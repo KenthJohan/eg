@@ -36,8 +36,8 @@ Required libs: -lglslang -lSPIRV-Tools -lSPIRV-Tools-opt
 #include <glslang/Public/resource_limits_c.h>
 #include <EgFs.h>
 
-#include <ecsx.h>
 #include <egmisc.h>
+#include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgGlslangCreate);
 ECS_COMPONENT_DECLARE(EgGlslangProgram);
@@ -120,7 +120,7 @@ EgGlslangProgram compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *
 static void EgGlslang_create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
-	EgGlslangCreate *g = ecs_field(it, EgGlslangCreate, 0); // self
+	EgGlslangCreate *g = ecs_field_self(it, EgGlslangCreate, 0); // self
 
 	for (int i = 0; i < it->count; ++i, ++g) {
 		ecs_entity_t e = it->entities[i];
@@ -131,8 +131,8 @@ static void EgGlslang_create(ecs_iter_t *it)
 static void System_OnModify(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
-	EgGlslangProgram *p = ecs_field(it, EgGlslangProgram, 0); // self
-	EgFsContent *g = ecs_field(it, EgFsContent, 1); // shared, up
+	EgGlslangProgram *p = ecs_field_self(it, EgGlslangProgram, 0); // self
+	EgFsContent *g = ecs_field_shared(it, EgFsContent, 1); // shared, up
 	for (int i = 0; i < it->count; ++i, ++p) {
 		ecs_entity_t e = it->entities[i];
 		ecs_remove(world, e, EgFsEventModify);
@@ -182,7 +182,7 @@ void EgGlslangImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "System_OnModify", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.entity = ecs_entity(world, {.name = "CompileShader", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_OnModify,
 	.query.terms = {
 	{.id = ecs_id(EgGlslangProgram), .src.id = EcsSelf},

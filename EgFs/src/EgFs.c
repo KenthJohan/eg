@@ -1,8 +1,9 @@
 #include "EgFs.h"
 #include "fd.h"
 #include "fs.h"
-#include <ecsx/ecsx_trace.h>
 #include <stdio.h>
+#include <ecsx/ecsx_trace.h>
+#include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgFsWatch);
 ECS_COMPONENT_DECLARE(EgFsFd);
@@ -223,7 +224,7 @@ static void System_Dump(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	EgFsContent *c = ecs_field(it, EgFsContent, 0);
+	EgFsContent *c = ecs_field_self(it, EgFsContent, 0);
 	(void)world;
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];

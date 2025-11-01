@@ -2,6 +2,7 @@
 #include "EgFs/EgFsInotify.h"
 #include "fd.h"
 #include <stdio.h>
+#include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgFsInotifyCreate);
 
@@ -32,15 +33,15 @@ static void Observer_watch_remove(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	EgFsFd *f = ecs_field(it, EgFsFd, 0);                       // self, out, string path
-	EgFsFd *y = ecs_field(it, EgFsFd, 2);                       // shared, inotify fd
+	EgFsFd *f = ecs_field_self(it, EgFsFd, 0);   // self, out, string path
+	EgFsFd *y = ecs_field_shared(it, EgFsFd, 2); // shared, inotify fd
 	// ecs_entity_t parent = ecs_field_src(it, 1);
 	for (int i = 0; i < it->count; ++i, ++f) {
 		ecs_entity_t e = it->entities[i];
 		int rv = 0;
 		rv = fd_inotify_rm(y->fd, f->fd);
 		if (rv < 0) {
-			ecs_enable(it->world, e, false);
+			ecs_enable(world, e, false);
 		}
 	} // END FOR LOOP
 	ecs_log_set_level(-1);
@@ -50,9 +51,9 @@ static void Observer_watch_set(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	EgFsWatch *w = ecs_field(it, EgFsWatch, 0);                 // self, in, string path
-	EgFsFd *y = ecs_field(it, EgFsFd, 1);                       // shared, inotify fd
-	EgFsInotifyCreate *c = ecs_field(it, EgFsInotifyCreate, 2); // shared
+	EgFsWatch *w = ecs_field_self(it, EgFsWatch, 0);                   // self, in, string path
+	EgFsFd *y = ecs_field_shared(it, EgFsFd, 1);                       // shared, inotify fd
+	EgFsInotifyCreate *c = ecs_field_shared(it, EgFsInotifyCreate, 2); // shared
 	// ecs_entity_t parent = ecs_field_src(it, 1);
 	for (int i = 0; i < it->count; ++i, ++w) {
 		ecs_entity_t e = it->entities[i];
@@ -70,7 +71,7 @@ static void Observer_watch_set(ecs_iter_t *it)
 		} else {
 			ecs_enable(it->world, e, false);
 		}
-		if (rv >=0) {
+		if (rv >= 0) {
 			ecs_set_pair(world, e, EgFsFd, ecs_id(EgFsWatch), {rv});
 			ecs_map_insert(&c->map, rv, e);
 		} else {
@@ -133,9 +134,9 @@ static void System_Read(ecs_iter_t *it)
 {
 	ecs_log_set_level(-1);
 	ecs_world_t *world = it->world;
-	EgFsFd *y = ecs_field(it, EgFsFd, 0);                       // self
-	EgFsInotifyCreate *c = ecs_field(it, EgFsInotifyCreate, 1); // self
-	EgFsReady *r = ecs_field(it, EgFsReady, 2);                 // self
+	EgFsFd *y = ecs_field_self(it, EgFsFd, 0);                       // self
+	EgFsInotifyCreate *c = ecs_field_self(it, EgFsInotifyCreate, 1); // self
+	EgFsReady *r = ecs_field_self(it, EgFsReady, 2);                 // self
 	for (int i = 0; i < it->count; ++i, ++y, ++r, ++c) {
 		ecs_entity_t e = it->entities[i];
 		// ecs_trace("handle_fanotify_response fd=%d for entity '%s'", y->fd, ecs_get_name(world, e));
@@ -158,7 +159,7 @@ static void System_Create(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	EgFsInotifyCreate *c = ecs_field(it, EgFsInotifyCreate, 0); // self
+	EgFsInotifyCreate *c = ecs_field_self(it, EgFsInotifyCreate, 0); // self
 	for (int i = 0; i < it->count; ++i, ++c) {
 		ecs_entity_t e = it->entities[i];
 		int fd = fd_inotify_init1();
@@ -229,7 +230,7 @@ void EgFsInotifyImport(ecs_world_t *world)
 	.callback = Observer_watch_set,
 	.events = {EcsOnSet},
 	.query.terms = {
-	{.id = ecs_id(EgFsWatch)},
+	{.id = ecs_id(EgFsWatch), .src.id = EcsSelf},
 	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsInotifyCreate)), .trav = EcsChildOf, .src.id = EcsUp},
 	{.id = ecs_id(EgFsInotifyCreate), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
 	}});
