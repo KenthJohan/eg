@@ -139,7 +139,7 @@ static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_
 	e = EgFs_create_path_entity(world, path);
 	if (e) {
 		char *p = ecs_get_path_w_sep(world, EgFsSockets, e, ":", NULL);
-		ecs_trace("path '%s' -> '%s' %16i", path, p, e);
+		ecs_trace("newpath '%s' -> '%s' entity:0x%jX", path, p, (uintmax_t)e);
 		ecs_os_free(p);
 	} else if (strncmp(path, "udp://", 6) == 0) {
 		// fd_create_udp_socket

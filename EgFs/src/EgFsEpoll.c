@@ -10,6 +10,7 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 #include "EgFs.h"
 #include "EgFs/EgFsEpoll.h"
 #include "fd.h"
+#include "ecsx.h"
 
 ECS_COMPONENT_DECLARE(EgFsEpollCreate);
 ECS_COMPONENT_DECLARE(EgFsEpollEvent);
@@ -54,7 +55,7 @@ static void System_Create(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	EgFsEpollCreate *c = ecs_field(it, EgFsEpollCreate, 0); // self
+	EgFsEpollCreate *c = ecs_field_self(it, EgFsEpollCreate, 0); // self
 	for (int i = 0; i < it->count; ++i, ++c) {
 		ecs_entity_t e = it->entities[i];
 		int fd = fd_epoll_create();
@@ -70,14 +71,14 @@ static void System_Create(ecs_iter_t *it)
 static void Observer_epoll_ctl(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
-	//ecsx_trace_system_iter(it);
-	//ecs_world_t *world = it->world;
-	EgFsFd *parent_fd = ecs_field(it, EgFsFd, 0);                  // shared, parent, epoll fd
-	EgFsEpollCreate *parent_c = ecs_field(it, EgFsEpollCreate, 1); // shared, parent, epoll info
-	EgFsFd *y = ecs_field(it, EgFsFd, 2);                          // self, fd to be added/removed
+	// ecsx_trace_system_iter(it);
+	// ecs_world_t *world = it->world;
+	EgFsFd *parent_fd = ecs_field_shared(it, EgFsFd, 0);                  // shared, parent, epoll fd
+	EgFsEpollCreate *parent_c = ecs_field_shared(it, EgFsEpollCreate, 1); // shared, parent, epoll info
+	EgFsFd *y = ecs_field_self(it, EgFsFd, 2);                            // self, fd to be added/removed
 	for (int i = 0; i < it->count; ++i, ++y) {
 		ecs_entity_t e = it->entities[i];
-		//ecs_entity_t parent = ecs_field_src(it, 0);
+		// ecs_entity_t parent = ecs_field_src(it, 0);
 		int rv = 0;
 		if (it->event == EcsOnRemove) {
 			rv = fd_epoll_rm(parent_fd->fd, y->fd);
