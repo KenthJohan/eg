@@ -1,5 +1,4 @@
 #include "EgSpatials.h"
-#include <EgBase.h>
 
 ECS_COMPONENT_DECLARE(Position2);
 ECS_COMPONENT_DECLARE(Position3);
@@ -285,7 +284,6 @@ ECS_CTOR(Scale3, ptr, {
 void EgSpatialsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSpatials);
-	ECS_IMPORT(world, EgBase);
 	ecs_set_name_prefix(world, "EgSpatials");
 
 	ECS_COMPONENT_DEFINE(world, Position2);

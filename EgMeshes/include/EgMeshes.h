@@ -14,7 +14,14 @@ typedef struct
 {
 	ecs_vec_t vertices;
 	ecs_vec_t indices;
+	uint32_t index_counter;
 } EgMeshesVertices;
+
+typedef struct
+{
+	uint32_t offset;
+	uint32_t count;
+} EgMeshesSection;
 
 extern ECS_COMPONENT_DECLARE(EgMeshesVertexInfo);
 extern ECS_COMPONENT_DECLARE(EgMeshesVertices);
