@@ -15,6 +15,7 @@ typedef struct
 	ecs_vec_t vertices;
 	ecs_vec_t indices;
 	uint32_t index_counter;
+	EgMeshesVertexInfo info;
 } EgMeshesVertices;
 
 typedef struct
@@ -25,5 +26,6 @@ typedef struct
 
 extern ECS_COMPONENT_DECLARE(EgMeshesVertexInfo);
 extern ECS_COMPONENT_DECLARE(EgMeshesVertices);
+extern ECS_COMPONENT_DECLARE(EgMeshesSection);
 
 void EgMeshesImport(ecs_world_t *world);
