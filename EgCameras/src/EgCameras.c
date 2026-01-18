@@ -1,7 +1,6 @@
 #include "EgCameras.h"
 
 #include <EgSpatials.h>
-#include <EgWindows.h>
 #include <EgShapes.h>
 #include <egmath.h>
 #include <assert.h>
@@ -106,7 +105,6 @@ void EgCamerasImport(ecs_world_t *world)
 	ECS_MODULE(world, EgCameras);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgShapes);
-	ECS_IMPORT(world, EgWindows);
 	ecs_set_name_prefix(world, "EgCameras");
 
 	ECS_COMPONENT_DEFINE(world, EgCamerasState);
