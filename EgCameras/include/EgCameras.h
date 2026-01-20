@@ -6,7 +6,7 @@ typedef struct {
 	float fov;
 	m4f32 view;
 	m4f32 projection;
-	m4f32 vp;
+	m4f32 vp; // View-Projection Matrix
 } EgCamerasState;
 
 typedef struct {

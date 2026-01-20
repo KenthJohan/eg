@@ -2,7 +2,7 @@
 
 ECS_COMPONENT_DECLARE(Position2);
 ECS_COMPONENT_DECLARE(Position3);
-ECS_COMPONENT_DECLARE(Vector4);
+ECS_COMPONENT_DECLARE(V4f32);
 ECS_COMPONENT_DECLARE(Ray3);
 ECS_COMPONENT_DECLARE(Scale3);
 ECS_COMPONENT_DECLARE(Position3World);
@@ -145,6 +145,7 @@ static void Move(ecs_iter_t *it)
 		// Convert unit quaternion to rotation matrix (r)
 		m4f32 r = M4_IDENTITY;
 		qf32_unit_to_m4((float *)o, &r);
+		m4f32_transpose(&r); // Transpose to get inverse rotation matrix
 
 		// Translate postion (pos) relative to direction of camera rotation:
 		float dir[3];
@@ -288,7 +289,7 @@ void EgSpatialsImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, Position2);
 	ECS_COMPONENT_DEFINE(world, Position3);
-	ECS_COMPONENT_DEFINE(world, Vector4);
+	ECS_COMPONENT_DEFINE(world, V4f32);
 	ECS_COMPONENT_DEFINE(world, Ray3);
 	ECS_COMPONENT_DEFINE(world, Scale3);
 	ECS_COMPONENT_DEFINE(world, Position3World);
@@ -417,22 +418,23 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.name = "dz", .type = ecs_id(ecs_f32_t)},
 	}});
 
-	ecs_struct(world, {.entity = ecs_id(Vector4),
-	                  .members = {
-	                  {.name = "x", .type = ecs_id(ecs_f32_t)},
-	                  {.name = "y", .type = ecs_id(ecs_f32_t)},
-	                  {.name = "z", .type = ecs_id(ecs_f32_t)},
-	                  {.name = "w", .type = ecs_id(ecs_f32_t)},
-	                  }});
+	ecs_struct(world,
+	{.entity = ecs_id(V4f32),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	{.name = "z", .type = ecs_id(ecs_f32_t)},
+	{.name = "w", .type = ecs_id(ecs_f32_t)},
+	}});
 
 	ecs_struct(world,
 	{.entity = ecs_id(Transformation),
 	.members = {
 	//{.name = "matrix", .type = ecs_id(ecs_f32_t), .count = 16},
-	{.name = "c0", .type = ecs_id(Vector4)},
-	{.name = "c1", .type = ecs_id(Vector4)},
-	{.name = "c2", .type = ecs_id(Vector4)},
-	{.name = "c3", .type = ecs_id(Vector4)},
+	{.name = "c0", .type = ecs_id(V4f32)},
+	{.name = "c1", .type = ecs_id(V4f32)},
+	{.name = "c2", .type = ecs_id(V4f32)},
+	{.name = "c3", .type = ecs_id(V4f32)},
 	}});
 
 	ecs_struct(world,

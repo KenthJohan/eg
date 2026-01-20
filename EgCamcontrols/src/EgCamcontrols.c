@@ -18,12 +18,15 @@ static void System_Rotate(ecs_iter_t *it)
 	EgCamerasKeyBindings *c = ecs_field(it, EgCamerasKeyBindings, 0); // self
 	Rotate3 *r = ecs_field(it, Rotate3, 1);                           // self
 	EgKeyboardsState *k0 = ecs_field(it, EgKeyboardsState, 2);        // singleton
-	uint8_t *keys = k0->scancode;
+	uint8_t *keys = k0->state;
 	float d = 0.8f * it->delta_time;
 	for (int i = 0; i < it->count; ++i, ++c, ++r) {
-		r->dx = !!keys[c->key_rotate_dx_plus] - !!keys[c->key_rotate_dx_minus];
-		r->dy = !!keys[c->key_rotate_dy_plus] - !!keys[c->key_rotate_dy_minus];
-		r->dz = !!keys[c->key_rotate_dz_plus] - !!keys[c->key_rotate_dz_minus];
+		r->dx -= !!(keys[c->key_rotate_dx_plus] & EG_KEYBOARDS_STATE_DOWN);
+		r->dx += !!(keys[c->key_rotate_dx_minus] & EG_KEYBOARDS_STATE_DOWN);
+		r->dy -= !!(keys[c->key_rotate_dy_plus] & EG_KEYBOARDS_STATE_DOWN);
+		r->dy += !!(keys[c->key_rotate_dy_minus] & EG_KEYBOARDS_STATE_DOWN);
+		r->dz -= !!(keys[c->key_rotate_dz_plus] & EG_KEYBOARDS_STATE_DOWN);
+		r->dz += !!(keys[c->key_rotate_dz_minus] & EG_KEYBOARDS_STATE_DOWN);
 		v3f32_mul((float *)r, (float *)r, d);
 	}
 }
@@ -33,13 +36,16 @@ static void System_Move(ecs_iter_t *it)
 	EgCamerasKeyBindings *c = ecs_field(it, EgCamerasKeyBindings, 0); // self
 	Velocity3 *v = ecs_field(it, Velocity3, 1);                       // self
 	EgKeyboardsState *k0 = ecs_field(it, EgKeyboardsState, 2);        // singleton
-	uint8_t *keys = k0->scancode;
+	uint8_t *keys = k0->state;
 	float moving_speed = 1.1f;
 	float d = it->delta_time * moving_speed;
 	for (int i = 0; i < it->count; ++i, ++c, ++v) {
-		v->x = -(!!keys[c->key_move_dx_plus] - !!keys[c->key_move_dx_minus]);
-		v->y = -(!!keys[c->key_move_dy_plus] - !!keys[c->key_move_dy_minus]);
-		v->z = -(!!keys[c->key_move_dz_plus] - !!keys[c->key_move_dz_minus]);
+		v->x -= !!(keys[c->key_move_dx_plus] & EG_KEYBOARDS_STATE_DOWN);
+		v->x += !!(keys[c->key_move_dx_minus] & EG_KEYBOARDS_STATE_DOWN);
+		v->y -= !!(keys[c->key_move_dy_plus] & EG_KEYBOARDS_STATE_DOWN);
+		v->y += !!(keys[c->key_move_dy_minus] & EG_KEYBOARDS_STATE_DOWN);
+		v->z -= !!(keys[c->key_move_dz_plus] & EG_KEYBOARDS_STATE_DOWN);
+		v->z += !!(keys[c->key_move_dz_minus] & EG_KEYBOARDS_STATE_DOWN);
 		v3f32_mul((float *)v, (float *)v, d);
 	}
 }
