@@ -3,9 +3,10 @@
 
 #define EG_KEYBOARDS_KEYS_MAX 512
 
-#define EG_KEYBOARDS_STATE_DOWN 0x01
-#define EG_KEYBOARDS_STATE_FALLING_EDGE 0x02
-#define EG_KEYBOARDS_STATE_RISING_EDGE 0x04
+#define EG_KEYBOARDS_STATE_RELEASED 0x01
+#define EG_KEYBOARDS_STATE_PRESSED 0x02
+#define EG_KEYBOARDS_STATE_DOWN 0x04
+#define EG_KEYBOARDS_STATE_UP 0x08
 
 typedef struct
 {
@@ -14,8 +15,7 @@ typedef struct
 
 typedef struct
 {
-	uint8_t scancode[EG_KEYBOARDS_KEYS_MAX];
-	uint8_t keycode[EG_KEYBOARDS_KEYS_MAX];
+	uint8_t state[EG_KEYBOARDS_KEYS_MAX];
 } EgKeyboardsState;
 
 // KeyActionToggleEntity

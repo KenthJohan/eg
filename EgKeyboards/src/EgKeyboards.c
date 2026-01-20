@@ -2,9 +2,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <SDL3/SDL_keyboard.h>
-#include <SDL3/SDL_events.h>
 #include <EgShapes.h>
 #include <EgSpatials.h>
 
@@ -63,8 +60,8 @@ static void System_Toggle(ecs_iter_t *it)
 	EgKeyboardsActionToggleEntity *a = ecs_field(it, EgKeyboardsActionToggleEntity, 1); // self
 	for (int i = 0; i < it->count; ++i, ++a) {
 		//ecs_entity_t e = it->entities[i];
-		uint8_t k = field_keyboard->scancode[a->key_index];
-		if (k & EG_KEYBOARDS_STATE_RISING_EDGE) {
+		uint8_t k = field_keyboard->state[a->key_index];
+		if (k & EG_KEYBOARDS_STATE_PRESSED) {
 			if (ecs_has_pair(it->world, a->entity, EcsIsA, a->toggle)) {
 				ecs_dbg("ecs_remove_pair(%s,%s,%s)", ecs_get_name(it->world, a->entity), ecs_get_name(it->world, EcsIsA), ecs_get_name(it->world, a->toggle));
 				ecs_remove_pair(it->world, a->entity, EcsIsA, a->toggle);
@@ -90,8 +87,7 @@ void EgKeyboardsImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(EgKeyboardsState),
 	.members = {
-	{.name = "scancode", .type = ecs_id(ecs_u8_t), .count = 512},
-	{.name = "keycode", .type = ecs_id(ecs_u8_t), .count = 512},
+	{.name = "scancode", .type = ecs_id(ecs_u8_t), .count = EG_KEYBOARDS_KEYS_MAX},
 	}});
 
 	ecs_struct(world,
@@ -107,15 +103,6 @@ void EgKeyboardsImport(ecs_world_t *world)
 	{.name = "entity", .type = ecs_id(ecs_entity_t)},
 	{.name = "toggle", .type = ecs_id(ecs_entity_t)},
 	}});
-
-	int count;
-	SDL_KeyboardID *keyboards = SDL_GetKeyboards(&count);
-	for (int i = 0; i < count; i++) {
-		ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){0});
-		ecs_doc_set_name(world, e, SDL_GetKeyboardNameForID(keyboards[i]));
-		ecs_set(world, e, EgKeyboardsDevice, {keyboards[i]});
-		// printf("Keyboard %d: %d %s\n", i, keyboards[i], SDL_GetKeyboardNameForID(keyboards[i]));
-	}
 
 	ecs_system(world,
 	{.entity = ecs_entity(world, {.name = "System_Toggle", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
