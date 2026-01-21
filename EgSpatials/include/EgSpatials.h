@@ -6,6 +6,8 @@
 typedef struct {
 	float x;
 	float y;
+	float z;
+	float w;
 } V4f32;
 
 typedef struct {

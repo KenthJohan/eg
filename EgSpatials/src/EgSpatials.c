@@ -145,7 +145,7 @@ static void Move(ecs_iter_t *it)
 		// Convert unit quaternion to rotation matrix (r)
 		m4f32 r = M4_IDENTITY;
 		qf32_unit_to_m4((float *)o, &r);
-		m4f32_transpose(&r); // Transpose to get inverse rotation matrix
+		//m4f32_transpose(&r);
 
 		// Translate postion (pos) relative to direction of camera rotation:
 		float dir[3];
