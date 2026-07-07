@@ -5,7 +5,6 @@
 #include <errno.h>
 #include <flecs.h>
 
-
 uint32_t fs_get_path_flags(const char *path)
 {
 	struct stat path_stat;
@@ -24,12 +23,11 @@ uint32_t fs_get_path_flags(const char *path)
 
 char *fs_load_from_file(const char *filename, size_t *size)
 {
-	FILE *file;
 	char *content = NULL;
 	int32_t bytes;
 
 	/* Open file for reading */
-	ecs_os_fopen(&file, filename, "r");
+	FILE *file = ecs_os_fopen(filename, "r");
 	if (!file) {
 		ecs_err("%s (%s)", ecs_os_strerror(errno), filename);
 		goto error;

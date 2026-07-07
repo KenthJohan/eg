@@ -6,13 +6,12 @@
 
 char *eg_file_load_alloc(const char *filename, size_t * length)
 {
-	FILE *file;
 	char *content = NULL;
 	int32_t bytes;
 	size_t size;
 
 	/* Open file for reading */
-	ecs_os_fopen(&file, filename, "r");
+	FILE * file = ecs_os_fopen(filename, "r");
 	if (!file) {
 		ecs_err("%s (%s)", ecs_os_strerror(errno), filename);
 		goto error;

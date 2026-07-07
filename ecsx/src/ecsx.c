@@ -81,7 +81,7 @@ void ecsx_remove_by_it_term(ecs_iter_t *it, ecs_entity_t e, int index)
 {
 	ecs_entity_t trav = it->query->terms[index].trav;
 	if (trav) {
-		ecs_entity_t src = it->sources[index];
+		// ecs_entity_t src = it->sources[index];
 		ecs_remove_pair(it->world, e, trav, index);
 	} else {
 		ecs_id_t id = it->ids[index];

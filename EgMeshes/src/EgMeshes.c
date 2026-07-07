@@ -33,6 +33,7 @@ static void extract_vertex_info(ecs_world_t *world, ecs_entity_t src, EgMeshesVe
 	}
 }
 
+/*
 static void gen6_rectangle(EgMeshesVertices *vertices, EgMeshesVertexInfo *info)
 {
 	uint8_t *v = ecs_vec_grow(NULL, &vertices->vertices, info->size, 6);
@@ -62,6 +63,7 @@ static void gen6_rectangle(EgMeshesVertices *vertices, EgMeshesVertexInfo *info)
 	i[4] = vertices->index_counter + 4;
 	i[5] = vertices->index_counter + 5;
 }
+*/
 
 static void System_extract_vertex_info(ecs_iter_t *it)
 {
@@ -83,7 +85,7 @@ static void System_gen_verts(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	EgShapesRectangle *c = ecs_field_self(it, EgShapesRectangle, 0);
+	//EgShapesRectangle *c = ecs_field_self(it, EgShapesRectangle, 0);
 	EgMeshesVertices *v = ecs_field_shared(it, EgMeshesVertices, 1);
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];

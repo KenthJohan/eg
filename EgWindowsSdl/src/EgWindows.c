@@ -103,25 +103,14 @@ static void System_EgWindowsWindow_Mouse(ecs_iter_t *it)
 
 static void System_EgKeyboardsState(ecs_iter_t *it)
 {
-	EgKeyboardsState *s = ecs_field(it, EgKeyboardsState, 0); // Singleton
+	//EgKeyboardsState *s = ecs_field(it, EgKeyboardsState, 0); // Singleton
 	SDL_Event event;
-	for (int i = 0; i < EG_KEYBOARDS_KEYS_MAX; i++) {
-		s->scancode[i] &= ~EG_KEYBOARDS_STATE_FALLING_EDGE;
-		s->scancode[i] &= ~EG_KEYBOARDS_STATE_RISING_EDGE;
-	}
 	while (SDL_PollEvent(&event)) {
 		// SDLTest_CommonEvent(state, &event, &done);
 		switch (event.type) {
 		case SDL_EVENT_KEY_DOWN:
-			if (s->scancode[event.key.scancode] & EG_KEYBOARDS_STATE_DOWN) {
-				//s->scancode[event.key.scancode] &= ~EG_KEYBOARDS_STATE_RISING_EDGE;
-			} else {
-				s->scancode[event.key.scancode] |= EG_KEYBOARDS_STATE_RISING_EDGE;
-			}
-			s->scancode[event.key.scancode] |= EG_KEYBOARDS_STATE_DOWN;
 			break;
 		case SDL_EVENT_KEY_UP:
-			s->scancode[event.key.scancode] &= ~EG_KEYBOARDS_STATE_DOWN;
 			break;
 		case SDL_EVENT_WINDOW_RESIZED: {
 			// Get the entity from the SDL_WindowID
@@ -241,6 +230,6 @@ void EgWindowsImport(ecs_world_t *world)
 	}});
 
 
-	ecs_singleton_set(world, EgKeyboardsState, {.keycode = {0}, .scancode = {0}});
+	ecs_singleton_set(world, EgKeyboardsState, {.state = {0}});
 
 }
