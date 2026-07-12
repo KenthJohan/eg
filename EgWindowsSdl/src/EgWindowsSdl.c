@@ -96,16 +96,29 @@ static void System_EgWindowsWindow_Mouse(ecs_iter_t *it)
 	}
 }
 
-static void System_EgKeyboardsState(ecs_iter_t *it)
+static void System_Events(ecs_iter_t *it)
 {
-	// EgKeyboardsState *s = ecs_field(it, EgKeyboardsState, 0); // Singleton
+	EgKeyboardsState *s = ecs_field(it, EgKeyboardsState, 0); // Singleton
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		// SDLTest_CommonEvent(state, &event, &done);
 		switch (event.type) {
+		case SDL_EVENT_QUIT:
+			break;
+        case SDL_EVENT_WINDOW_CLOSE_REQUESTED: {
+			SDL_Window *window = SDL_GetWindowFromEvent(&event);
+			SDL_WindowID id = SDL_GetWindowID(window);
+			ecs_map_val_t *ev = ecs_map_get(&static_window_map, id);
+			ecs_entity_t e = ev[0];
+			printf("SDL_EVENT_QUIT: %s\n", ecs_get_name(it->world, e));
+			ecs_add(it->world, e, EgWindowsEventCloseRequest);
+			break;
+		} // END CASE
 		case SDL_EVENT_KEY_DOWN:
+			s->state[event.key.scancode] |= EG_KEYBOARDS_STATE_DOWN;
 			break;
 		case SDL_EVENT_KEY_UP:
+			s->state[event.key.scancode] &= ~EG_KEYBOARDS_STATE_DOWN;
 			break;
 		case SDL_EVENT_WINDOW_RESIZED: {
 			// Get the entity from the SDL_WindowID
@@ -201,8 +214,8 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgKeyboardsState", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgKeyboardsState,
+	{.entity = ecs_entity(world, {.name = "System_Events", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_Events,
 	.query.terms =
 	{
 	{.id = ecs_id(EgKeyboardsState), .src.id = ecs_id(EgKeyboardsState), .inout = EcsInOut},

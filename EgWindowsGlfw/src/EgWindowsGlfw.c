@@ -35,7 +35,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 static void System_EgWindowsWindowGlfw_Create(ecs_iter_t *it)
 {
 	static int window_count = 0;
-	EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0);                    // singleton
+	//EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0);                    // singleton
 	EgWindowsWindowCreateInfo *create = ecs_field(it, EgWindowsWindowCreateInfo, 1); // self
 	EgShapesRectangle *rect = ecs_field(it, EgShapesRectangle, 2);                   // self
 	for (int i = 0; i < it->count; ++i, ++create, ++rect) {
@@ -54,7 +54,7 @@ static void System_EgWindowsWindowGlfw_Create(ecs_iter_t *it)
 		glfwSetWindowUserPointer(window, user_ptr);
 		glfwSetKeyCallback(window, key_callback);
 		window_count++;
-		ecs_set(it->world, it->entities[i], EgWindowsWindow, {window, false});
+		ecs_set(it->world, it->entities[i], EgWindowsWindow, {window});
 
 		glfwMakeContextCurrent(window);
 
@@ -67,7 +67,7 @@ static void System_EgWindowsWindowGlfw_Create(ecs_iter_t *it)
 		const char *glsl_version = (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
 		printf("OpenGL %s, GLSL %s\n", gl_version, glsl_version);
 
-		ecs_set(it->world, it->entities[i], EgWindowsOpenGLContext, {gl_version, glsl_version});
+		ecs_set(it->world, it->entities[i], EgWindowsOpenGLContext, {NULL, gl_version, glsl_version});
 
 	} // END FOR LOOP
 }
@@ -79,7 +79,7 @@ void glfwErrorCallback(int error, const char *description)
 
 static void System_EgWindowsWindow_Update(ecs_iter_t *it)
 {
-	EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0); // singleton
+	//EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0); // singleton
 	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 1);      // self
 	EgShapesRectangle *cr = ecs_field(it, EgShapesRectangle, 2);  // self
 	for (int i = 0; i < it->count; ++i, ++cw, ++cr) {
@@ -88,7 +88,9 @@ static void System_EgWindowsWindow_Update(ecs_iter_t *it)
 		glfwGetWindowSize(cw->object, &width, &height);
 		cr->w = width;
 		cr->h = height;
-		cw->should_close = glfwWindowShouldClose(cw->object);
+		if (glfwWindowShouldClose(cw->object)) {
+			ecs_add(it->world, it->entities[i], EgWindowsEventCloseRequest);
+		}
 		glfwSwapBuffers(cw->object);
 	}
 }
