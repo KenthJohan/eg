@@ -1,5 +1,5 @@
 {
-	"id": "EgWindowsSdl",
+	"id": "EgWindowsGlfw",
 	"type": "package",
 	"value": {
 		"language": "c",

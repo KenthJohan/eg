@@ -144,11 +144,11 @@ static void System_Resize(ecs_iter_t *it)
 }
 
 
-void EgWindowsImport(ecs_world_t *world)
+void EgWindowsSdlImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgWindows);
+	ECS_MODULE(world, EgWindowsSdl);
 	ECS_IMPORT(world, EgKeyboards);
-	ecs_set_name_prefix(world, "EgWindows");
+	ecs_set_name_prefix(world, "EgWindowsSdl");
 
     ecs_map_init(&static_window_map, NULL);
 

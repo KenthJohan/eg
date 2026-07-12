@@ -142,14 +142,15 @@ void EgCamerasImport(ecs_world_t *world)
 	{.name = "key_fov_minus", .type = ecs_id(ecs_u16_t)},
 	}});
 
-	ecs_system(world, {.entity = ecs_entity(world, {.name = "CameraUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	                  .callback = CameraUpdate,
-	                  .query.terms = {
-	                  {.id = ecs_id(EgCamerasState), .src.id = EcsSelf},
-	                  {.id = ecs_id(Position3), .src.id = EcsSelf},
-	                  {.id = ecs_id(Orientation), .src.id = EcsSelf},
-	                  {.id = ecs_id(EgShapesRectangle), .trav = EcsDependsOn, .src.id = EcsUp},
-	                  }});
+	ecs_system(world,
+	{.entity = ecs_entity(world, {.name = "CameraUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = CameraUpdate,
+	.query.terms = {
+	{.id = ecs_id(EgCamerasState), .src.id = EcsSelf},
+	{.id = ecs_id(Position3), .src.id = EcsSelf},
+	{.id = ecs_id(Orientation), .src.id = EcsSelf},
+	{.id = ecs_id(EgShapesRectangle), .trav = EcsDependsOn, .src.id = EcsUp},
+	}});
 
 	/*
 	    ecs_system(world, {.entity = ecs_entity(world, {.name = "MouseRayCast", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
