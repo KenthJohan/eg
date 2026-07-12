@@ -12,12 +12,7 @@
 #include <EgSpatials.h>
 #include <EgKeyboards.h>
 #include <EgBase.h>
-
-ECS_COMPONENT_DECLARE(EgWindowsWindow);
-ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
-ECS_COMPONENT_DECLARE(EgWindowsMouse);
-ECS_TAG_DECLARE(EgWindowsEventResize);
-
+#include <EgWindows.h>
 
 // https://github.com/SanderMertens/flecs/blob/57ebed1083274ee4875631a940452f08ff08aef9/test/collections/src/Map.c#L54
 // We need to map the SDL_WindowID to the ecs_entity_t so we can look up the entity from the SDL_WindowID
@@ -103,7 +98,7 @@ static void System_EgWindowsWindow_Mouse(ecs_iter_t *it)
 
 static void System_EgKeyboardsState(ecs_iter_t *it)
 {
-	//EgKeyboardsState *s = ecs_field(it, EgKeyboardsState, 0); // Singleton
+	// EgKeyboardsState *s = ecs_field(it, EgKeyboardsState, 0); // Singleton
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		// SDLTest_CommonEvent(state, &event, &done);
@@ -116,7 +111,7 @@ static void System_EgKeyboardsState(ecs_iter_t *it)
 			// Get the entity from the SDL_WindowID
 			SDL_Window *window = SDL_GetWindowFromEvent(&event);
 			SDL_WindowID id = SDL_GetWindowID(window);
-			ecs_map_val_t * ev = ecs_map_get(&static_window_map, id);
+			ecs_map_val_t *ev = ecs_map_get(&static_window_map, id);
 			if (ev == NULL) {
 				ecs_err("SDL_EVENT_WINDOW_RESIZED: No entity found for SDL_WindowID: %i", id);
 				break;
@@ -128,9 +123,8 @@ static void System_EgKeyboardsState(ecs_iter_t *it)
 		} // END CASE
 		} // END SWITCH
 	} // END WHILE
-	//printf("EG_KEYBOARDS_STATE_RISING_EDGE: %i\n", s->scancode[SDL_SCANCODE_B] & EG_KEYBOARDS_STATE_RISING_EDGE);
+	// printf("EG_KEYBOARDS_STATE_RISING_EDGE: %i\n", s->scancode[SDL_SCANCODE_B] & EG_KEYBOARDS_STATE_RISING_EDGE);
 }
-
 
 static void System_Resize(ecs_iter_t *it)
 {
@@ -143,25 +137,19 @@ static void System_Resize(ecs_iter_t *it)
 	}
 }
 
-
 void EgWindowsSdlImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgWindowsSdl);
+	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgKeyboards);
 	ecs_set_name_prefix(world, "EgWindowsSdl");
 
-    ecs_map_init(&static_window_map, NULL);
-
-	ECS_COMPONENT_DEFINE(world, EgWindowsWindow);
-	ECS_COMPONENT_DEFINE(world, EgWindowsWindowCreateInfo);
-	ECS_COMPONENT_DEFINE(world, EgWindowsMouse);
-	ECS_TAG_DEFINE(world, EgWindowsEventResize);
+	ecs_map_init(&static_window_map, NULL);
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgWindowsWindow),
 	.members = {
-	{.name = "object", .type = ecs_id(ecs_uptr_t)}
-	}});
+	{.name = "object", .type = ecs_id(ecs_uptr_t)}}});
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgWindowsWindowCreateInfo),
@@ -226,10 +214,8 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	.query.terms =
 	{
 	{.id = ecs_id(EgWindowsEventResize), .src.id = EcsSelf, .inout = EcsOut},
-	{.id = ecs_pair(EgWindowsEventResize, EcsWildcard ), .src.id = EcsSelf, .inout = EcsOut},
+	{.id = ecs_pair(EgWindowsEventResize, EcsWildcard), .src.id = EcsSelf, .inout = EcsOut},
 	}});
 
-
 	ecs_singleton_set(world, EgKeyboardsState, {.state = {0}});
-
 }

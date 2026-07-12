@@ -27,6 +27,7 @@ extern ECS_COMPONENT_DECLARE(EgWindowsWindow);
 extern ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgWindowsOpenGLContext);
 extern ECS_COMPONENT_DECLARE(EgWindowsMouse);
+extern ECS_TAG_DECLARE(EgWindowsEventResize);
 extern ECS_DECLARE(EgWindows);
 
 void EgWindowsImport(ecs_world_t *world);

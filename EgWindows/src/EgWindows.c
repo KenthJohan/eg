@@ -11,6 +11,7 @@ ECS_COMPONENT_DECLARE(EgWindowsWindow);
 ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
 ECS_COMPONENT_DECLARE(EgWindowsOpenGLContext);
 ECS_COMPONENT_DECLARE(EgWindowsMouse);
+ECS_TAG_DECLARE(EgWindowsEventResize);
 ECS_DECLARE(EgWindows);
 
 void EgWindowsImport(ecs_world_t *world)
@@ -22,6 +23,7 @@ void EgWindowsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindowCreateInfo);
 	ECS_COMPONENT_DEFINE(world, EgWindowsOpenGLContext);
 	ECS_COMPONENT_DEFINE(world, EgWindowsMouse);
+	ECS_TAG_DEFINE(world, EgWindowsEventResize);
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgWindowsWindow),
