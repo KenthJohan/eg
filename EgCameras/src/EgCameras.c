@@ -10,7 +10,6 @@
 #endif
 
 ECS_COMPONENT_DECLARE(EgCamerasState);
-ECS_COMPONENT_DECLARE(EgCamerasKeyBindings);
 
 static void CameraUpdate(ecs_iter_t *it)
 {
@@ -108,7 +107,6 @@ void EgCamerasImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgCameras");
 
 	ECS_COMPONENT_DEFINE(world, EgCamerasState);
-	ECS_COMPONENT_DEFINE(world, EgCamerasKeyBindings);
 
 	ecs_set_hooks(world, EgCamerasState, {.ctor = ecs_ctor(EgCamerasState)});
 
@@ -119,27 +117,6 @@ void EgCamerasImport(ecs_world_t *world)
 	{.name = "view", .type = ecs_id(Transformation)},
 	{.name = "projection", .type = ecs_id(Transformation)},
 	{.name = "vp", .type = ecs_id(Transformation)},
-	}});
-
-	ecs_struct(world,
-	{.entity = ecs_id(EgCamerasKeyBindings),
-	.members = {
-	{.name = "key_rotate_dx_plus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_rotate_dx_minus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_rotate_dy_plus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_rotate_dy_minus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_rotate_dz_plus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_rotate_dz_minus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_move_dx_plus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_move_dx_minus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_move_dy_plus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_move_dy_minus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_move_dz_plus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_move_dz_minus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_move_dz_minus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_fov_reset", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_fov_plus", .type = ecs_id(ecs_u16_t)},
-	{.name = "key_fov_minus", .type = ecs_id(ecs_u16_t)},
 	}});
 
 	ecs_system(world,
@@ -153,15 +130,15 @@ void EgCamerasImport(ecs_world_t *world)
 	}});
 
 	/*
-	    ecs_system(world, {.entity = ecs_entity(world, {.name = "MouseRayCast", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	                      .callback = MouseRayCast,
-	                      .query.terms =
-	                      {
-	                      {.id = ecs_id(Window), .src.id = ecs_id(Window)},
-	                      {.id = ecs_id(EgCamerasState), .src.id = EcsSelf},
-	                      {.id = ecs_id(Position3), .src.id = EcsSelf},
-	                      {.id = ecs_id(Ray3), .src.id = EcsSelf},
-	                      {.id = ecs_id(EgWindowsMouseRay), .src.id = EcsSelf},
-	                      }});
-	                      */
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "MouseRayCast", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = MouseRayCast,
+	.query.terms =
+	{
+	{.id = ecs_id(Window), .src.id = ecs_id(Window)},
+	{.id = ecs_id(EgCamerasState), .src.id = EcsSelf},
+	{.id = ecs_id(Position3), .src.id = EcsSelf},
+	{.id = ecs_id(Ray3), .src.id = EcsSelf},
+	{.id = ecs_id(EgWindowsMouseRay), .src.id = EcsSelf},
+	}});
+	*/
 }

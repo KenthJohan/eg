@@ -122,7 +122,7 @@ static void Move(ecs_iter_t *it)
 	Velocity3 const *v = ecs_field(it, Velocity3, 1);     // self, in
 	Orientation const *o = ecs_field(it, Orientation, 2); // self, in
 
-	for (int i = 0; i < it->count; ++i, ++p, ++o) {
+	for (int i = 0; i < it->count; ++i, ++p, ++v, ++o) {
 		// Convert unit quaternion to rotation matrix (r)
 		m4f32 r = M4_IDENTITY;
 		qf32_unit_to_m4((float *)o, &r);
@@ -133,6 +133,8 @@ static void Move(ecs_iter_t *it)
 		dir[0] = V3_DOT((float *)v, r.c0);
 		dir[1] = V3_DOT((float *)v, r.c1);
 		dir[2] = V3_DOT((float *)v, r.c2);
+
+		v3f32_mul((float *)dir, (float *)dir, it->delta_time);
 
 		/*
 		TODO:

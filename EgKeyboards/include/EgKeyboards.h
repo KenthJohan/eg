@@ -18,7 +18,16 @@ typedef struct
 	uint8_t state[EG_KEYBOARDS_KEYS_MAX];
 } EgKeyboardsState;
 
-// KeyActionToggleEntity
+typedef struct
+{
+	int32_t key;
+	uint8_t mask;
+	ecs_entity_t entity;
+	ecs_id_t comonent;
+	uint8_t byte_offset;
+	float value0;
+	float value1;
+} EgKeyboardsBinding;
 
 typedef struct
 {
@@ -29,6 +38,7 @@ typedef struct
 
 extern ECS_COMPONENT_DECLARE(EgKeyboardsDevice);
 extern ECS_COMPONENT_DECLARE(EgKeyboardsState);
+extern ECS_COMPONENT_DECLARE(EgKeyboardsBinding);
 extern ECS_COMPONENT_DECLARE(EgKeyboardsActionToggleEntity);
 
 void EgKeyboardsImport(ecs_world_t *world);
