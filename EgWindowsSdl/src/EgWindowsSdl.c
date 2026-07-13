@@ -23,10 +23,11 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgWindowsWindowCreateInfo *create = ecs_field(it, EgWindowsWindowCreateInfo, 0);
+	EgShapesRectangle *rect = ecs_field(it, EgShapesRectangle, 1);
 	ecs_log_set_level(1);
 	ecs_trace("System_EgWindowsWindow_Create() count:%i", it->count);
 	ecs_log_push_(0);
-	for (int i = 0; i < it->count; ++i, ++create) {
+	for (int i = 0; i < it->count; ++i, ++create, ++rect) {
 		ecs_entity_t e = it->entities[i];
 		ecs_trace("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_(0);
@@ -35,8 +36,8 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 			SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, ecs_get_name(world, e));
 			SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, 100);
 			SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, 100);
-			SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, 600);
-			SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, 400);
+			SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, rect->w);
+			SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, rect->h);
 			SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_OPENGL_BOOLEAN, create->enable_opengl);
 			SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
 			SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, flags);
@@ -203,6 +204,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	.query.terms =
 	{
 	{.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf},
 	{.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
 	}});
 
