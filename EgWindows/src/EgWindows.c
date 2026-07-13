@@ -10,6 +10,7 @@
 ECS_COMPONENT_DECLARE(EgWindowsWindow);
 ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
 ECS_COMPONENT_DECLARE(EgWindowsOpenGLContext);
+ECS_COMPONENT_DECLARE(EgWindowsOpenGLContextCreate);
 ECS_COMPONENT_DECLARE(EgWindowsMouse);
 ECS_TAG_DECLARE(EgWindowsEventResize);
 ECS_TAG_DECLARE(EgWindowsEventCloseRequest);
@@ -23,6 +24,7 @@ void EgWindowsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindow);
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindowCreateInfo);
 	ECS_COMPONENT_DEFINE(world, EgWindowsOpenGLContext);
+	ECS_COMPONENT_DEFINE(world, EgWindowsOpenGLContextCreate);
 	ECS_COMPONENT_DEFINE(world, EgWindowsMouse);
 	ECS_TAG_DEFINE(world, EgWindowsEventResize);
 	ECS_TAG_DEFINE(world, EgWindowsEventCloseRequest);
@@ -44,6 +46,12 @@ void EgWindowsImport(ecs_world_t *world)
 	.members = {
 	{.name = "gl_version", .type = ecs_id(ecs_string_t)},
 	{.name = "glsl_version", .type = ecs_id(ecs_string_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgWindowsOpenGLContextCreate),
+	.members = {
+	{.name = "dummy", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct(world,

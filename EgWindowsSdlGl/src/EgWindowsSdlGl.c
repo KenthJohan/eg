@@ -26,6 +26,18 @@ static void System_Render(ecs_iter_t *it)
 	} // END FOR LOOP
 }
 
+static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
+{
+	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 0);                             // self, in
+	EgWindowsOpenGLContextCreate *info = ecs_field(it, EgWindowsOpenGLContextCreate, 1); // self, in
+	for (int i = 0; i < it->count; ++i) {
+		SDL_GLContext context = SDL_GL_CreateContext(cw[i].object);
+		char const *gl_version = (char const *)glGetString(GL_VERSION);
+		char const *glsl_version = (char const *)glGetString(GL_SHADING_LANGUAGE_VERSION);
+		ecs_set(it->world, it->entities[i], EgWindowsOpenGLContext, {.gl_context = context, .gl_version = gl_version, .glsl_version = glsl_version});
+	} // END FOR LOOP
+}
+
 void EgWindowsSdlGlImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgWindowsSdlGl);
@@ -34,11 +46,21 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity = ecs_entity(world, {.name = "System_Render", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_Render,
 	.query.terms =
 	{
 	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf},
 	{.id = ecs_id(EgWindowsOpenGLContext), .src.id = EcsSelf},
+	}});
+
+	ecs_system(world,
+	{.entity = ecs_entity(world, {.name = "System_EgWindowsOpenGLContext_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_EgWindowsOpenGLContext_Create,
+	.query.terms =
+	{
+	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf},
+	{.id = ecs_id(EgWindowsOpenGLContextCreate), .src.id = EcsSelf},
+	{.id = ecs_id(EgWindowsOpenGLContext), .oper = EcsNot}, // Adds this
 	}});
 }

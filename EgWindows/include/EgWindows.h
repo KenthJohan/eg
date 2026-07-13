@@ -20,12 +20,18 @@ typedef struct
 
 typedef struct
 {
+	int dummy;
+} EgWindowsOpenGLContextCreate;
+
+typedef struct
+{
 	int32_t dummy;
 } EgWindowsMouse;
 
 extern ECS_COMPONENT_DECLARE(EgWindowsWindow);
 extern ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgWindowsOpenGLContext);
+extern ECS_COMPONENT_DECLARE(EgWindowsOpenGLContextCreate);
 extern ECS_COMPONENT_DECLARE(EgWindowsMouse);
 extern ECS_TAG_DECLARE(EgWindowsEventResize);
 extern ECS_TAG_DECLARE(EgWindowsEventCloseRequest);
