@@ -3,10 +3,9 @@
 
 #define EG_KEYBOARDS_KEYS_MAX 512
 
-#define EG_KEYBOARDS_STATE_RELEASED 0x01
+#define EG_KEYBOARDS_STATE_HELD 0x01
 #define EG_KEYBOARDS_STATE_PRESSED 0x02
-#define EG_KEYBOARDS_STATE_DOWN 0x04
-#define EG_KEYBOARDS_STATE_UP 0x08
+#define EG_KEYBOARDS_STATE_RELEASED 0x04
 
 typedef struct
 {
@@ -20,19 +19,21 @@ typedef struct
 
 typedef struct
 {
-	int32_t key;
+	int32_t key0;
+	int32_t key1;
 	uint8_t mask;
 	ecs_entity_t entity;
 	ecs_id_t comonent;
 	uint8_t byte_offset;
-	float value0;
-	float value1;
+	float factor;
 } EgKeyboardsBinding;
 
 typedef struct
 {
-	int32_t key_index;
+	int32_t key;
+	uint8_t mask;
 	ecs_entity_t entity;
+	ecs_entity_t relation;
 	ecs_entity_t toggle;
 } EgKeyboardsActionToggleEntity;
 

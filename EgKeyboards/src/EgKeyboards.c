@@ -54,26 +54,46 @@ void remove_copies_from_prefab(ecs_world_t *world, ecs_entity_t prefab, ecs_enti
 	ecs_query_fini(q);
 }
 
+static void ecsx_toggle(ecs_world_t *world, ecs_entity_t entity, ecs_entity_t relation, ecs_entity_t toggle)
+{
+	if (relation) {
+		if (ecs_has_pair(world, entity, relation, toggle)) {
+			ecs_remove_pair(world, entity, relation, toggle);
+			remove_copies_from_prefab(world, toggle, entity);
+		} else {
+			ecs_add_pair(world, entity, relation, toggle);
+		}
+	} else {
+		if (ecs_has_id(world, entity, toggle)) {
+			ecs_remove_id(world, entity, toggle);
+			remove_copies_from_prefab(world, toggle, entity);
+		} else {
+			ecs_add_id(world, entity, toggle);
+		}
+	}
+}
+
 static void System_Toggle(ecs_iter_t *it)
 {
 	ecs_log_set_level(1);
-	EgKeyboardsState *field_keyboard = ecs_field(it, EgKeyboardsState, 0);              // singleton
+	EgKeyboardsState *keyboard = ecs_field(it, EgKeyboardsState, 0);                    // singleton
 	EgKeyboardsActionToggleEntity *a = ecs_field(it, EgKeyboardsActionToggleEntity, 1); // self
 	for (int i = 0; i < it->count; ++i, ++a) {
-		uint8_t k = field_keyboard->state[a->key_index];
-		if (k & EG_KEYBOARDS_STATE_PRESSED) {
-			if (ecs_has_pair(it->world, a->entity, EcsIsA, a->toggle)) {
-				ecs_dbg("ecs_remove_pair(%s,%s,%s)", ecs_get_name(it->world, a->entity), ecs_get_name(it->world, EcsIsA), ecs_get_name(it->world, a->toggle));
-				ecs_remove_pair(it->world, a->entity, EcsIsA, a->toggle);
-				remove_copies_from_prefab(it->world, a->toggle, a->entity);
-			} else {
-				ecs_dbg("ecs_add_pair(%s,%s,%s)", ecs_get_name(it->world, a->entity), ecs_get_name(it->world, EcsIsA), ecs_get_name(it->world, a->toggle));
-				ecs_add_pair(it->world, a->entity, EcsIsA, a->toggle);
-			}
+		uint8_t k = keyboard->state[a->key];
+		if ((k & a->mask) == 0) {
+			continue;
 		}
+		printf("toggle(%s,%s)\n", ecs_get_name(it->world, a->entity), ecs_get_name(it->world, a->toggle));
+		ecsx_toggle(it->world, a->entity, a->relation, a->toggle);
 	}
 	ecs_log_set_level(0);
 }
+
+/*
+char *str = ecs_ptr_to_expr(it->world, a->comonent, ptr);
+printf("%s\n", str); // {x: 10, y: 20}
+ecs_os_free(str);
+*/
 
 static void System_Bindings(ecs_iter_t *it)
 {
@@ -81,21 +101,16 @@ static void System_Bindings(ecs_iter_t *it)
 	EgKeyboardsState *keyboard = ecs_field(it, EgKeyboardsState, 0); // singleton
 	EgKeyboardsBinding *a = ecs_field(it, EgKeyboardsBinding, 1);    // self
 	for (int i = 0; i < it->count; ++i, ++a) {
-		uint8_t k = keyboard->state[a->key];
 		void *ptr = ecs_get_mut_id(it->world, a->entity, a->comonent);
 		if (ptr == NULL) {
 			ecs_dbg("ecs_get_id(%s,%s) == NULL", ecs_get_name(it->world, a->entity), ecs_get_name(it->world, a->comonent));
 			continue;
 		}
+		uint8_t k0 = keyboard->state[a->key0];
+		uint8_t k1 = keyboard->state[a->key1];
+		int delta = !!(k0 & a->mask) - !!(k1 & a->mask);
 		float *f = (float *)((uint8_t *)ptr + a->byte_offset);
-		if (k & a->mask) {
-			*f = a->value1;
-			char *str = ecs_ptr_to_expr(it->world, a->comonent, ptr);
-			printf("%s\n", str); // {x: 10, y: 20}
-			ecs_os_free(str);
-		} else {
-			*f = a->value0;
-		}
+		(*f) = (float)delta * a->factor;
 	}
 	ecs_log_set_level(0);
 }
@@ -125,20 +140,22 @@ void EgKeyboardsImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(EgKeyboardsBinding),
 	.members = {
-	{.name = "key", .type = ecs_id(ecs_i32_t)},
+	{.name = "key0", .type = ecs_id(ecs_i32_t)},
+	{.name = "key1", .type = ecs_id(ecs_i32_t)},
 	{.name = "mask", .type = ecs_id(ecs_u8_t)},
 	{.name = "entity", .type = ecs_id(ecs_entity_t)},
 	{.name = "comonent", .type = ecs_id(ecs_id_t)},
 	{.name = "byte_offset", .type = ecs_id(ecs_u8_t)},
-	{.name = "value0", .type = ecs_id(ecs_f32_t)},
-	{.name = "value1", .type = ecs_id(ecs_f32_t)},
+	{.name = "factor", .type = ecs_id(ecs_f32_t)},
 	}});
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgKeyboardsActionToggleEntity),
 	.members = {
-	{.name = "key_index", .type = ecs_id(ecs_i32_t)},
+	{.name = "key", .type = ecs_id(ecs_i32_t)},
+	{.name = "mask", .type = ecs_id(ecs_u8_t)},
 	{.name = "entity", .type = ecs_id(ecs_entity_t)},
+	{.name = "relation", .type = ecs_id(ecs_entity_t)},
 	{.name = "toggle", .type = ecs_id(ecs_entity_t)},
 	}});
 

@@ -129,8 +129,8 @@ extern ECS_COMPONENT_DECLARE(RotMat3);
 extern ECS_COMPONENT_DECLARE(Sinewave);
 extern ECS_COMPONENT_DECLARE(Color3);
 
-extern ECS_TAG_DECLARE(EgRotateOrder1);
-extern ECS_TAG_DECLARE(EgRotateOrder2);
-extern ECS_TAG_DECLARE(EgPositionWorldNoReset);
+extern ECS_TAG_DECLARE(RotateOrder1);
+extern ECS_TAG_DECLARE(RotateOrder2);
+extern ECS_TAG_DECLARE(PositionWorldNoReset);
 
 void EgSpatialsImport(ecs_world_t *world);

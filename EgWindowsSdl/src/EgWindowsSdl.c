@@ -96,16 +96,20 @@ static void System_EgWindowsWindow_Mouse(ecs_iter_t *it)
 	}
 }
 
-static void System_Events(ecs_iter_t *it)
+static void System_Events_Update(ecs_iter_t *it)
 {
 	EgKeyboardsState *s = ecs_field(it, EgKeyboardsState, 0); // Singleton
+	for (int i = 0; i < EG_KEYBOARDS_KEYS_MAX; ++i) {
+		s->state[i] &= ~(EG_KEYBOARDS_STATE_PRESSED | EG_KEYBOARDS_STATE_RELEASED);
+	}
+
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		// SDLTest_CommonEvent(state, &event, &done);
 		switch (event.type) {
 		case SDL_EVENT_QUIT:
 			break;
-        case SDL_EVENT_WINDOW_CLOSE_REQUESTED: {
+		case SDL_EVENT_WINDOW_CLOSE_REQUESTED: {
 			SDL_Window *window = SDL_GetWindowFromEvent(&event);
 			SDL_WindowID id = SDL_GetWindowID(window);
 			ecs_map_val_t *ev = ecs_map_get(&static_window_map, id);
@@ -115,10 +119,19 @@ static void System_Events(ecs_iter_t *it)
 			break;
 		} // END CASE
 		case SDL_EVENT_KEY_DOWN:
-			s->state[event.key.scancode] |= EG_KEYBOARDS_STATE_DOWN;
+			// SDL_EVENT_KEY_DOWN can repeat.
+			// Set oneshot key pressed state:
+			if (s->state[event.key.scancode] & EG_KEYBOARDS_STATE_HELD) {
+				s->state[event.key.scancode] &= ~EG_KEYBOARDS_STATE_PRESSED;
+			} else {
+				s->state[event.key.scancode] |= EG_KEYBOARDS_STATE_PRESSED;
+			}
+			s->state[event.key.scancode] |= EG_KEYBOARDS_STATE_HELD;
 			break;
 		case SDL_EVENT_KEY_UP:
-			s->state[event.key.scancode] &= ~EG_KEYBOARDS_STATE_DOWN;
+			// SDL_EVENT_KEY_UP does not repeat.
+			s->state[event.key.scancode] &= ~EG_KEYBOARDS_STATE_HELD;
+			s->state[event.key.scancode] |= EG_KEYBOARDS_STATE_RELEASED;
 			break;
 		case SDL_EVENT_WINDOW_RESIZED: {
 			// Get the entity from the SDL_WindowID
@@ -214,8 +227,8 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_Events", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Events,
+	{.entity = ecs_entity(world, {.name = "System_Events_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_Events_Update,
 	.query.terms =
 	{
 	{.id = ecs_id(EgKeyboardsState), .src.id = ecs_id(EgKeyboardsState), .inout = EcsInOut},

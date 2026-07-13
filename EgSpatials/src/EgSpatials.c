@@ -17,9 +17,9 @@ ECS_COMPONENT_DECLARE(Transformation);
 ECS_COMPONENT_DECLARE(TransformationCollector);
 ECS_COMPONENT_DECLARE(Sinewave);
 ECS_COMPONENT_DECLARE(Color3);
-ECS_TAG_DECLARE(EgRotateOrder1);
-ECS_TAG_DECLARE(EgRotateOrder2);
-ECS_TAG_DECLARE(EgPositionWorldNoReset);
+ECS_TAG_DECLARE(RotateOrder1);
+ECS_TAG_DECLARE(RotateOrder2);
+ECS_TAG_DECLARE(PositionWorldNoReset);
 
 
 
@@ -109,9 +109,9 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Sinewave);
 	ECS_COMPONENT_DEFINE(world, Color3);
 
-	ECS_TAG_DEFINE(world, EgRotateOrder1);
-	ECS_TAG_DEFINE(world, EgRotateOrder2);
-	ECS_TAG_DEFINE(world, EgPositionWorldNoReset);
+	ECS_TAG_DEFINE(world, RotateOrder1);
+	ECS_TAG_DEFINE(world, RotateOrder2);
+	ECS_TAG_DEFINE(world, PositionWorldNoReset);
 
 	ecs_set_hooks(world, Orientation, {.ctor = ecs_ctor(Orientation)});
 	ecs_set_hooks(world, OrientationWorld, {.ctor = ecs_ctor(OrientationWorld)});

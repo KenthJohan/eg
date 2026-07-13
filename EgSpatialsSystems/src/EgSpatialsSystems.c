@@ -213,7 +213,7 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	.query.terms = {
 	{.id = ecs_id(Orientation), .inout = EcsOut},
 	{.id = ecs_id(Rotate3), .inout = EcsIn},
-	{.id = EgRotateOrder1},
+	{.id = RotateOrder1},
 	}});
 
 	ecs_system(world,
@@ -222,7 +222,7 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	.query.terms = {
 	{.id = ecs_id(Orientation), .inout = EcsOut},
 	{.id = ecs_id(Rotate3), .inout = EcsIn},
-	{.id = EgRotateOrder2},
+	{.id = RotateOrder2},
 	}});
 
 	ecs_system(world,
@@ -230,7 +230,7 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	.callback = Position3World_Reset,
 	.query.terms = {
 	{.id = ecs_id(Position3World), .inout = EcsOut},
-	{.id = EgPositionWorldNoReset, .oper = EcsNot},
+	{.id = PositionWorldNoReset, .oper = EcsNot},
 	}});
 
 	ecs_system(world,
