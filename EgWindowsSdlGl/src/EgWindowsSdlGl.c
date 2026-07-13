@@ -19,8 +19,10 @@ static void System_Render(ecs_iter_t *it)
 {
 	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 0);               // self, in
 	EgWindowsOpenGLContext *gl = ecs_field(it, EgWindowsOpenGLContext, 1); // self, in
+	EgShapesRectangle *rect = ecs_field(it, EgShapesRectangle, 2);         // self, in
 	for (int i = 0; i < it->count; ++i) {
 		SDL_GL_MakeCurrent(cw[i].object, gl[i].gl_context);
+		glViewport(0, 0, (GLsizei)rect[i].w, (GLsizei)rect[i].h);
 		glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Blue
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -28,7 +30,7 @@ static void System_Render(ecs_iter_t *it)
 		ecs_iter_set_group(&it2, it->entities[i]);
 		while (ecs_query_next(&it2)) {
 			for (int j = 0; j < it2.count; ++j) {
-				//ecs_trace("inner entity: %s", ecs_get_name(it2.world, it2.entities[j]));
+				// ecs_trace("inner entity: %s", ecs_get_name(it2.world, it2.entities[j]));
 				ecs_run(it2.world, it2.entities[j], 0.0f, NULL);
 			}
 		}
@@ -84,6 +86,7 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf},
 	{.id = ecs_id(EgWindowsOpenGLContext), .src.id = EcsSelf},
+	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf},
 	}});
 
 	ecs_system(world,
