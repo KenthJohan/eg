@@ -19,6 +19,7 @@ typedef struct
 	void *gl_context;
 	char const *gl_version;
 	char const *glsl_version;
+	ecs_query_t * inner_systems;
 } EgWindowsOpenGLContext;
 
 typedef struct

@@ -45,8 +45,10 @@ void EgWindowsImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(EgWindowsOpenGLContext),
 	.members = {
+	{.name = "gl_context", .type = ecs_id(ecs_uptr_t)},
 	{.name = "gl_version", .type = ecs_id(ecs_string_t)},
 	{.name = "glsl_version", .type = ecs_id(ecs_string_t)},
+	{.name = "inner_systems", .type = ecs_id(ecs_uptr_t)},
 	}});
 
 	ecs_struct(world,
