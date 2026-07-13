@@ -39,6 +39,7 @@ void EgWindowsImport(ecs_world_t *world)
 	{.entity = ecs_id(EgWindowsWindowCreateInfo),
 	.members = {
 	{.name = "debug", .type = ecs_id(ecs_bool_t)},
+	{.name = "enable_opengl", .type = ecs_id(ecs_bool_t)},
 	}});
 
 	ecs_struct(world,

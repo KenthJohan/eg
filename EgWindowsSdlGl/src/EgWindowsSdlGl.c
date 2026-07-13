@@ -22,6 +22,7 @@ static void System_Render(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i) {
 		SDL_GL_MakeCurrent(cw[i].object, gl[i].gl_context);
 		glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Blue
+		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_GL_SwapWindow(cw[i].object);
 	} // END FOR LOOP
 }
@@ -32,6 +33,12 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 	EgWindowsOpenGLContextCreate *info = ecs_field(it, EgWindowsOpenGLContextCreate, 1); // self, in
 	for (int i = 0; i < it->count; ++i) {
 		SDL_GLContext context = SDL_GL_CreateContext(cw[i].object);
+		if (context == NULL) {
+			ecs_err("SDL_GL_CreateContext() failed: %s", SDL_GetError());
+			ecs_add(it->world, it->entities[i], EcsAlertWarning);
+			ecs_enable(it->world, it->entities[i], false);
+			continue;
+		}
 		char const *gl_version = (char const *)glGetString(GL_VERSION);
 		char const *glsl_version = (char const *)glGetString(GL_SHADING_LANGUAGE_VERSION);
 		ecs_set(it->world, it->entities[i], EgWindowsOpenGLContext, {.gl_context = context, .gl_version = gl_version, .glsl_version = glsl_version});
@@ -43,6 +50,7 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	ECS_MODULE(world, EgWindowsSdlGl);
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgKeyboards);
+	ECS_IMPORT(world, FlecsAlerts);
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
 
 	ecs_system(world,

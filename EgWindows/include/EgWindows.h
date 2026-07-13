@@ -9,7 +9,10 @@ typedef struct
 typedef struct
 {
 	bool debug;
+	bool enable_opengl;
 } EgWindowsWindowCreateInfo;
+
+typedef void * (*EgWindowsWindowCallback)(void *user_data);
 
 typedef struct
 {
