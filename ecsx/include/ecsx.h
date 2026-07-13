@@ -18,7 +18,6 @@ int32_t ecsx_sum_offset(ecs_world_t *world, ecs_entity_t const members[], ecs_en
 
 int32_t ecsx_children_count(ecs_world_t *world, ecs_entity_t parent);
 
-
 #ifdef ecs_field
 #undef ecs_field
 #endif
@@ -31,12 +30,13 @@ int32_t ecsx_children_count(ecs_world_t *world, ecs_entity_t parent);
 #undef ecs_field_self
 #endif
 
-#define ecsx_field(it, T, index) (ECS_CAST(T*, ecs_field_w_size(it, sizeof(T), index)))
-#define ecsx_auto_id(id) (ECS_IS_PAIR((id)) ? ECS_PAIR_FIRST((id)) : (id))
-#define ecsx_field_id1(it, index) ecsx_auto_id(ecs_field_id((it), (index)))
-#define ecsx_get_symbol1(world, T) ecs_get_symbol(world, ecsx_auto_id(ecs_id(T)))
+#define ecsx_field(it, T, index)       (ECS_CAST(T *, ecs_field_w_size(it, sizeof(T), index)))
+#define ecsx_auto_id(id)               (ECS_IS_PAIR((id)) ? ECS_PAIR_FIRST((id)) : (id))
+#define ecsx_field_id1(it, index)      ecsx_auto_id(ecs_field_id((it), (index)))
+#define ecsx_get_symbol1(world, T)     ecs_get_symbol(world, ecsx_auto_id(ecs_id(T)))
 #define ecsx_get_symbol1_it(it, index) ecs_get_symbol(it->world, ecsx_field_id1(it, index))
 
+// clang-format off
 #define ecs_field(it, T, index)\
     (ecsx_field_id1(it, index) == ecs_id(T)) ? ecsx_field(it, T, index) : \
     (ecs_abort_(ECS_INVALID_PARAMETER, __FILE__, __LINE__, \
@@ -58,4 +58,6 @@ int32_t ecsx_children_count(ecs_world_t *world, ecs_entity_t parent);
     "Field %i '%s' is not self", \
     index, ecsx_get_symbol1_it(it, index)), \
     ecs_os_abort(), abort(), NULL)
+// clang-format on
 
+void ecsx_toggle(ecs_world_t *world, ecs_entity_t entity, ecs_entity_t relation, ecs_entity_t toggle);

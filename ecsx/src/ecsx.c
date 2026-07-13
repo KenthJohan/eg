@@ -88,3 +88,68 @@ void ecsx_remove_by_it_term(ecs_iter_t *it, ecs_entity_t e, int index)
 		ecs_remove_id(it->world, e, id);
 	}
 }
+
+
+
+/*
+printf("remove1(%s,%s)\n", ecs_get_name(world, prefab), ecs_get_name(world, subject));
+const ecs_type_t *type = ecs_get_type(world, subject);
+char *type_str = ecs_type_str(world, type);
+printf("ecs_type_str: %s\n\n", type_str);
+ecs_os_free(type_str);
+        char const * n1 = ecs_get_name(world, subject);
+        char const * n2 = ecs_get_name(world, id);
+        printf("ecs_remove_id(%s,%s)\n", n1, n2);
+*/
+
+/*
+https://www.flecs.dev/flecs/md_docs_2ComponentTraits.html
+*/
+void remove_copies_from_prefab(ecs_world_t *world, ecs_entity_t prefab, ecs_entity_t subject)
+{
+	// Removes every component of subject that are also in prefab:
+	const ecs_type_t *type = ecs_get_type(world, prefab);
+	for (int i = 0; i < type->count; i++) {
+		ecs_id_t id = type->array[i];
+		if (ecs_has_id(world, subject, id) == false) {
+			continue;
+		}
+		if (ecs_is_alive(world, id) == false) {
+			continue;
+		}
+		ecs_remove_id(world, subject, id);
+	}
+	// Removes every child of subject that are also in prefab:
+	ecs_query_t *q = ecs_query(world,
+	{.cache_kind = EcsQueryCacheNone,
+	.terms = {
+	{.id = ecs_pair(prefab, EcsWildcard)},
+	{.id = ecs_childof(subject)}}});
+	ecs_iter_t it = ecs_query_iter(world, q);
+	while (ecs_query_next(&it)) {
+		for (int i = 0; i < it.count; ++i) {
+			ecs_entity_t e = it.entities[i];
+			ecs_delete(world, e);
+		}
+	}
+	ecs_query_fini(q);
+}
+
+void ecsx_toggle(ecs_world_t *world, ecs_entity_t entity, ecs_entity_t relation, ecs_entity_t toggle)
+{
+	if (relation) {
+		if (ecs_has_pair(world, entity, relation, toggle)) {
+			ecs_remove_pair(world, entity, relation, toggle);
+			remove_copies_from_prefab(world, toggle, entity);
+		} else {
+			ecs_add_pair(world, entity, relation, toggle);
+		}
+	} else {
+		if (ecs_has_id(world, entity, toggle)) {
+			ecs_remove_id(world, entity, toggle);
+			remove_copies_from_prefab(world, toggle, entity);
+		} else {
+			ecs_add_id(world, entity, toggle);
+		}
+	}
+}

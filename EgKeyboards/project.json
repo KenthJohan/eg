@@ -5,7 +5,8 @@
 		"language": "c",
 		"public": true,
 		"use": [
-			"egmath"
+			"egmath",
+			"ecsx"
 		]
 	},
 	"lang.c": {
@@ -15,7 +16,8 @@
 		"defines": [],
 		"cflags": [],
 		"lib": [
-			"egmath"
+			"egmath",
+			"ecsx"
 		]
 	}
 }

@@ -19,6 +19,7 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
+#include <ecsx.h>
 
 /* Convenience macro for exporting symbols */
 #ifndef EgKeyboards_STATIC
