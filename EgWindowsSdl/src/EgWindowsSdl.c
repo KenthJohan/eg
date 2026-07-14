@@ -115,12 +115,10 @@ static void handle_window_event(ecs_world_t *world, SDL_WindowEvent *event)
 	ecs_entity_t e = ev[0];
 	switch (event->type) {
 	case SDL_EVENT_WINDOW_RESIZED:
-		printf("SDL_EVENT_WINDOW_RESIZED: %s\n", ecs_get_name(world, e));
 		ecs_add(world, e, EgWindowsEventResize);
 		break;
 	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-		printf("SDL_EVENT_WINDOW_CLOSE_REQUESTED: %s\n", ecs_get_name(world, e));
-		ecs_add(world, e, EgWindowsEventCloseRequest);
+		ecs_add(world, e, EgWindowsCloseRequest);
 		break;
 	default:
 		break;
@@ -202,7 +200,7 @@ static void System_Resize(ecs_iter_t *it)
 {
 	ecs_id_t pair = ecs_field_id(it, 1);
 	ecs_entity_t food = ecs_pair_second(it->world, pair);
-	ecs_trace("food: %s\n", ecs_get_name(it->world, food));
+	printf("food: %s\n", ecs_get_name(it->world, food));
 	ecs_add(it->world, food, EgBaseUpdate);
 	for (int i = 0; i < it->count; ++i) {
 		ecs_remove(it->world, it->entities[i], EgWindowsEventResize);
