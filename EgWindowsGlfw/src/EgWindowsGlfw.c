@@ -7,7 +7,7 @@
 
 #include <EgShapes.h>
 #include <EgSpatials.h>
-#include <EgKeyboards.h>
+#include <EgButtons.h>
 #include <EgBase.h>
 
 #include <glad/glad.h>
@@ -117,7 +117,7 @@ void EgWindowsGlfwImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgWindowsGlfw);
 	ECS_IMPORT(world, EgSpatials);
-	ECS_IMPORT(world, EgKeyboards);
+	ECS_IMPORT(world, EgButtons);
 	ecs_set_name_prefix(world, "EgWindowsGlfw");
 
 	ECS_COMPONENT_DEFINE(world, EgWindowsGlfwState);
@@ -144,7 +144,7 @@ void EgWindowsGlfwImport(ecs_world_t *world)
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	ecs_set(world, ecs_id(EgWindows), EgWindowsGlfwState, {glfwGetVersionString()});
-	ecs_singleton_set(world, EgKeyboardsState, {.state = {0}});
+	ecs_singleton_set(world, EgButtonsState, {.state = {0}});
 
 	ecs_system(world,
 	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),

@@ -14,26 +14,26 @@
  * dependencies will automatically show up in this file. Include bake_config.h
  * in your main project file. Do not edit! */
 
-#ifndef EGKEYBOARDS_BAKE_CONFIG_H
-#define EGKEYBOARDS_BAKE_CONFIG_H
+#ifndef EGBUTTONS_BAKE_CONFIG_H
+#define EGBUTTONS_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
 #include <egmath.h>
 #include <ecsx.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgKeyboards_STATIC
-#if defined(EgKeyboards_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
-  #define EGKEYBOARDS_API __declspec(dllexport)
-#elif defined(EgKeyboards_EXPORTS)
-  #define EGKEYBOARDS_API __attribute__((__visibility__("default")))
+#ifndef EgButtons_STATIC
+#if defined(EgButtons_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+  #define EGBUTTONS_API __declspec(dllexport)
+#elif defined(EgButtons_EXPORTS)
+  #define EGBUTTONS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
-  #define EGKEYBOARDS_API __declspec(dllimport)
+  #define EGBUTTONS_API __declspec(dllimport)
 #else
-  #define EGKEYBOARDS_API
+  #define EGBUTTONS_API
 #endif
 #else
-  #define EGKEYBOARDS_API
+  #define EGBUTTONS_API
 #endif
 
 #endif

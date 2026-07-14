@@ -1,4 +1,4 @@
-#include "EgKeyboards.h"
+#include "EgButtons.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -6,16 +6,16 @@
 #include <EgSpatials.h>
 #include <ecsx.h>
 
-ECS_COMPONENT_DECLARE(EgKeyboardsDevice);
-ECS_COMPONENT_DECLARE(EgKeyboardsState);
-ECS_COMPONENT_DECLARE(EgKeyboardsBinding);
-ECS_COMPONENT_DECLARE(EgKeyboardsActionToggleEntity);
+ECS_COMPONENT_DECLARE(EgButtonsDevice);
+ECS_COMPONENT_DECLARE(EgButtonsState);
+ECS_COMPONENT_DECLARE(EgButtonsBinding);
+ECS_COMPONENT_DECLARE(EgButtonsActionToggleEntity);
 
 static void System_Toggle(ecs_iter_t *it)
 {
 	ecs_log_set_level(1);
-	EgKeyboardsState *keyboard = ecs_field(it, EgKeyboardsState, 0);                    // singleton
-	EgKeyboardsActionToggleEntity *a = ecs_field(it, EgKeyboardsActionToggleEntity, 1); // self
+	EgButtonsState *keyboard = ecs_field(it, EgButtonsState, 0);                    // singleton
+	EgButtonsActionToggleEntity *a = ecs_field(it, EgButtonsActionToggleEntity, 1); // self
 	for (int i = 0; i < it->count; ++i, ++a) {
 		uint8_t k = keyboard->state[a->key];
 		if ((k & a->mask) == 0) {
@@ -36,8 +36,8 @@ ecs_os_free(str);
 static void System_Bindings(ecs_iter_t *it)
 {
 	ecs_log_set_level(1);
-	EgKeyboardsState *keyboard = ecs_field(it, EgKeyboardsState, 0); // singleton
-	EgKeyboardsBinding *a = ecs_field(it, EgKeyboardsBinding, 1);    // self
+	EgButtonsState *keyboard = ecs_field(it, EgButtonsState, 0); // singleton
+	EgButtonsBinding *a = ecs_field(it, EgButtonsBinding, 1);    // self
 	for (int i = 0; i < it->count; ++i, ++a) {
 		void *ptr = ecs_get_mut_id(it->world, a->entity, a->comonent);
 		if (ptr == NULL) {
@@ -53,30 +53,30 @@ static void System_Bindings(ecs_iter_t *it)
 	ecs_log_set_level(0);
 }
 
-void EgKeyboardsImport(ecs_world_t *world)
+void EgButtonsImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgKeyboards);
-	ecs_set_name_prefix(world, "EgKeyboards");
+	ECS_MODULE(world, EgButtons);
+	ecs_set_name_prefix(world, "EgButtons");
 
-	ECS_COMPONENT_DEFINE(world, EgKeyboardsDevice);
-	ECS_COMPONENT_DEFINE(world, EgKeyboardsState);
-	ECS_COMPONENT_DEFINE(world, EgKeyboardsBinding);
-	ECS_COMPONENT_DEFINE(world, EgKeyboardsActionToggleEntity);
+	ECS_COMPONENT_DEFINE(world, EgButtonsDevice);
+	ECS_COMPONENT_DEFINE(world, EgButtonsState);
+	ECS_COMPONENT_DEFINE(world, EgButtonsBinding);
+	ECS_COMPONENT_DEFINE(world, EgButtonsActionToggleEntity);
 
 	ecs_struct(world,
-	{.entity = ecs_id(EgKeyboardsState),
+	{.entity = ecs_id(EgButtonsState),
 	.members = {
-	{.name = "scancode", .type = ecs_id(ecs_u8_t), .count = EG_KEYBOARDS_KEYS_MAX},
+	{.name = "scancode", .type = ecs_id(ecs_u8_t), .count = EG_BUTTONS_KEYS_MAX},
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(EgKeyboardsDevice),
+	{.entity = ecs_id(EgButtonsDevice),
 	.members = {
 	{.name = "id", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(EgKeyboardsBinding),
+	{.entity = ecs_id(EgButtonsBinding),
 	.members = {
 	{.name = "key0", .type = ecs_id(ecs_i32_t)},
 	{.name = "key1", .type = ecs_id(ecs_i32_t)},
@@ -88,7 +88,7 @@ void EgKeyboardsImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(EgKeyboardsActionToggleEntity),
+	{.entity = ecs_id(EgButtonsActionToggleEntity),
 	.members = {
 	{.name = "key", .type = ecs_id(ecs_i32_t)},
 	{.name = "mask", .type = ecs_id(ecs_u8_t)},
@@ -102,8 +102,8 @@ void EgKeyboardsImport(ecs_world_t *world)
 	.callback = System_Toggle,
 	.query.terms =
 	{
-	{.id = ecs_id(EgKeyboardsState), .src.id = ecs_id(EgKeyboardsState)},
-	{.id = ecs_id(EgKeyboardsActionToggleEntity), .src.id = EcsSelf},
+	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState)},
+	{.id = ecs_id(EgButtonsActionToggleEntity), .src.id = EcsSelf},
 	}});
 
 	ecs_system(world,
@@ -111,7 +111,7 @@ void EgKeyboardsImport(ecs_world_t *world)
 	.callback = System_Bindings,
 	.query.terms =
 	{
-	{.id = ecs_id(EgKeyboardsState), .src.id = ecs_id(EgKeyboardsState)},
-	{.id = ecs_id(EgKeyboardsBinding), .src.id = EcsSelf},
+	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState)},
+	{.id = ecs_id(EgButtonsBinding), .src.id = EcsSelf},
 	}});
 }

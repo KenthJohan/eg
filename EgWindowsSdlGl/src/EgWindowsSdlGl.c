@@ -11,7 +11,7 @@
 
 #include <EgShapes.h>
 #include <EgSpatials.h>
-#include <EgKeyboards.h>
+#include <EgButtons.h>
 #include <EgBase.h>
 #include <EgWindows.h>
 
@@ -75,7 +75,7 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgWindowsSdlGl);
 	ECS_IMPORT(world, EgWindows);
-	ECS_IMPORT(world, EgKeyboards);
+	ECS_IMPORT(world, EgButtons);
 	ECS_IMPORT(world, FlecsAlerts);
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
 

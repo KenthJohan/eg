@@ -10,7 +10,7 @@
 
 #include <EgShapes.h>
 #include <EgSpatials.h>
-#include <EgKeyboards.h>
+#include <EgButtons.h>
 #include <EgBase.h>
 #include <EgWindows.h>
 
@@ -105,11 +105,33 @@ static void System_EgWindowsWindow_Mouse(ecs_iter_t *it)
 	}
 }
 
+static void handle_window_event(ecs_world_t *world, SDL_WindowEvent *event)
+{
+	ecs_map_val_t *ev = ecs_map_get(&static_window_map, event->windowID);
+	if (ev == NULL) {
+		ecs_err("handle_window_event: No entity found for SDL_WindowID: %i", event->windowID);
+		return;
+	}
+	ecs_entity_t e = ev[0];
+	switch (event->type) {
+	case SDL_EVENT_WINDOW_RESIZED:
+		printf("SDL_EVENT_WINDOW_RESIZED: %s\n", ecs_get_name(world, e));
+		ecs_add(world, e, EgWindowsEventResize);
+		break;
+	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+		printf("SDL_EVENT_WINDOW_CLOSE_REQUESTED: %s\n", ecs_get_name(world, e));
+		ecs_add(world, e, EgWindowsEventCloseRequest);
+		break;
+	default:
+		break;
+	}
+}
+
 static void System_Events_Update(ecs_iter_t *it)
 {
-	EgKeyboardsState *s = ecs_field(it, EgKeyboardsState, 0); // Singleton
-	for (int i = 0; i < EG_KEYBOARDS_KEYS_MAX; ++i) {
-		s->state[i] &= ~(EG_KEYBOARDS_STATE_PRESSED | EG_KEYBOARDS_STATE_RELEASED);
+	EgButtonsState *s = ecs_field(it, EgButtonsState, 0); // Singleton
+	for (int i = 0; i < EG_BUTTONS_KEYS_MAX; ++i) {
+		s->state[i] &= ~(EG_BUTTONS_STATE_PRESSED | EG_BUTTONS_STATE_RELEASED);
 	}
 
 	SDL_Event event;
@@ -118,47 +140,28 @@ static void System_Events_Update(ecs_iter_t *it)
 		switch (event.type) {
 		case SDL_EVENT_QUIT:
 			break;
-		case SDL_EVENT_WINDOW_CLOSE_REQUESTED: {
-			SDL_Window *window = SDL_GetWindowFromEvent(&event);
-			SDL_WindowID id = SDL_GetWindowID(window);
-			ecs_map_val_t *ev = ecs_map_get(&static_window_map, id);
-			ecs_entity_t e = ev[0];
-			printf("SDL_EVENT_QUIT: %s\n", ecs_get_name(it->world, e));
-			ecs_add(it->world, e, EgWindowsEventCloseRequest);
+		case SDL_EVENT_WINDOW_RESIZED:
+		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+			handle_window_event(it->world, &event.window);
 			break;
-		} // END CASE
 		case SDL_EVENT_KEY_DOWN:
 			// SDL_EVENT_KEY_DOWN can repeat.
 			// Set oneshot key pressed state:
-			if (s->state[event.key.scancode] & EG_KEYBOARDS_STATE_HELD) {
-				s->state[event.key.scancode] &= ~EG_KEYBOARDS_STATE_PRESSED;
+			if (s->state[event.key.scancode] & EG_BUTTONS_STATE_HELD) {
+				s->state[event.key.scancode] &= ~EG_BUTTONS_STATE_PRESSED;
 			} else {
-				s->state[event.key.scancode] |= EG_KEYBOARDS_STATE_PRESSED;
+				s->state[event.key.scancode] |= EG_BUTTONS_STATE_PRESSED;
 			}
-			s->state[event.key.scancode] |= EG_KEYBOARDS_STATE_HELD;
+			s->state[event.key.scancode] |= EG_BUTTONS_STATE_HELD;
 			break;
 		case SDL_EVENT_KEY_UP:
 			// SDL_EVENT_KEY_UP does not repeat.
-			s->state[event.key.scancode] &= ~EG_KEYBOARDS_STATE_HELD;
-			s->state[event.key.scancode] |= EG_KEYBOARDS_STATE_RELEASED;
+			s->state[event.key.scancode] &= ~EG_BUTTONS_STATE_HELD;
+			s->state[event.key.scancode] |= EG_BUTTONS_STATE_RELEASED;
 			break;
-		case SDL_EVENT_WINDOW_RESIZED: {
-			// Get the entity from the SDL_WindowID
-			SDL_Window *window = SDL_GetWindowFromEvent(&event);
-			SDL_WindowID id = SDL_GetWindowID(window);
-			ecs_map_val_t *ev = ecs_map_get(&static_window_map, id);
-			if (ev == NULL) {
-				ecs_err("SDL_EVENT_WINDOW_RESIZED: No entity found for SDL_WindowID: %i", id);
-				break;
-			}
-			ecs_entity_t e = ev[0];
-			printf("SDL_EVENT_WINDOW_RESIZED: %s\n", ecs_get_name(it->world, e));
-			ecs_add(it->world, e, EgWindowsEventResize);
-			break;
-		} // END CASE
 		} // END SWITCH
 	} // END WHILE
-	// printf("EG_KEYBOARDS_STATE_RISING_EDGE: %i\n", s->scancode[SDL_SCANCODE_B] & EG_KEYBOARDS_STATE_RISING_EDGE);
+	// printf("EG_BUTTONS_STATE_RISING_EDGE: %i\n", s->scancode[SDL_SCANCODE_B] & EG_BUTTONS_STATE_RISING_EDGE);
 }
 
 static void System_Resize(ecs_iter_t *it)
@@ -176,7 +179,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgWindowsSdl);
 	ECS_IMPORT(world, EgWindows);
-	ECS_IMPORT(world, EgKeyboards);
+	ECS_IMPORT(world, EgButtons);
 	ecs_set_name_prefix(world, "EgWindowsSdl");
 
 	ecs_map_init(&static_window_map, NULL);
@@ -241,7 +244,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	.callback = System_Events_Update,
 	.query.terms =
 	{
-	{.id = ecs_id(EgKeyboardsState), .src.id = ecs_id(EgKeyboardsState), .inout = EcsInOut},
+	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsInOut},
 	}});
 
 	ecs_system(world,
@@ -253,5 +256,5 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	{.id = ecs_pair(EgWindowsEventResize, EcsWildcard), .src.id = EcsSelf, .inout = EcsOut},
 	}});
 
-	ecs_singleton_set(world, EgKeyboardsState, {.state = {0}});
+	ecs_singleton_set(world, EgButtonsState, {.state = {0}});
 }
