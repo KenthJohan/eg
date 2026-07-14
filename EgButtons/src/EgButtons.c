@@ -17,7 +17,7 @@ static void System_Toggle(ecs_iter_t *it)
 	EgButtonsState *keyboard = ecs_field(it, EgButtonsState, 0);                    // singleton
 	EgButtonsActionToggleEntity *a = ecs_field(it, EgButtonsActionToggleEntity, 1); // self
 	for (int i = 0; i < it->count; ++i, ++a) {
-		uint8_t k = keyboard->state[a->key];
+		uint8_t k = keyboard->scancode[a->key];
 		if ((k & a->mask) == 0) {
 			continue;
 		}
@@ -44,9 +44,28 @@ static void System_Bindings(ecs_iter_t *it)
 			ecs_dbg("ecs_get_id(%s,%s) == NULL", ecs_get_name(it->world, a->entity), ecs_get_name(it->world, a->comonent));
 			continue;
 		}
-		uint8_t k0 = keyboard->state[a->key0];
-		uint8_t k1 = keyboard->state[a->key1];
-		int delta = !!(k0 & a->mask) - !!(k1 & a->mask);
+		uint8_t b0 = (a->key0 >> 0) & 0xFF;
+		uint8_t b1 = (a->key1 >> 0) & 0xFF;
+		uint8_t s0 = (a->key0 >> 16) & 0xFF;
+		uint8_t s1 = (a->key1 >> 16) & 0xFF;
+		int32_t max[] = {EG_BUTTONS_SCANCODES_MAX, EG_BUTTONS_MOUSE_MAX};
+		uint8_t *set[] = {keyboard->scancode, keyboard->mouse};
+		if ((s0 >= 2) || (s1 >= 2)) {
+			ecs_err("key0 or key1 out of range: %i, %i", s0, s1);
+			continue;
+		}
+		if ((b0 >= max[s0]) || (b1 >= max[s1])) {
+			ecs_err("key0 or key1 out of range: %i, %i", b0, b1);
+			continue;
+		}
+		uint8_t *a0 = set[s0];
+		uint8_t *a1 = set[s1];
+		uint8_t v0 = a0[b0];
+		uint8_t v1 = a1[b1];
+		if (s0 == 1 && keyboard->mouse[1]) {
+			printf("mouse button: %i %i : %i %i\n", v0, v1, a->key0, a->key1);
+		}
+		int delta = !!(v0 & a->mask) - !!(v1 & a->mask);
 		float *f = (float *)((uint8_t *)ptr + a->byte_offset);
 		(*f) = (float)delta * a->factor;
 	}
@@ -66,7 +85,8 @@ void EgButtonsImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(EgButtonsState),
 	.members = {
-	{.name = "scancode", .type = ecs_id(ecs_u8_t), .count = EG_BUTTONS_KEYS_MAX},
+	{.name = "scancode", .type = ecs_id(ecs_u8_t), .count = EG_BUTTONS_SCANCODES_MAX},
+	{.name = "mouse", .type = ecs_id(ecs_u8_t), .count = EG_BUTTONS_MOUSE_MAX},
 	}});
 
 	ecs_struct(world,
@@ -82,7 +102,7 @@ void EgButtonsImport(ecs_world_t *world)
 	{.name = "key1", .type = ecs_id(ecs_i32_t)},
 	{.name = "mask", .type = ecs_id(ecs_u8_t)},
 	{.name = "entity", .type = ecs_id(ecs_entity_t)},
-	{.name = "comonent", .type = ecs_id(ecs_id_t)},
+	{.name = "component", .type = ecs_id(ecs_id_t)},
 	{.name = "byte_offset", .type = ecs_id(ecs_u8_t)},
 	{.name = "factor", .type = ecs_id(ecs_f32_t)},
 	}});

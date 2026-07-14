@@ -1,8 +1,8 @@
 #pragma once
 #include <flecs.h>
 
-#define EG_BUTTONS_KEYS_MAX 512
-#define EG_BUTTONS_MOUSEBUTTONS_MAX 512
+#define EG_BUTTONS_SCANCODES_MAX 512
+#define EG_BUTTONS_MOUSE_MAX 16
 
 #define EG_BUTTONS_STATE_HELD     0x01
 #define EG_BUTTONS_STATE_PRESSED  0x02
@@ -15,8 +15,8 @@ typedef struct
 
 typedef struct
 {
-	uint8_t state[EG_BUTTONS_KEYS_MAX];
-	uint8_t mouse[EG_BUTTONS_MOUSEBUTTONS_MAX];
+	uint8_t scancode[EG_BUTTONS_SCANCODES_MAX];
+	uint8_t mouse[EG_BUTTONS_MOUSE_MAX];
 } EgButtonsState;
 
 typedef struct

@@ -144,7 +144,7 @@ void EgWindowsGlfwImport(ecs_world_t *world)
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	ecs_set(world, ecs_id(EgWindows), EgWindowsGlfwState, {glfwGetVersionString()});
-	ecs_singleton_set(world, EgButtonsState, {.state = {0}});
+	ecs_singleton_set(world, EgButtonsState, {.scancode = {0}, .mouse = {0}});
 
 	ecs_system(world,
 	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),

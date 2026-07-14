@@ -130,8 +130,11 @@ static void handle_window_event(ecs_world_t *world, SDL_WindowEvent *event)
 static void System_Events_Update(ecs_iter_t *it)
 {
 	EgButtonsState *s = ecs_field(it, EgButtonsState, 0); // Singleton
-	for (int i = 0; i < EG_BUTTONS_KEYS_MAX; ++i) {
-		s->state[i] &= ~(EG_BUTTONS_STATE_PRESSED | EG_BUTTONS_STATE_RELEASED);
+	for (int i = 0; i < EG_BUTTONS_SCANCODES_MAX; ++i) {
+		s->scancode[i] &= ~(EG_BUTTONS_STATE_PRESSED | EG_BUTTONS_STATE_RELEASED);
+	}
+	for (int i = 0; i < EG_BUTTONS_MOUSE_MAX; ++i) {
+		s->mouse[i] &= ~(EG_BUTTONS_STATE_PRESSED | EG_BUTTONS_STATE_RELEASED);
 	}
 
 	SDL_Event event;
@@ -147,17 +150,48 @@ static void System_Events_Update(ecs_iter_t *it)
 		case SDL_EVENT_KEY_DOWN:
 			// SDL_EVENT_KEY_DOWN can repeat.
 			// Set oneshot key pressed state:
-			if (s->state[event.key.scancode] & EG_BUTTONS_STATE_HELD) {
-				s->state[event.key.scancode] &= ~EG_BUTTONS_STATE_PRESSED;
-			} else {
-				s->state[event.key.scancode] |= EG_BUTTONS_STATE_PRESSED;
+			if (event.key.scancode >= EG_BUTTONS_SCANCODES_MAX) {
+				ecs_err("SDL_EVENT_KEY_DOWN: scancode %i out of range", event.key.scancode);
+				break;
 			}
-			s->state[event.key.scancode] |= EG_BUTTONS_STATE_HELD;
+			if (s->scancode[event.key.scancode] & EG_BUTTONS_STATE_HELD) {
+				s->scancode[event.key.scancode] &= ~EG_BUTTONS_STATE_PRESSED;
+			} else {
+				s->scancode[event.key.scancode] |= EG_BUTTONS_STATE_PRESSED;
+			}
+			s->scancode[event.key.scancode] |= EG_BUTTONS_STATE_HELD;
 			break;
 		case SDL_EVENT_KEY_UP:
 			// SDL_EVENT_KEY_UP does not repeat.
-			s->state[event.key.scancode] &= ~EG_BUTTONS_STATE_HELD;
-			s->state[event.key.scancode] |= EG_BUTTONS_STATE_RELEASED;
+			if (event.key.scancode >= EG_BUTTONS_SCANCODES_MAX) {
+				ecs_err("SDL_EVENT_KEY_UP: scancode %i out of range", event.key.scancode);
+				break;
+			}
+			s->scancode[event.key.scancode] &= ~EG_BUTTONS_STATE_HELD;
+			s->scancode[event.key.scancode] |= EG_BUTTONS_STATE_RELEASED;
+			break;
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
+			if (event.button.button >= EG_BUTTONS_MOUSE_MAX) {
+				ecs_err("SDL_EVENT_MOUSE_BUTTON_DOWN: button %i out of range", event.button.button);
+				break;
+			}
+			// SDL_EVENT_MOUSE_BUTTON_DOWN can repeat.
+			if (s->mouse[event.button.button] & EG_BUTTONS_STATE_HELD) {
+				s->mouse[event.button.button] &= ~EG_BUTTONS_STATE_PRESSED;
+			} else {
+				s->mouse[event.button.button] |= EG_BUTTONS_STATE_PRESSED;
+			}
+			s->mouse[event.button.button] |= EG_BUTTONS_STATE_HELD;
+			break;
+		case SDL_EVENT_MOUSE_BUTTON_UP:
+			if (event.button.button >= EG_BUTTONS_MOUSE_MAX) {
+				ecs_err("SDL_EVENT_MOUSE_BUTTON_UP: button %i out of range", event.button.button);
+				break;
+			}
+			s->mouse[event.button.button] &= ~EG_BUTTONS_STATE_HELD;
+			s->mouse[event.button.button] |= EG_BUTTONS_STATE_RELEASED;
+			break;
+		default:
 			break;
 		} // END SWITCH
 	} // END WHILE
@@ -256,5 +290,5 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	{.id = ecs_pair(EgWindowsEventResize, EcsWildcard), .src.id = EcsSelf, .inout = EcsOut},
 	}});
 
-	ecs_singleton_set(world, EgButtonsState, {.state = {0}});
+	ecs_singleton_set(world, EgButtonsState, {.scancode = {0}, .mouse = {0}});
 }
