@@ -2,7 +2,6 @@
 #include <flecs.h>
 #include <glslang/Include/glslang_c_interface.h>
 
-
 typedef struct
 {
 	ecs_i32_t stage; // 0=vert, 4=frag, ...
@@ -10,7 +9,7 @@ typedef struct
 
 typedef struct
 {
-	uint32_t * words;
+	uint32_t *words;
 	int32_t words_size;
 } EgGlslangProgram;
 

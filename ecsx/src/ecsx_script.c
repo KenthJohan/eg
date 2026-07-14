@@ -6,7 +6,6 @@
 #define _DEFAULT_SOURCE
 #endif
 
-
 #include "ecsx/ecsx_script.h"
 #include <dirent.h>
 #include <stdio.h>

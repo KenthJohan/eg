@@ -132,7 +132,7 @@ static void System_OnModify(ecs_iter_t *it)
 {
 	ecs_world_t *world = it->world;
 	EgGlslangProgram *p = ecs_field_self(it, EgGlslangProgram, 0); // self
-	EgFsContent *g = ecs_field_shared(it, EgFsContent, 1); // shared, up
+	EgFsContent *g = ecs_field_shared(it, EgFsContent, 1);         // shared, up
 	for (int i = 0; i < it->count; ++i, ++p) {
 		ecs_entity_t e = it->entities[i];
 		ecs_remove(world, e, EgFsEventModify);

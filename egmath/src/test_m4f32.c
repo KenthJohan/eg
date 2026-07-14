@@ -11,7 +11,7 @@ void test_m4f32_trs()
 	m4f32 m3;
 	m4f32_trs(t, q, s, &m1);
 	m4f32_trs_inverse(t, q, s, &m2);
-	m4f32_inverse((float*)&m1, (float*)&m3);
+	m4f32_inverse((float *)&m1, (float *)&m3);
 	m4f32_print(&m1);
 	m4f32_print(&m2);
 	m4f32_print(&m3);

@@ -13,9 +13,9 @@
 #define V3_DOT(a, b) ((a)[0] * (b)[0] + (a)[1] * (b)[1] + (a)[2] * (b)[2])
 #define V4_DOT(a, b) ((a)[0] * (b)[0] + (a)[1] * (b)[1] + (a)[2] * (b)[2] + (a)[3] * (b)[3])
 
-#define V1_DOTE_(a, b0) ((a)[0] * b0)
-#define V2_DOTE_(a, b0, b1) ((a)[0] * b0 + (a)[1] * b1)
-#define V3_DOTE_(a, b0, b1, b2) ((a)[0] * b0 + (a)[1] * b1 + (a)[2] * b2)
+#define V1_DOTE_(a, b0)             ((a)[0] * b0)
+#define V2_DOTE_(a, b0, b1)         ((a)[0] * b0 + (a)[1] * b1)
+#define V3_DOTE_(a, b0, b1, b2)     ((a)[0] * b0 + (a)[1] * b1 + (a)[2] * b2)
 #define V4_DOTE_(a, b0, b1, b2, b3) ((a)[0] * b0 + (a)[1] * b1 + (a)[2] * b2 + (a)[3] * b3)
 
 #define V1_DOTE(...) V1_DOTE_(__VA_ARGS__)
@@ -71,7 +71,6 @@ void qf32_unit_to_m3(float const q[4], m3f32 *r);
 void qf32_from_euler(float q[4], float pitch, float yaw, float roll);
 void qf32_rotate_vector(float const q[4], float const v[3], float output[3]);
 
-
 void v3f32_xyz(float v[3], float x, float y, float z);
 void v3f32_cross(int const a[3], int const b[], int p[]);
 void v3f32_normalize(float r[3], float const q[3], float epsilon);
@@ -84,8 +83,6 @@ void v3f32_print(float const x[3]);
 float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float const c[3], float const n[3]);
 float v3f32_distance(float const a[3], float const b[3]);
 float v3f32_distance2(float const a[3], float const b[3]);
-
-
 
 void m4f32_perspective1(m4f32 *m, float fov, float aspect, float n, float f);
 void m4f32_translation3(m4f32 *m, float const t[3]);
@@ -110,8 +107,6 @@ void v4f32_mul(float r[4], float const a[4], float b);
 void v4f32_add(float r[4], float const a[4], float const b[4]);
 void v4f32_print(float const x[4]);
 
-
-
 /**
  * @brief Calculates two intesections point on a infinite elliptic cylinder
  *
@@ -122,7 +117,7 @@ void v4f32_print(float const x[4]);
  * @param tt (Transposed) The transform matrix is the result of the composition of the matrices that describe translation, rotation and scale of the scaled cylinder.
  * @return
  */
-float v3f32_intersect_cylinder_i0i1(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const * tt, float i0[3], float i1[3]);
+float v3f32_intersect_cylinder_i0i1(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt, float i0[3], float i1[3]);
 
 /**
  * @brief Check if line intesects a finite elliptic cylinder
@@ -136,8 +131,4 @@ float v3f32_intersect_cylinder_i0i1(float const v[3], float const l[3], float co
  */
 int v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt);
 
-
-
-
 void test_m4f32_trs();
-

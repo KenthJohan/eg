@@ -118,4 +118,3 @@ int ecsx_flecs_expr_ser_primitive(const ecs_world_t *world, ecs_primitive_kind_t
 
 	return 0;
 }
-

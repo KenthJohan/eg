@@ -16,97 +16,96 @@ https://github.com/libsdl-org/SDL/blob/0fcaf47658be96816a851028af3e73256363a390/
 ECS_COMPONENT_DECLARE(EgFsFanotifyFd);
 
 ECS_CTOR(EgFsFanotifyFd, ptr, {
-	ptr->fd = fd_fanotify_init();
+    ptr->fd = fd_fanotify_init();
 })
 
 // The destructor should free resources.
 ECS_DTOR(EgFsFanotifyFd, ptr, {
-	fd_close_valid(ptr->fd);
+    fd_close_valid(ptr->fd);
 })
 
 ECS_MOVE(EgFsFanotifyFd, dst, src, {
-	fd_close_valid(dst->fd);
-	dst->fd = src->fd;
-	src->fd = -1; // Invalidate the source fd
+    fd_close_valid(dst->fd);
+    dst->fd = src->fd;
+    src->fd = -1; // Invalidate the source fd
 })
 
 static void Observer_fanotify_mark(ecs_iter_t *it)
 {
-	ecs_world_t *world = it->world;
-	EgFsWatch *w = ecs_field(it, EgFsWatch, 0);           // self
-	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 1); // shared
-	for (int i = 0; i < it->count; ++i, ++w) {
-		ecs_assert(w->file != 0, ECS_INVALID_PARAMETER, NULL);
-		EcsIdentifier const *p = ecs_get_pair(world, w->file, EcsIdentifier, EcsName);
-		ecs_entity_t e = it->entities[i];
-		int r = 0;
-		if (it->event == EcsOnRemove) {
-			fd_fanotify_mark_rm(y->fd, p->value);
-		} else if (it->event == EcsOnSet) {
-			fd_fanotify_mark_add(y->fd, p->value);
-		}
-		if (r) {
-			ecs_enable(world, e, false);
-		}
-	} // END FOR LOOP
+    ecs_world_t *world = it->world;
+    EgFsWatch *w = ecs_field(it, EgFsWatch, 0);           // self
+    EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 1); // shared
+    for (int i = 0; i < it->count; ++i, ++w) {
+        ecs_assert(w->file != 0, ECS_INVALID_PARAMETER, NULL);
+        EcsIdentifier const *p = ecs_get_pair(world, w->file, EcsIdentifier, EcsName);
+        ecs_entity_t e = it->entities[i];
+        int r = 0;
+        if (it->event == EcsOnRemove) {
+            fd_fanotify_mark_rm(y->fd, p->value);
+        } else if (it->event == EcsOnSet) {
+            fd_fanotify_mark_add(y->fd, p->value);
+        }
+        if (r) {
+            ecs_enable(world, e, false);
+        }
+    } // END FOR LOOP
 }
 
 static void Observer_epoll_ctl(ecs_iter_t *it)
 {
-	ecs_log_set_level(0);
-	ecs_world_t *world = it->world;
-	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 0); // self
-	EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);       // shared
-	for (int i = 0; i < it->count; ++i, ++y) {
-		ecs_entity_t e = it->entities[i];
-		int r = 0;
-		if (it->event == EcsOnRemove) {
-			ecs_trace("epoll '%s'(%i) rm '%s'(%d)", ecs_get_name(world, ecs_field_src(it, 1)), o->fd, ecs_get_name(world, e), y->fd);
-			r = fd_epoll_rm(o->fd, y->fd);
-			if (r == 0) {
-				ecs_map_remove(&o->map, y->fd);
-			}
-		} else if (it->event == EcsOnAdd) {
-			ecs_trace("epoll '%s'(%i) add '%s'(%d)", ecs_get_name(world, ecs_field_src(it, 1)), o->fd, ecs_get_name(world, e), y->fd);
-			r = fd_epoll_add(o->fd, y->fd);
-			if (r == 0) {
-				ecs_map_insert(&o->map, y->fd, e);
-			}
-		}
-		if (r) {
-			ecs_enable(world, e, false);
-		}
-	}
-	ecs_log_set_level(-1);
+    ecs_log_set_level(0);
+    ecs_world_t *world = it->world;
+    EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 0); // self
+    EgFsEpollFd *o = ecs_field(it, EgFsEpollFd, 1);       // shared
+    for (int i = 0; i < it->count; ++i, ++y) {
+        ecs_entity_t e = it->entities[i];
+        int r = 0;
+        if (it->event == EcsOnRemove) {
+            ecs_trace("epoll '%s'(%i) rm '%s'(%d)", ecs_get_name(world, ecs_field_src(it, 1)), o->fd, ecs_get_name(world, e), y->fd);
+            r = fd_epoll_rm(o->fd, y->fd);
+            if (r == 0) {
+                ecs_map_remove(&o->map, y->fd);
+            }
+        } else if (it->event == EcsOnAdd) {
+            ecs_trace("epoll '%s'(%i) add '%s'(%d)", ecs_get_name(world, ecs_field_src(it, 1)), o->fd, ecs_get_name(world, e), y->fd);
+            r = fd_epoll_add(o->fd, y->fd);
+            if (r == 0) {
+                ecs_map_insert(&o->map, y->fd, e);
+            }
+        }
+        if (r) {
+            ecs_enable(world, e, false);
+        }
+    }
+    ecs_log_set_level(-1);
 }
 
 static void System_Read(ecs_iter_t *it)
 {
-	ecs_log_set_level(0);
-	ecs_world_t *world = it->world;
-	EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 0); // self
-	EgFsReady *r = ecs_field(it, EgFsReady, 1);           // shared
-	for (int i = 0; i < it->count; ++i, ++y) {
-		ecs_entity_t e = it->entities[i];
-		//ecs_trace("handle_fanotify_response fd=%d for entity '%s'", y->fd, ecs_get_name(world, e));
-		// Should be large enough to hold at least one full fanotify event and its associated info records. 
-		// The kernel will return as many events as fit in the buffer, 
-		// but you might not get all pending events if your buffer is too small.
-		char buf[4096];
-		int len = fd_read(y->fd, buf, sizeof(buf));
-		ecs_trace("fd_read returned len=%d", len);
-		if (len < 0) {
-			ecs_enable(world, e, false);
-			return;
-		}
-		fan_handle_notifications(world, EgFsEventOpen, e, FD_FAN_OPEN, buf, len);
-		fan_handle_notifications(world, EgFsEventModify, e, FD_FAN_MODIFY, buf, len);
-		ecs_remove(world, e, EgFsReady);
-	}
-	ecs_log_set_level(-1);
+    ecs_log_set_level(0);
+    ecs_world_t *world = it->world;
+    EgFsFanotifyFd *y = ecs_field(it, EgFsFanotifyFd, 0); // self
+    EgFsReady *r = ecs_field(it, EgFsReady, 1);           // shared
+    for (int i = 0; i < it->count; ++i, ++y) {
+        ecs_entity_t e = it->entities[i];
+        //ecs_trace("handle_fanotify_response fd=%d for entity '%s'", y->fd, ecs_get_name(world, e));
+        // Should be large enough to hold at least one full fanotify event and its associated info records.
+        // The kernel will return as many events as fit in the buffer,
+        // but you might not get all pending events if your buffer is too small.
+        char buf[4096];
+        int len = fd_read(y->fd, buf, sizeof(buf));
+        ecs_trace("fd_read returned len=%d", len);
+        if (len < 0) {
+            ecs_enable(world, e, false);
+            return;
+        }
+        fan_handle_notifications(world, EgFsEventOpen, e, FD_FAN_OPEN, buf, len);
+        fan_handle_notifications(world, EgFsEventModify, e, FD_FAN_MODIFY, buf, len);
+        ecs_remove(world, e, EgFsReady);
+    }
+    ecs_log_set_level(-1);
 }
 */
-
 
 void EgFsFanotifyImport(ecs_world_t *world)
 {
@@ -163,7 +162,4 @@ void EgFsFanotifyImport(ecs_world_t *world)
 	{.id = ecs_id(EgFsReady), .src.id = EcsSelf},
 	}});
 	*/
-
-
-
 }

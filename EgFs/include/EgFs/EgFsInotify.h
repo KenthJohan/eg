@@ -10,8 +10,6 @@ typedef struct {
 	int32_t mask; // Bitmask of events
 } EgFsInotifyCreate;
 
-
-
 extern ECS_COMPONENT_DECLARE(EgFsInotifyCreate);
 
 void EgFsInotifyImport(ecs_world_t *world);

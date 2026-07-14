@@ -1,7 +1,6 @@
 #include "EgQueries.h"
 #include <ecsx.h>
 
-
 static void test_query(ecs_world_t *world, ecs_query_t *q, ecs_entity_t parent)
 {
 	ecs_log_push_(0);
@@ -67,5 +66,4 @@ void EgQueriesImport(ecs_world_t *world)
 	{.id = ecs_pair(ecs_id(EcsPoly), EcsQuery), .oper = EcsNot},
 	{.id = EcsPrefab, .oper = EcsOptional},
 	}});
-
 }

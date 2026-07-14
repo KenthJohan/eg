@@ -5,34 +5,62 @@
 const char *ecsx_meta_type_op_kind_str(ecs_meta_op_kind_t kind)
 {
 	switch (kind) {
-	case EcsOpEnum: return "Enum";
-	case EcsOpBitmask: return "Bitmask";
-	case EcsOpPushStruct: return "Struct";
-	case EcsOpPushArray: return "Array";
-	case EcsOpPushVector: return "Vector";
-	case EcsOpOpaqueStruct: return "OpaqueStruct";
-	case EcsOpPop: return "Pop";
-	case EcsOpPrimitive: return "Primitive";
-	case EcsOpBool: return "Bool";
-	case EcsOpChar: return "Char";
-	case EcsOpByte: return "Byte";
-	case EcsOpU8: return "U8";
-	case EcsOpU16: return "U16";
-	case EcsOpU32: return "U32";
-	case EcsOpU64: return "U64";
-	case EcsOpI8: return "I8";
-	case EcsOpI16: return "I16";
-	case EcsOpI32: return "I32";
-	case EcsOpI64: return "I64";
-	case EcsOpF32: return "F32";
-	case EcsOpF64: return "F64";
-	case EcsOpUPtr: return "UPtr";
-	case EcsOpIPtr: return "IPtr";
-	case EcsOpString: return "String";
-	case EcsOpEntity: return "Entity";
-	case EcsOpId: return "Id";
-	case EcsOpScope: return "Scope";
-	default: return "<< invalid kind >>";
+	case EcsOpEnum:
+		return "Enum";
+	case EcsOpBitmask:
+		return "Bitmask";
+	case EcsOpPushStruct:
+		return "Struct";
+	case EcsOpPushArray:
+		return "Array";
+	case EcsOpPushVector:
+		return "Vector";
+	case EcsOpOpaqueStruct:
+		return "OpaqueStruct";
+	case EcsOpPop:
+		return "Pop";
+	case EcsOpPrimitive:
+		return "Primitive";
+	case EcsOpBool:
+		return "Bool";
+	case EcsOpChar:
+		return "Char";
+	case EcsOpByte:
+		return "Byte";
+	case EcsOpU8:
+		return "U8";
+	case EcsOpU16:
+		return "U16";
+	case EcsOpU32:
+		return "U32";
+	case EcsOpU64:
+		return "U64";
+	case EcsOpI8:
+		return "I8";
+	case EcsOpI16:
+		return "I16";
+	case EcsOpI32:
+		return "I32";
+	case EcsOpI64:
+		return "I64";
+	case EcsOpF32:
+		return "F32";
+	case EcsOpF64:
+		return "F64";
+	case EcsOpUPtr:
+		return "UPtr";
+	case EcsOpIPtr:
+		return "IPtr";
+	case EcsOpString:
+		return "String";
+	case EcsOpEntity:
+		return "Entity";
+	case EcsOpId:
+		return "Id";
+	case EcsOpScope:
+		return "Scope";
+	default:
+		return "<< invalid kind >>";
 	}
 }
 

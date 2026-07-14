@@ -108,8 +108,6 @@ void m4f32_mul_transpose(m4f32 *y, m4f32 const *at, m4f32 *const b)
 	*y = t;
 }
 
-
-
 /*
 
    public static Matrix4x4Custom TRS(Vector3d pos, Quaterniond q, Vector3d s)
@@ -142,7 +140,6 @@ void m4f32_mul_transpose(m4f32 *y, m4f32 const *at, m4f32 *const b)
    }
 */
 
-
 /*
 https://forums.inovaestudios.com/t/math-combining-a-translation-rotation-and-scale-matrix-edit-question-solved-by-math-magician-flavien/5194/4
 https://old.reddit.com/r/Unity3D/comments/flwreg/how_do_i_make_a_trs_matrix_manually/
@@ -162,7 +159,7 @@ void m4f32_trs(float const t[3], float const q[4], float const s[3], m4f32 *r)
 	float xx = x * x;
 	float yy = y * y;
 	float zz = z * z;
-	//float ww = w * w;
+	// float ww = w * w;
 
 	float xy = x * y;
 	float xz = x * z;
@@ -212,7 +209,7 @@ void m4f32_trs_inverse(float const t[3], float const q[4], float const s[3], m4f
 	float xx = x * x;
 	float yy = y * y;
 	float zz = z * z;
-	//float ww = w * w;
+	// float ww = w * w;
 
 	float xy = x * y;
 	float xz = x * z;
@@ -225,7 +222,7 @@ void m4f32_trs_inverse(float const t[3], float const q[4], float const s[3], m4f
 	r->c0[0] = (1.0f - 2.0f * (yy + zz)) * sx;
 	r->c1[0] = (xy + zw) * sx * 2.0f;
 	r->c2[0] = (xz - yw) * sx * 2.0f;
-	
+
 	r->c0[1] = (xy - zw) * sy * 2.0f;
 	r->c1[1] = (1.0f - 2.0f * (xx + zz)) * sy;
 	r->c2[1] = (yz + xw) * sy * 2.0f;
@@ -243,9 +240,7 @@ void m4f32_trs_inverse(float const t[3], float const q[4], float const s[3], m4f
 	r->c1[3] = 0.0f;
 	r->c2[3] = 0.0f;
 	r->c3[3] = 1.0f;
-
 }
-
 
 // https://github.com/travisvroman/kohi/blob/main/engine/src/math/kmath.h#L1203
 void m4f32_inverse(float const m[16], float o[16])
@@ -315,7 +310,6 @@ void m4f32_inverse(float const m[16], float o[16])
 	o[15] = d * ((t22 * m[10] + t16 * m[2] + t21 * m[6]) -
 	             (t20 * m[6] + t23 * m[10] + t17 * m[2]));
 }
-
 
 void m4f32_print(m4f32 const *x)
 {

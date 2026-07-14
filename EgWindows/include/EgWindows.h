@@ -12,14 +12,14 @@ typedef struct
 	bool enable_opengl;
 } EgWindowsWindowCreateInfo;
 
-typedef void * (*EgWindowsWindowCallback)(void *user_data);
+typedef void *(*EgWindowsWindowCallback)(void *user_data);
 
 typedef struct
 {
 	void *gl_context;
 	char const *gl_version;
 	char const *glsl_version;
-	ecs_query_t * inner_systems;
+	ecs_query_t *inner_systems;
 } EgWindowsOpenGLContext;
 
 typedef struct

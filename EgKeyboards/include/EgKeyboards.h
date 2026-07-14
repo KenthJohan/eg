@@ -3,8 +3,8 @@
 
 #define EG_KEYBOARDS_KEYS_MAX 512
 
-#define EG_KEYBOARDS_STATE_HELD 0x01
-#define EG_KEYBOARDS_STATE_PRESSED 0x02
+#define EG_KEYBOARDS_STATE_HELD     0x01
+#define EG_KEYBOARDS_STATE_PRESSED  0x02
 #define EG_KEYBOARDS_STATE_RELEASED 0x04
 
 typedef struct
@@ -43,5 +43,3 @@ extern ECS_COMPONENT_DECLARE(EgKeyboardsBinding);
 extern ECS_COMPONENT_DECLARE(EgKeyboardsActionToggleEntity);
 
 void EgKeyboardsImport(ecs_world_t *world);
-
-

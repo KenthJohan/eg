@@ -16,12 +16,7 @@ void v4f32_add(float r[4], float const a[4], float const b[4])
 	r[3] = a[3] + b[3];
 }
 
-
 void v4f32_print(float const x[4])
 {
 	printf("%f %f %f %f\n", x[0], x[1], x[2], x[3]);
 }
-
-
-
-

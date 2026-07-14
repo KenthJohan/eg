@@ -41,7 +41,6 @@ bool ecsx_has_children(ecs_world_t *world, ecs_entity_t entity)
 	return r;
 }
 
-
 int32_t ecsx_sum_offset(ecs_world_t *world, ecs_entity_t const members[], ecs_entity_t *last)
 {
 	int32_t o = 0;
@@ -58,7 +57,6 @@ int32_t ecsx_sum_offset(ecs_world_t *world, ecs_entity_t const members[], ecs_en
 	return o;
 }
 
-
 int32_t ecsx_children_count(ecs_world_t *world, ecs_entity_t parent)
 {
 	ecs_iter_t it = ecs_children(world, parent);
@@ -73,10 +71,6 @@ int32_t ecsx_children_count(ecs_world_t *world, ecs_entity_t parent)
 	return count;
 }
 
-
-
-
-
 void ecsx_remove_by_it_term(ecs_iter_t *it, ecs_entity_t e, int index)
 {
 	ecs_entity_t trav = it->query->terms[index].trav;
@@ -88,8 +82,6 @@ void ecsx_remove_by_it_term(ecs_iter_t *it, ecs_entity_t e, int index)
 		ecs_remove_id(it->world, e, id);
 	}
 }
-
-
 
 /*
 printf("remove1(%s,%s)\n", ecs_get_name(world, prefab), ecs_get_name(world, subject));

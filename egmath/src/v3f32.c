@@ -28,8 +28,6 @@ void v3f32_cross(int const a[3], int const b[], int p[])
 	p[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-
-
 float v3f32_distance(float const a[3], float const b[3])
 {
 	float d[3];
@@ -64,7 +62,6 @@ void v3f32_oproj(float const bnorm[3], float const a[3], float r[3])
 	r[2] = a[2] - bnorm[2] * k;
 }
 
-
 /**
  * @brief Calculates the shortest distance between L1 and L2
  * https://math.stackexchange.com/questions/3081301/shortest-distance-between-two-vectors
@@ -90,8 +87,6 @@ float v3f32_l1l2_distance(float const p1[3], float const v1[3], float const p2[3
 	return l;
 }
 
-
-
 // http://www.illusioncatalyst.com/notes_files/mathematics/line_plane_intersection.php
 float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float const c[3], float const n[3])
 {
@@ -114,24 +109,7 @@ float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float
 	return v3f32_distance(c, i);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void v3f32_print(float const x[3])
 {
 	printf("%f %f %f\n", x[0], x[1], x[2]);
 }
-

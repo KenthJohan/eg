@@ -172,16 +172,16 @@ static void Observer_OnOpen(ecs_iter_t *it)
 	ecs_log_set_level(-1);
 }
 
-static void Observer_OnModify_extra(ecs_world_t * world, ecs_entity_t e)
+static void Observer_OnModify_extra(ecs_world_t *world, ecs_entity_t e)
 {
 	ecs_id_t comp = ecs_pair(EgFsEventModify, e);
-    ecs_iter_t it = ecs_each_id(world, comp);
-    while (ecs_each_next(&it)) {
-        for (int i = 0; i < it.count; i ++) {
-            printf("%s\n", ecs_get_name(world, it.entities[i]));
+	ecs_iter_t it = ecs_each_id(world, comp);
+	while (ecs_each_next(&it)) {
+		for (int i = 0; i < it.count; i++) {
+			printf("%s\n", ecs_get_name(world, it.entities[i]));
 			ecs_add(world, it.entities[i], EgFsEventModify);
-        }
-    }
+		}
+	}
 }
 
 static void Observer_OnModify(ecs_iter_t *it)
@@ -276,7 +276,6 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_add_id(world, EgFsEventModify, EcsTraversable);
 	ecs_add_id(world, EgFsEventOpen, EcsTraversable);
-
 
 	ecs_set_hooks_id(world, ecs_id(EgFsFd),
 	&(ecs_type_hooks_t){

@@ -36,32 +36,32 @@ static void extract_vertex_info(ecs_world_t *world, ecs_entity_t src, EgMeshesVe
 /*
 static void gen6_rectangle(EgMeshesVertices *vertices, EgMeshesVertexInfo *info)
 {
-	uint8_t *v = ecs_vec_grow(NULL, &vertices->vertices, info->size, 6);
-	v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
-	v3f32_xyz((float *)(v + info->offset_pos), -0.5f, -0.5f, 0.0f);
-	v += info->size;
-	v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
-	v3f32_xyz((float *)(v + info->offset_pos), -0.5f, 0.5f, 0.0f);
-	v += info->size;
-	v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
-	v3f32_xyz((float *)(v + info->offset_pos), 0.5f, -0.5f, 0.0f);
-	v += info->size;
-	v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
-	v3f32_xyz((float *)(v + info->offset_pos), 0.5f, -0.5f, 0.0f);
-	v += info->size;
-	v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
-	v3f32_xyz((float *)(v + info->offset_pos), -0.5f, 0.5f, 0.0f);
-	v += info->size;
-	v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
-	v3f32_xyz((float *)(v + info->offset_pos), 0.5f, 0.5f, 0.0f);
-	uint16_t *i = ecs_vec_grow_t(NULL, &vertices->indices, uint16_t, 6);
-	vertices->index_counter += 6;
-	i[0] = vertices->index_counter + 0;
-	i[1] = vertices->index_counter + 1;
-	i[2] = vertices->index_counter + 2;
-	i[3] = vertices->index_counter + 3;
-	i[4] = vertices->index_counter + 4;
-	i[5] = vertices->index_counter + 5;
+    uint8_t *v = ecs_vec_grow(NULL, &vertices->vertices, info->size, 6);
+    v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
+    v3f32_xyz((float *)(v + info->offset_pos), -0.5f, -0.5f, 0.0f);
+    v += info->size;
+    v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
+    v3f32_xyz((float *)(v + info->offset_pos), -0.5f, 0.5f, 0.0f);
+    v += info->size;
+    v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
+    v3f32_xyz((float *)(v + info->offset_pos), 0.5f, -0.5f, 0.0f);
+    v += info->size;
+    v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
+    v3f32_xyz((float *)(v + info->offset_pos), 0.5f, -0.5f, 0.0f);
+    v += info->size;
+    v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
+    v3f32_xyz((float *)(v + info->offset_pos), -0.5f, 0.5f, 0.0f);
+    v += info->size;
+    v4f32_xyzw((float *)(v + info->offset_col), 1.0f, 0.0f, 0.0f, 1.0f);
+    v3f32_xyz((float *)(v + info->offset_pos), 0.5f, 0.5f, 0.0f);
+    uint16_t *i = ecs_vec_grow_t(NULL, &vertices->indices, uint16_t, 6);
+    vertices->index_counter += 6;
+    i[0] = vertices->index_counter + 0;
+    i[1] = vertices->index_counter + 1;
+    i[2] = vertices->index_counter + 2;
+    i[3] = vertices->index_counter + 3;
+    i[4] = vertices->index_counter + 4;
+    i[5] = vertices->index_counter + 5;
 }
 */
 
@@ -85,7 +85,7 @@ static void System_gen_verts(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	//EgShapesRectangle *c = ecs_field_self(it, EgShapesRectangle, 0);
+	// EgShapesRectangle *c = ecs_field_self(it, EgShapesRectangle, 0);
 	EgMeshesVertices *v = ecs_field_shared(it, EgMeshesVertices, 1);
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];

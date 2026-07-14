@@ -1,8 +1,6 @@
 #pragma once
 #include <flecs.h>
 
-
-
 typedef struct
 {
 	ecs_vec_t data;
@@ -21,11 +19,9 @@ typedef struct
 	uint32_t count;
 } EgBaseOffsetCount;
 
-
 extern ECS_COMPONENT_DECLARE(EgBaseVec);
 extern ECS_COMPONENT_DECLARE(EgBaseVertexIndexVec);
 extern ECS_COMPONENT_DECLARE(EgBaseOffsetCount);
-
 
 extern ECS_TAG_DECLARE(EgBaseLoad);
 extern ECS_TAG_DECLARE(EgBaseCopyTo);

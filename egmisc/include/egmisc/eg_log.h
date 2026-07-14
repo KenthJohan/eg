@@ -7,4 +7,3 @@ void eg_log_(char const *fmt, ...);
 #else
 #define eg_log(...)
 #endif
-

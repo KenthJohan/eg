@@ -26,16 +26,17 @@ typedef struct
 
 ECS_COMPONENT_DECLARE(EgWindowsGlfwState);
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        printf("Escape key pressed. Closing window.\n");
-    }
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+		printf("Escape key pressed. Closing window.\n");
+	}
 }
 
 static void System_EgWindowsWindowGlfw_Create(ecs_iter_t *it)
 {
 	static int window_count = 0;
-	//EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0);                    // singleton
+	// EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0);                    // singleton
 	EgWindowsWindowCreateInfo *create = ecs_field(it, EgWindowsWindowCreateInfo, 1); // self
 	EgShapesRectangle *rect = ecs_field(it, EgShapesRectangle, 2);                   // self
 	for (int i = 0; i < it->count; ++i, ++create, ++rect) {
@@ -79,9 +80,9 @@ void glfwErrorCallback(int error, const char *description)
 
 static void System_EgWindowsWindow_Update(ecs_iter_t *it)
 {
-	//EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0); // singleton
-	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 1);      // self
-	EgShapesRectangle *cr = ecs_field(it, EgShapesRectangle, 2);  // self
+	// EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0); // singleton
+	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 1);     // self
+	EgShapesRectangle *cr = ecs_field(it, EgShapesRectangle, 2); // self
 	for (int i = 0; i < it->count; ++i, ++cw, ++cr) {
 		int width;
 		int height;
@@ -145,7 +146,6 @@ void EgWindowsGlfwImport(ecs_world_t *world)
 	ecs_set(world, ecs_id(EgWindows), EgWindowsGlfwState, {glfwGetVersionString()});
 	ecs_singleton_set(world, EgKeyboardsState, {.state = {0}});
 
-	
 	ecs_system(world,
 	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_EgWindowsWindow_Update,

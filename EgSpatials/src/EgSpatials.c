@@ -21,8 +21,6 @@ ECS_TAG_DECLARE(RotateOrder1);
 ECS_TAG_DECLARE(RotateOrder2);
 ECS_TAG_DECLARE(PositionWorldNoReset);
 
-
-
 ECS_CTOR(TransformationCollector, ptr, {
 	ecs_trace("TransformationCollector::Ctor");
 	ecs_os_memset_t(ptr, 0, TransformationCollector);
