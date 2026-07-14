@@ -62,9 +62,6 @@ static void System_Bindings(ecs_iter_t *it)
 		uint8_t *a1 = set[s1];
 		uint8_t v0 = a0[b0];
 		uint8_t v1 = a1[b1];
-		if (s0 == 1 && keyboard->mouse[1]) {
-			printf("mouse button: %i %i : %i %i\n", v0, v1, a->key0, a->key1);
-		}
 		int delta = !!(v0 & a->mask) - !!(v1 & a->mask);
 		float *f = (float *)((uint8_t *)ptr + a->byte_offset);
 		(*f) = (float)delta * a->factor;
