@@ -9,3 +9,7 @@ ContinuationIndentWidth: 0
 AllowAllParametersOfDeclarationOnNextLine: false
 AlignAfterOpenBracket: DontAlign
 AlignConsecutiveMacros: true
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveDeclarations: Consecutive
+InsertNewlineAtEOF: true
+KeepEmptyLinesAtEOF: false

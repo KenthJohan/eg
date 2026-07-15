@@ -71,15 +71,15 @@ void qf32_unit_to_m3(float const q[4], m3f32 *r);
 void qf32_from_euler(float q[4], float pitch, float yaw, float roll);
 void qf32_rotate_vector(float const q[4], float const v[3], float output[3]);
 
-void v3f32_xyz(float v[3], float x, float y, float z);
-void v3f32_cross(int const a[3], int const b[], int p[]);
-void v3f32_normalize(float r[3], float const q[3], float epsilon);
-void v3f32_mul(float r[3], float const a[3], float b);
-void v3f32_add(float r[3], float const a[3], float const b[3]);
+void  v3f32_xyz(float v[3], float x, float y, float z);
+void  v3f32_cross(int const a[3], int const b[], int p[]);
+void  v3f32_normalize(float r[3], float const q[3], float epsilon);
+void  v3f32_mul(float r[3], float const a[3], float b);
+void  v3f32_add(float r[3], float const a[3], float const b[3]);
 float v3f32_l1l2_distance(float const p1[3], float const v1[3], float const p2[3], float const v2[3]);
-void v3f32_proj(float const bnorm[3], float const a[3], float r[3]);
-void v3f32_oproj(float const bnorm[3], float const a[3], float r[3]);
-void v3f32_print(float const x[3]);
+void  v3f32_proj(float const bnorm[3], float const a[3], float r[3]);
+void  v3f32_oproj(float const bnorm[3], float const a[3], float r[3]);
+void  v3f32_print(float const x[3]);
 float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float const c[3], float const n[3]);
 float v3f32_distance(float const a[3], float const b[3]);
 float v3f32_distance2(float const a[3], float const b[3]);
@@ -130,5 +130,7 @@ float v3f32_intersect_cylinder_i0i1(float const v[3], float const l[3], float co
  * @return
  */
 int v3f32_intersect_cylinder(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt);
+
+int m4f32_camera_unproject_xy(m4f32 const *vp, float ndc_x, float ndc_y, float out_xy[2]);
 
 void test_m4f32_trs();

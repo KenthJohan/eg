@@ -2,26 +2,29 @@
 
 #include <EgSpatials.h>
 #include <EgShapes.h>
+#include <EgWindows.h>
 #include <egmath.h>
 #include <assert.h>
+#include <ecsx.h>
 
 #ifndef M_PI
 #define M_PI (3.14159265358979323846)
 #endif
 
 ECS_COMPONENT_DECLARE(EgCamerasState);
+ECS_COMPONENT_DECLARE(EgCamerasUnproject);
 
 static void CameraUpdate(ecs_iter_t *it)
 {
-	EgCamerasState *cam = ecs_field(it, EgCamerasState, 0);      // self
-	Position3 *pos = ecs_field(it, Position3, 1);                // self
-	Orientation *o = ecs_field(it, Orientation, 2);              // self
-	EgShapesRectangle *cr = ecs_field(it, EgShapesRectangle, 3); // shared
+	EgCamerasState    *cam = ecs_field_self(it, EgCamerasState, 0);      // Camera state (view, projection, vp)
+	Position3         *pos = ecs_field_self(it, Position3, 1);           // Position of the camera in world space
+	Orientation       *o   = ecs_field_self(it, Orientation, 2);         // Orientation (quaternion) for camera rotation
+	EgShapesRectangle *r   = ecs_field_shared(it, EgShapesRectangle, 3); // Window rectangle (width, height)
 
 	for (int i = 0; i < it->count; ++i, ++cam, ++pos, ++o) {
 
 		float rad2deg = (2.0f * M_PI) / 360.0f;
-		float aspect = cr->w / cr->h;
+		float aspect  = r->w / r->h;
 		m4f32_perspective1(&cam->projection, cam->fov * rad2deg, aspect, 0.01f, 10000.0f);
 
 		// Apply translation (t), rotation (r), projection - which creates the view-projection-matrix (vp).
@@ -45,55 +48,23 @@ static void CameraUpdate(ecs_iter_t *it)
 	}
 }
 
-/*
-static void MouseRayCast(ecs_iter_t *it)
+static void UnprojectUpdate(ecs_iter_t *it)
 {
-    Window *win = ecs_field(it, Window, 0);                          // shared
-    EgCamerasState *cam = ecs_field(it, EgCamerasState, 1);          // self
-    Position3 *pos = ecs_field(it, Position3, 2);                    // self
-    Ray3 *ray1 = ecs_field(it, Ray3, 3);                             // self
-    EgWindowsMouseRay *winray = ecs_field(it, EgWindowsMouseRay, 4); // self
+	EgCamerasUnproject   *unproj = ecs_field_self(it, EgCamerasUnproject, 0); // Currently not used, but could be used for future extensions
+	Position2            *out    = ecs_field_self(it, Position2, 1);          // Outputs unprojected position in world space (XY plane)
+	EgCamerasState const *cam    = ecs_field_shared(it, EgCamerasState, 2);   // Camera state (view, projection, vp)
+	Position2 const      *p      = ecs_field_shared(it, Position2, 3);        // NDC Position
 
-    win->dt = it->delta_time;
-    win->fps = 1.0f / it->delta_time;
-
-    for (int i = 0; i < it->count; ++i, ++cam, ++pos, ++ray1, ++winray) {
-
-        // TODO: What is this? Remove this:
-        win->pos[0] = pos->x;
-        win->pos[1] = pos->y;
-        win->pos[2] = pos->z;
-
-        // Normalize to mouse position to (-1 .. 1)
-        float mouse_pos[2] = {win->canvas_mouse_x, win->canvas_mouse_y};
-        float rectangle[2] = {win->canvas_width, win->canvas_height};
-        float r[4];
-        r[0] = 2.0f * (mouse_pos[0] / rectangle[0]) - 1.0f;
-        r[1] = 2.0f * (mouse_pos[1] / rectangle[1]) - 1.0f;
-        r[1] *= -1.0f; // Why flip, hmm?
-        r[2] = -1.0;
-        r[3] = 1.0;
-
-        // Eye/Camera:
-        float ray_eye[4];
-        m4f32 pinv;
-        m4f32_inverse((float *)&cam->projection, (float *)&pinv);
-        m4f32_mulv(&pinv, r, ray_eye);
-        ray_eye[2] = -1.0f;
-        ray_eye[3] = 0.0f;
-
-        // Convert to world coordinates:
-        m4f32 vinv;
-        float ray_world[4];
-        m4f32_inverse((float *)&cam->view, (float *)&vinv);
-        m4f32_mulv(&vinv, ray_eye, ray_world);
-
-        ray1->x = ray_world[0];
-        ray1->y = ray_world[1];
-        ray1->z = ray_world[2];
-    }
+	(void)unproj; // Unused parameter
+	for (int i = 0; i < it->count; ++i, ++out) {
+		float xy[2];
+		int   success = m4f32_camera_unproject_xy(&cam->vp, p->x, p->y, xy);
+		if (success) {
+			out->x = xy[0];
+			out->y = xy[1];
+		}
+	}
 }
-*/
 
 ECS_CTOR(EgCamerasState, ptr, {
 	ptr->fov = 45;
@@ -104,9 +75,11 @@ void EgCamerasImport(ecs_world_t *world)
 	ECS_MODULE(world, EgCameras);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgShapes);
+	ECS_IMPORT(world, EgWindows);
 	ecs_set_name_prefix(world, "EgCameras");
 
 	ECS_COMPONENT_DEFINE(world, EgCamerasState);
+	ECS_COMPONENT_DEFINE(world, EgCamerasUnproject);
 
 	ecs_set_hooks(world, EgCamerasState, {.ctor = ecs_ctor(EgCamerasState)});
 
@@ -120,13 +93,23 @@ void EgCamerasImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "CameraUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = CameraUpdate,
+	{.entity     = ecs_entity(world, {.name = "CameraUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = CameraUpdate,
 	.query.terms = {
 	{.id = ecs_id(EgCamerasState), .src.id = EcsSelf},
 	{.id = ecs_id(Position3), .src.id = EcsSelf},
 	{.id = ecs_id(Orientation), .src.id = EcsSelf},
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsDependsOn, .src.id = EcsUp},
+	}});
+
+	ecs_system(world,
+	{.entity     = ecs_entity(world, {.name = "UnprojectUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = UnprojectUpdate,
+	.query.terms = {
+	{.id = ecs_id(EgCamerasUnproject), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
+	{.id = ecs_id(EgCamerasState), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_pair(ecs_id(Position2), Normalized), .trav = EcsDependsOn, .src.id = EcsUp, .inout = EcsIn},
 	}});
 
 	/*

@@ -131,5 +131,6 @@ extern ECS_COMPONENT_DECLARE(Color3);
 extern ECS_TAG_DECLARE(RotateOrder1);
 extern ECS_TAG_DECLARE(RotateOrder2);
 extern ECS_TAG_DECLARE(PositionWorldNoReset);
+extern ECS_TAG_DECLARE(Normalized);
 
 void EgSpatialsImport(ecs_world_t *world);

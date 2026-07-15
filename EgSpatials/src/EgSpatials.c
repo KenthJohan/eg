@@ -20,6 +20,7 @@ ECS_COMPONENT_DECLARE(Color3);
 ECS_TAG_DECLARE(RotateOrder1);
 ECS_TAG_DECLARE(RotateOrder2);
 ECS_TAG_DECLARE(PositionWorldNoReset);
+ECS_TAG_DECLARE(Normalized);
 
 ECS_CTOR(TransformationCollector, ptr, {
 	ecs_trace("TransformationCollector::Ctor");
@@ -110,6 +111,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, RotateOrder1);
 	ECS_TAG_DEFINE(world, RotateOrder2);
 	ECS_TAG_DEFINE(world, PositionWorldNoReset);
+	ECS_TAG_DEFINE(world, Normalized);
 
 	ecs_set_hooks(world, Orientation, {.ctor = ecs_ctor(Orientation)});
 	ecs_set_hooks(world, OrientationWorld, {.ctor = ecs_ctor(OrientationWorld)});

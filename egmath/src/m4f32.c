@@ -311,6 +311,49 @@ void m4f32_inverse(float const m[16], float o[16])
 	             (t20 * m[6] + t23 * m[10] + t17 * m[2]));
 }
 
+
+int m4f32_camera_unproject_xy(m4f32 const * vp, float ndc_x, float ndc_y, float out_xy[2])
+{
+	float clip_near[4] = {ndc_x, ndc_y, -1.0f, 1.0f};
+	float clip_far[4]  = {ndc_x, ndc_y, 1.0f, 1.0f};
+
+	m4f32 inv_vp;
+	m4f32_inverse((float const *)vp, (float *)&inv_vp);
+
+	float world_near[4];
+	float world_far[4];
+	m4f32_mulv(&inv_vp, clip_near, world_near);
+	m4f32_mulv(&inv_vp, clip_far, world_far);
+
+	if (fabsf(world_near[3]) < 1e-6f || fabsf(world_far[3]) < 1e-6f) {
+		return 0;
+	}
+
+	world_near[0] /= world_near[3];
+	world_near[1] /= world_near[3];
+	world_near[2] /= world_near[3];
+
+	world_far[0] /= world_far[3];
+	world_far[1] /= world_far[3];
+	world_far[2] /= world_far[3];
+
+	float dir[3] = {
+	world_far[0] - world_near[0],
+	world_far[1] - world_near[1],
+	world_far[2] - world_near[2],
+	};
+
+	if (fabsf(dir[2]) < 1e-6f) {
+		return 0;
+	}
+
+	float t   = -world_near[2] / dir[2];
+	out_xy[0] = world_near[0] + dir[0] * t;
+	out_xy[1] = world_near[1] + dir[1] * t;
+
+	return 1;
+}
+
 void m4f32_print(m4f32 const *x)
 {
 	printf("%+f %+f %+f %+f\n", M4_R0(*x));

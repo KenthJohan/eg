@@ -13,6 +13,7 @@
 #include <EgButtons.h>
 #include <EgBase.h>
 #include <EgWindows.h>
+#include <ecsx.h>
 
 // https://github.com/SanderMertens/flecs/blob/57ebed1083274ee4875631a940452f08ff08aef9/test/collections/src/Map.c#L54
 // We need to map the SDL_WindowID to the ecs_entity_t so we can look up the entity from the SDL_WindowID
@@ -21,9 +22,9 @@ static ecs_map_t static_window_map;
 
 static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 {
-	ecs_world_t *world = it->world;
+	ecs_world_t               *world  = it->world;
 	EgWindowsWindowCreateInfo *create = ecs_field(it, EgWindowsWindowCreateInfo, 0);
-	EgShapesRectangle *rect = ecs_field(it, EgShapesRectangle, 1);
+	EgShapesRectangle         *rect   = ecs_field(it, EgShapesRectangle, 1);
 	ecs_log_set_level(1);
 	ecs_trace("System_EgWindowsWindow_Create() count:%i", it->count);
 	ecs_log_push_(0);
@@ -67,7 +68,7 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 
 static void System_EgWindowsWindow_Rectangle(ecs_iter_t *it)
 {
-	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 0);
+	EgWindowsWindow   *cw = ecs_field(it, EgWindowsWindow, 0);
 	EgShapesRectangle *cr = ecs_field(it, EgShapesRectangle, 1);
 	for (int i = 0; i < it->count; ++i) {
 		Uint32 w;
@@ -81,7 +82,7 @@ static void System_EgWindowsWindow_Rectangle(ecs_iter_t *it)
 static void System_EgWindowsWindow_Position(ecs_iter_t *it)
 {
 	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 0); // self, in
-	Position2 *cp = ecs_field(it, Position2, 1);             // self, out
+	Position2       *cp = ecs_field(it, Position2, 1);       // self, out
 	for (int i = 0; i < it->count; ++i) {
 		int x;
 		int y;
@@ -91,17 +92,30 @@ static void System_EgWindowsWindow_Position(ecs_iter_t *it)
 	}
 }
 
-static void System_EgWindowsWindow_Mouse(ecs_iter_t *it)
+static void System_EgWindowsWindow_Mouse_UnNormalized(ecs_iter_t *it)
 {
-	Position2 *cp0 = ecs_field(it, Position2, 0); // parent
-	Position2 *cp1 = ecs_field(it, Position2, 1); // self
-	// EgWindowsMouse *cm = ecs_field(it, EgWindowsMouse, 2); // self
-	for (int i = 0; i < it->count; ++i) {
+	Position2 const *wp = ecs_field_shared(it, Position2, 0); // Input: window position in world space
+	Position2       *mp = ecs_field_self(it, Position2, 1);   // Output: Mouse position in window space
+	for (int i = 0; i < it->count; ++i, ++mp) {
 		float x;
 		float y;
 		SDL_GetGlobalMouseState(&x, &y);
-		cp1[i].x = x - cp0->x;
-		cp1[i].y = y - cp0->y;
+		mp->x = x - wp->x;
+		mp->y = y - wp->y;
+	}
+}
+
+static void System_EgWindowsWindow_Mouse_Normalized(ecs_iter_t *it)
+{
+	Position2 const         *wp = ecs_field_shared(it, Position2, 0);         // Input: Window position in world space
+	Position2               *mp = ecs_field_self(it, Position2, 1);           // Output: Mouse position in normalized device coordinates (NDC)
+	EgShapesRectangle const *r  = ecs_field_shared(it, EgShapesRectangle, 2); // Input: Window rectangle (width, height)
+	for (int i = 0; i < it->count; ++i, ++mp) {
+		float x;
+		float y;
+		SDL_GetGlobalMouseState(&x, &y);
+		mp->x = (2.0f * (x - wp->x) / r[i].w) - 1.0f;
+		mp->y = 1.0f - (2.0f * (y - wp->y) / r[i].h);
 	}
 }
 
@@ -198,7 +212,7 @@ static void System_Events_Update(ecs_iter_t *it)
 
 static void System_Resize(ecs_iter_t *it)
 {
-	ecs_id_t pair = ecs_field_id(it, 1);
+	ecs_id_t     pair = ecs_field_id(it, 1);
 	ecs_entity_t food = ecs_pair_second(it->world, pair);
 	printf("food: %s\n", ecs_get_name(it->world, food));
 	ecs_add(it->world, food, EgBaseUpdate);
@@ -234,7 +248,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_EgWindowsWindow_Create,
 	.query.terms =
 	{
@@ -244,7 +258,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Rectangle", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Rectangle", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_EgWindowsWindow_Rectangle,
 	.query.terms =
 	{
@@ -253,7 +267,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Position", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Position", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_EgWindowsWindow_Position,
 	.query.terms =
 	{
@@ -262,8 +276,8 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Mouse", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsWindow_Mouse,
+	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Mouse_UnNormalized", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_EgWindowsWindow_Mouse_UnNormalized,
 	.query.terms =
 	{
 	{.id = ecs_id(Position2), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
@@ -272,7 +286,18 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_Events_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Mouse_Normalized", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_EgWindowsWindow_Mouse_Normalized,
+	.query.terms =
+	{
+	{.id = ecs_id(Position2), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_pair(ecs_id(Position2), Normalized), .src.id = EcsSelf, .inout = EcsOut},
+	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgWindowsMouse), .src.id = EcsSelf, .inout = EcsIn},
+	}});
+
+	ecs_system(world,
+	{.entity  = ecs_entity(world, {.name = "System_Events_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_Events_Update,
 	.query.terms =
 	{
@@ -280,7 +305,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_Resize", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_Resize", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_Resize,
 	.query.terms =
 	{

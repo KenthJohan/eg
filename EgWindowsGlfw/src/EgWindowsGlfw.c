@@ -90,7 +90,7 @@ static void System_EgWindowsWindow_Update(ecs_iter_t *it)
 		cr->w = width;
 		cr->h = height;
 		if (glfwWindowShouldClose(cw->object)) {
-			ecs_add(it->world, it->entities[i], EgWindowsEventCloseRequest);
+			ecs_add(it->world, it->entities[i], EgWindowsCloseRequest);
 		}
 		glfwSwapBuffers(cw->object);
 	}

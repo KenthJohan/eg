@@ -17,9 +17,9 @@
 
 static void System_Render(ecs_iter_t *it)
 {
-	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 0);               // self, in
-	EgWindowsOpenGLContext *gl = ecs_field(it, EgWindowsOpenGLContext, 1); // self, in
-	EgShapesRectangle *rect = ecs_field(it, EgShapesRectangle, 2);         // self, in
+	EgWindowsWindow        *cw   = ecs_field(it, EgWindowsWindow, 0);        // self, in
+	EgWindowsOpenGLContext *gl   = ecs_field(it, EgWindowsOpenGLContext, 1); // self, in
+	EgShapesRectangle      *rect = ecs_field(it, EgShapesRectangle, 2);      // self, in
 	for (int i = 0; i < it->count; ++i) {
 		SDL_GL_MakeCurrent(cw[i].object, gl[i].gl_context);
 		glViewport(0, 0, (GLsizei)rect[i].w, (GLsizei)rect[i].h);
@@ -41,8 +41,10 @@ static void System_Render(ecs_iter_t *it)
 
 static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 {
-	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 0);                             // self, in
+	EgWindowsWindow              *cw   = ecs_field(it, EgWindowsWindow, 0);              // self, in
 	EgWindowsOpenGLContextCreate *info = ecs_field(it, EgWindowsOpenGLContextCreate, 1); // self, in
+
+	(void)info; // Unused parameter
 	for (int i = 0; i < it->count; ++i) {
 		SDL_GLContext context = SDL_GL_CreateContext(cw[i].object);
 		if (context == NULL) {
@@ -51,7 +53,7 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 			ecs_enable(it->world, it->entities[i], false);
 			continue;
 		}
-		char const *gl_version = (char const *)glGetString(GL_VERSION);
+		char const *gl_version   = (char const *)glGetString(GL_VERSION);
 		char const *glsl_version = (char const *)glGetString(GL_SHADING_LANGUAGE_VERSION);
 
 		ecs_query_t *q = ecs_query(it->world,
@@ -63,9 +65,9 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 
 		ecs_set(it->world, it->entities[i], EgWindowsOpenGLContext,
 		{
-		.gl_context = context,
-		.gl_version = gl_version,
-		.glsl_version = glsl_version,
+		.gl_context    = context,
+		.gl_version    = gl_version,
+		.glsl_version  = glsl_version,
 		.inner_systems = q,
 		});
 	} // END FOR LOOP
@@ -80,7 +82,7 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_Render", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_Render", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_Render,
 	.query.terms =
 	{
@@ -90,8 +92,8 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgWindowsOpenGLContext_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsOpenGLContext_Create,
+	{.entity   = ecs_entity(world, {.name = "System_EgWindowsOpenGLContext_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback  = System_EgWindowsOpenGLContext_Create,
 	.immediate = true,
 	.query.terms =
 	{
