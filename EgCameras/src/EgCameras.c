@@ -73,10 +73,10 @@ ECS_CTOR(EgCamerasState, ptr, {
 void EgCamerasImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgCameras);
+	ecs_set_name_prefix(world, "EgCameras");
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgWindows);
-	ecs_set_name_prefix(world, "EgCameras");
 
 	ECS_COMPONENT_DEFINE(world, EgCamerasState);
 	ECS_COMPONENT_DEFINE(world, EgCamerasUnproject);
