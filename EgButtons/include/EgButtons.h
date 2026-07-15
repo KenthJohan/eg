@@ -21,18 +21,18 @@ typedef struct
 
 typedef struct
 {
-	int32_t key0;
-	int32_t key1;
+	int32_t button0;
+	int32_t button1;
 	uint8_t mask;
 	ecs_entity_t entity;
-	ecs_id_t comonent;
+	ecs_id_t component;
 	uint8_t byte_offset;
 	float factor;
 } EgButtonsBinding;
 
 typedef struct
 {
-	int32_t key;
+	int32_t button;
 	uint8_t mask;
 	ecs_entity_t entity;
 	ecs_entity_t relation;
@@ -42,9 +42,9 @@ typedef struct
 typedef struct
 {
 	ecs_id_t term;
-	int32_t key;
+	int32_t button;
 	uint8_t mask;
-	ecs_entity_t add;
+	ecs_entity_t tag;
 } EgButtonsObliqueBinding;
 
 extern ECS_COMPONENT_DECLARE(EgButtonsDevice);
