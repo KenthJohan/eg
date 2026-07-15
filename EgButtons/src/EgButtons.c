@@ -10,7 +10,7 @@ ECS_COMPONENT_DECLARE(EgButtonsDevice);
 ECS_COMPONENT_DECLARE(EgButtonsState);
 ECS_COMPONENT_DECLARE(EgButtonsBinding);
 ECS_COMPONENT_DECLARE(EgButtonsActionToggleEntity);
-ECS_COMPONENT_DECLARE(EgButtonsObliqueBinding);
+ECS_COMPONENT_DECLARE(EgButtonsTermBinding);
 
 /**
  * Get the state of a button.
@@ -73,17 +73,17 @@ static void System_Bindings(ecs_iter_t *it)
 	ecs_log_set_level(0);
 }
 
-void EgButtonsObliqueBinding_System_Clear(ecs_iter_t *it)
+void EgButtonsTermBinding_System_Clear(ecs_iter_t *it)
 {
-	EgButtonsObliqueBinding *o = ecs_field_shared(it, EgButtonsObliqueBinding, 0);
+	EgButtonsTermBinding *o = ecs_field_shared(it, EgButtonsTermBinding, 0);
 	for (int i = 0; i < it->count; i++) {
 		ecs_remove_id(it->world, it->entities[i], o->tag);
 	}
 }
 
-void EgButtonsObliqueBinding_System_Update(ecs_iter_t *it)
+void EgButtonsTermBinding_System_Update(ecs_iter_t *it)
 {
-	EgButtonsObliqueBinding *o       = ecs_field_shared(it, EgButtonsObliqueBinding, 0);
+	EgButtonsTermBinding *o       = ecs_field_shared(it, EgButtonsTermBinding, 0);
 	EgButtonsState          *buttons = ecs_field_shared(it, EgButtonsState, 1); // singleton
 	for (int i = 0; i < it->count; i++) {
 		int32_t button_enable = get_button_state(o->button, o->mask, buttons);
@@ -93,27 +93,27 @@ void EgButtonsObliqueBinding_System_Update(ecs_iter_t *it)
 	}
 }
 
-void EgButtonsObliqueBinding_Observer(ecs_iter_t *it)
+void EgButtonsTermBinding_Observer(ecs_iter_t *it)
 {
-	EgButtonsObliqueBinding *o = ecs_field_self(it, EgButtonsObliqueBinding, 0);
+	EgButtonsTermBinding *o = ecs_field_self(it, EgButtonsTermBinding, 0);
 
 	for (int i = 0; i < it->count; i++) {
 		ecs_entity_t e = it->entities[i];
 		if (it->event == EcsOnSet) {
 			ecs_system(it->world,
 			{.entity  = ecs_entity(it->world, {.add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-			.callback = EgButtonsObliqueBinding_System_Clear,
+			.callback = EgButtonsTermBinding_System_Clear,
 			.query.terms =
 			{
-			{.id = ecs_id(EgButtonsObliqueBinding), .src.id = e},
+			{.id = ecs_id(EgButtonsTermBinding), .src.id = e},
 			{.id = o->term, .src.id = EcsSelf},
 			}});
 			ecs_system(it->world,
 			{.entity  = ecs_entity(it->world, {.add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-			.callback = EgButtonsObliqueBinding_System_Update,
+			.callback = EgButtonsTermBinding_System_Update,
 			.query.terms =
 			{
-			{.id = ecs_id(EgButtonsObliqueBinding), .src.id = e},
+			{.id = ecs_id(EgButtonsTermBinding), .src.id = e},
 			{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState)},
 			{.id = o->term, .src.id = EcsSelf},
 			}});
@@ -130,7 +130,7 @@ void EgButtonsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgButtonsState);
 	ECS_COMPONENT_DEFINE(world, EgButtonsBinding);
 	ECS_COMPONENT_DEFINE(world, EgButtonsActionToggleEntity);
-	ECS_COMPONENT_DEFINE(world, EgButtonsObliqueBinding);
+	ECS_COMPONENT_DEFINE(world, EgButtonsTermBinding);
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgButtonsState),
@@ -168,7 +168,7 @@ void EgButtonsImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(EgButtonsObliqueBinding),
+	{.entity = ecs_id(EgButtonsTermBinding),
 	.members = {
 	{.name = "term", .type = ecs_id(ecs_id_t)},
 	{.name = "button", .type = ecs_id(ecs_i32_t)},
@@ -195,7 +195,7 @@ void EgButtonsImport(ecs_world_t *world)
 	}});
 
 	ecs_observer(world,
-	{.query   = {.terms = {{.id = ecs_id(EgButtonsObliqueBinding)}}},
+	{.query   = {.terms = {{.id = ecs_id(EgButtonsTermBinding)}}},
 	.events   = {EcsOnSet},
-	.callback = EgButtonsObliqueBinding_Observer});
+	.callback = EgButtonsTermBinding_Observer});
 }

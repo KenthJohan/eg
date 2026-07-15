@@ -45,12 +45,12 @@ typedef struct
 	int32_t button;
 	uint8_t mask;
 	ecs_entity_t tag;
-} EgButtonsObliqueBinding;
+} EgButtonsTermBinding;
 
 extern ECS_COMPONENT_DECLARE(EgButtonsDevice);
 extern ECS_COMPONENT_DECLARE(EgButtonsState);
 extern ECS_COMPONENT_DECLARE(EgButtonsBinding);
 extern ECS_COMPONENT_DECLARE(EgButtonsActionToggleEntity);
-extern ECS_COMPONENT_DECLARE(EgButtonsObliqueBinding);
+extern ECS_COMPONENT_DECLARE(EgButtonsTermBinding);
 
 void EgButtonsImport(ecs_world_t *world);
