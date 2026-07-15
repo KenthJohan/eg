@@ -39,9 +39,18 @@ typedef struct
 	ecs_entity_t toggle;
 } EgButtonsActionToggleEntity;
 
+typedef struct
+{
+	ecs_id_t term;
+	int32_t key;
+	uint8_t mask;
+	ecs_entity_t add;
+} EgButtonsObliqueBinding;
+
 extern ECS_COMPONENT_DECLARE(EgButtonsDevice);
 extern ECS_COMPONENT_DECLARE(EgButtonsState);
 extern ECS_COMPONENT_DECLARE(EgButtonsBinding);
 extern ECS_COMPONENT_DECLARE(EgButtonsActionToggleEntity);
+extern ECS_COMPONENT_DECLARE(EgButtonsObliqueBinding);
 
 void EgButtonsImport(ecs_world_t *world);
