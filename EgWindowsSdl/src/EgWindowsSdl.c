@@ -142,6 +142,8 @@ static void handle_window_event(ecs_world_t *world, SDL_WindowEvent *event)
 static void System_Events_Update(ecs_iter_t *it)
 {
 	EgButtonsState *s = ecs_field(it, EgButtonsState, 0); // Singleton
+	ecs_entity_t e = ecs_field_src(it, 0); // The entity that has the EgButtonsState component
+
 	for (int i = 0; i < EG_BUTTONS_SCANCODES_MAX; ++i) {
 		s->scancode[i] &= ~(EG_BUTTONS_STATE_PRESSED | EG_BUTTONS_STATE_RELEASED);
 	}
@@ -159,8 +161,10 @@ static void System_Events_Update(ecs_iter_t *it)
 		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
 			handle_window_event(it->world, &event.window);
 			break;
+
+		// Fire repeatedly when a key is held down
+		// SDL_EVENT_KEY_DOWN can repeat.
 		case SDL_EVENT_KEY_DOWN:
-			// SDL_EVENT_KEY_DOWN can repeat.
 			// Set oneshot key pressed state:
 			if (event.key.scancode >= EG_BUTTONS_SCANCODES_MAX) {
 				ecs_err("SDL_EVENT_KEY_DOWN: scancode %i out of range", event.key.scancode);
@@ -173,8 +177,9 @@ static void System_Events_Update(ecs_iter_t *it)
 			}
 			s->scancode[event.key.scancode] |= EG_BUTTONS_STATE_HELD;
 			break;
+
+		// SDL_EVENT_KEY_UP does not repeat.
 		case SDL_EVENT_KEY_UP:
-			// SDL_EVENT_KEY_UP does not repeat.
 			if (event.key.scancode >= EG_BUTTONS_SCANCODES_MAX) {
 				ecs_err("SDL_EVENT_KEY_UP: scancode %i out of range", event.key.scancode);
 				break;
@@ -182,11 +187,25 @@ static void System_Events_Update(ecs_iter_t *it)
 			s->scancode[event.key.scancode] &= ~EG_BUTTONS_STATE_HELD;
 			s->scancode[event.key.scancode] |= EG_BUTTONS_STATE_RELEASED;
 			break;
+		
+		// Fire once when a mouse button is pressed
 		case SDL_EVENT_MOUSE_BUTTON_DOWN:
 			if (event.button.button >= EG_BUTTONS_MOUSE_MAX) {
 				ecs_err("SDL_EVENT_MOUSE_BUTTON_DOWN: button %i out of range", event.button.button);
 				break;
 			}
+			printf("SDL_EVENT_MOUSE_BUTTON_DOWN: button %i\n", event.button.button);
+
+
+			/*
+			// Emit the custom event
+			ecs_enqueue(it->world, &(ecs_event_desc_t) {
+				.event = MyEvent,
+				.ids = &(ecs_type_t){ (ecs_id_t[]){ ecs_id(Position) }, 1 }, // 1 id
+				.entity = e
+			});
+			*/
+
 			// SDL_EVENT_MOUSE_BUTTON_DOWN can repeat.
 			if (s->mouse[event.button.button] & EG_BUTTONS_STATE_HELD) {
 				s->mouse[event.button.button] &= ~EG_BUTTONS_STATE_PRESSED;
@@ -195,6 +214,8 @@ static void System_Events_Update(ecs_iter_t *it)
 			}
 			s->mouse[event.button.button] |= EG_BUTTONS_STATE_HELD;
 			break;
+		
+		// Fire once when a mouse button is released
 		case SDL_EVENT_MOUSE_BUTTON_UP:
 			if (event.button.button >= EG_BUTTONS_MOUSE_MAX) {
 				ecs_err("SDL_EVENT_MOUSE_BUTTON_UP: button %i out of range", event.button.button);

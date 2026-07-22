@@ -35,7 +35,7 @@ static void System_Toggle(ecs_iter_t *it)
 {
 	ecs_log_set_level(1);
 	EgButtonsState              *buttons = ecs_field(it, EgButtonsState, 0);              // singleton
-	EgButtonsActionToggleEntity *a        = ecs_field(it, EgButtonsActionToggleEntity, 1); // self
+	EgButtonsActionToggleEntity *a       = ecs_field(it, EgButtonsActionToggleEntity, 1); // self
 	for (int i = 0; i < it->count; ++i, ++a) {
 		bool state = get_button_state(a->button, a->mask, buttons);
 		if (!state) {
@@ -83,12 +83,12 @@ void EgButtonsTermBinding_System_Clear(ecs_iter_t *it)
 
 void EgButtonsTermBinding_System_Update(ecs_iter_t *it)
 {
-	EgButtonsTermBinding *o       = ecs_field_shared(it, EgButtonsTermBinding, 0);
-	EgButtonsState          *buttons = ecs_field_shared(it, EgButtonsState, 1); // singleton
+	EgButtonsTermBinding *binding = ecs_field_shared(it, EgButtonsTermBinding, 0);
+	EgButtonsState       *buttons = ecs_field_shared(it, EgButtonsState, 1); // singleton
 	for (int i = 0; i < it->count; i++) {
-		int32_t button_enable = get_button_state(o->button, o->mask, buttons);
+		int32_t button_enable = get_button_state(binding->button, binding->mask, buttons);
 		if (button_enable) {
-			ecs_add_id(it->world, it->entities[i], o->tag);
+			ecs_add_id(it->world, it->entities[i], binding->tag);
 		}
 	}
 }
