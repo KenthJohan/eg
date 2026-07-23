@@ -42,9 +42,9 @@ ECS_MOVE(EgFsEpollCreate, dst, src, {
 static void System_wait_epoll(ecs_iter_t *it)
 {
 	ecs_log_set_level(-1);
-	ecs_world_t *world = it->world;
-	EgFsFd *o = ecs_field_self(it, EgFsFd, 0);                   // self
-	EgFsEpollCreate *c = ecs_field_self(it, EgFsEpollCreate, 1); // self
+	ecs_world_t     *world = it->world;
+	EgFsFd          *o     = ecs_field_self(it, EgFsFd, 0);          // self
+	EgFsEpollCreate *c     = ecs_field_self(it, EgFsEpollCreate, 1); // self
 	for (int i = 0; i < it->count; ++i, ++o, ++c) {
 		fd_epoll_ecs_wait(world, o->fd, &c->map, ecs_id(EgFsReady), sizeof(EgFsReady), &(EgFsReady){0});
 	} // END FOR LOOP
@@ -54,11 +54,11 @@ static void System_wait_epoll(ecs_iter_t *it)
 static void System_Create(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
-	ecs_world_t *world = it->world;
-	EgFsEpollCreate *c = ecs_field_self(it, EgFsEpollCreate, 0); // self
+	ecs_world_t     *world = it->world;
+	EgFsEpollCreate *c     = ecs_field_self(it, EgFsEpollCreate, 0); // self
 	for (int i = 0; i < it->count; ++i, ++c) {
-		ecs_entity_t e = it->entities[i];
-		int fd = fd_epoll_create();
+		ecs_entity_t e  = it->entities[i];
+		int          fd = fd_epoll_create();
 		if (fd >= 0) {
 			ecs_set_pair(world, e, EgFsFd, ecs_id(EgFsEpollCreate), {fd});
 		} else {
@@ -73,9 +73,9 @@ static void Observer_epoll_ctl(ecs_iter_t *it)
 	ecs_log_set_level(0);
 	// ecsx_trace_system_iter(it);
 	// ecs_world_t *world = it->world;
-	EgFsFd *parent_fd = ecs_field_shared(it, EgFsFd, 0);                  // shared, parent, epoll fd
-	EgFsEpollCreate *parent_c = ecs_field_shared(it, EgFsEpollCreate, 1); // shared, parent, epoll info
-	EgFsFd *y = ecs_field_self(it, EgFsFd, 2);                            // self, fd to be added/removed
+	EgFsFd          *parent_fd = ecs_field_shared(it, EgFsFd, 0);          // shared, parent, epoll fd
+	EgFsEpollCreate *parent_c  = ecs_field_shared(it, EgFsEpollCreate, 1); // shared, parent, epoll info
+	EgFsFd          *y         = ecs_field_self(it, EgFsFd, 2);            // self, fd to be added/removed
 	for (int i = 0; i < it->count; ++i, ++y) {
 		ecs_entity_t e = it->entities[i];
 		// ecs_entity_t parent = ecs_field_src(it, 0);
@@ -110,7 +110,7 @@ void EgFsEpollImport(ecs_world_t *world)
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
-	.entity = ecs_id(EgFsEpollEvent),
+	.entity  = ecs_id(EgFsEpollEvent),
 	.members = {
 	{.name = "event", .type = ecs_id(ecs_i32_t)},
 	}});
@@ -118,14 +118,14 @@ void EgFsEpollImport(ecs_world_t *world)
 	ecs_set_hooks_id(world, ecs_id(EgFsEpollCreate),
 	&(ecs_type_hooks_t){
 	.flags = ECS_TYPE_HOOK_COPY_ILLEGAL,
-	.move = ecs_move(EgFsEpollCreate),
-	.dtor = ecs_dtor(EgFsEpollCreate),
-	.ctor = ecs_ctor(EgFsEpollCreate),
+	.move  = ecs_move(EgFsEpollCreate),
+	.dtor  = ecs_dtor(EgFsEpollCreate),
+	.ctor  = ecs_ctor(EgFsEpollCreate),
 	});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "System_wait_epoll", .add = ecs_ids(ecs_dependson(EcsOnValidate))}),
+	.entity   = ecs_entity(world, {.name = "System_wait_epoll", .add = ecs_ids(ecs_dependson(EcsOnValidate))}),
 	.callback = System_wait_epoll,
 	.query.terms =
 	{
@@ -135,7 +135,7 @@ void EgFsEpollImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "System_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.entity   = ecs_entity(world, {.name = "System_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_Create,
 	.query.terms =
 	{
@@ -145,9 +145,9 @@ void EgFsEpollImport(ecs_world_t *world)
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "Observer_epoll_ctl", .add = ecs_ids(ecs_dependson(EcsPostFrame))}),
-	.callback = Observer_epoll_ctl,
-	.events = {EcsOnSet, EcsOnRemove},
+	.entity      = ecs_entity(world, {.name = "Observer_epoll_ctl", .add = ecs_ids(ecs_dependson(EcsPostFrame))}),
+	.callback    = Observer_epoll_ctl,
+	.events      = {EcsOnSet, EcsOnRemove},
 	.query.terms = {
 	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsEpollCreate)), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
 	{.id = ecs_id(EgFsEpollCreate), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},

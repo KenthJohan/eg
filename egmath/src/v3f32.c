@@ -49,17 +49,17 @@ float v3f32_distance2(float const a[3], float const b[3])
 void v3f32_proj(float const bnorm[3], float const a[3], float r[3])
 {
 	float k = V3_DOT(a, bnorm);
-	r[0] = bnorm[0] * k;
-	r[1] = bnorm[1] * k;
-	r[2] = bnorm[2] * k;
+	r[0]    = bnorm[0] * k;
+	r[1]    = bnorm[1] * k;
+	r[2]    = bnorm[2] * k;
 }
 
 void v3f32_oproj(float const bnorm[3], float const a[3], float r[3])
 {
 	float k = V3_DOT(a, bnorm);
-	r[0] = a[0] - bnorm[0] * k;
-	r[1] = a[1] - bnorm[1] * k;
-	r[2] = a[2] - bnorm[2] * k;
+	r[0]    = a[0] - bnorm[0] * k;
+	r[1]    = a[1] - bnorm[1] * k;
+	r[2]    = a[2] - bnorm[2] * k;
 }
 
 /**
@@ -91,9 +91,9 @@ float v3f32_l1l2_distance(float const p1[3], float const v1[3], float const p2[3
 float v3f32_plane_point_line_distance(float const v[3], float const l0[3], float const c[3], float const n[3])
 {
 	float w[3];
-	w[0] = l0[0] - c[0];
-	w[1] = l0[1] - c[1];
-	w[2] = l0[2] - c[2];
+	w[0]     = l0[0] - c[0];
+	w[1]     = l0[1] - c[1];
+	w[2]     = l0[2] - c[2];
 	float vn = V3_DOT(v, n);
 	if (vn == 0.0) {
 		// The line is parallel to the plane.

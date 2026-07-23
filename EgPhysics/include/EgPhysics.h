@@ -11,6 +11,10 @@ typedef struct {
 } EgPhysicsBodyDef;
 
 typedef struct {
+	float density;
+} EgPhysicsShapesDef;
+
+typedef struct {
 	float half_width;
 	float half_height;
 	float density;
@@ -20,5 +24,6 @@ typedef struct {
 extern ECS_COMPONENT_DECLARE(EgPhysicsWorldDef);
 extern ECS_COMPONENT_DECLARE(EgPhysicsBodyDef);
 extern ECS_COMPONENT_DECLARE(EgPhysicsBox);
+extern ECS_COMPONENT_DECLARE(EgPhysicsShapesDef);
 
 void EgPhysicsImport(ecs_world_t *world);

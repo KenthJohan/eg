@@ -14,41 +14,41 @@ void qf32_xyza(float q[4], float x, float y, float z, float a)
 void qf32_normalize(float r[4], float const q[4], float epsilon)
 {
 	float l2 = V4_DOT(q, q);
-	float l = sqrtf(l2 + epsilon);
-	r[0] = q[0] / l;
-	r[1] = q[1] / l;
-	r[2] = q[2] / l;
-	r[3] = q[3] / l;
+	float l  = sqrtf(l2 + epsilon);
+	r[0]     = q[0] / l;
+	r[1]     = q[1] / l;
+	r[2]     = q[2] / l;
+	r[3]     = q[3] / l;
 }
 
 void v3f32_normalize(float r[3], float const q[3], float epsilon)
 {
 	float l2 = V3_DOT(q, q);
-	float l = sqrtf(l2 + epsilon);
-	r[0] = q[0] / l;
-	r[1] = q[1] / l;
-	r[2] = q[2] / l;
+	float l  = sqrtf(l2 + epsilon);
+	r[0]     = q[0] / l;
+	r[1]     = q[1] / l;
+	r[2]     = q[2] / l;
 }
 
 void qf32_mul(float r[4], float const p[4], float const q[4])
 {
 	float t[4] = {0};
-	t[0] = (p[3] * q[0]) + (p[0] * q[3]) + (p[1] * q[2]) - (p[2] * q[1]);
-	t[1] = (p[3] * q[1]) - (p[0] * q[2]) + (p[1] * q[3]) + (p[2] * q[0]);
-	t[2] = (p[3] * q[2]) + (p[0] * q[1]) - (p[1] * q[0]) + (p[2] * q[3]);
-	t[3] = (p[3] * q[3]) - (p[0] * q[0]) - (p[1] * q[1]) - (p[2] * q[2]);
-	r[0] = t[0];
-	r[1] = t[1];
-	r[2] = t[2];
-	r[3] = t[3];
+	t[0]       = (p[3] * q[0]) + (p[0] * q[3]) + (p[1] * q[2]) - (p[2] * q[1]);
+	t[1]       = (p[3] * q[1]) - (p[0] * q[2]) + (p[1] * q[3]) + (p[2] * q[0]);
+	t[2]       = (p[3] * q[2]) + (p[0] * q[1]) - (p[1] * q[0]) + (p[2] * q[3]);
+	t[3]       = (p[3] * q[3]) - (p[0] * q[0]) - (p[1] * q[1]) - (p[2] * q[2]);
+	r[0]       = t[0];
+	r[1]       = t[1];
+	r[2]       = t[2];
+	r[3]       = t[3];
 }
 
 void qf32_unit_to_m4(float const q[4], m4f32 *r)
 {
-	float a = q[3];
-	float b = q[0];
-	float c = q[1];
-	float d = q[2];
+	float a  = q[3];
+	float b  = q[0];
+	float c  = q[1];
+	float d  = q[2];
 	float a2 = a * a;
 	float b2 = b * b;
 	float c2 = c * c;
@@ -69,10 +69,10 @@ void qf32_unit_to_m4(float const q[4], m4f32 *r)
 
 void qf32_unit_to_m3(float const q[4], m3f32 *r)
 {
-	float a = q[3];
-	float b = q[0];
-	float c = q[1];
-	float d = q[2];
+	float a  = q[3];
+	float b  = q[0];
+	float c  = q[1];
+	float d  = q[2];
 	float a2 = a * a;
 	float b2 = b * b;
 	float c2 = c * c;
@@ -99,10 +99,10 @@ void qf32_from_euler(float q[4], float pitch, float yaw, float roll)
 	float sp = sin(pitch * 0.5f);
 	float cy = cos(yaw * 0.5f);
 	float sy = sin(yaw * 0.5f);
-	q[0] = cr * cp * cy + sr * sp * sy;
-	q[1] = sr * cp * cy - cr * sp * sy;
-	q[2] = cr * sp * cy + sr * cp * sy;
-	q[3] = cr * cp * sy - sr * sp * cy;
+	q[0]     = cr * cp * cy + sr * sp * sy;
+	q[1]     = sr * cp * cy - cr * sp * sy;
+	q[2]     = cr * sp * cy + sr * cp * sy;
+	q[3]     = cr * cp * sy - sr * sp * cy;
 }
 
 void qf32_rotate_vector(float const q[4], float const v[3], float output[3])

@@ -9,7 +9,7 @@
 int eg_assert_(
 const char *expr,
 const char *file,
-int32_t line,
+int32_t     line,
 const char *fn,
 const char *fmt,
 ...);

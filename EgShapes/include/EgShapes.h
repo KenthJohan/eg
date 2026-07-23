@@ -3,32 +3,32 @@
 #include <flecs.h>
 
 typedef struct {
-	float radius;
-	float ring_radius;
+	float   radius;
+	float   ring_radius;
 	int32_t rings;
 	int32_t sides;
 	int32_t random_colors;
 } EgShapesTorus;
 
 typedef struct {
-	float radius;
-	float height;
+	float   radius;
+	float   height;
 	int32_t slices;
 	int32_t stacks;
 	int32_t random_colors;
 } EgShapesCylinder;
 
 typedef struct {
-	float radius;
+	float   radius;
 	int32_t slices;
 	int32_t stacks;
 	int32_t random_colors;
 } EgShapesSphere;
 
 typedef struct {
-	float width;
-	float height;
-	float depth;
+	float   width;
+	float   height;
+	float   depth;
 	int32_t random_colors;
 } EgShapesBox;
 

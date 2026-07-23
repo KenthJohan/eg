@@ -14,7 +14,7 @@ static void Position3World_Reset(ecs_iter_t *it)
 
 static void Orientation_To_RotMat3(ecs_iter_t *it)
 {
-	RotMat3 *r = ecs_field(it, RotMat3, 0);         // self, out
+	RotMat3     *r = ecs_field(it, RotMat3, 0);     // self, out
 	Orientation *o = ecs_field(it, Orientation, 1); // self, in
 	for (int i = 0; i < it->count; ++i, ++o, ++r) {
 		qf32_unit_to_m3((float *)o, (m3f32 *)r);
@@ -24,7 +24,7 @@ static void Orientation_To_RotMat3(ecs_iter_t *it)
 static void Orientation_Cascade(ecs_iter_t *it)
 {
 	OrientationWorld *g = ecs_field(it, OrientationWorld, 0); // self, out
-	Orientation *l = ecs_field(it, Orientation, 1);           // self, in
+	Orientation      *l = ecs_field(it, Orientation, 1);      // self, in
 	OrientationWorld *p = ecs_field(it, OrientationWorld, 2); // parent, in
 	for (int i = 0; i < it->count; ++i, ++l, ++g) {
 		g->x = l->x;
@@ -41,9 +41,9 @@ static void Orientation_Cascade(ecs_iter_t *it)
 
 static void Position3_Cascade(ecs_iter_t *it)
 {
-	Position3World *g = ecs_field(it, Position3World, 0);            // self, out
-	Position3 const *l = ecs_field(it, Position3, 1);                // self, in
-	Position3World const *p = ecs_field(it, Position3World, 2);      // parent, in
+	Position3World         *g  = ecs_field(it, Position3World, 0);   // self, out
+	Position3 const        *l  = ecs_field(it, Position3, 1);        // self, in
+	Position3World const   *p  = ecs_field(it, Position3World, 2);   // parent, in
 	OrientationWorld const *qq = ecs_field(it, OrientationWorld, 3); // parent, in
 	for (int i = 0; i < it->count; ++i, ++l, ++g) {
 		float bb[3] = {l->x, l->y, l->z};
@@ -63,8 +63,8 @@ static void Position3_Cascade(ecs_iter_t *it)
 
 static void RotateQuaternion1(ecs_iter_t *it)
 {
-	Orientation *orientation = ecs_field(it, Orientation, 0); // self, out
-	Rotate3 const *rotate = ecs_field(it, Rotate3, 1);        // self, in
+	Orientation   *orientation = ecs_field(it, Orientation, 0); // self, out
+	Rotate3 const *rotate      = ecs_field(it, Rotate3, 1);     // self, in
 	for (int i = 0; i < it->count; ++i, ++rotate, ++orientation) {
 		float *q = (float *)orientation;
 		// assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
@@ -83,8 +83,8 @@ static void RotateQuaternion1(ecs_iter_t *it)
 
 static void RotateQuaternion2(ecs_iter_t *it)
 {
-	Orientation *orientation = ecs_field(it, Orientation, 0); // self, out
-	Rotate3 const *rotate = ecs_field(it, Rotate3, 1);        // self, in
+	Orientation   *orientation = ecs_field(it, Orientation, 0); // self, out
+	Rotate3 const *rotate      = ecs_field(it, Rotate3, 1);     // self, in
 	for (int i = 0; i < it->count; ++i, ++rotate, ++orientation) {
 		float *q = (float *)orientation;
 		// assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
@@ -103,10 +103,10 @@ static void RotateQuaternion2(ecs_iter_t *it)
 
 static void TransformationPosition(ecs_iter_t *it)
 {
-	Transformation *t = ecs_field(it, Transformation, 0);                     // self, out
-	Position3World const *pos = ecs_field(it, Position3World, 1);             // self, in
+	Transformation         *t           = ecs_field(it, Transformation, 0);   // self, out
+	Position3World const   *pos         = ecs_field(it, Position3World, 1);   // self, in
 	OrientationWorld const *orientation = ecs_field(it, OrientationWorld, 2); // self, in
-	Scale3 const *scale = ecs_field(it, Scale3, 3);                           // self, in
+	Scale3 const           *scale       = ecs_field(it, Scale3, 3);           // self, in
 	for (int i = 0; i < it->count; ++i, ++t, ++pos, ++orientation, ++scale) {
 		// t->matrix = (m4f32)M4_IDENTITY;
 		// qf32_unit_to_m4((float *)orientation, &t->matrix);
@@ -118,8 +118,8 @@ static void TransformationPosition(ecs_iter_t *it)
 
 static void Move(ecs_iter_t *it)
 {
-	Position3 *p = ecs_field(it, Position3, 0);           // self, out
-	Velocity3 const *v = ecs_field(it, Velocity3, 1);     // self, in
+	Position3         *p = ecs_field(it, Position3, 0);   // self, out
+	Velocity3 const   *v = ecs_field(it, Velocity3, 1);   // self, in
 	Orientation const *o = ecs_field(it, Orientation, 2); // self, in
 
 	for (int i = 0; i < it->count; ++i, ++p, ++v, ++o) {
@@ -168,7 +168,7 @@ static void SinewaveSystem(ecs_iter_t *it)
 
 static void EulerToQ(ecs_iter_t *it)
 {
-	Orientation *o = ecs_field(it, Orientation, 0);       // self, out
+	Orientation       *o = ecs_field(it, Orientation, 0); // self, out
 	EulerAngles const *e = ecs_field(it, EulerAngles, 1); // self, in
 	for (int i = 0; i < it->count; ++i, ++e, ++o) {
 		qf32_from_euler((float *)o, e->pitch, e->yaw, e->roll);
@@ -177,7 +177,7 @@ static void EulerToQ(ecs_iter_t *it)
 
 static void TransformationCollector_Append(ecs_iter_t *it)
 {
-	Transformation *t = ecs_field(it, Transformation, 0);                   // self
+	Transformation          *t = ecs_field(it, Transformation, 0);          // self
 	TransformationCollector *d = ecs_field(it, TransformationCollector, 1); // up, shared
 
 	int32_t sum = d->count + it->count;
@@ -208,8 +208,8 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgSpatialsSystems");
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "RotateQuaternion1", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = RotateQuaternion1,
+	{.entity     = ecs_entity(world, {.name = "RotateQuaternion1", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = RotateQuaternion1,
 	.query.terms = {
 	{.id = ecs_id(Orientation), .inout = EcsOut},
 	{.id = ecs_id(Rotate3), .inout = EcsIn},
@@ -217,8 +217,8 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "RotateQuaternion2", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = RotateQuaternion2,
+	{.entity     = ecs_entity(world, {.name = "RotateQuaternion2", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = RotateQuaternion2,
 	.query.terms = {
 	{.id = ecs_id(Orientation), .inout = EcsOut},
 	{.id = ecs_id(Rotate3), .inout = EcsIn},
@@ -226,48 +226,48 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "Position3World_Reset", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Position3World_Reset,
+	{.entity     = ecs_entity(world, {.name = "Position3World_Reset", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = Position3World_Reset,
 	.query.terms = {
 	{.id = ecs_id(Position3World), .inout = EcsOut},
 	{.id = PositionWorldNoReset, .oper = EcsNot},
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "EulerToQ", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = EulerToQ,
+	{.entity     = ecs_entity(world, {.name = "EulerToQ", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = EulerToQ,
 	.query.terms = {
 	{.id = ecs_id(Orientation), .inout = EcsOut},
 	{.id = ecs_id(EulerAngles), .inout = EcsIn},
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "Orientation_To_RotMat3", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Orientation_To_RotMat3,
+	{.entity     = ecs_entity(world, {.name = "Orientation_To_RotMat3", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = Orientation_To_RotMat3,
 	.query.terms = {
 	{.id = ecs_id(RotMat3), .inout = EcsOut},
 	{.id = ecs_id(Orientation), .inout = EcsIn},
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "Move", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Move,
+	{.entity     = ecs_entity(world, {.name = "Move", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = Move,
 	.query.terms = {
 	{.id = ecs_id(Position3), .inout = EcsOut},
 	{.id = ecs_id(Velocity3), .inout = EcsIn},
 	{.id = ecs_id(Orientation), .inout = EcsIn}}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "SinewaveSystem", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = SinewaveSystem,
+	{.entity     = ecs_entity(world, {.name = "SinewaveSystem", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = SinewaveSystem,
 	.query.terms = {
 	{.id = ecs_id(Position3World), .inout = EcsOut},
 	{.id = ecs_id(Sinewave), .inout = EcsIn},
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "Orientation_Cascade", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Orientation_Cascade,
+	{.entity     = ecs_entity(world, {.name = "Orientation_Cascade", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = Orientation_Cascade,
 	.query.terms = {
 	{.id = ecs_id(OrientationWorld), .inout = EcsOut},
 	{.id = ecs_id(Orientation), .inout = EcsIn},
@@ -275,8 +275,8 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "Position3_Cascade", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = Position3_Cascade,
+	{.entity     = ecs_entity(world, {.name = "Position3_Cascade", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = Position3_Cascade,
 	.query.terms = {
 	{.id = ecs_id(Position3World), .inout = EcsOut},
 	{.id = ecs_id(Position3), .inout = EcsIn},
@@ -285,8 +285,8 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "TransformationPosition", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = TransformationPosition,
+	{.entity     = ecs_entity(world, {.name = "TransformationPosition", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = TransformationPosition,
 	.query.terms = {
 	{.id = ecs_id(Transformation), .inout = EcsOut},
 	{.id = ecs_id(Position3World), .inout = EcsIn},
@@ -295,16 +295,16 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "TransformationCollector_Append", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = TransformationCollector_Append,
+	{.entity     = ecs_entity(world, {.name = "TransformationCollector_Append", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = TransformationCollector_Append,
 	.query.terms = {
 	{.id = ecs_id(Transformation), .src.id = EcsSelf},
 	{.id = ecs_id(TransformationCollector), .trav = EcsDependsOn, .src.id = EcsUp},
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "TransformationCollector_Reset", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = TransformationCollector_Reset,
+	{.entity     = ecs_entity(world, {.name = "TransformationCollector_Reset", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = TransformationCollector_Reset,
 	.query.terms = {
 	{.id = ecs_id(TransformationCollector), .src.id = EcsSelf},
 	}});

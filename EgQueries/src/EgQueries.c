@@ -25,8 +25,8 @@ static void SystemCreateGuiQuery(ecs_iter_t *it)
 	ecs_log_push_(0);
 	EcsDocDescription *d = ecs_field(it, EcsDocDescription, 0);
 	for (int i = 0; i < it->count; ++i) {
-		ecs_entity_t e = it->entities[i];
-		char *expr = d[i].value;
+		ecs_entity_t e    = it->entities[i];
+		char        *expr = d[i].value;
 		if (expr == NULL) {
 			continue;
 		}
@@ -37,7 +37,7 @@ static void SystemCreateGuiQuery(ecs_iter_t *it)
 		&(ecs_query_desc_t){
 		.entity = e,
 		//.cache_kind = EcsQueryCacheNone,
-		.expr = expr,
+		.expr     = expr,
 		.group_by = EcsChildOf});
 		if (q == NULL) {
 			ecs_err("Failed to create query");
@@ -58,9 +58,9 @@ void EgQueriesImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "CreateGuiQuery", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = SystemCreateGuiQuery,
-	.immediate = true,
+	.entity      = ecs_entity(world, {.name = "CreateGuiQuery", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = SystemCreateGuiQuery,
+	.immediate   = true,
 	.query.terms = {
 	{.id = ecs_pair(ecs_id(EcsDocDescription), EcsQuery)},
 	{.id = ecs_pair(ecs_id(EcsPoly), EcsQuery), .oper = EcsNot},

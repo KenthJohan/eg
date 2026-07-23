@@ -16,7 +16,7 @@
 
 int dirlists_get(void)
 {
-	DIR *d;
+	DIR           *d;
 	struct dirent *dir;
 	d = opendir("./config");
 	if (d) {
@@ -30,9 +30,9 @@ int dirlists_get(void)
 
 int ecs_plecs_from_dir(ecs_world_t *world, char const *dirpath)
 {
-	int rc = -1;
+	int             rc = -1;
 	struct dirent **namelist;
-	int n;
+	int             n;
 	ecs_log(0, "scandir: %s", dirpath);
 	n = scandir(dirpath, &namelist, 0, alphasort);
 	if (n < 0) {
@@ -41,8 +41,8 @@ int ecs_plecs_from_dir(ecs_world_t *world, char const *dirpath)
 	}
 	ecs_log_push();
 	for (int i = 0; i < n; ++i) {
-		char const *name = namelist[i]->d_name;
-		char buf[512] = {0};
+		char const *name     = namelist[i]->d_name;
+		char        buf[512] = {0};
 		snprintf(buf, 512, "%s/%s", dirpath, name);
 		char const *ext = strstr(name, ".flecs");
 		if (ext) {

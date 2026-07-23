@@ -64,13 +64,13 @@ void ecsx_reparent_by_subname(ecs_world_t *world, char const *filters[], ecs_que
 			// Check if name matches any of the filters
 			// If it does, we need to reparent the entity
 			char *name_endptr = NULL;
-			int j = str_cmp_sub0v(name, filters, &name_endptr);
+			int   j           = str_cmp_sub0v(name, filters, &name_endptr);
 			if (j < 0) {
 				continue;
 			}
 			// Setup a name for a new child parent
 			char namebuf[64] = {0};
-			int size = name_endptr - name;
+			int  size        = name_endptr - name;
 			if (size < 0) {
 				ecs_err("name too short: %s", name);
 				continue;
@@ -83,12 +83,12 @@ void ecsx_reparent_by_subname(ecs_world_t *world, char const *filters[], ecs_que
 			// Change the child parant to grandparent
 			// Creata a new parent entity and insert between grandparent and child
 			ecs_entity_t grandparent = ecs_get_parent(world, it.entities[i]);
-			ecs_entity_t parent = ecs_entity_init(world,
-			&(ecs_entity_desc_t){
-			.name = namebuf,
-			.parent = grandparent,
-			.add = add,
-			});
+			ecs_entity_t parent      = ecs_entity_init(world,
+			     &(ecs_entity_desc_t){
+			     .name   = namebuf,
+			     .parent = grandparent,
+			     .add    = add,
+            });
 			ecs_add_pair(world, it.entities[i], EcsChildOf, parent);
 		}
 	}

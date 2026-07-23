@@ -3,9 +3,9 @@
 float v3f32_intersect_line_circle(float const v[3], float const l0[3], float const c[3], float const n[3], float r)
 {
 	float w[3];
-	w[0] = l0[0] - c[0];
-	w[1] = l0[1] - c[1];
-	w[2] = l0[2] - c[2];
+	w[0]     = l0[0] - c[0];
+	w[1]     = l0[1] - c[1];
+	w[2]     = l0[2] - c[2];
 	float vn = V3_DOT(v, n);
 	if (vn == 0.0) {
 		// The line is parallel to the plane.
@@ -28,9 +28,9 @@ void v3f32_intersect_cylinder_abc(float const v[3], float const h[3], float cons
 	float vw = V3_DOT(v, w);
 	float wh = V3_DOT(w, h);
 	float ww = V3_DOT(w, w);
-	(*a) = vv - (vh * vh);
-	(*b) = 2.0 * (vw - (vh * wh));
-	(*c) = ww - (wh * wh) - 1.0;
+	(*a)     = vv - (vh * vh);
+	(*b)     = 2.0 * (vw - (vh * wh));
+	(*c)     = ww - (wh * wh) - 1.0;
 }
 
 float v3f32_intersect_cylinder_i0i1(float const v[3], float const l[3], float const cylinder[3], float const h[3], m3f32 const *tt, float i0[3], float i1[3])
@@ -52,12 +52,12 @@ float v3f32_intersect_cylinder_i0i1(float const v[3], float const l[3], float co
 		float sq = sqrtf(b2_4ac);
 		float k1 = (-b + sq) / (2 * a);
 		float k2 = (-b - sq) / (2 * a);
-		i0[0] = l[0] + v[0] * k1;
-		i0[1] = l[1] + v[1] * k1;
-		i0[2] = l[2] + v[2] * k1;
-		i1[3] = l[0] + v[0] * k2;
-		i1[4] = l[1] + v[1] * k2;
-		i1[5] = l[2] + v[2] * k2;
+		i0[0]    = l[0] + v[0] * k1;
+		i0[1]    = l[1] + v[1] * k1;
+		i0[2]    = l[2] + v[2] * k1;
+		i1[3]    = l[0] + v[0] * k2;
+		i1[4]    = l[1] + v[1] * k2;
+		i1[5]    = l[2] + v[2] * k2;
 	}
 	// float k = (-b) / (2 * a);
 	return b2_4ac;

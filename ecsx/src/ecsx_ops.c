@@ -126,8 +126,8 @@ int ecsx_ops_print(ecs_world_t *world, ecs_entity_t type)
 		ecs_os_free(path);
 		return -1;
 	}
-	ecs_meta_op_t *ops = ecs_vec_first_t(&ser->ops, ecs_meta_op_t);
-	int32_t count = ecs_vec_count(&ser->ops);
+	ecs_meta_op_t *ops   = ecs_vec_first_t(&ser->ops, ecs_meta_op_t);
+	int32_t        count = ecs_vec_count(&ser->ops);
 	for (int i = 0; i < count; ++i) {
 		ecs_meta_op_t *op = ops + i;
 		printf("%i%s", op->op_count, ecsx_meta_type_op_kind_str1(op->kind));

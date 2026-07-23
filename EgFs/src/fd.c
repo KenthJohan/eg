@@ -95,9 +95,9 @@ int fd_inotify_rm(int fd, int wd)
 int fd_epoll_add(int epoll_fd, int fd)
 {
 	struct epoll_event event;
-	event.events = EPOLLIN;
+	event.events  = EPOLLIN;
 	event.data.fd = fd;
-	int r = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event);
+	int r         = epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event);
 	ecs_trace("fd_epoll_add(%i, %i) -> %i", epoll_fd, fd, r);
 	if (r < 0) {
 		perror("epoll_ctl EPOLL_CTL_ADD");
@@ -108,9 +108,9 @@ int fd_epoll_add(int epoll_fd, int fd)
 int fd_epoll_rm(int epoll_fd, int fd)
 {
 	struct epoll_event event;
-	event.events = EPOLLIN;
+	event.events  = EPOLLIN;
 	event.data.fd = fd;
-	int r = epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &event);
+	int r         = epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, &event);
 	ecs_trace("fd_epoll_rm(%i, %i) -> %i", epoll_fd, fd, r);
 	if (r < 0) {
 		perror("epoll_ctl EPOLL_CTL_DEL");
@@ -156,7 +156,7 @@ int fd_read(int fd, void *buf, size_t count)
 void fd_epoll_ecs_wait(ecs_world_t *world, int epoll_fd, const ecs_map_t *map, ecs_id_t component, size_t size, const void *ptr)
 {
 	struct epoll_event events[MAX_EVENTS];
-	int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 100);
+	int                nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, 100);
 	if (nfds == -1) {
 		if (errno == EINTR) {
 			return;
@@ -176,13 +176,13 @@ void fd_epoll_ecs_wait(ecs_world_t *world, int epoll_fd, const ecs_map_t *map, e
 
 static void info_header_print(ecs_world_t *world, ecs_entity_t event, ecs_entity_t entity, struct fanotify_event_metadata *metadata)
 {
-	int iterations = 0;
-	struct fanotify_event_info_header *hdr = (struct fanotify_event_info_header *)(metadata + 1);
+	int                                iterations = 0;
+	struct fanotify_event_info_header *hdr        = (struct fanotify_event_info_header *)(metadata + 1);
 	while ((char *)hdr < (char *)metadata + metadata->event_len) {
 		if (hdr->info_type == FAN_EVENT_INFO_TYPE_DFID_NAME) {
-			struct fanotify_event_info_fid *fid_info = (struct fanotify_event_info_fid *)hdr;
-			struct file_handle *fh = (struct file_handle *)fid_info->handle;
-			unsigned char *file_name = fh->f_handle + (int)fh->handle_bytes;
+			struct fanotify_event_info_fid *fid_info  = (struct fanotify_event_info_fid *)hdr;
+			struct file_handle             *fh        = (struct file_handle *)fid_info->handle;
+			unsigned char                  *file_name = fh->f_handle + (int)fh->handle_bytes;
 			iterations++;
 			printf("File name: %i %s %i\n", iterations, file_name, fid_info->hdr.info_type);
 			// ecs_enqueue(world, &(ecs_event_desc_t){.event = event, .entity = entity});
@@ -203,7 +203,7 @@ static void info_header_print(ecs_world_t *world, ecs_entity_t event, ecs_entity
 }
 
 static struct {
-	uint64_t value;
+	uint64_t    value;
 	const char *name;
 } fanotify_events[] = {
 {FAN_ACCESS, "FAN_ACCESS"},
@@ -335,11 +335,11 @@ int fd_create_udp_socket(const char *ip, int port)
 #define BUF_SIZE 1024
 void fd_udp_test_recv_send(int sockfd)
 {
-	char buf[BUF_SIZE];
+	char               buf[BUF_SIZE];
 	struct sockaddr_in cliaddr;
-	socklen_t len = sizeof(cliaddr);
-	ssize_t n = recvfrom(sockfd, buf, BUF_SIZE, 0,
-	(struct sockaddr *)&cliaddr, &len);
+	socklen_t          len = sizeof(cliaddr);
+	ssize_t            n   = recvfrom(sockfd, buf, BUF_SIZE, 0,
+	             (struct sockaddr *)&cliaddr, &len);
 	if (n < 0) {
 		perror("recvfrom");
 		return;

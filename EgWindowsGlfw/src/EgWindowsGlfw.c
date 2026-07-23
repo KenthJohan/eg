@@ -38,11 +38,11 @@ static void System_EgWindowsWindowGlfw_Create(ecs_iter_t *it)
 	static int window_count = 0;
 	// EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0);                    // singleton
 	EgWindowsWindowCreateInfo *create = ecs_field(it, EgWindowsWindowCreateInfo, 1); // self
-	EgShapesRectangle *rect = ecs_field(it, EgShapesRectangle, 2);                   // self
+	EgShapesRectangle         *rect   = ecs_field(it, EgShapesRectangle, 2);         // self
 	for (int i = 0; i < it->count; ++i, ++create, ++rect) {
 		ecs_assert(window_count < 1, ECS_INTERNAL_ERROR, "Only one window is supported for now.");
-		char const *name = ecs_get_name(it->world, it->entities[i]);
-		name = name ? name : "EgWindowsWindow";
+		char const *name   = ecs_get_name(it->world, it->entities[i]);
+		name               = name ? name : "EgWindowsWindow";
 		GLFWwindow *window = glfwCreateWindow(rect->w, rect->h, name, NULL, NULL);
 		if (window == NULL) {
 			fprintf(stderr, "Failed to open GLFW window.\n");
@@ -50,8 +50,8 @@ static void System_EgWindowsWindowGlfw_Create(ecs_iter_t *it)
 			continue;
 		}
 		eg_glfw_userptr_t *user_ptr = ecs_os_malloc(sizeof(eg_glfw_userptr_t));
-		user_ptr->world = it->world;
-		user_ptr->e_window = it->entities[i];
+		user_ptr->world             = it->world;
+		user_ptr->e_window          = it->entities[i];
 		glfwSetWindowUserPointer(window, user_ptr);
 		glfwSetKeyCallback(window, key_callback);
 		window_count++;
@@ -64,7 +64,7 @@ static void System_EgWindowsWindowGlfw_Create(ecs_iter_t *it)
 			ecs_enable(it->world, it->entities[i], false);
 			continue;
 		}
-		const char *gl_version = (const char *)glGetString(GL_VERSION);
+		const char *gl_version   = (const char *)glGetString(GL_VERSION);
 		const char *glsl_version = (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
 		printf("OpenGL %s, GLSL %s\n", gl_version, glsl_version);
 
@@ -81,7 +81,7 @@ void glfwErrorCallback(int error, const char *description)
 static void System_EgWindowsWindow_Update(ecs_iter_t *it)
 {
 	// EgWindowsGlfwState *s = ecs_field(it, EgWindowsGlfwState, 0); // singleton
-	EgWindowsWindow *cw = ecs_field(it, EgWindowsWindow, 1);     // self
+	EgWindowsWindow   *cw = ecs_field(it, EgWindowsWindow, 1);   // self
 	EgShapesRectangle *cr = ecs_field(it, EgShapesRectangle, 2); // self
 	for (int i = 0; i < it->count; ++i, ++cw, ++cr) {
 		int width;
@@ -147,7 +147,7 @@ void EgWindowsGlfwImport(ecs_world_t *world)
 	ecs_singleton_set(world, EgButtonsState, {.scancode = {0}, .mouse = {0}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindow_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_EgWindowsWindow_Update,
 	.query.terms =
 	{
@@ -157,7 +157,7 @@ void EgWindowsGlfwImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgWindowsWindowGlfw_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindowGlfw_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_EgWindowsWindowGlfw_Create,
 	.query.terms =
 	{
@@ -168,7 +168,7 @@ void EgWindowsGlfwImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity = ecs_entity(world, {.name = "System_EgWindowsGlfwState_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_EgWindowsGlfwState_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
 	.callback = System_EgWindowsGlfwState_Update,
 	.query.terms =
 	{
@@ -176,7 +176,7 @@ void EgWindowsGlfwImport(ecs_world_t *world)
 	}});
 
 	ecs_observer(world,
-	{.query = {.terms = {{.id = ecs_id(EgWindowsWindow)}}},
-	.events = {EcsOnRemove},
+	{.query   = {.terms = {{.id = ecs_id(EgWindowsWindow)}}},
+	.events   = {EcsOnRemove},
 	.callback = EgWindowsWindow_Remove});
 }

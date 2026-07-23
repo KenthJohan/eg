@@ -46,19 +46,19 @@ EgGlslangProgram compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *
 {
 	printf("%s\n", shaderSource);
 	const glslang_input_t input = {
-	.language = GLSLANG_SOURCE_GLSL,
-	.stage = stage,
-	.client = GLSLANG_CLIENT_VULKAN,
-	.client_version = GLSLANG_TARGET_VULKAN_1_2,
-	.target_language = GLSLANG_TARGET_SPV,
-	.target_language_version = GLSLANG_TARGET_SPV_1_5,
-	.code = shaderSource,
-	.default_version = 100,
-	.default_profile = GLSLANG_NO_PROFILE,
+	.language                          = GLSLANG_SOURCE_GLSL,
+	.stage                             = stage,
+	.client                            = GLSLANG_CLIENT_VULKAN,
+	.client_version                    = GLSLANG_TARGET_VULKAN_1_2,
+	.target_language                   = GLSLANG_TARGET_SPV,
+	.target_language_version           = GLSLANG_TARGET_SPV_1_5,
+	.code                              = shaderSource,
+	.default_version                   = 100,
+	.default_profile                   = GLSLANG_NO_PROFILE,
 	.force_default_version_and_profile = false,
-	.forward_compatible = false,
-	.messages = GLSLANG_MSG_DEFAULT_BIT,
-	.resource = glslang_default_resource(),
+	.forward_compatible                = false,
+	.messages                          = GLSLANG_MSG_DEFAULT_BIT,
+	.resource                          = glslang_default_resource(),
 	};
 
 	glslang_shader_t *shader = glslang_shader_create(&input);
@@ -97,8 +97,8 @@ EgGlslangProgram compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *
 	glslang_program_SPIRV_generate(program, stage);
 
 	int32_t word_size = glslang_program_SPIRV_get_size(program);
-	bin.words = ecs_os_calloc(word_size * sizeof(uint32_t));
-	bin.words_size = word_size;
+	bin.words         = ecs_os_calloc(word_size * sizeof(uint32_t));
+	bin.words_size    = word_size;
 	if (!bin.words) {
 		printf("GLSL SPIR-V alloc failed\n");
 		glslang_program_delete(program);
@@ -119,8 +119,8 @@ EgGlslangProgram compileShaderToSPIRV_Vulkan(glslang_stage_t stage, const char *
 
 static void EgGlslang_create(ecs_iter_t *it)
 {
-	ecs_world_t *world = it->world;
-	EgGlslangCreate *g = ecs_field_self(it, EgGlslangCreate, 0); // self
+	ecs_world_t     *world = it->world;
+	EgGlslangCreate *g     = ecs_field_self(it, EgGlslangCreate, 0); // self
 
 	for (int i = 0; i < it->count; ++i, ++g) {
 		ecs_entity_t e = it->entities[i];
@@ -130,9 +130,9 @@ static void EgGlslang_create(ecs_iter_t *it)
 
 static void System_OnModify(ecs_iter_t *it)
 {
-	ecs_world_t *world = it->world;
-	EgGlslangProgram *p = ecs_field_self(it, EgGlslangProgram, 0); // self
-	EgFsContent *g = ecs_field_shared(it, EgFsContent, 1);         // shared, up
+	ecs_world_t      *world = it->world;
+	EgGlslangProgram *p     = ecs_field_self(it, EgGlslangProgram, 0); // self
+	EgFsContent      *g     = ecs_field_shared(it, EgFsContent, 1);    // shared, up
 	for (int i = 0; i < it->count; ++i, ++p) {
 		ecs_entity_t e = it->entities[i];
 		ecs_remove(world, e, EgFsEventModify);
@@ -141,7 +141,7 @@ static void System_OnModify(ecs_iter_t *it)
 		}
 		printf("System_OnModify: entity name: %s\n", ecs_get_name(world, e));
 		EgGlslangProgram program = compileShaderToSPIRV_Vulkan(GLSLANG_STAGE_VERTEX, g->data);
-		*p = program;
+		*p                       = program;
 	}
 }
 
@@ -155,7 +155,7 @@ void EgGlslangImport(ecs_world_t *world)
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
-	.entity = ecs_id(EgGlslangProgram),
+	.entity  = ecs_id(EgGlslangProgram),
 	.members = {
 	{.name = "words", .type = ecs_id(ecs_uptr_t)},
 	{.name = "words_size", .type = ecs_id(ecs_i32_t)},
@@ -163,7 +163,7 @@ void EgGlslangImport(ecs_world_t *world)
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
-	.entity = ecs_id(EgGlslangCreate),
+	.entity  = ecs_id(EgGlslangCreate),
 	.members = {
 	{.name = "stage", .type = ecs_id(ecs_i32_t)}, // 1=vert, 4=frag, ...
 	}});
@@ -172,9 +172,9 @@ void EgGlslangImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "EgGlslang_create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = EgGlslang_create,
-	.immediate = true,
+	.entity      = ecs_entity(world, {.name = "EgGlslang_create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = EgGlslang_create,
+	.immediate   = true,
 	.query.terms = {
 	{.id = ecs_id(EgGlslangCreate)},
 	{.id = ecs_id(EgGlslangProgram), .oper = EcsNot}, // Creates this
@@ -182,8 +182,8 @@ void EgGlslangImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "CompileShader", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_OnModify,
+	.entity      = ecs_entity(world, {.name = "CompileShader", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = System_OnModify,
 	.query.terms = {
 	{.id = ecs_id(EgGlslangProgram), .src.id = EcsSelf},
 	{.id = ecs_id(EgFsContent), .trav = EgFsEventModify, .src.id = EcsUp},

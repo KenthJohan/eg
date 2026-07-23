@@ -81,7 +81,7 @@ int ecsx_flecs_expr_ser_primitive(const ecs_world_t *world, ecs_primitive_kind_t
 				} else {
 					char *out = ecs_os_malloc(length + 3);
 					flecs_stresc(out + 1, length, '"', value);
-					out[0] = '"';
+					out[0]          = '"';
 					out[length + 1] = '"';
 					out[length + 2] = '\0';
 					ecs_strbuf_appendstr(str, out);

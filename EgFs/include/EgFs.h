@@ -26,7 +26,7 @@ typedef struct {
 } EgFsReady;
 
 typedef struct {
-	void *data;
+	void    *data;
 	uint32_t size;
 } EgFsContent;
 

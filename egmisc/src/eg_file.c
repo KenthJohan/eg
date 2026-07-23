@@ -6,9 +6,9 @@
 
 char *eg_file_load_alloc(const char *filename, size_t *length)
 {
-	char *content = NULL;
+	char   *content = NULL;
 	int32_t bytes;
-	size_t size;
+	size_t  size;
 
 	/* Open file for reading */
 	FILE *file = ecs_os_fopen(filename, "r");
@@ -28,7 +28,7 @@ char *eg_file_load_alloc(const char *filename, size_t *length)
 
 	/* Load contents in memory */
 	content = ecs_os_malloc(bytes + 1);
-	size = (size_t)bytes;
+	size    = (size_t)bytes;
 	if (!(size = fread(content, 1, size, file)) && bytes) {
 		ecs_err("%s: read zero bytes instead of %d", filename, size);
 		ecs_os_free(content);

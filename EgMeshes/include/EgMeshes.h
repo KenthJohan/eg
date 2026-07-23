@@ -12,9 +12,9 @@ typedef struct
 
 typedef struct
 {
-	ecs_vec_t vertices;
-	ecs_vec_t indices;
-	uint32_t index_counter;
+	ecs_vec_t          vertices;
+	ecs_vec_t          indices;
+	uint32_t           index_counter;
 	EgMeshesVertexInfo info;
 } EgMeshesVertices;
 

@@ -36,10 +36,10 @@ void EgBaseImport(ecs_world_t *world)
 	*/
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){.entity = ecs_id(EgBaseVec),
-	.members = {
-	{.name = "array", .type = ecs_id(ecs_uptr_t)},
-	{.name = "count", .type = ecs_id(ecs_i32_t)},
-	{.name = "size", .type = ecs_id(ecs_i32_t)},
+	.members                     = {
+    {.name = "array", .type = ecs_id(ecs_uptr_t)},
+    {.name = "count", .type = ecs_id(ecs_i32_t)},
+    {.name = "size", .type = ecs_id(ecs_i32_t)},
 #ifdef FLECS_SANITIZE
 	{.name = "elem_size", .type = ecs_id(ecs_i32_t)}, // ecs_size_t
 #endif

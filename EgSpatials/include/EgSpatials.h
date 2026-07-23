@@ -61,7 +61,7 @@ typedef struct {
 } Transformation;
 
 typedef struct {
-	m4f32 *data;
+	m4f32  *data;
 	int32_t count;
 	int32_t cap;
 	int32_t total;

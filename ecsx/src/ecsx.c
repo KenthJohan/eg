@@ -4,7 +4,7 @@
 int ecsx_get_entities_by_query(ecs_world_t *world, ecs_query_t *query, ecs_entity_t entities[], int count)
 {
 	ecs_iter_t it = ecs_query_iter(world, query);
-	int i = 0;
+	int        i  = 0;
 	while (ecs_query_next(&it)) {
 		for (int j = 0; j < it.count; j++) {
 			if (i >= count) {
@@ -25,7 +25,7 @@ int ecsx_get_entities_from_parent(ecs_world_t *world, ecs_entity_t parent, ecs_i
 	 {ecs_childof(parent), .inout = EcsInOutFilter},
 	 {component, .inout = EcsInOutFilter},
 	 }});
-	int k = ecsx_get_entities_by_query(world, q, entities, count);
+	int          k = ecsx_get_entities_by_query(world, q, entities, count);
 	ecs_query_fini(q);
 	return k;
 }
@@ -44,7 +44,7 @@ bool ecsx_has_children(ecs_world_t *world, ecs_entity_t entity)
 int32_t ecsx_sum_offset(ecs_world_t *world, ecs_entity_t const members[], ecs_entity_t *last)
 {
 	int32_t o = 0;
-	int i = 0;
+	int     i = 0;
 	while (members[i]) {
 		EcsMember const *m = ecs_get(world, members[i], EcsMember);
 		if (m == NULL) {
@@ -112,12 +112,12 @@ void remove_copies_from_prefab(ecs_world_t *world, ecs_entity_t prefab, ecs_enti
 		ecs_remove_id(world, subject, id);
 	}
 	// Removes every child of subject that are also in prefab:
-	ecs_query_t *q = ecs_query(world,
-	{.cache_kind = EcsQueryCacheNone,
-	.terms = {
-	{.id = ecs_pair(prefab, EcsWildcard)},
-	{.id = ecs_childof(subject)}}});
-	ecs_iter_t it = ecs_query_iter(world, q);
+	ecs_query_t *q  = ecs_query(world,
+	 {.cache_kind = EcsQueryCacheNone,
+	 .terms       = {
+    {.id = ecs_pair(prefab, EcsWildcard)},
+    {.id = ecs_childof(subject)}}});
+	ecs_iter_t   it = ecs_query_iter(world, q);
 	while (ecs_query_next(&it)) {
 		for (int i = 0; i < it.count; ++i) {
 			ecs_entity_t e = it.entities[i];

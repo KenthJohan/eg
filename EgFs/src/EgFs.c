@@ -90,14 +90,14 @@ static ECS_DTOR(EgFsContent, ptr, {
 ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 {
 	ecs_entity_t parent = 0;
-	uint32_t flags = 0;
+	uint32_t     flags  = 0;
 	if ((path[0] == '.') && (path[1] == '/')) {
 		parent = EgFsCwd;
-		flags = fs_get_path_flags(path);
+		flags  = fs_get_path_flags(path);
 		path += 2;
 	} else if (path[0] == '/') {
 		parent = EgFsRoot;
-		flags = fs_get_path_flags(path);
+		flags  = fs_get_path_flags(path);
 		path += 1;
 	} else {
 		return 0;
@@ -112,10 +112,10 @@ ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 	}
 	ecs_entity_t e = ecs_entity_init(world,
 	&(ecs_entity_desc_t){
-	.name = path,
-	.sep = "/",
+	.name   = path,
+	.sep    = "/",
 	.parent = parent,
-	.add = (ecs_id_t[]){f, 0},
+	.add    = (ecs_id_t[]){f, 0},
 	});
 	return e;
 }
@@ -133,11 +133,11 @@ static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_
 	(void)ctx;
 	(void)argc;
 	ecs_world_t *world = ctx->world;
-	const char *path = *(char **)argv[0].ptr;
+	const char  *path  = *(char **)argv[0].ptr;
 	// char cwd[1024];
 	// getcwd(cwd, sizeof(cwd));
 	ecs_entity_t e = 0;
-	e = EgFs_create_path_entity(world, path);
+	e              = EgFs_create_path_entity(world, path);
 	if (e) {
 		char *p = ecs_get_path_w_sep(world, EgFsSockets, e, ":", NULL);
 		ecs_trace("newpath '%s' -> '%s' entity:0x%jX", path, p, (uintmax_t)e);
@@ -163,8 +163,8 @@ static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_
 static void Observer_OnOpen(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
-	ecs_world_t *world = it->world;
-	EcsIdentifier *p = ecs_field(it, EcsIdentifier, 0); // self
+	ecs_world_t   *world = it->world;
+	EcsIdentifier *p     = ecs_field(it, EcsIdentifier, 0); // self
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
 		ecs_trace("EgFsEventOpen received for entity '%s' %s", ecs_get_name(world, e), p->value);
@@ -174,8 +174,8 @@ static void Observer_OnOpen(ecs_iter_t *it)
 
 static void Observer_OnModify_extra(ecs_world_t *world, ecs_entity_t e)
 {
-	ecs_id_t comp = ecs_pair(EgFsEventModify, e);
-	ecs_iter_t it = ecs_each_id(world, comp);
+	ecs_id_t   comp = ecs_pair(EgFsEventModify, e);
+	ecs_iter_t it   = ecs_each_id(world, comp);
 	while (ecs_each_next(&it)) {
 		for (int i = 0; i < it.count; i++) {
 			printf("%s\n", ecs_get_name(world, it.entities[i]));
@@ -188,7 +188,7 @@ static void Observer_OnModify(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	EgFsContent *c = ecs_field(it, EgFsContent, 1); // self
+	EgFsContent *c     = ecs_field(it, EgFsContent, 1); // self
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
 		if (c[i].data) {
@@ -198,10 +198,10 @@ static void Observer_OnModify(ecs_iter_t *it)
 			c[i].data = NULL;
 			c[i].size = 0;
 		}
-		size_t size = 0;
-		void *content = NULL;
-		char *path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./"); // Allocates
-		uint32_t flags = fs_get_path_flags(path);
+		size_t   size    = 0;
+		void    *content = NULL;
+		char    *path    = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./"); // Allocates
+		uint32_t flags   = fs_get_path_flags(path);
 		if (flags & FS_PATH_FILE) {
 			content = fs_load_from_file(path, &size);
 		}
@@ -224,7 +224,7 @@ static void System_Dump(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	ecs_world_t *world = it->world;
-	EgFsContent *c = ecs_field_self(it, EgFsContent, 0);
+	EgFsContent *c     = ecs_field_self(it, EgFsContent, 0);
 	(void)world;
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
@@ -293,14 +293,14 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
-	.entity = ecs_id(EgFsFd),
+	.entity  = ecs_id(EgFsFd),
 	.members = {
 	{.name = "fd", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
-	.entity = ecs_id(EgFsWatch),
+	.entity  = ecs_id(EgFsWatch),
 	.members = {
 	{.name = "path1", .type = ecs_id(ecs_entity_t)},
 	{.name = "prefab", .type = ecs_id(ecs_entity_t)},
@@ -308,7 +308,7 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
-	.entity = ecs_id(EgFsContent),
+	.entity  = ecs_id(EgFsContent),
 	.members = {
 	{.name = "data", .type = ecs_id(ecs_uptr_t)},
 	{.name = "size", .type = ecs_id(ecs_u32_t)},
@@ -317,27 +317,27 @@ void EgFsImport(ecs_world_t *world)
 	{
 		ecs_entity_t m = ecs_function_init(world,
 		&(ecs_function_desc_t){
-		.name = "path1",
+		.name        = "path1",
 		.return_type = ecs_id(ecs_entity_t),
-		.params = {{.name = "name", .type = ecs_id(ecs_string_t)}},
-		.callback = callback_newpath});
+		.params      = {{.name = "name", .type = ecs_id(ecs_string_t)}},
+		.callback    = callback_newpath});
 		ecs_doc_set_brief(world, m, "Lookup child by name11");
 	}
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "Observer_OnOpen"}),
-	.callback = Observer_OnOpen,
-	.events = {EgFsEventOpen},
+	.entity      = ecs_entity(world, {.name = "Observer_OnOpen"}),
+	.callback    = Observer_OnOpen,
+	.events      = {EgFsEventOpen},
 	.query.terms = {
 	{.id = ecs_pair(ecs_id(EcsIdentifier), EcsName)},
 	}});
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "Observer_OnModify"}),
-	.callback = Observer_OnModify,
-	.events = {EgFsEventModify},
+	.entity      = ecs_entity(world, {.name = "Observer_OnModify"}),
+	.callback    = Observer_OnModify,
+	.events      = {EgFsEventModify},
 	.query.terms = {
 	{.id = EgFsFile},
 	{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter},
@@ -345,8 +345,8 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "System_Dump", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Dump,
+	.entity      = ecs_entity(world, {.name = "System_Dump", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = System_Dump,
 	.query.terms = {
 	{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
 	{.id = EgFsDump, .src.id = EcsSelf},
@@ -354,8 +354,8 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "System_Dump1", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Dump1,
+	.entity      = ecs_entity(world, {.name = "System_Dump1", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback    = System_Dump1,
 	.query.terms = {
 	{.id = EgFsDump, .src.id = EcsSelf},
 	}});

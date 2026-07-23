@@ -210,7 +210,7 @@ static const uint64_t wyp_[4] = {0xa0761d6478bd642full, 0xe7037ed1a0b428dbull, 0
 
 uint64_t flecs_hash(
 const void *data,
-ecs_size_t length)
+ecs_size_t  length)
 {
 	return wyhash(data, length, 0, wyp_);
 }

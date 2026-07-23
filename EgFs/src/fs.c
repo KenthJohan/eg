@@ -23,7 +23,7 @@ uint32_t fs_get_path_flags(const char *path)
 
 char *fs_load_from_file(const char *filename, size_t *size)
 {
-	char *content = NULL;
+	char   *content = NULL;
 	int32_t bytes;
 
 	/* Open file for reading */
@@ -43,7 +43,7 @@ char *fs_load_from_file(const char *filename, size_t *size)
 
 	/* Load contents in memory */
 	content = ecs_os_malloc(bytes + 1);
-	*size = (size_t)bytes;
+	*size   = (size_t)bytes;
 	if (!(*size = fread(content, 1, *size, file)) && bytes) {
 		ecs_err("%s: read zero bytes instead of %d", filename, *size);
 		ecs_os_free(content);
