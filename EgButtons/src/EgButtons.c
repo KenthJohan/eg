@@ -78,39 +78,35 @@ static void System_Bindings(ecs_iter_t *it)
 
 void EgButtonsEngageRule_System_Update(ecs_iter_t *it)
 {
-	EgButtonsEngageRule *r = ecs_field_shared(it, EgButtonsEngageRule, 0);
-	EgButtonsBinding    *a = ecs_field_shared(it, EgButtonsBinding, 1);
+	EgButtonsEngageRule *r = ecs_field_self(it, EgButtonsEngageRule, 0);
+	EgButtonsBinding    *a = ecs_field_self(it, EgButtonsBinding, 1);
 	EgButtonsState      *b = ecs_field_shared(it, EgButtonsState, 2);
-	for (int i = 0; i < it->count; i++) {
+	for (int i = 0; i < it->count; ++i, ++r, ++a) {
 		int32_t button_enable = get_button_state(a->button0, a->mask, b);
-		if (button_enable) {
-			if (r->add) {
-				ecs_add_id(it->world, it->entities[i], r->tag);
-			} else {
-				ecs_remove_id(it->world, it->entities[i], r->tag);
+		if (!button_enable) {
+			continue;
+		}
+
+		ecs_query_t *q = ecs_query(it->world,
+		{
+		.terms = {
+		{.id = r->term, .src.id = EcsSelf},
+		},
+		.cache_kind = EcsQueryCacheNone, // Don't cache because query is ad-hoc
+		});
+
+		ecs_iter_t it2 = ecs_query_iter(it->world, q);
+
+		while (ecs_query_next(&it2)) {
+			for (int j = 0; j < it2.count; j++) {
+				if (r->add) {
+					ecs_add_id(it->world, it2.entities[j], r->tag);
+				} else {
+					ecs_remove_id(it->world, it2.entities[j], r->tag);
+				}
 			}
 		}
-	}
-}
-
-void EgButtonsEngageRule_Observer(ecs_iter_t *it)
-{
-	EgButtonsEngageRule *o = ecs_field_self(it, EgButtonsEngageRule, 0);
-
-	for (int i = 0; i < it->count; i++) {
-		ecs_entity_t e = it->entities[i];
-		if (it->event == EcsOnSet) {
-			ecs_system(it->world,
-			{.entity  = ecs_entity(it->world, {.add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-			.callback = EgButtonsEngageRule_System_Update,
-			.query.terms =
-			{
-			{.id = ecs_id(EgButtonsEngageRule), .src.id = e},
-			{.id = ecs_id(EgButtonsBinding), .src.id = e},
-			{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState)},
-			{.id = o->term, .src.id = EcsSelf},
-			}});
-		}
+		ecs_query_fini(q);
 	}
 }
 
@@ -192,8 +188,15 @@ void EgButtonsImport(ecs_world_t *world)
 	{.id = ecs_id(EgButtonsIncrementer), .src.id = EcsSelf},
 	}});
 
-	ecs_observer(world,
-	{.query   = {.terms = {{.id = ecs_id(EgButtonsEngageRule)}}},
-	.events   = {EcsOnSet},
-	.callback = EgButtonsEngageRule_Observer});
+	ecs_system(world,
+	{.entity  = ecs_entity(world, {.name = "EgButtonsEngageRule_System_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = EgButtonsEngageRule_System_Update,
+	.query.terms =
+	{
+	{.id = ecs_id(EgButtonsEngageRule), .src.id = EcsSelf},
+	{.id = ecs_id(EgButtonsBinding), .src.id = EcsSelf},
+	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState)},
+	}});
+
+	return;
 }
