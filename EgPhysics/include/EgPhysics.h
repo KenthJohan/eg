@@ -15,8 +15,17 @@ typedef struct {
 	float friction;
 } EgPhysicsShapesDef;
 
+typedef struct {
+	ecs_entity_t body_a;
+	ecs_entity_t body_b;
+	float linear_hertz;
+	float linear_damping;
+} EgPhysicsJointDef;
+
 extern ECS_COMPONENT_DECLARE(EgPhysicsWorldDef);
 extern ECS_COMPONENT_DECLARE(EgPhysicsBodyDef);
 extern ECS_COMPONENT_DECLARE(EgPhysicsShapesDef);
+extern ECS_COMPONENT_DECLARE(EgPhysicsJointDef);
+extern ECS_TAG_DECLARE(EgPhysicsTargetTransform);
 
 void EgPhysicsImport(ecs_world_t *world);

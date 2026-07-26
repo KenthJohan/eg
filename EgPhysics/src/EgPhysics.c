@@ -3,6 +3,8 @@
 ECS_COMPONENT_DECLARE(EgPhysicsWorldDef);
 ECS_COMPONENT_DECLARE(EgPhysicsBodyDef);
 ECS_COMPONENT_DECLARE(EgPhysicsShapesDef);
+ECS_COMPONENT_DECLARE(EgPhysicsJointDef);
+ECS_TAG_DECLARE(EgPhysicsTargetTransform);
 
 void EgPhysicsImport(ecs_world_t *world)
 {
@@ -12,6 +14,9 @@ void EgPhysicsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgPhysicsWorldDef);
 	ECS_COMPONENT_DEFINE(world, EgPhysicsBodyDef);
 	ECS_COMPONENT_DEFINE(world, EgPhysicsShapesDef);
+	ECS_COMPONENT_DEFINE(world, EgPhysicsJointDef);
+	ECS_TAG_DEFINE(world, EgPhysicsTargetTransform);
+	ecs_add_id(world, EgPhysicsTargetTransform, EcsTraversable);
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
@@ -34,5 +39,15 @@ void EgPhysicsImport(ecs_world_t *world)
 	.members = {
 	{.name = "density", .type = ecs_id(ecs_f32_t)},
 	{.name = "friction", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = ecs_id(EgPhysicsJointDef),
+	.members = {
+	{.name = "body_a", .type = ecs_id(ecs_entity_t)},
+	{.name = "body_b", .type = ecs_id(ecs_entity_t)},
+	{.name = "linear_hertz", .type = ecs_id(ecs_f32_t)},
+	{.name = "linear_damping", .type = ecs_id(ecs_f32_t)},
 	}});
 }

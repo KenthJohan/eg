@@ -6,11 +6,11 @@
 #include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgPhysicsBox2dOverlapChecking);
-ECS_TAG_DECLARE(EgB2TargetTransform);
 
 ECS_COMPONENT_DECLARE(b2WorldId);
 ECS_COMPONENT_DECLARE(b2BodyId);
 ECS_COMPONENT_DECLARE(b2ShapeId);
+ECS_COMPONENT_DECLARE(b2JointId);
 
 static void b2WorldId_Create(ecs_iter_t *it)
 {
@@ -87,7 +87,7 @@ static void b2WorldId_Step(ecs_iter_t *it)
 	}
 }
 
-static void EgB2Body_TargetTransform(ecs_iter_t *it)
+static void System_TargetTransform(ecs_iter_t *it)
 {
 	float timeStep = 1.0f / 60.0f;
 	ecs_log_set_level(0);
@@ -195,13 +195,12 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgCameras);
 
 	ECS_COMPONENT_DEFINE(world, EgPhysicsBox2dOverlapChecking);
-	ECS_TAG_DEFINE(world, EgB2TargetTransform);
-	ecs_add_id(world, EgB2TargetTransform, EcsTraversable);
 	ecs_add_id(world, ecs_id(EgPhysicsBox2dOverlapChecking), EcsTraversable);
 
 	ECS_COMPONENT_DEFINE(world, b2BodyId);
 	ECS_COMPONENT_DEFINE(world, b2WorldId);
 	ECS_COMPONENT_DEFINE(world, b2ShapeId);
+	ECS_COMPONENT_DEFINE(world, b2JointId);
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
@@ -223,6 +222,15 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
 	.entity  = ecs_id(b2ShapeId),
+	.members = {
+	{.name = "index1", .type = ecs_id(ecs_i32_t)},
+	{.name = "world0", .type = ecs_id(ecs_u16_t)},
+	{.name = "generation", .type = ecs_id(ecs_u16_t)},
+	}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = ecs_id(b2JointId),
 	.members = {
 	{.name = "index1", .type = ecs_id(ecs_i32_t)},
 	{.name = "world0", .type = ecs_id(ecs_u16_t)},
@@ -276,12 +284,12 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "EgB2Body_TargetTransform", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = EgB2Body_TargetTransform,
+	{.entity  = ecs_entity(world, {.name = "System_TargetTransform", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.callback = System_TargetTransform,
 	.query.terms =
 	{
 	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_id(Position2), .trav = EgB2TargetTransform, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(Position2), .trav = EgPhysicsTargetTransform, .src.id = EcsUp, .inout = EcsIn},
 	}});
 
 	ecs_system(world,
