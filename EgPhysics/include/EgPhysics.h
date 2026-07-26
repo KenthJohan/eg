@@ -16,8 +16,6 @@ typedef struct {
 } EgPhysicsShapesDef;
 
 typedef struct {
-	ecs_entity_t body_a;
-	ecs_entity_t body_b;
 	float linear_hertz;
 	float linear_damping;
 } EgPhysicsJointDef;

@@ -45,8 +45,6 @@ void EgPhysicsImport(ecs_world_t *world)
 	&(ecs_struct_desc_t){
 	.entity  = ecs_id(EgPhysicsJointDef),
 	.members = {
-	{.name = "body_a", .type = ecs_id(ecs_entity_t)},
-	{.name = "body_b", .type = ecs_id(ecs_entity_t)},
 	{.name = "linear_hertz", .type = ecs_id(ecs_f32_t)},
 	{.name = "linear_damping", .type = ecs_id(ecs_f32_t)},
 	}});

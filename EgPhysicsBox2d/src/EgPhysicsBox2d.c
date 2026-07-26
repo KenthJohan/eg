@@ -69,6 +69,25 @@ static void b2ShapeId_Create(ecs_iter_t *it)
 	ecs_log_set_level(-1);
 }
 
+static void b2JointId_Create(ecs_iter_t *it)
+{
+	ecs_log_set_level(0);
+	b2WorldId         *bw     = ecs_field_shared(it, b2WorldId, 0);
+	EgPhysicsJointDef *def    = ecs_field_self(it, EgPhysicsJointDef, 1);
+	b2BodyId          *body_a = ecs_field_shared(it, b2BodyId, 2);
+	b2BodyId          *body_b = ecs_field_shared(it, b2BodyId, 3);
+	for (int i = 0; i < it->count; ++i, ++def, ++body_a, ++body_b) {
+		b2MotorJointDef jointDef    = b2DefaultMotorJointDef();
+		jointDef.base.bodyIdA       = body_a[0];
+		jointDef.base.bodyIdB       = body_b[0];
+		jointDef.linearHertz        = def->linear_hertz;
+		jointDef.linearDampingRatio = def->linear_damping;
+		b2JointId joint             = b2CreateMotorJoint(bw[0], &jointDef);
+		ecs_set_ptr(it->world, it->entities[i], b2JointId, &joint);
+	}
+	ecs_log_set_level(-1);
+}
+
 void b2WorldId_Destroy(ecs_iter_t *it)
 {
 	b2WorldId *w = ecs_field(it, b2WorldId, 0);
