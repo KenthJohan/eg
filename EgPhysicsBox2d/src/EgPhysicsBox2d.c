@@ -264,19 +264,18 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "b2WorldId_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = b2WorldId_Create,
-	.query.terms =
-	{
-	{.id = ecs_id(EgPhysicsWorldDef), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_id(b2WorldId), .oper = EcsNot}, // Adds this
+	{.entity     = ecs_entity(world, {.name = "b2WorldId_Create"}),
+	.phase       = EcsOnUpdate,
+	.callback    = b2WorldId_Create,
+	.query.terms = {
+	{.id = ecs_id(EgPhysicsWorldDef), .src.id = EcsSelf, .inout = EcsIn}, {.id = ecs_id(b2WorldId), .oper = EcsNot}, // Adds this
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "b2BodyId_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = b2BodyId_Create,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "b2BodyId_Create"}),
+	.phase       = EcsOnUpdate,
+	.callback    = b2BodyId_Create,
+	.query.terms = {
 	{.id = ecs_id(b2WorldId), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgPhysicsBodyDef), .src.id = EcsSelf, .inout = EcsIn},
@@ -284,10 +283,10 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "b2ShapeId_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = b2ShapeId_Create,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "b2ShapeId_Create"}),
+	.phase       = EcsOnUpdate,
+	.callback    = b2ShapeId_Create,
+	.query.terms = {
 	{.id = ecs_id(EgPhysicsShapesDef), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn}, // Attaches to this
@@ -295,47 +294,47 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "b2WorldId_Step", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = b2WorldId_Step,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "b2WorldId_Step"}),
+	.phase       = EcsOnUpdate,
+	.callback    = b2WorldId_Step,
+	.query.terms = {
 	{.id = ecs_id(b2WorldId), .src.id = EcsSelf, .inout = EcsIn},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_TargetTransform", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_TargetTransform,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_TargetTransform"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_TargetTransform,
+	.query.terms = {
 	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(Position2), .trav = EgPhysicsTargetTransform, .src.id = EcsUp, .inout = EcsIn},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_Overlap_Checking_Clear", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Overlap_Checking_Clear,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_Overlap_Checking_Clear"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Overlap_Checking_Clear,
+	.query.terms = {
 	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_pair(ecs_id(EgPhysicsBox2dOverlapChecking), EcsWildcard), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(b2WorldId), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_Overlap_Checking_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Overlap_Checking_Update,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_Overlap_Checking_Update"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Overlap_Checking_Update,
+	.query.terms = {
 	{.id = ecs_id(b2WorldId), .inout = EcsIn},
 	{.id = ecs_pair(ecs_id(EgPhysicsBox2dOverlapChecking), EcsWildcard), .inout = EcsIn},
 	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsBox2dOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_Get_Position", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Get_Position,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_Get_Position"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Get_Position,
+	.query.terms = {
 	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
 	}});

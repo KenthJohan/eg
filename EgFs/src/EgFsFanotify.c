@@ -134,7 +134,7 @@ void EgFsFanotifyImport(ecs_world_t *world)
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "EgFsWatch_EcsOnSet_fannotify_mark", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.entity = ecs_entity(world, {.name = "EgFsWatch_EcsOnSet_fannotify_mark"}),
 	.callback = Observer_fanotify_mark,
 	.events = {EcsOnSet, EcsOnRemove},
 	.query.terms = {
@@ -144,7 +144,7 @@ void EgFsFanotifyImport(ecs_world_t *world)
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity = ecs_entity(world, {.name = "Observer_epoll_ctl", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.entity = ecs_entity(world, {.name = "Observer_epoll_ctl"}),
 	.callback = Observer_epoll_ctl,
 	.events = {EcsOnAdd, EcsOnRemove},
 	.query.terms = {
@@ -154,7 +154,7 @@ void EgFsFanotifyImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity = ecs_entity(world, {.name = "System_Read", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.entity = ecs_entity(world, {.name = "System_Read"}), .phase = EcsOnUpdate,
 	.callback = System_Read,
 	.query.terms =
 	{

@@ -60,10 +60,10 @@ void EgFsSocketImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity   = ecs_entity(world, {.name = "System_Recv", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Recv,
-	.query.terms =
-	{
+	.entity      = ecs_entity(world, {.name = "System_Recv"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Recv,
+	.query.terms = {
 	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsSocketCreate)), .src.id = EcsSelf},
 	{.id = ecs_id(EgFsSocketCreate), .src.id = EcsSelf},
 	{.id = ecs_id(EgFsReady), .src.id = EcsSelf},
@@ -71,10 +71,11 @@ void EgFsSocketImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity   = ecs_entity(world, {.name = "System_Create_Socket_Udp", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Create_Socket_Udp,
-	.query.terms =
-	{
+	.entity = ecs_entity(world, {.name = "System_Create_Socket_Udp"}),
+
+	.phase       = EcsOnUpdate,
+	.callback    = System_Create_Socket_Udp,
+	.query.terms = {
 	{.id = ecs_id(EgFsSocketCreate), .src.id = EcsSelf},
 	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsSocketCreate)), .oper = EcsNot},
 	}});

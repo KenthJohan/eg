@@ -216,7 +216,7 @@ void EgFsInotifyImport(ecs_world_t *world)
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity      = ecs_entity(world, {.name = "Observer_watch_remove", .add = ecs_ids(ecs_dependson(EcsOnLoad))}),
+	.entity      = ecs_entity(world, {.name = "Observer_watch_remove"}),
 	.callback    = Observer_watch_remove,
 	.events      = {EcsOnRemove},
 	.query.terms = {
@@ -226,7 +226,7 @@ void EgFsInotifyImport(ecs_world_t *world)
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity      = ecs_entity(world, {.name = "Observer_watch_set", .add = ecs_ids(ecs_dependson(EcsOnLoad))}),
+	.entity      = ecs_entity(world, {.name = "Observer_watch_set"}),
 	.callback    = Observer_watch_set,
 	.events      = {EcsOnSet},
 	.query.terms = {
@@ -237,10 +237,10 @@ void EgFsInotifyImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity   = ecs_entity(world, {.name = "System_Read", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Read,
-	.query.terms =
-	{
+	.entity      = ecs_entity(world, {.name = "System_Read"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Read,
+	.query.terms = {
 	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsInotifyCreate)), .src.id = EcsSelf},
 	{.id = ecs_id(EgFsInotifyCreate), .src.id = EcsSelf},
 	{.id = ecs_id(EgFsReady), .src.id = EcsSelf},
@@ -248,11 +248,10 @@ void EgFsInotifyImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity   = ecs_entity(world, {.name = "System_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Create,
-	.query.terms =
-	{
-	{.id = ecs_id(EgFsInotifyCreate), .src.id = EcsSelf},
-	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsInotifyCreate)), .src.id = EcsSelf, .oper = EcsNot}, // Creates this
+	.entity      = ecs_entity(world, {.name = "System_Create"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Create,
+	.query.terms = {
+	{.id = ecs_id(EgFsInotifyCreate), .src.id = EcsSelf}, {.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsInotifyCreate)), .src.id = EcsSelf, .oper = EcsNot}, // Creates this
 	}});
 }

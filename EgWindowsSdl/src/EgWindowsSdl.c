@@ -268,48 +268,46 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsWindow_Create,
-	.query.terms =
-	{
-	{.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf},
-	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf},
-	{.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
+	{.entity     = ecs_entity(world, {.name = "System_EgWindowsWindow_Create"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_EgWindowsWindow_Create,
+	.query.terms = {
+	{.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf}, {.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf}, {.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Rectangle", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsWindow_Rectangle,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_EgWindowsWindow_Rectangle"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_EgWindowsWindow_Rectangle,
+	.query.terms = {
 	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Position", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsWindow_Position,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_EgWindowsWindow_Position"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_EgWindowsWindow_Position,
+	.query.terms = {
 	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Mouse_UnNormalized", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsWindow_Mouse_UnNormalized,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_EgWindowsWindow_Mouse_UnNormalized"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_EgWindowsWindow_Mouse_UnNormalized,
+	.query.terms = {
 	{.id = ecs_id(Position2), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
 	{.id = ecs_id(EgWindowsMouse), .src.id = EcsSelf, .inout = EcsIn},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Mouse_Normalized", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsWindow_Mouse_Normalized,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_EgWindowsWindow_Mouse_Normalized"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_EgWindowsWindow_Mouse_Normalized,
+	.query.terms = {
 	{.id = ecs_id(Position2), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_pair(ecs_id(Position2), Normalized), .src.id = EcsSelf, .inout = EcsOut},
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
@@ -317,18 +315,18 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_Events_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Events_Update,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_Events_Update"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Events_Update,
+	.query.terms = {
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsInOut},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_Resize", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Resize,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_Resize"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Resize,
+	.query.terms = {
 	{.id = ecs_id(EgWindowsEventResize), .src.id = EcsSelf, .inout = EcsOut},
 	{.id = ecs_pair(EgWindowsEventResize, EcsWildcard), .src.id = EcsSelf, .inout = EcsOut},
 	}});

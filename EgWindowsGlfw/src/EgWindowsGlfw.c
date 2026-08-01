@@ -147,31 +147,28 @@ void EgWindowsGlfwImport(ecs_world_t *world)
 	ecs_singleton_set(world, EgButtonsState, {.scancode = {0}, .mouse = {0}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindow_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsWindow_Update,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_EgWindowsWindow_Update"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_EgWindowsWindow_Update,
+	.query.terms = {
 	{.id = ecs_id(EgWindowsGlfwState), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgWindowsWindow)},
 	{.id = ecs_id(EgShapesRectangle)},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_EgWindowsWindowGlfw_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsWindowGlfw_Create,
-	.query.terms =
-	{
-	{.id = ecs_id(EgWindowsGlfwState), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf},
-	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf},
-	{.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
+	{.entity     = ecs_entity(world, {.name = "System_EgWindowsWindowGlfw_Create"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_EgWindowsWindowGlfw_Create,
+	.query.terms = {
+	{.id = ecs_id(EgWindowsGlfwState), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn}, {.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf}, {.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf}, {.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_EgWindowsGlfwState_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_EgWindowsGlfwState_Update,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_EgWindowsGlfwState_Update"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_EgWindowsGlfwState_Update,
+	.query.terms = {
 	{.id = ecs_id(EgWindowsGlfwState), .src.id = ecs_id(EgWindows)},
 	}});
 

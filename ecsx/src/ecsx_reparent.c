@@ -86,9 +86,10 @@ void ecsx_reparent_by_subname(ecs_world_t *world, char const *filters[], ecs_que
 			ecs_entity_t parent      = ecs_entity_init(world,
 			     &(ecs_entity_desc_t){
 			     .name   = namebuf,
-			     .parent = grandparent,
-			     .add    = add,
-            });
+			     .parent = grandparent});
+			for (int k = 0; add[k]; k++) {
+				ecs_add_id(world, parent, add[k]);
+			}
 			ecs_add_pair(world, it.entities[i], EcsChildOf, parent);
 		}
 	}

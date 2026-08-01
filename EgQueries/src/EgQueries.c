@@ -58,7 +58,8 @@ void EgQueriesImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "CreateGuiQuery", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.entity      = ecs_entity(world, {.name = "CreateGuiQuery"}),
+	.phase       = EcsOnUpdate,
 	.callback    = SystemCreateGuiQuery,
 	.immediate   = true,
 	.query.terms = {

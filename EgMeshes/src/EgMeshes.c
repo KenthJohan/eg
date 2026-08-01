@@ -175,7 +175,7 @@ void EgMeshesImport(ecs_world_t *world)
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity         = ecs_entity(world, {.name = "System_extract_vertex_info", .add = ecs_ids(ecs_dependson(EcsOnLoad))}),
+	.entity         = ecs_entity(world, {.name = "System_extract_vertex_info"}),
 	.callback       = System_extract_vertex_info,
 	.events         = {EcsOnSet},
 	.yield_existing = true, // Ensure existing components are processed. This does not work yet.
@@ -187,10 +187,10 @@ void EgMeshesImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity   = ecs_entity(world, {.name = "System_gen_verts", .add = ecs_ids(ecs_dependson(EcsOnValidate))}),
-	.callback = System_gen_verts,
-	.query.terms =
-	{
+	.entity      = ecs_entity(world, {.name = "System_gen_verts"}),
+	.phase       = EcsOnValidate,
+	.callback    = System_gen_verts,
+	.query.terms = {
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgMeshesVertices), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
 	{.id = ecs_id(EgMeshesVertexInfo), .trav = EcsDependsOn, .src.id = EcsUp, .inout = EcsInOut},

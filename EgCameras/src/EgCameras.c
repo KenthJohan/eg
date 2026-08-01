@@ -93,7 +93,8 @@ void EgCamerasImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "CameraUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity     = ecs_entity(world, {.name = "CameraUpdate"}),
+	.phase       = EcsOnUpdate,
 	.callback    = CameraUpdate,
 	.query.terms = {
 	{.id = ecs_id(EgCamerasState), .src.id = EcsSelf},
@@ -103,7 +104,8 @@ void EgCamerasImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "UnprojectUpdate", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity     = ecs_entity(world, {.name = "UnprojectUpdate"}),
+	.phase       = EcsOnUpdate,
 	.callback    = UnprojectUpdate,
 	.query.terms = {
 	{.id = ecs_id(EgCamerasUnproject), .src.id = EcsSelf, .inout = EcsIn},
@@ -113,7 +115,7 @@ void EgCamerasImport(ecs_world_t *world)
 	}});
 
 	/*
-	ecs_system(world, {.entity = ecs_entity(world, {.name = "MouseRayCast", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	ecs_system(world, {.entity = ecs_entity(world, {.name = "MouseRayCast"}), .phase = EcsOnUpdate,
 	.callback = MouseRayCast,
 	.query.terms =
 	{

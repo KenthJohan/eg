@@ -169,30 +169,30 @@ void EgButtonsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_Toggle", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Toggle,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_Toggle"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Toggle,
+	.query.terms = {
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState)},
 	{.id = ecs_id(EgButtonsBinding), .src.id = EcsSelf},
 	{.id = ecs_id(EgButtonsActionToggleEntity), .src.id = EcsSelf},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_Bindings", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Bindings,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "System_Bindings"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_Bindings,
+	.query.terms = {
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState)},
 	{.id = ecs_id(EgButtonsBinding), .src.id = EcsSelf},
 	{.id = ecs_id(EgButtonsIncrementer), .src.id = EcsSelf},
 	}});
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "EgButtonsEngageRule_System_Update", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = EgButtonsEngageRule_System_Update,
-	.query.terms =
-	{
+	{.entity     = ecs_entity(world, {.name = "EgButtonsEngageRule_System_Update"}),
+	.phase       = EcsOnUpdate,
+	.callback    = EgButtonsEngageRule_System_Update,
+	.query.terms = {
 	{.id = ecs_id(EgButtonsEngageRule), .src.id = EcsSelf},
 	{.id = ecs_id(EgButtonsBinding), .src.id = EcsSelf},
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState)},

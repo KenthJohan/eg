@@ -345,7 +345,8 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "System_Dump", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.entity      = ecs_entity(world, {.name = "System_Dump"}),
+	.phase       = EcsOnUpdate,
 	.callback    = System_Dump,
 	.query.terms = {
 	{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
@@ -354,7 +355,8 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "System_Dump1", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	.entity      = ecs_entity(world, {.name = "System_Dump1"}),
+	.phase       = EcsOnUpdate,
 	.callback    = System_Dump1,
 	.query.terms = {
 	{.id = EgFsDump, .src.id = EcsSelf},

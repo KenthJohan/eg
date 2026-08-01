@@ -125,27 +125,27 @@ void EgFsEpollImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity   = ecs_entity(world, {.name = "System_wait_epoll", .add = ecs_ids(ecs_dependson(EcsOnValidate))}),
-	.callback = System_wait_epoll,
-	.query.terms =
-	{
+	.entity      = ecs_entity(world, {.name = "System_wait_epoll"}),
+	.phase       = EcsOnValidate,
+	.callback    = System_wait_epoll,
+	.query.terms = {
 	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsEpollCreate)), .src.id = EcsSelf},
 	{.id = ecs_id(EgFsEpollCreate), .src.id = EcsSelf},
 	}});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity   = ecs_entity(world, {.name = "System_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback = System_Create,
-	.query.terms =
-	{
-	{.id = ecs_id(EgFsEpollCreate), .src.id = EcsSelf},
-	{.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsEpollCreate)), .src.id = EcsSelf, .oper = EcsNot}, // Creates this
+	.entity = ecs_entity(world, {.name = "System_Create"}),
+
+	.phase       = EcsOnUpdate,
+	.callback    = System_Create,
+	.query.terms = {
+	{.id = ecs_id(EgFsEpollCreate), .src.id = EcsSelf}, {.id = ecs_pair(ecs_id(EgFsFd), ecs_id(EgFsEpollCreate)), .src.id = EcsSelf, .oper = EcsNot}, // Creates this
 	}});
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity      = ecs_entity(world, {.name = "Observer_epoll_ctl", .add = ecs_ids(ecs_dependson(EcsPostFrame))}),
+	.entity      = ecs_entity(world, {.name = "Observer_epoll_ctl"}),
 	.callback    = Observer_epoll_ctl,
 	.events      = {EcsOnSet, EcsOnRemove},
 	.query.terms = {

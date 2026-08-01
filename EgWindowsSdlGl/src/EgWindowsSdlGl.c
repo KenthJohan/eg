@@ -82,7 +82,8 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
 
 	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_Render", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
+	{.entity  = ecs_entity(world, {.name = "System_Render"}),
+	.phase    = EcsOnUpdate,
 	.callback = System_Render,
 	.query.terms =
 	{
@@ -92,13 +93,11 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity   = ecs_entity(world, {.name = "System_EgWindowsOpenGLContext_Create", .add = ecs_ids(ecs_dependson(EcsOnUpdate))}),
-	.callback  = System_EgWindowsOpenGLContext_Create,
-	.immediate = true,
-	.query.terms =
-	{
-	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf},
-	{.id = ecs_id(EgWindowsOpenGLContextCreate), .src.id = EcsSelf},
-	{.id = ecs_id(EgWindowsOpenGLContext), .oper = EcsNot}, // Adds this
+	{.entity     = ecs_entity(world, {.name = "System_EgWindowsOpenGLContext_Create"}),
+	.phase       = EcsOnUpdate,
+	.callback    = System_EgWindowsOpenGLContext_Create,
+	.immediate   = true,
+	.query.terms = {
+	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf}, {.id = ecs_id(EgWindowsOpenGLContextCreate), .src.id = EcsSelf}, {.id = ecs_id(EgWindowsOpenGLContext), .oper = EcsNot}, // Adds this
 	}});
 }
