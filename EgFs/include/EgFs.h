@@ -36,16 +36,16 @@ extern ECS_COMPONENT_DECLARE(EgFsReady);
 extern ECS_COMPONENT_DECLARE(EgFsContent);
 extern ECS_COMPONENT_DECLARE(EgFsContent);
 
-extern ECS_ENTITY_DECLARE(EgFs);
-extern ECS_ENTITY_DECLARE(EgFsDir);
-extern ECS_ENTITY_DECLARE(EgFsFile);
-extern ECS_ENTITY_DECLARE(EgFsRoot);
-extern ECS_ENTITY_DECLARE(EgFsCwd);
-extern ECS_ENTITY_DECLARE(EgFsSockets);
-extern ECS_ENTITY_DECLARE(EgFsDescriptors);
-extern ECS_ENTITY_DECLARE(EgFsEventOpen);
-extern ECS_ENTITY_DECLARE(EgFsEventModify);
-extern ECS_ENTITY_DECLARE(EgFsDump);
+extern ECS_TAG_DECLARE(EgFs);
+extern ECS_TAG_DECLARE(EgFsDir);
+extern ECS_TAG_DECLARE(EgFsFile);
+extern ECS_TAG_DECLARE(EgFsRoot);
+extern ECS_TAG_DECLARE(EgFsCwd);
+extern ECS_TAG_DECLARE(EgFsSockets);
+extern ECS_TAG_DECLARE(EgFsDescriptors);
+extern ECS_TAG_DECLARE(EgFsEventOpen);
+extern ECS_TAG_DECLARE(EgFsEventModify);
+extern ECS_TAG_DECLARE(EgFsDump);
 
 void EgFsImport(ecs_world_t *world);
 

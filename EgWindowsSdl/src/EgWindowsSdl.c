@@ -142,7 +142,9 @@ static void handle_window_event(ecs_world_t *world, SDL_WindowEvent *event)
 static void System_Events_Update(ecs_iter_t *it)
 {
 	EgButtonsState *s = ecs_field(it, EgButtonsState, 0); // Singleton
-	ecs_entity_t    e = ecs_field_src(it, 0);             // The entity that has the EgButtonsState component
+
+	ecs_entity_t e = ecs_field_src(it, 0); // The entity that has the EgButtonsState component
+	(void)e; // Unused variable warning
 
 	for (int i = 0; i < EG_BUTTONS_SCANCODES_MAX; ++i) {
 		s->scancode[i] &= ~(EG_BUTTONS_STATE_PRESSED | EG_BUTTONS_STATE_RELEASED);
@@ -272,7 +274,9 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	.phase       = EcsOnUpdate,
 	.callback    = System_EgWindowsWindow_Create,
 	.query.terms = {
-	{.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf}, {.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf}, {.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
+	{.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf},
+	{.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
 	}});
 
 	ecs_system(world,

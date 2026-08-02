@@ -1,6 +1,7 @@
 #include "egmisc/eg_file.h"
 #include <stdio.h>
-#include <stdint.h>
+#include <sys/stat.h>
+#include <string.h>
 #include <errno.h>
 #include <flecs.h>
 
@@ -9,6 +10,9 @@ char *eg_file_load_alloc(const char *filename, size_t *length)
 	char   *content = NULL;
 	int32_t bytes;
 	size_t  size;
+	if (length) {
+		*length = 0;
+	}
 
 	/* Open file for reading */
 	FILE *file = ecs_os_fopen(filename, "r");
@@ -23,7 +27,9 @@ char *eg_file_load_alloc(const char *filename, size_t *length)
 	if (bytes == -1) {
 		goto error;
 	}
-	*length = bytes;
+	if (length) {
+		*length = bytes;
+	}
 	fseek(file, 0, SEEK_SET);
 
 	/* Load contents in memory */
@@ -44,4 +50,21 @@ char *eg_file_load_alloc(const char *filename, size_t *length)
 error:
 	ecs_os_free(content);
 	return NULL;
+}
+
+
+uint32_t eg_file_get_path_flags(const char *path)
+{
+	struct stat path_stat;
+	if (stat(path, &path_stat) != 0) {
+		return FS_PATH_NONE; // Error accessing the path
+	}
+
+	if (S_ISREG(path_stat.st_mode)) {
+		return FS_PATH_FILE;
+	} else if (S_ISDIR(path_stat.st_mode)) {
+		return FS_PATH_DIR;
+	} else {
+		return FS_PATH_OTHER;
+	}
 }

@@ -1,25 +1,25 @@
 #include "EgFs.h"
 #include "fd.h"
-#include "fs.h"
 #include <stdio.h>
-#include <ecsx/ecsx_trace.h>
 #include <ecsx.h>
+#include <ecsx/ecsx_trace.h>
+#include <egmisc/eg_file.h>
 
 ECS_COMPONENT_DECLARE(EgFsWatch);
 ECS_COMPONENT_DECLARE(EgFsFd);
 ECS_COMPONENT_DECLARE(EgFsReady);
 ECS_COMPONENT_DECLARE(EgFsContent);
 
-ECS_ENTITY_DECLARE(EgFs);
-ECS_ENTITY_DECLARE(EgFsFile);
-ECS_ENTITY_DECLARE(EgFsDir);
-ECS_ENTITY_DECLARE(EgFsRoot);
-ECS_ENTITY_DECLARE(EgFsCwd);
-ECS_ENTITY_DECLARE(EgFsSockets);
-ECS_ENTITY_DECLARE(EgFsDescriptors);
-ECS_ENTITY_DECLARE(EgFsEventOpen);
-ECS_ENTITY_DECLARE(EgFsEventModify);
-ECS_ENTITY_DECLARE(EgFsDump);
+ECS_TAG_DECLARE(EgFs);
+ECS_TAG_DECLARE(EgFsFile);
+ECS_TAG_DECLARE(EgFsDir);
+ECS_TAG_DECLARE(EgFsRoot);
+ECS_TAG_DECLARE(EgFsCwd);
+ECS_TAG_DECLARE(EgFsSockets);
+ECS_TAG_DECLARE(EgFsDescriptors);
+ECS_TAG_DECLARE(EgFsEventOpen);
+ECS_TAG_DECLARE(EgFsEventModify);
+ECS_TAG_DECLARE(EgFsDump);
 
 ECS_CTOR(EgFsFd, ptr, {
 	ptr->fd = -1;
@@ -93,11 +93,11 @@ ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 	uint32_t     flags  = 0;
 	if ((path[0] == '.') && (path[1] == '/')) {
 		parent = EgFsCwd;
-		flags  = fs_get_path_flags(path);
+		flags  = eg_file_get_path_flags(path);
 		path += 2;
 	} else if (path[0] == '/') {
 		parent = EgFsRoot;
-		flags  = fs_get_path_flags(path);
+		flags  = eg_file_get_path_flags(path);
 		path += 1;
 	} else {
 		return 0;
@@ -114,9 +114,9 @@ ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 	&(ecs_entity_desc_t){
 	.name   = path,
 	.sep    = "/",
-	.parent = parent,
-	.add    = (ecs_id_t[]){f, 0},
+	.parent = parent
 	});
+	ecs_add_id(world, e, f);
 	return e;
 }
 
@@ -201,9 +201,9 @@ static void Observer_OnModify(ecs_iter_t *it)
 		size_t   size    = 0;
 		void    *content = NULL;
 		char    *path    = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./"); // Allocates
-		uint32_t flags   = fs_get_path_flags(path);
+		uint32_t flags   = eg_file_get_path_flags(path);
 		if (flags & FS_PATH_FILE) {
-			content = fs_load_from_file(path, &size);
+			content = eg_file_load_alloc(path, &size);
 		}
 		ecs_os_free(path);
 		if (!content) {
@@ -264,15 +264,15 @@ void EgFsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgFsReady);
 	ECS_COMPONENT_DEFINE(world, EgFsContent);
 
-	ECS_ENTITY_DEFINE(world, EgFsCwd);
-	ECS_ENTITY_DEFINE(world, EgFsRoot);
-	ECS_ENTITY_DEFINE(world, EgFsSockets);
-	ECS_ENTITY_DEFINE(world, EgFsDescriptors);
-	ECS_ENTITY_DEFINE(world, EgFsEventOpen);
-	ECS_ENTITY_DEFINE(world, EgFsEventModify);
-	ECS_ENTITY_DEFINE(world, EgFsDump);
-	ECS_ENTITY_DEFINE(world, EgFsFile);
-	ECS_ENTITY_DEFINE(world, EgFsDir);
+	ECS_TAG_DEFINE(world, EgFsCwd);
+	ECS_TAG_DEFINE(world, EgFsRoot);
+	ECS_TAG_DEFINE(world, EgFsSockets);
+	ECS_TAG_DEFINE(world, EgFsDescriptors);
+	ECS_TAG_DEFINE(world, EgFsEventOpen);
+	ECS_TAG_DEFINE(world, EgFsEventModify);
+	ECS_TAG_DEFINE(world, EgFsDump);
+	ECS_TAG_DEFINE(world, EgFsFile);
+	ECS_TAG_DEFINE(world, EgFsDir);
 
 	ecs_add_id(world, EgFsEventModify, EcsTraversable);
 	ecs_add_id(world, EgFsEventOpen, EcsTraversable);
