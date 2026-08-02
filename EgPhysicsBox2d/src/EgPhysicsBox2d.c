@@ -82,6 +82,13 @@ static void b2JointId_Create(ecs_iter_t *it)
 		jointDef.base.bodyIdB       = body_b[0];
 		jointDef.linearHertz        = def->linear_hertz;
 		jointDef.linearDampingRatio = def->linear_damping;
+
+		// Test:
+		b2MassData massData = b2Body_GetMassData( body_a[0] );
+		float g = b2Length( b2World_GetGravity( bw[0] ) );
+		float mg = massData.mass * g;
+		jointDef.maxSpringForce = 100.0f * mg;
+
 		b2JointId joint             = b2CreateMotorJoint(bw[0], &jointDef);
 		ecs_set_ptr(it->world, it->entities[i], b2JointId, &joint);
 	}
@@ -268,7 +275,8 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	.phase       = EcsOnUpdate,
 	.callback    = b2WorldId_Create,
 	.query.terms = {
-	{.id = ecs_id(EgPhysicsWorldDef), .src.id = EcsSelf, .inout = EcsIn}, {.id = ecs_id(b2WorldId), .oper = EcsNot}, // Adds this
+	{.id = ecs_id(EgPhysicsWorldDef), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(b2WorldId), .oper = EcsNot}, // Adds this
 	}});
 
 	ecs_system(world,
@@ -291,6 +299,18 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn}, // Attaches to this
 	{.id = ecs_id(b2ShapeId), .oper = EcsNot},                   // Adds this
+	}});
+
+	ecs_system(world,
+	{.entity     = ecs_entity(world, {.name = "b2JointId_Create"}),
+	.phase       = EcsOnUpdate,
+	.callback    = b2JointId_Create,
+	.query.terms = {
+	{.id = ecs_id(b2WorldId), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.first.id = ecs_id(EgPhysicsJointDef), .second = {.name = "$body_b"}, .inout = EcsIn},
+	{.id = ecs_id(b2BodyId), .src = {.name = "$body_b"}, .inout = EcsIn},
+	{.id = ecs_id(b2BodyId), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(b2JointId), .oper = EcsNot}, // Adds this
 	}});
 
 	ecs_system(world,
