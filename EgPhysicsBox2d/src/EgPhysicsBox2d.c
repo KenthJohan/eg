@@ -5,9 +5,6 @@
 #include <EgShapes.h>
 #include <ecsx.h>
 
-ECS_COMPONENT_DECLARE(EgPhysicsBox2dOverlapChecking);
-ECS_COMPONENT_DECLARE(EgPhysicsBox2dJointApplyRule);
-
 ECS_COMPONENT_DECLARE(b2WorldId);
 ECS_COMPONENT_DECLARE(b2BodyId);
 ECS_COMPONENT_DECLARE(b2ShapeId);
@@ -165,9 +162,9 @@ bool QueryCallback(b2ShapeId shapeId, void *context)
 
 static void System_Overlap_Checking_Clear(ecs_iter_t *it)
 {
-	b2BodyId                      *b = ecs_field_self(it, b2BodyId, 0);
-	EgPhysicsBox2dOverlapChecking *c = ecs_field_shared(it, EgPhysicsBox2dOverlapChecking, 1);
-	b2WorldId                     *w = ecs_field_shared(it, b2WorldId, 2);
+	b2BodyId                 *b = ecs_field_self(it, b2BodyId, 0);
+	EgPhysicsOverlapChecking *c = ecs_field_shared(it, EgPhysicsOverlapChecking, 1);
+	b2WorldId                *w = ecs_field_shared(it, b2WorldId, 2);
 
 	(void)b;
 	(void)w;
@@ -182,9 +179,9 @@ static void System_Overlap_Checking_Clear(ecs_iter_t *it)
 
 static void System_Overlap_Checking_Update(ecs_iter_t *it)
 {
-	b2WorldId                     *w = ecs_field_self(it, b2WorldId, 0);
-	EgPhysicsBox2dOverlapChecking *c = ecs_field_self(it, EgPhysicsBox2dOverlapChecking, 1);
-	Position2                     *p = ecs_field_shared(it, Position2, 2);
+	b2WorldId                *w = ecs_field_self(it, b2WorldId, 0);
+	EgPhysicsOverlapChecking *c = ecs_field_self(it, EgPhysicsOverlapChecking, 1);
+	Position2                *p = ecs_field_shared(it, Position2, 2);
 	for (int i = 0; i < it->count; ++i, ++w) {
 		b2Vec2       d            = {0.001f, 0.001f};
 		b2AABB       box          = {b2Neg(d), d};
@@ -220,50 +217,6 @@ static void System_Get_Position(ecs_iter_t *it)
 	}
 }
 
-void MyMonitor(ecs_iter_t *it)
-{
-	EgPhysicsBox2dJointApplyRule *rule = ecs_field_shared(it, EgPhysicsBox2dJointApplyRule, 0);
-	EgPhysicsJointDef *def  = ecs_field_shared(it, EgPhysicsJointDef, 1);
-	if (it->event == EcsOnAdd) {
-		for (int i = 0; i < it->count; i++) {
-			char const *entity_name = ecs_get_name(it->world, it->entities[i]);
-			printf("Entity %llu (%s) started matching query\n", (unsigned long long)it->entities[i], entity_name);
-			// Entity started matching query
-			ecs_entity_t joint = ecs_new(it->world);
-			ecs_set_name(it->world, joint, "joint");
-			ecs_set_id(it->world, joint, ecs_pair(ecs_id(EgPhysicsJointDef), it->entities[i]), sizeof(EgPhysicsJointDef), def);
-			ecs_add_pair(it->world, joint, EcsChildOf, rule->body_a);
-		}
-	} else if (it->event == EcsOnRemove) {
-		for (int i = 0; i < it->count; i++) {
-			char const *entity_name = ecs_get_name(it->world, it->entities[i]);
-			printf("Entity %llu (%s) stopped matching query\n", (unsigned long long)it->entities[i], entity_name);
-			ecs_entity_t joint = ecs_lookup_child(it->world, rule->body_a, "joint");
-			if (joint) {
-				printf("Deleting joint entity %llu (%s)\n", (unsigned long long)joint, ecs_get_name(it->world, joint));
-				ecs_delete(it->world, joint);
-			}
-		}
-	}
-}
-
-static void Observer_Joint_Apply_Rule(ecs_iter_t *it)
-{
-	EgPhysicsBox2dJointApplyRule *rule = ecs_field(it, EgPhysicsBox2dJointApplyRule, 0);
-	for (int i = 0; i < it->count; ++i, ++rule) {
-		ecs_observer(it->world,
-		{
-		.query.terms = {
-		{.id = ecs_id(EgPhysicsBox2dJointApplyRule), .src.id = it->entities[i], .inout = EcsInOutFilter},
-		{.id = ecs_id(EgPhysicsJointDef), .src.id = it->entities[i], .inout = EcsInOutFilter},
-		{.id = rule->body_b_filter},
-		},
-		.events   = {EcsMonitor},
-		.callback = MyMonitor,
-		});
-	}
-}
-
 void EgPhysicsBox2dImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgPhysicsBox2d);
@@ -272,10 +225,6 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgPhysics);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgCameras);
-
-	ECS_COMPONENT_DEFINE(world, EgPhysicsBox2dOverlapChecking);
-	ecs_add_id(world, ecs_id(EgPhysicsBox2dOverlapChecking), EcsTraversable);
-	ECS_COMPONENT_DEFINE(world, EgPhysicsBox2dJointApplyRule);
 
 	ECS_COMPONENT_DEFINE(world, b2BodyId);
 	ECS_COMPONENT_DEFINE(world, b2WorldId);
@@ -315,21 +264,6 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	{.name = "index1", .type = ecs_id(ecs_i32_t)},
 	{.name = "world0", .type = ecs_id(ecs_u16_t)},
 	{.name = "generation", .type = ecs_id(ecs_u16_t)},
-	}});
-
-	ecs_struct_init(world,
-	&(ecs_struct_desc_t){
-	.entity  = ecs_id(EgPhysicsBox2dOverlapChecking),
-	.members = {
-	{.name = "tag", .type = ecs_id(ecs_entity_t)},
-	}});
-
-	ecs_struct_init(world,
-	&(ecs_struct_desc_t){
-	.entity  = ecs_id(EgPhysicsBox2dJointApplyRule),
-	.members = {
-	{.name = "body_a", .type = ecs_id(ecs_entity_t)},
-	{.name = "body_b_filter", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_system(world,
@@ -398,7 +332,7 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	.callback    = System_Overlap_Checking_Clear,
 	.query.terms = {
 	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_pair(ecs_id(EgPhysicsBox2dOverlapChecking), EcsWildcard), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_pair(ecs_id(EgPhysicsOverlapChecking), EcsWildcard), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(b2WorldId), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	}});
 
@@ -408,8 +342,8 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	.callback    = System_Overlap_Checking_Update,
 	.query.terms = {
 	{.id = ecs_id(b2WorldId), .inout = EcsIn},
-	{.id = ecs_pair(ecs_id(EgPhysicsBox2dOverlapChecking), EcsWildcard), .inout = EcsIn},
-	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsBox2dOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_pair(ecs_id(EgPhysicsOverlapChecking), EcsWildcard), .inout = EcsIn},
+	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
 	}});
 
 	ecs_system(world,
@@ -430,11 +364,4 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	{.query   = {.terms = {{.id = ecs_id(b2JointId), .src.id = EcsSelf, .inout = EcsIn}}},
 	.events   = {EcsOnRemove},
 	.callback = b2JointId_Destroy});
-
-	ecs_observer(world,
-	{.query.terms = {
-	 {.id = ecs_id(EgPhysicsBox2dJointApplyRule)},
-	 },
-	.events   = {EcsOnSet},
-	.callback = Observer_Joint_Apply_Rule});
 }
