@@ -3,10 +3,31 @@
 ECS_COMPONENT_DECLARE(EgBaseVec);
 ECS_COMPONENT_DECLARE(EgBaseVertexIndexVec);
 ECS_COMPONENT_DECLARE(EgBaseOffsetCount);
+ECS_COMPONENT_DECLARE(EgBaseText);
 ECS_TAG_DECLARE(EgBaseLoad);
 ECS_TAG_DECLARE(EgBaseCopyTo);
 ECS_TAG_DECLARE(EgBaseUpdate);
 ECS_TAG_DECLARE(EgBaseError);
+
+ECS_CTOR(EgBaseText, ptr, {
+	ptr->value = NULL;
+})
+
+ECS_MOVE(EgBaseText, dst, src, {
+	ecs_os_free(dst->value);
+	dst->value = src->value;
+	src->value = NULL;
+})
+
+ECS_COPY(EgBaseText, dst, src, {
+	ecs_os_free(dst->value);
+	dst->value = src->value ? ecs_os_strdup(src->value) : NULL;
+})
+
+ECS_DTOR(EgBaseText, ptr, {
+	ecs_os_free(ptr->value);
+	ptr->value = NULL;
+})
 
 void EgBaseImport(ecs_world_t *world)
 {
@@ -15,10 +36,19 @@ void EgBaseImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgBaseVec);
 	ECS_COMPONENT_DEFINE(world, EgBaseVertexIndexVec);
 	ECS_COMPONENT_DEFINE(world, EgBaseOffsetCount);
+	ECS_COMPONENT_DEFINE(world, EgBaseText);
 	ECS_TAG_DEFINE(world, EgBaseLoad);
 	ECS_TAG_DEFINE(world, EgBaseCopyTo);
 	ECS_TAG_DEFINE(world, EgBaseUpdate);
 	ECS_TAG_DEFINE(world, EgBaseError);
+
+	ecs_set_hooks(world, EgBaseText,
+	{
+	.ctor = ecs_ctor(EgBaseText),
+	.move = ecs_move(EgBaseText),
+	.copy = ecs_copy(EgBaseText),
+	.dtor = ecs_dtor(EgBaseText),
+	});
 
 	ecs_add_id(world, EgBaseLoad, EcsTraversable);
 	ecs_add_id(world, EgBaseCopyTo, EcsTraversable);
@@ -58,5 +88,11 @@ void EgBaseImport(ecs_world_t *world)
 	.members = {
 	{.name = "offset", .type = ecs_id(ecs_u32_t)},
 	{.name = "count", .type = ecs_id(ecs_u32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgBaseText),
+	.members = {
+	{.name = "value", .type = ecs_id(ecs_uptr_t)},
 	}});
 }

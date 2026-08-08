@@ -19,9 +19,15 @@ typedef struct
 	uint32_t count;
 } EgBaseOffsetCount;
 
+typedef struct
+{
+	char *value;
+} EgBaseText;
+
 extern ECS_COMPONENT_DECLARE(EgBaseVec);
 extern ECS_COMPONENT_DECLARE(EgBaseVertexIndexVec);
 extern ECS_COMPONENT_DECLARE(EgBaseOffsetCount);
+extern ECS_COMPONENT_DECLARE(EgBaseText);
 
 extern ECS_TAG_DECLARE(EgBaseLoad);
 extern ECS_TAG_DECLARE(EgBaseCopyTo);
