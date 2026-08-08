@@ -5,6 +5,7 @@
 typedef struct
 {
 	float fov;
+	ecs_bool_t pixel_coords;
 	m4f32 view;
 	m4f32 projection;
 	m4f32 vp; // View-Projection Matrix

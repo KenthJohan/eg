@@ -24,21 +24,28 @@ static void CameraUpdate(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++cam, ++pos, ++o) {
 
 		float rad2deg = (2.0f * M_PI) / 360.0f;
+		if (cam->pixel_coords && r->h > 1.0f) {
+			float fov_rad = cam->fov * rad2deg;
+			float denom   = 2.0f * tanf(fov_rad * 0.5f);
+			if (denom > 0.0f) {
+				pos->z = r->h / denom;
+			}
+		}
 		float aspect  = r->w / r->h;
 		m4f32_perspective1(&cam->projection, cam->fov * rad2deg, aspect, 0.01f, 10000.0f);
 
 		// Apply translation (t), rotation (r), projection - which creates the view-projection-matrix (vp).
 		// The view-projection-matrix can then be later used in shaders.
 
-		m4f32 t = M4_IDENTITY;
-		m4f32_translation3(&t, (float *)pos);
+		m4f32 offset = M4_IDENTITY;
+		m4f32_translation3(&offset, (float *)pos);
 
-		m4f32 r = M4_IDENTITY;
-		qf32_unit_to_m4((float *)o, &r);
+		m4f32 rot = M4_IDENTITY;
+		qf32_unit_to_m4((float *)o, &rot);
 
 		// printf("Camera:\n");
 		// m4f32_print(&v);
-		m4f32_mul(&cam->view, &r, &t);
+		m4f32_mul(&cam->view, &rot, &offset);
 		// m4f32_print(&v);
 
 		m4f32_mul(&cam->vp, &cam->projection, &cam->view);
@@ -68,6 +75,7 @@ static void UnprojectUpdate(ecs_iter_t *it)
 
 ECS_CTOR(EgCamerasState, ptr, {
 	ptr->fov = 45;
+	ptr->pixel_coords = false;
 })
 
 void EgCamerasImport(ecs_world_t *world)
@@ -87,6 +95,7 @@ void EgCamerasImport(ecs_world_t *world)
 	{.entity = ecs_id(EgCamerasState),
 	.members = {
 	{.name = "fov", .type = ecs_id(ecs_f32_t)},
+	{.name = "pixel_coords", .type = ecs_id(ecs_bool_t)},
 	{.name = "view", .type = ecs_id(Transformation)},
 	{.name = "projection", .type = ecs_id(Transformation)},
 	{.name = "vp", .type = ecs_id(Transformation)},

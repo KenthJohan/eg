@@ -4,6 +4,7 @@ ECS_COMPONENT_DECLARE(EgBaseVec);
 ECS_COMPONENT_DECLARE(EgBaseVertexIndexVec);
 ECS_COMPONENT_DECLARE(EgBaseOffsetCount);
 ECS_COMPONENT_DECLARE(EgBaseText);
+ECS_COMPONENT_DECLARE(EgBaseFont);
 ECS_TAG_DECLARE(EgBaseLoad);
 ECS_TAG_DECLARE(EgBaseCopyTo);
 ECS_TAG_DECLARE(EgBaseUpdate);
@@ -37,6 +38,7 @@ void EgBaseImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgBaseVertexIndexVec);
 	ECS_COMPONENT_DEFINE(world, EgBaseOffsetCount);
 	ECS_COMPONENT_DEFINE(world, EgBaseText);
+	ECS_COMPONENT_DEFINE(world, EgBaseFont);
 	ECS_TAG_DEFINE(world, EgBaseLoad);
 	ECS_TAG_DEFINE(world, EgBaseCopyTo);
 	ECS_TAG_DEFINE(world, EgBaseUpdate);
@@ -94,5 +96,11 @@ void EgBaseImport(ecs_world_t *world)
 	{.entity = ecs_id(EgBaseText),
 	.members = {
 	{.name = "value", .type = ecs_id(ecs_string_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgBaseFont),
+	.members = {
+	{.name = "font_size", .type = ecs_id(ecs_f32_t)},
 	}});
 }
