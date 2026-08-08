@@ -93,6 +93,6 @@ void EgBaseImport(ecs_world_t *world)
 	ecs_struct(world,
 	{.entity = ecs_id(EgBaseText),
 	.members = {
-	{.name = "value", .type = ecs_id(ecs_uptr_t)},
+	{.name = "value", .type = ecs_id(ecs_string_t)},
 	}});
 }
