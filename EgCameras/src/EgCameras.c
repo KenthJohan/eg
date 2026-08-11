@@ -6,6 +6,7 @@
 #include <egmath.h>
 #include <assert.h>
 #include <ecsx.h>
+#include <math.h>
 
 #ifndef M_PI
 #define M_PI (3.14159265358979323846)
@@ -26,12 +27,17 @@ static void CameraUpdate(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++cam, ++pos, ++o) {
 
 		float rad2deg = (2.0f * M_PI) / 360.0f;
+		float fov_rad = cam->fov * rad2deg;
+		float denom   = 2.0f * tanf(fov_rad * 0.5f);
 		if (cam->pixel_coords && r->h > 1.0f) {
-			float fov_rad = cam->fov * rad2deg;
-			float denom   = 2.0f * tanf(fov_rad * 0.5f);
 			if (denom > 0.0f) {
 				pos->z = r->h / denom;
 			}
+		}
+		if (r->h > 1.0f && denom > 0.0f && pos->z > 0.0f) {
+			cam->pixelScale = (2.0f * pos->z * tanf(fov_rad * 0.5f)) / r->h;
+		} else {
+			cam->pixelScale = 1.0f;
 		}
 		float aspect  = r->w / r->h;
 		m4f32_perspective1(&cam->projection, cam->fov * rad2deg, aspect, 0.01f, 10000.0f);
@@ -97,6 +103,7 @@ void EgCamerasImport(ecs_world_t *world)
 	.members = {
 	{.name = "fov", .type = ecs_id(ecs_f32_t)},
 	{.name = "pixel_coords", .type = ecs_id(ecs_bool_t)},
+	{.name = "pixelScale", .type = ecs_id(ecs_f32_t)},
 	{.name = "view", .type = ecs_id(Transformation)},
 	{.name = "projection", .type = ecs_id(Transformation)},
 	{.name = "vp", .type = ecs_id(Transformation)},
