@@ -15,8 +15,6 @@
 ECS_COMPONENT_DECLARE(EgCamerasState);
 ECS_COMPONENT_DECLARE(EgCamerasUnproject);
 
-
-
 static void CameraUpdate(ecs_iter_t *it)
 {
 	EgCamerasState    *cam = ecs_field_self(it, EgCamerasState, 0);      // Camera state (view, projection, vp)
@@ -29,32 +27,40 @@ static void CameraUpdate(ecs_iter_t *it)
 		float rad2deg = (2.0f * M_PI) / 360.0f;
 		float fov_rad = cam->fov * rad2deg;
 		float denom   = 2.0f * tanf(fov_rad * 0.5f);
+		float camera_pos[3];
+
 		if (cam->pixel_coords && r->h > 1.0f) {
 			if (denom > 0.0f) {
 				pos->z = r->h / denom;
 			}
+			camera_pos[0] = -pos->x;
+			camera_pos[1] = -pos->y;
+			camera_pos[2] = -pos->z;
+		} else {
+			camera_pos[0] = -pos->x;
+			camera_pos[1] = -pos->y;
+			camera_pos[2] = -pos->z;
 		}
+
 		if (r->h > 1.0f && denom > 0.0f && pos->z > 0.0f) {
 			cam->pixelScale = (2.0f * pos->z * tanf(fov_rad * 0.5f)) / r->h;
 		} else {
 			cam->pixelScale = 1.0f;
 		}
-		float aspect  = r->w / r->h;
+
+		float aspect = r->w / r->h;
 		m4f32_perspective1(&cam->projection, cam->fov * rad2deg, aspect, 0.01f, 10000.0f);
-
-
 
 		// Build a view matrix by translating by the negative camera position.
 		// A view matrix converts world-space points into camera-space points, so
 		// the camera's world position must be subtracted from the point before
 		// applying the camera rotation.
 		m4f32 offset = M4_IDENTITY;
-		float camera_pos[3] = {-pos->x, -pos->y, -pos->z};
 		m4f32_translation3(&offset, camera_pos);
 
 		m4f32 rot = M4_IDENTITY;
 		qf32_unit_to_m4((float *)o, &rot);
-		
+
 		// Apply translation (t), rotation (r), projection - which creates the view-projection-matrix (vp).
 		// The view-projection-matrix can then be later used in shaders.
 		m4f32_mul(&cam->view, &rot, &offset);
@@ -81,7 +87,7 @@ static void UnprojectUpdate(ecs_iter_t *it)
 }
 
 ECS_CTOR(EgCamerasState, ptr, {
-	ptr->fov = 45;
+	ptr->fov          = 45;
 	ptr->pixel_coords = false;
 })
 

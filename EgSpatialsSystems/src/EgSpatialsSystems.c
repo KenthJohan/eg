@@ -39,16 +39,34 @@ static void Orientation_Cascade(ecs_iter_t *it)
 	}
 }
 
+static void Scale3_Cascade(ecs_iter_t *it)
+{
+	Scale3World      *g = ecs_field(it, Scale3World, 0); // self, out
+	Scale3 const     *l = ecs_field(it, Scale3, 1);      // self, in
+	Scale3World const *p = ecs_field(it, Scale3World, 2); // parent, in
+	for (int i = 0; i < it->count; ++i, ++l, ++g) {
+		g->x = l->x;
+		g->y = l->y;
+		g->z = l->z;
+		if (p) {
+			g->x *= p->x;
+			g->y *= p->y;
+			g->z *= p->z;
+		}
+	}
+}
+
 static void Position3_Cascade(ecs_iter_t *it)
 {
 	Position3World         *g  = ecs_field(it, Position3World, 0);   // self, out
 	Position3 const        *l  = ecs_field(it, Position3, 1);        // self, in
 	Position3World const   *p  = ecs_field(it, Position3World, 2);   // parent, in
-	OrientationWorld const *qq = ecs_field(it, OrientationWorld, 3); // parent, in
+	Transformation const *qq = ecs_field(it, Transformation, 3); // parent, in
 	for (int i = 0; i < it->count; ++i, ++l, ++g) {
-		float bb[3] = {l->x, l->y, l->z};
+		float bb[4] = {l->x, l->y, l->z, 0.0f};
 		if (qq) {
-			qf32_rotate_vector((float const *)qq, (float const *)l, bb);
+			//m4f32_mul_vector3((float const *)qq, (float const *)l, bb);
+			m4f32_mulv((float const *)qq, (float const *)l, bb);
 		}
 		g->x += bb[0];
 		g->y += bb[1];
@@ -106,7 +124,7 @@ static void TransformationPosition(ecs_iter_t *it)
 	Transformation         *t           = ecs_field(it, Transformation, 0);   // self, out
 	Position3World const   *pos         = ecs_field(it, Position3World, 1);   // self, in
 	OrientationWorld const *orientation = ecs_field(it, OrientationWorld, 2); // self, in
-	Scale3 const           *scale       = ecs_field(it, Scale3, 3);           // self, in
+	Scale3World const      *scale       = ecs_field(it, Scale3World, 3);      // self, in
 	for (int i = 0; i < it->count; ++i, ++t, ++pos, ++orientation, ++scale) {
 		// t->matrix = (m4f32)M4_IDENTITY;
 		// qf32_unit_to_m4((float *)orientation, &t->matrix);
@@ -280,6 +298,16 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
+	{.entity     = ecs_entity(world, {.name = "Scale3_Cascade"}),
+	.phase       = EcsOnUpdate,
+	.callback    = Scale3_Cascade,
+	.query.terms = {
+	{.id = ecs_id(Scale3World), .inout = EcsOut},
+	{.id = ecs_id(Scale3), .inout = EcsIn},
+	{.id = ecs_id(Scale3World), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
+	}});
+
+	ecs_system(world,
 	{.entity     = ecs_entity(world, {.name = "Position3_Cascade"}),
 	.phase       = EcsOnUpdate,
 	.callback    = Position3_Cascade,
@@ -287,7 +315,7 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	{.id = ecs_id(Position3World), .inout = EcsOut},
 	{.id = ecs_id(Position3), .inout = EcsIn},
 	{.id = ecs_id(Position3World), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(OrientationWorld), .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
+	{.id = ecs_id(Transformation), .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
 	}});
 
 	ecs_system(world,
@@ -298,7 +326,7 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	{.id = ecs_id(Transformation), .inout = EcsOut},
 	{.id = ecs_id(Position3World), .inout = EcsIn},
 	{.id = ecs_id(OrientationWorld), .inout = EcsIn},
-	{.id = ecs_id(Scale3), .inout = EcsIn},
+	{.id = ecs_id(Scale3World), .inout = EcsIn},
 	}});
 
 	ecs_system(world,
