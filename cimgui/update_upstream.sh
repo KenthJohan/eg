@@ -32,6 +32,8 @@ cp "$temporary_dir/cimgui/cimgui.h" "$temporary_dir/cimgui/cimconfig.h" "$stage_
 cp "$temporary_dir/cimgui/cimgui.cpp" "$stage_dir/src/"
 cp "$temporary_dir/imgui"/{imconfig.h,imgui.h,imgui_internal.h,imstb_rectpack.h,imstb_textedit.h,imstb_truetype.h,imgui.cpp,imgui_demo.cpp,imgui_draw.cpp,imgui_tables.cpp,imgui_widgets.cpp} "$stage_dir/src/"
 
+# Upstream places ImGui under imgui/, but Bake compiles the direct files in src/.
+# Keep cimgui.cpp aligned with the flattened Bake source layout.
 sed -i \
     -e 's|#include "\./imgui/imgui.h"|#include "imgui.h"|' \
     -e 's|#include "\./imgui/imgui_internal.h"|#include "imgui_internal.h"|' \
