@@ -1,0 +1,23 @@
+{
+	"id": "imgui",
+	"type": "package",
+	"value": {
+		"language": "cpp",
+		"public": true,
+		"use": []
+	},
+	"lang.cpp": {
+		"c-standard": "c++0x",
+		"export-symbols": true,
+		"static": true,
+		"defines": [],
+		"cppflags": [
+			"-Werror",
+			"-Wall",
+			"-Wpedantic",
+			"-Wextra",
+			"-Wno-error=pedantic",
+			"-Wno-error=unused-variable"
+		]
+	}
+}

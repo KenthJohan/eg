@@ -1,0 +1,25 @@
+{
+	"id": "cimgui",
+	"type": "package",
+	"value": {
+		"language": "cpp",
+		"public": true,
+		"use": []
+	},
+	"lang.cpp": {
+		"cpp-standard": "c++11",
+		"export-symbols": true,
+		"static": true,
+		"defines": [],
+		"cppflags": [
+			"-fno-threadsafe-statics",
+			"-Werror",
+			"-Wall",
+			"-Wpedantic",
+			"-Wextra",
+			"-Wno-error=pedantic",
+			"-Wno-error=unused-variable"
+		],
+		"lib": []
+	}
+}
