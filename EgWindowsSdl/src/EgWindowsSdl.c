@@ -250,6 +250,11 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgButtons);
 	ecs_set_name_prefix(world, "EgWindowsSdl");
 
+
+	ECS_IMPORT(world, EgSpatials);
+	ECS_IMPORT(world, EgShapes);
+	ECS_IMPORT(world, EgButtons);
+
 	ecs_map_init(&static_window_map, NULL);
 
 	ecs_struct(world,
