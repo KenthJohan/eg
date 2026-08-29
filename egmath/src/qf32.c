@@ -57,14 +57,22 @@ void qf32_unit_to_m4(float const q[4], m4f32 *r)
 	r->c0[0] = a2 + b2 - c2 - d2;
 	r->c0[1] = 2.0f * (b * c + a * d);
 	r->c0[2] = 2.0f * (b * d - a * c);
+	r->c0[3] = 0.0f;
 	// Column vector 1:
 	r->c1[0] = 2.0f * (b * c - a * d);
 	r->c1[1] = a2 - b2 + c2 - d2;
 	r->c1[2] = 2.0f * (c * d + a * b);
+	r->c1[3] = 0.0f;
 	// Column vector 2:
 	r->c2[0] = 2.0f * (b * d + a * c);
 	r->c2[1] = 2.0f * (c * d - a * b);
 	r->c2[2] = a2 - b2 - c2 + d2;
+	r->c2[3] = 0.0f;
+	// Homogeneous column:
+	r->c3[0] = 0.0f;
+	r->c3[1] = 0.0f;
+	r->c3[2] = 0.0f;
+	r->c3[3] = 1.0f;
 }
 
 void qf32_unit_to_m3(float const q[4], m3f32 *r)
@@ -93,16 +101,16 @@ void qf32_unit_to_m3(float const q[4], m3f32 *r)
 
 void qf32_from_euler(float q[4], float pitch, float yaw, float roll)
 {
-	float cr = cos(roll * 0.5f);
-	float sr = sin(roll * 0.5f);
-	float cp = cos(pitch * 0.5f);
-	float sp = sin(pitch * 0.5f);
-	float cy = cos(yaw * 0.5f);
-	float sy = sin(yaw * 0.5f);
-	q[0]     = cr * cp * cy + sr * sp * sy;
-	q[1]     = sr * cp * cy - cr * sp * sy;
-	q[2]     = cr * sp * cy + sr * cp * sy;
-	q[3]     = cr * cp * sy - sr * sp * cy;
+	float cr = cosf(roll * 0.5f);
+	float sr = sinf(roll * 0.5f);
+	float cp = cosf(pitch * 0.5f);
+	float sp = sinf(pitch * 0.5f);
+	float cy = cosf(yaw * 0.5f);
+	float sy = sinf(yaw * 0.5f);
+	q[0]     = sr * cp * cy - cr * sp * sy;
+	q[1]     = cr * sp * cy + sr * cp * sy;
+	q[2]     = cr * cp * sy - sr * sp * cy;
+	q[3]     = cr * cp * cy + sr * sp * sy;
 }
 
 void qf32_rotate_vector(float const q[4], float const v[3], float output[3])

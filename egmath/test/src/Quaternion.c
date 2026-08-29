@@ -245,8 +245,10 @@ void test_composed_rotations(void)
 	
 	// Apply individual rotations separately and verify
 	float temp[3];
-	qf32_rotate_vector(q1, v, temp);
-	qf32_rotate_vector(q2, temp, result);
+	float expected[3];
+	qf32_rotate_vector(q2, v, temp);
+	qf32_rotate_vector(q1, temp, expected);
+	ASSERT_V3_EQ(result, expected);
 	
 	printf("✓ Quaternion composed rotations test passed\n");
 }
