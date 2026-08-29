@@ -14,6 +14,6 @@
 		"cflags": [
 			"-Wno-error=unused-function"
 		],
-		"lib": []
+		"lib": ["m"]
 	}
 }
