@@ -19,12 +19,13 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgDisplays_STATIC
-#if defined(EgDisplays_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egdisplays_STATIC
+#if defined(egdisplays_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGDISPLAYS_API __declspec(dllexport)
-#elif defined(EgDisplays_EXPORTS)
+#elif defined(egdisplays_EXPORTS)
   #define EGDISPLAYS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGDISPLAYS_API __declspec(dllimport)

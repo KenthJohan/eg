@@ -18,13 +18,13 @@
 #define EGSHAPES_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgShapes_STATIC
-#if defined(EgShapes_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egshapes_STATIC
+#if defined(egshapes_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGSHAPES_API __declspec(dllexport)
-#elif defined(EgShapes_EXPORTS)
+#elif defined(egshapes_EXPORTS)
   #define EGSHAPES_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGSHAPES_API __declspec(dllimport)

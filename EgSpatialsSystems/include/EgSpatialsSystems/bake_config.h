@@ -19,12 +19,14 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
+#include <egspatials.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgSpatialsSystems_STATIC
-#if defined(EgSpatialsSystems_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egspatialssystems_STATIC
+#if defined(egspatialssystems_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGSPATIALSSYSTEMS_API __declspec(dllexport)
-#elif defined(EgSpatialsSystems_EXPORTS)
+#elif defined(egspatialssystems_EXPORTS)
   #define EGSPATIALSSYSTEMS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGSPATIALSSYSTEMS_API __declspec(dllimport)

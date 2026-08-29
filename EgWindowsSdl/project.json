@@ -5,7 +5,14 @@
 		"language": "c",
 		"public": true,
 		"use": [
-			"egmath"
+			"egmath",
+			"EgWindows",
+			"EgShapes",
+			"EgSpatials",
+			"EgButtons",
+			"EgBase",
+			"ecsx",
+			"flecs"
 		]
 	},
 	"lang.c": {
@@ -15,7 +22,14 @@
 		"defines": [],
 		"cflags": [],
 		"lib": [
-			"egmath"
+			"egmath",
+			"EgWindows",
+			"EgShapes",
+			"EgSpatials",
+			"EgButtons",
+			"EgBase",
+			"ecsx",
+			"flecs"
 		]
 	}
 }

@@ -18,7 +18,7 @@
 #define EGMISC_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
 #ifndef egmisc_STATIC

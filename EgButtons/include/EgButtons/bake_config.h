@@ -19,13 +19,16 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
+#include <egshapes.h>
+#include <egspatials.h>
 #include <ecsx.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgButtons_STATIC
-#if defined(EgButtons_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egbuttons_STATIC
+#if defined(egbuttons_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGBUTTONS_API __declspec(dllexport)
-#elif defined(EgButtons_EXPORTS)
+#elif defined(egbuttons_EXPORTS)
   #define EGBUTTONS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGBUTTONS_API __declspec(dllimport)

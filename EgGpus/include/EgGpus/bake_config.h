@@ -21,10 +21,10 @@
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgGpus_STATIC
-#if defined(EgGpus_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef eggpus_STATIC
+#if defined(eggpus_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGGPUS_API __declspec(dllexport)
-#elif defined(EgGpus_EXPORTS)
+#elif defined(eggpus_EXPORTS)
   #define EGGPUS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGGPUS_API __declspec(dllimport)

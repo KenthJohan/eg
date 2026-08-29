@@ -18,13 +18,15 @@
 #define EGFS_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
+#include <ecsx.h>
+#include <egmisc.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgFs_STATIC
-#if defined(EgFs_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egfs_STATIC
+#if defined(egfs_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGFS_API __declspec(dllexport)
-#elif defined(EgFs_EXPORTS)
+#elif defined(egfs_EXPORTS)
   #define EGFS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGFS_API __declspec(dllimport)

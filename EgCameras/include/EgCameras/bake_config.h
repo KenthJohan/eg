@@ -19,12 +19,13 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgCameras_STATIC
-#if defined(EgCameras_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egcameras_STATIC
+#if defined(egcameras_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGCAMERAS_API __declspec(dllexport)
-#elif defined(EgCameras_EXPORTS)
+#elif defined(egcameras_EXPORTS)
   #define EGCAMERAS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGCAMERAS_API __declspec(dllimport)

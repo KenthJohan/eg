@@ -6,7 +6,10 @@
 		"public": true,
 		"use": [
 			"egmath",
-			"ecsx"
+			"EgShapes",
+			"EgSpatials",
+			"ecsx",
+			"flecs"
 		]
 	},
 	"lang.c": {
@@ -17,7 +20,10 @@
 		"cflags": [],
 		"lib": [
 			"egmath",
-			"ecsx"
+			"EgShapes",
+			"EgSpatials",
+			"ecsx",
+			"flecs"
 		]
 	}
 }

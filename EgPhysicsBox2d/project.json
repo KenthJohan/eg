@@ -4,7 +4,7 @@
 	"value": {
 		"language": "c",
 		"public": true,
-		"use": []
+		"use": ["EgSpatials", "EgCameras", "EgShapes", "ecsx", "flecs"]
 	},
 	"lang.c": {
 		"c-standard": "c11",
@@ -12,6 +12,6 @@
 		"static": true,
 		"defines": [],
 		"cflags": [],
-		"lib": []
+		"lib": ["EgSpatials", "EgCameras", "EgShapes", "ecsx", "flecs"]
 	}
 }

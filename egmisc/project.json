@@ -4,7 +4,7 @@
 	"value": {
 		"language": "c",
 		"public": true,
-		"use": []
+		"use": ["flecs"]
 	},
 	"lang.c": {
 		"c-standard": "gnu99",
@@ -12,6 +12,6 @@
 		"static": true,
 		"defines": [],
 		"cflags": [],
-		"lib": []
+		"lib": ["flecs"]
 	}
 }
