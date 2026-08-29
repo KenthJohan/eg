@@ -32,4 +32,10 @@ void EgGpusImport(ecs_world_t *world)
 	.members = {
 	{.name = "object", .type = ecs_id(ecs_uptr_t)},
 	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgGpusTextureCreateInfo),
+	.members = {
+	{.name = "sample_count", .type = ecs_id(ecs_uint32_t)},
+	}});
 }

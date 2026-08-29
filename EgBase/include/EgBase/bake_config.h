@@ -21,10 +21,10 @@
 /* No dependencies */
 
 /* Convenience macro for exporting symbols */
-#ifndef EgBase_STATIC
-#if defined(EgBase_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egbase_STATIC
+#if defined(egbase_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGBASE_API __declspec(dllexport)
-#elif defined(EgBase_EXPORTS)
+#elif defined(egbase_EXPORTS)
   #define EGBASE_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGBASE_API __declspec(dllimport)
