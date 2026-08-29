@@ -1,5 +1,6 @@
 #include "EgGpusSdl.h"
 #include <EgGpus.h>
+#include <EgShapes.h>
 #include <SDL3/SDL_gpu.h>
 
 void EgGpusDevice_remove(ecs_iter_t *it)
@@ -34,9 +35,10 @@ void System_EgGpusDevice_Create(ecs_iter_t *it)
 				ecs_enable(world, e, false);
 				continue;
 			}
-			ecs_set(world, e, EgGpusDevice, {
-			                                .device = device,
-			                                });
+			EgGpusDevice dev = {
+			.device = device,
+			};
+			ecs_set_ptr(world, e, EgGpusDevice, &dev);
 			ecs_trace("SDL_CreateGPUDevice() -> %p", device);
 			char buf[128];
 			snprintf(buf, 128, "%s", ecs_get_name(world, e));
@@ -56,6 +58,37 @@ void System_EgGpusDevice_Create(ecs_iter_t *it)
 	ecs_log_set_level(0);
 }
 
+void Observer_EgGpuTexture(ecs_iter_t *it)
+{
+	ecs_world_t       *world = it->world;
+	EgShapesRectangle *r     = ecs_field(it, EgShapesRectangle, 0); // self
+	EgGpusTexture     *t     = ecs_field(it, EgGpusTexture, 1);     // self
+	EgGpusDevice      *g     = ecs_field(it, EgGpusDevice, 2);      // shared
+	for (int i = 0; i < it->count; ++i, ++r, ++t) {
+		printf("Changing texture (%s) to size (%f %f)\n", ecs_get_name(world, it->entities[i]), r->w, r->h);
+		if (t->object) {
+			SDL_ReleaseGPUTexture(g->device, t->object);
+		}
+		SDL_GPUTextureCreateInfo info = {0};
+		info.type                     = SDL_GPU_TEXTURETYPE_2D;
+		info.format                   = SDL_GPU_TEXTUREFORMAT_D16_UNORM;
+		info.width                    = r->w;
+		info.height                   = r->h;
+		info.layer_count_or_depth     = 1;
+		info.num_levels               = 1;
+		info.sample_count             = 1;
+		info.usage                    = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+		info.props                    = 0;
+		t->object                     = SDL_CreateGPUTexture(g->device, &info);
+		if (!t->object) {
+			ecs_err("Failed to create texture: %s with size (%f %f)", SDL_GetError(), r->w, r->h);
+			ecs_enable(world, it->entities[i], false);
+			continue;
+		}
+		SDL_SetGPUTextureName(g->device, t->object, ecs_get_name(world, it->entities[i]));
+	} // END FOR LOOP
+}
+
 void EgGpusSdlImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgGpusSdl);
@@ -67,13 +100,26 @@ void EgGpusSdlImport(ecs_world_t *world)
 	.on_remove = EgGpusDevice_remove,
 	});
 
-	ecs_system(world,
-	{.entity  = ecs_entity(world, {.name = "System_EgGpusDevice_Create"}),
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity   = ecs_entity(world, {.name = "System_EgGpusDevice_Create"}),
 	.callback = System_EgGpusDevice_Create,
 	.phase    = EcsOnUpdate,
 	.query.terms =
 	{
 	{.id = ecs_id(EgGpusDeviceCreateInfo), .src.id = EcsSelf},
 	{.id = ecs_id(EgGpusDevice), .oper = EcsNot}, // Adds this
+	}});
+
+	// Recreate textures when the associated rectangle changes
+	ecs_observer_init(world,
+	&(ecs_observer_desc_t){
+	.entity      = ecs_entity(world, {.name = "Observer_EgGpuTexture"}),
+	.callback    = Observer_EgGpuTexture,
+	.events      = {EcsOnSet},
+	.query.terms = {
+	{.id = ecs_id(EgShapesRectangle)},
+	{.id = ecs_id(EgGpusTexture), .inout = EcsInOutFilter},
+	{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
 	}});
 }
