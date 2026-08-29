@@ -19,12 +19,18 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
+#include <egwindows.h>
+#include <egshapes.h>
+#include <egspatials.h>
+#include <egbuttons.h>
+#include <egbase.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgWindowsGlfw_STATIC
-#if defined(EgWindowsGlfw_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egwindowsglfw_STATIC
+#if defined(egwindowsglfw_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGWINDOWSGLFW_API __declspec(dllexport)
-#elif defined(EgWindowsGlfw_EXPORTS)
+#elif defined(egwindowsglfw_EXPORTS)
   #define EGWINDOWSGLFW_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGWINDOWSGLFW_API __declspec(dllimport)

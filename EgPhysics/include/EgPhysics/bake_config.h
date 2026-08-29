@@ -18,13 +18,14 @@
 #define EGPHYSICS_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <ecsx.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgPhysics_STATIC
-#if defined(EgPhysics_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egphysics_STATIC
+#if defined(egphysics_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGPHYSICS_API __declspec(dllexport)
-#elif defined(EgPhysics_EXPORTS)
+#elif defined(egphysics_EXPORTS)
   #define EGPHYSICS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGPHYSICS_API __declspec(dllimport)

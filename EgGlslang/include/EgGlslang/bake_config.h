@@ -18,13 +18,16 @@
 #define EGGLSLANG_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
+#include <egfs.h>
+#include <egmisc.h>
+#include <ecsx.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgGlslang_STATIC
-#if defined(EgGlslang_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egglslang_STATIC
+#if defined(egglslang_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGGLSLANG_API __declspec(dllexport)
-#elif defined(EgGlslang_EXPORTS)
+#elif defined(egglslang_EXPORTS)
   #define EGGLSLANG_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGGLSLANG_API __declspec(dllimport)

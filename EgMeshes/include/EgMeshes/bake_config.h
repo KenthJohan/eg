@@ -18,13 +18,18 @@
 #define EGMESHES_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <egshapes.h>
+#include <egbase.h>
+#include <egspatials.h>
+#include <ecsx.h>
+#include <egmath.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgMeshes_STATIC
-#if defined(EgMeshes_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egmeshes_STATIC
+#if defined(egmeshes_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGMESHES_API __declspec(dllexport)
-#elif defined(EgMeshes_EXPORTS)
+#elif defined(egmeshes_EXPORTS)
   #define EGMESHES_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGMESHES_API __declspec(dllimport)

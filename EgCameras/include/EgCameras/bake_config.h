@@ -19,6 +19,10 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
+#include <egspatials.h>
+#include <egshapes.h>
+#include <egwindows.h>
+#include <ecsx.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */

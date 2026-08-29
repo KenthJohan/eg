@@ -18,13 +18,14 @@
 #define EGQUERIES_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <ecsx.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgQueries_STATIC
-#if defined(EgQueries_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egqueries_STATIC
+#if defined(egqueries_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGQUERIES_API __declspec(dllexport)
-#elif defined(EgQueries_EXPORTS)
+#elif defined(egqueries_EXPORTS)
   #define EGQUERIES_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGQUERIES_API __declspec(dllimport)

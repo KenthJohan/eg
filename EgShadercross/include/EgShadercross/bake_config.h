@@ -18,13 +18,14 @@
 #define EGSHADERCROSS_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
+#include <ecsx.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgShadercross_STATIC
-#if defined(EgShadercross_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egshadercross_STATIC
+#if defined(egshadercross_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGSHADERCROSS_API __declspec(dllexport)
-#elif defined(EgShadercross_EXPORTS)
+#elif defined(egshadercross_EXPORTS)
   #define EGSHADERCROSS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGSHADERCROSS_API __declspec(dllimport)
