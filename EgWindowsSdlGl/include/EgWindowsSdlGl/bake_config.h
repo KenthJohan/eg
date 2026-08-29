@@ -19,12 +19,18 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
+#include <egshapes.h>
+#include <egspatials.h>
+#include <egbuttons.h>
+#include <egbase.h>
+#include <egwindows.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgWindowsSdlGl_STATIC
-#if defined(EgWindowsSdlGl_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egwindowssdlgl_STATIC
+#if defined(egwindowssdlgl_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGWINDOWSSDLGL_API __declspec(dllexport)
-#elif defined(EgWindowsSdlGl_EXPORTS)
+#elif defined(egwindowssdlgl_EXPORTS)
   #define EGWINDOWSSDLGL_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGWINDOWSSDLGL_API __declspec(dllimport)

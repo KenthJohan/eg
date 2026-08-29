@@ -18,13 +18,19 @@
 #define EGPHYSICSBOX2D_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-/* No dependencies */
+#include <egspatials.h>
+#include <egcameras.h>
+#include <egphysics.h>
+#include <egshapes.h>
+#include <ecsx.h>
+#include <box2d.h>
+#include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef EgPhysicsBox2d_STATIC
-#if defined(EgPhysicsBox2d_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+#ifndef egphysicsbox2d_STATIC
+#if defined(egphysicsbox2d_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
   #define EGPHYSICSBOX2D_API __declspec(dllexport)
-#elif defined(EgPhysicsBox2d_EXPORTS)
+#elif defined(egphysicsbox2d_EXPORTS)
   #define EGPHYSICSBOX2D_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
   #define EGPHYSICSBOX2D_API __declspec(dllimport)
