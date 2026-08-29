@@ -43,6 +43,9 @@ void EgGpusTexture_remove(ecs_iter_t *it)
 	for (int i = 0; i < it->count; i++, texture++) {
 		ecs_entity_t e = it->entities[i];
 		ecs_entity_t parent = ecs_get_parent(world, e);
+		if (!parent) {
+			continue;
+		}
 		const EgGpusDevice *device = ecs_get(world, parent, EgGpusDevice);
 		if (texture->object && device && device->device) {
 			ecs_trace("Releasing GPU texture: %s", ecs_get_name(world, e));
@@ -139,7 +142,11 @@ void EgGpusSdlImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgGpusSdl);
 	ecs_set_name_prefix(world, "EgGpusSdl");
+	ecs_entity_t module = ecs_get_scope(world);
+	ecs_set_scope(world, 0);
 	ECS_IMPORT(world, EgGpus);
+	ECS_IMPORT(world, EgShapes);
+	ecs_set_scope(world, module);
 
 	ecs_set_hooks(world, EgGpusDevice,
 	{
@@ -173,6 +180,6 @@ void EgGpusSdlImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle)},
 	{.id = ecs_id(EgGpusTexture), .inout = EcsInOutFilter},
 	{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
-	{.id = ecs_id(EgGpusTextureCreateInfo), .oper = EcsInOutFilter},
+	{.id = ecs_id(EgGpusTextureCreateInfo), .oper = EcsOptional, .inout = EcsInOutFilter},
 	}});
 }

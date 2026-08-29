@@ -1,0 +1,35 @@
+{
+	"id": "EgGpusSdl_test",
+	"type": "application",
+	"value": {
+		"description": "Test project for EgGpusSdl",
+		"public": false,
+		"use": [
+			"EgGpusSdl",
+			"flecs",
+			"bake.test"
+		]
+	},
+	"test": {
+		"testsuites": [{
+			"id": "GpuResources",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+				"test_import",
+				"test_device_add_initializes_handle",
+				"test_texture_add_initializes_handle",
+				"test_invalid_texture_size_disables_entity"
+			]
+		}]
+	},
+	"lang.c": {
+		"lib": [
+			"EgGpusSdl",
+			"EgGpus",
+			"EgShapes",
+			"flecs",
+			"SDL3"
+		]
+	}
+}
