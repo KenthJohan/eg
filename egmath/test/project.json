@@ -30,6 +30,22 @@
                 "test_from_euler_roll_90",
                 "test_composed_rotations"
             ]
+        }, {
+            "id": "Vector3",
+            "setup": true,
+            "testcases": [
+                "test_xyz",
+                "test_mul",
+                "test_add",
+                "test_cross",
+                "test_distance",
+                "test_distance2",
+                "test_normalize",
+                "test_proj",
+                "test_oproj",
+                "test_l1l2_distance",
+                "test_plane_point_line_distance"
+            ]
         }]
     },
     "lang.c": {

@@ -25,6 +25,20 @@ void Quaternion_test_from_euler_zero(void);
 void Quaternion_test_from_euler_roll_90(void);
 void Quaternion_test_composed_rotations(void);
 
+// Testsuite 'Vector3'
+void Vector3_setup(void);
+void Vector3_test_xyz(void);
+void Vector3_test_mul(void);
+void Vector3_test_add(void);
+void Vector3_test_cross(void);
+void Vector3_test_distance(void);
+void Vector3_test_distance2(void);
+void Vector3_test_normalize(void);
+void Vector3_test_proj(void);
+void Vector3_test_oproj(void);
+void Vector3_test_l1l2_distance(void);
+void Vector3_test_plane_point_line_distance(void);
+
 bake_test_case Quaternion_testcases[] = {
     {
         "test1",
@@ -84,6 +98,53 @@ bake_test_case Quaternion_testcases[] = {
     }
 };
 
+bake_test_case Vector3_testcases[] = {
+    {
+        "test_xyz",
+        Vector3_test_xyz
+    },
+    {
+        "test_mul",
+        Vector3_test_mul
+    },
+    {
+        "test_add",
+        Vector3_test_add
+    },
+    {
+        "test_cross",
+        Vector3_test_cross
+    },
+    {
+        "test_distance",
+        Vector3_test_distance
+    },
+    {
+        "test_distance2",
+        Vector3_test_distance2
+    },
+    {
+        "test_normalize",
+        Vector3_test_normalize
+    },
+    {
+        "test_proj",
+        Vector3_test_proj
+    },
+    {
+        "test_oproj",
+        Vector3_test_oproj
+    },
+    {
+        "test_l1l2_distance",
+        Vector3_test_l1l2_distance
+    },
+    {
+        "test_plane_point_line_distance",
+        Vector3_test_plane_point_line_distance
+    }
+};
+
 
 static bake_test_suite suites[] = {
     {
@@ -92,9 +153,16 @@ static bake_test_suite suites[] = {
         NULL,
         14,
         Quaternion_testcases
+    },
+    {
+        "Vector3",
+        Vector3_setup,
+        NULL,
+        11,
+        Vector3_testcases
     }
 };
 
 int main(int argc, char *argv[]) {
-    return bake_test_run("egmath_test", argc, argv, suites, 1);
+    return bake_test_run("egmath_test", argc, argv, suites, 2);
 }
