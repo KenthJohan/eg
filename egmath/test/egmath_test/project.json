@@ -6,8 +6,7 @@
         "public": false,
         "use": [
             "egmath",
-            "flecs",
-            "bake.test"
+            "flecs"
         ]
     },
     "test": {

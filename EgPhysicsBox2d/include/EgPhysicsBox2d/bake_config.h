@@ -18,10 +18,10 @@
 #define EGPHYSICSBOX2D_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-#include <egspatials.h>
-#include <egcameras.h>
-#include <egphysics.h>
-#include <egshapes.h>
+#include <EgSpatials.h>
+#include <EgCameras.h>
+#include <EgPhysics.h>
+#include <EgShapes.h>
 #include <ecsx.h>
 #include <box2d.h>
 #include <flecs.h>

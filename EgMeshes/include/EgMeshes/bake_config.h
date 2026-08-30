@@ -18,9 +18,9 @@
 #define EGMESHES_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-#include <egshapes.h>
-#include <egbase.h>
-#include <egspatials.h>
+#include <EgShapes.h>
+#include <EgBase.h>
+#include <EgSpatials.h>
 #include <ecsx.h>
 #include <egmath.h>
 #include <flecs.h>

@@ -19,11 +19,11 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
-#include <egshapes.h>
-#include <egspatials.h>
-#include <egbuttons.h>
-#include <egbase.h>
-#include <egwindows.h>
+#include <EgShapes.h>
+#include <EgSpatials.h>
+#include <EgButtons.h>
+#include <EgBase.h>
+#include <EgWindows.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */

@@ -19,7 +19,7 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
-#include <egspatials.h>
+#include <EgSpatials.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */

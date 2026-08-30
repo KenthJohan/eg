@@ -19,8 +19,8 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
-#include <egdisplays.h>
-#include <egshapes.h>
+#include <EgDisplays.h>
+#include <EgShapes.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */

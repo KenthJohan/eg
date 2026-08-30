@@ -145,7 +145,6 @@ bake_test_case Vector3_testcases[] = {
     }
 };
 
-
 static bake_test_suite suites[] = {
     {
         "Quaternion",

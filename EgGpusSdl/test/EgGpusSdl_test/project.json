@@ -6,8 +6,7 @@
 		"public": false,
 		"use": [
 			"EgGpusSdl",
-			"flecs",
-			"bake.test"
+			"flecs"
 		]
 	},
 	"test": {

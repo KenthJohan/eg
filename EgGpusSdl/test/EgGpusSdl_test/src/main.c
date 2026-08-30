@@ -35,7 +35,6 @@ bake_test_case GpuResources_testcases[] = {
     }
 };
 
-
 static bake_test_suite suites[] = {
     {
         "GpuResources",

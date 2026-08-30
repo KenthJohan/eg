@@ -18,7 +18,7 @@
 #define EGGLSLANG_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-#include <egfs.h>
+#include <EgFs.h>
 #include <egmisc.h>
 #include <ecsx.h>
 #include <flecs.h>

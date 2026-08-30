@@ -18,8 +18,8 @@
 #define EGGPUSSDL_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-#include <eggpus.h>
-#include <egshapes.h>
+#include <EgGpus.h>
+#include <EgShapes.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */

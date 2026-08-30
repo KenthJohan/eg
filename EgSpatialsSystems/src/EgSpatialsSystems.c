@@ -66,7 +66,7 @@ static void Position3_Cascade(ecs_iter_t *it)
 		float bb[4] = {l->x, l->y, l->z, 0.0f};
 		if (qq) {
 			//m4f32_mul_vector3((float const *)qq, (float const *)l, bb);
-			m4f32_mulv((float const *)qq, (float const *)l, bb);
+			m4f32_mulv(&qq->matrix, (float const *)l, bb);
 		}
 		g->x += bb[0];
 		g->y += bb[1];

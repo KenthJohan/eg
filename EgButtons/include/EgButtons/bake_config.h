@@ -19,8 +19,8 @@
 
 /* Headers of public dependencies */
 #include <egmath.h>
-#include <egshapes.h>
-#include <egspatials.h>
+#include <EgShapes.h>
+#include <EgSpatials.h>
 #include <ecsx.h>
 #include <flecs.h>
 

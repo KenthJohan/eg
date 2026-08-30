@@ -10,7 +10,6 @@
 #include <EgButtons.h>
 #include <EgBase.h>
 
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 typedef struct
