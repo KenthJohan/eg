@@ -39,6 +39,10 @@ void Vector3_test_oproj(void);
 void Vector3_test_l1l2_distance(void);
 void Vector3_test_plane_point_line_distance(void);
 
+// Testsuite 'Matrix'
+void Matrix_setup(void);
+void Matrix_add_m3m3(void);
+
 bake_test_case Quaternion_testcases[] = {
     {
         "test1",
@@ -145,6 +149,13 @@ bake_test_case Vector3_testcases[] = {
     }
 };
 
+bake_test_case Matrix_testcases[] = {
+    {
+        "add_m3m3",
+        Matrix_add_m3m3
+    }
+};
+
 static bake_test_suite suites[] = {
     {
         "Quaternion",
@@ -159,9 +170,16 @@ static bake_test_suite suites[] = {
         NULL,
         11,
         Vector3_testcases
+    },
+    {
+        "Matrix",
+        Matrix_setup,
+        NULL,
+        1,
+        Matrix_testcases
     }
 };
 
 int main(int argc, char *argv[]) {
-    return bake_test_run("egmath_test", argc, argv, suites, 2);
+    return bake_test_run("egmath_test", argc, argv, suites, 3);
 }

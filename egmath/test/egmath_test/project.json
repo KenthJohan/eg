@@ -10,44 +10,57 @@
         ]
     },
     "test": {
-        "testsuites": [{
-            "id": "Quaternion",
-            "setup": true,
-            "testcases": [
-                "test1",
-                "test_identity",
-                "test_xyza",
-                "test_normalize",
-                "test_mul_identity",
-                "test_mul_associativity",
-                "test_rotate_vector_identity",
-                "test_rotate_vector_z_90",
-                "test_rotate_vector_x_180",
-                "test_unit_to_m4_identity",
-                "test_unit_to_m3_identity",
-                "test_from_euler_zero",
-                "test_from_euler_roll_90",
-                "test_composed_rotations"
-            ]
-        }, {
-            "id": "Vector3",
-            "setup": true,
-            "testcases": [
-                "test_xyz",
-                "test_mul",
-                "test_add",
-                "test_cross",
-                "test_distance",
-                "test_distance2",
-                "test_normalize",
-                "test_proj",
-                "test_oproj",
-                "test_l1l2_distance",
-                "test_plane_point_line_distance"
-            ]
-        }]
+        "testsuites": [
+            {
+                "id": "Quaternion",
+                "setup": true,
+                "testcases": [
+                    "test1",
+                    "test_identity",
+                    "test_xyza",
+                    "test_normalize",
+                    "test_mul_identity",
+                    "test_mul_associativity",
+                    "test_rotate_vector_identity",
+                    "test_rotate_vector_z_90",
+                    "test_rotate_vector_x_180",
+                    "test_unit_to_m4_identity",
+                    "test_unit_to_m3_identity",
+                    "test_from_euler_zero",
+                    "test_from_euler_roll_90",
+                    "test_composed_rotations"
+                ]
+            },
+            {
+                "id": "Vector3",
+                "setup": true,
+                "testcases": [
+                    "test_xyz",
+                    "test_mul",
+                    "test_add",
+                    "test_cross",
+                    "test_distance",
+                    "test_distance2",
+                    "test_normalize",
+                    "test_proj",
+                    "test_oproj",
+                    "test_l1l2_distance",
+                    "test_plane_point_line_distance"
+                ]
+            },
+            {
+                "id": "Matrix",
+                "setup": true,
+                "testcases": [
+                    "add_m3m3"
+                ]
+            }
+        ]
     },
     "lang.c": {
-        "lib": ["egmath", "m"]
+        "lib": [
+            "egmath",
+            "m"
+        ]
     }
 }
