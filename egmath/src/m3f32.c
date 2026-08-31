@@ -18,6 +18,19 @@ void m3f32_mul(m3f32 *y, m3f32 const *a, m3f32 const *b)
 	*y      = t;
 }
 
+void m3f32_add(m3f32 *y, m3f32 const *a, m3f32 const *b)
+{
+	y->c0[0] = a->c0[0] + b->c0[0];
+	y->c0[1] = a->c0[1] + b->c0[1];
+	y->c0[2] = a->c0[2] + b->c0[2];
+	y->c1[0] = a->c1[0] + b->c1[0];
+	y->c1[1] = a->c1[1] + b->c1[1];
+	y->c1[2] = a->c1[2] + b->c1[2];
+	y->c2[0] = a->c2[0] + b->c2[0];
+	y->c2[1] = a->c2[1] + b->c2[1];
+	y->c2[2] = a->c2[2] + b->c2[2];
+}
+
 void m3f32_mulv(m3f32 const *a, float const x[3], float y[3])
 {
 	float temp[3];

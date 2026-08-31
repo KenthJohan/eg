@@ -15,7 +15,6 @@
                 "id": "Quaternion",
                 "setup": true,
                 "testcases": [
-                    "test1",
                     "test_identity",
                     "test_xyza",
                     "test_normalize",

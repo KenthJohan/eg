@@ -26,6 +26,26 @@ void m4f32_mul(m4f32 *y, m4f32 const *a, m4f32 const *b)
 	*y      = t;
 }
 
+void m4f32_add(m4f32 *y, m4f32 const *a, m4f32 const *b)
+{
+	y->c0[0] = a->c0[0] + b->c0[0];
+	y->c0[1] = a->c0[1] + b->c0[1];
+	y->c0[2] = a->c0[2] + b->c0[2];
+	y->c0[3] = a->c0[3] + b->c0[3];
+	y->c1[0] = a->c1[0] + b->c1[0];
+	y->c1[1] = a->c1[1] + b->c1[1];
+	y->c1[2] = a->c1[2] + b->c1[2];
+	y->c1[3] = a->c1[3] + b->c1[3];
+	y->c2[0] = a->c2[0] + b->c2[0];
+	y->c2[1] = a->c2[1] + b->c2[1];
+	y->c2[2] = a->c2[2] + b->c2[2];
+	y->c2[3] = a->c2[3] + b->c2[3];
+	y->c3[0] = a->c3[0] + b->c3[0];
+	y->c3[1] = a->c3[1] + b->c3[1];
+	y->c3[2] = a->c3[2] + b->c3[2];
+	y->c3[3] = a->c3[3] + b->c3[3];
+}
+
 void m4f32_mulv(m4f32 const *a, float const x[4], float y[4])
 {
 	float temp[4];

@@ -10,7 +10,6 @@
 
 // Testsuite 'Quaternion'
 void Quaternion_setup(void);
-void Quaternion_test1(void);
 void Quaternion_test_identity(void);
 void Quaternion_test_xyza(void);
 void Quaternion_test_normalize(void);
@@ -44,10 +43,6 @@ void Matrix_setup(void);
 void Matrix_add_m3m3(void);
 
 bake_test_case Quaternion_testcases[] = {
-    {
-        "test1",
-        Quaternion_test1
-    },
     {
         "test_identity",
         Quaternion_test_identity
@@ -161,7 +156,7 @@ static bake_test_suite suites[] = {
         "Quaternion",
         Quaternion_setup,
         NULL,
-        14,
+        13,
         Quaternion_testcases
     },
     {
