@@ -74,14 +74,14 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 
 			pipelinedesc.props = 0;
 
-			SDL_GPUGraphicsPipeline *pipeline = SDL_CreateGPUGraphicsPipeline(gpu->device, &pipelinedesc);
+			SDL_GPUGraphicsPipeline *pipeline = SDL_CreateGPUGraphicsPipeline(gpu->object, &pipelinedesc);
 			if (pipeline == NULL) {
 				ecs_err("SDL_CreateGPUGraphicsPipeline() failed");
 				ecs_enable(world, e, false);
 				continue;
 			}
 			ecs_set(world, e, EgGpusGraphicsPipeline, {.object = pipeline});
-			ecs_trace("SDL_CreateGPUGraphicsPipeline(%p) -> %p", gpu->device, pipeline);
+			ecs_trace("SDL_CreateGPUGraphicsPipeline(%p) -> %p", gpu->object, pipeline);
 		}
 		ecs_log_pop_(0);
 	} // END FOR LOOP

@@ -28,9 +28,9 @@ void EgGpusTexture_remove(ecs_iter_t *it)
 			continue;
 		}
 		const EgGpusDevice *device = ecs_get(world, parent, EgGpusDevice);
-		if (texture->object && device && device->device) {
+		if (texture->object && device && device->object) {
 			ecs_log(loglvl, EG_GPUS_LOGTAG "Releasing GPU texture: %s", ecs_get_name(world, e));
-			SDL_ReleaseGPUTexture(device->device, texture->object);
+			SDL_ReleaseGPUTexture(device->object, texture->object);
 		}
 	}
 }
@@ -59,7 +59,7 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 		}
 		ecs_log(loglvl, EG_GPUS_LOGTAG "Changing texture (%s) to size (%f %f)\n", ecs_get_name(world, e), r->w, r->h);
 		if (t->object) {
-			SDL_ReleaseGPUTexture(g->device, t->object);
+			SDL_ReleaseGPUTexture(g->object, t->object);
 		}
 		SDL_GPUTextureCreateInfo info = {0};
 		info.type                     = SDL_GPU_TEXTURETYPE_2D;
@@ -71,12 +71,12 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 		info.sample_count             = create ? create[i].sample_count : 1;
 		info.usage                    = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
 		info.props                    = 0;
-		t->object                     = SDL_CreateGPUTexture(g->device, &info);
+		t->object                     = SDL_CreateGPUTexture(g->object, &info);
 		if (!t->object) {
 			ecs_log(loglvl, EG_GPUS_LOGTAG "Failed to create texture (%s): %s with size (%f %f)", ecs_get_name(world, e), SDL_GetError(), r->w, r->h);
 			ecs_enable(world, e, false);
 			continue;
 		}
-		SDL_SetGPUTextureName(g->device, t->object, ecs_get_name(world, e));
+		SDL_SetGPUTextureName(g->object, t->object, ecs_get_name(world, e));
 	} // END FOR LOOP
 }

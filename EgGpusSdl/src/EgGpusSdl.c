@@ -6,6 +6,8 @@
 #include "EgGpusDevice.h"
 #include "EgGpusTexture.h"
 #include "EgGpusGraphicsPipeline.h"
+#include "EgGpusShaderFragment.h"
+#include "EgGpusShaderVertex.h"
 
 void EgGpusSdlImport(ecs_world_t *world)
 {
@@ -63,5 +65,16 @@ void EgGpusSdlImport(ecs_world_t *world)
 	{.id = ecs_id(EgGpusShaderFragment), .trav = EcsDependsOn, .src.id = EcsUp},
 	{.id = ecs_id(EcsComponent), .trav = EcsDependsOn, .src.id = EcsUp},
 	{.id = ecs_id(EgGpusGraphicsPipeline), .oper = EcsNot}, // Adds this
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity   = ecs_entity(world, {.name = "EgGpusShaderFragment_Create"}),
+	.callback = EgGpusShaderFragment_Create,
+	.phase    = EcsOnUpdate,
+	.query.terms =
+	{
+	{.id = ecs_id(EgGpusShaderFragmentCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgGpusShaderFragment), .oper = EcsNot}, // Adds this
 	}});
 }
