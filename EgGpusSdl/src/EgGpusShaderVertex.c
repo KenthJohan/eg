@@ -20,6 +20,7 @@ void EgGpusShaderVertex_Create(ecs_iter_t *it)
 		SDL_GPUShaderCreateInfo info = {};
 		info.entrypoint              = "main";
 		info.stage                   = SDL_GPU_SHADERSTAGE_VERTEX;
+		info.format                  = SDL_GPU_SHADERFORMAT_SPIRV;
 		info.num_uniform_buffers     = 1;
 		info.num_storage_buffers     = 0;
 		info.num_storage_textures    = 0;
@@ -31,7 +32,10 @@ void EgGpusShaderVertex_Create(ecs_iter_t *it)
 		SDL_GPUShader *shader = SDL_CreateGPUShader((SDL_GPUDevice *)device->object, &info);
 		if (!shader) {
 			ecs_log(loglvl, "Failed to create shader vertex with path: %s", ci->path);
+			ecs_os_free((void *)source);
+			continue;
 		}
+		ecs_set(it->world, it->entities[i], EgGpusShaderVertex, {.object = shader});
 
         ecs_os_free((void *)source);
 	}

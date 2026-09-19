@@ -34,7 +34,7 @@ void GpuResources_test_device_add_initializes_handle(void) {
 
 	const EgGpusDevice *device = ecs_get(world, device_entity, EgGpusDevice);
 	test_assert(device != NULL);
-	test_assert(device->device == NULL);
+	test_assert(device->object == NULL);
 }
 
 void GpuResources_test_texture_add_initializes_handle(void) {
@@ -55,4 +55,24 @@ void GpuResources_test_invalid_texture_size_disables_entity(void) {
 	ecs_set(world, texture_entity, EgShapesRectangle, {.w = 0.0f, .h = 64.0f});
 
 	test_assert(ecs_has_id(world, texture_entity, EcsDisabled));
+}
+
+void GpuResources_test_vertex_shader_create(void) {
+	ecs_entity_t device_entity = ecs_new(world);
+	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
+	ecs_progress(world, 0.0f);
+
+	const EgGpusDevice *device = ecs_get(world, device_entity, EgGpusDevice);
+	test_assert(device != NULL);
+	test_assert(device->object != NULL);
+
+	ecs_entity_t shader_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
+	ecs_set(world, shader_entity, EgGpusShaderVertexCreateInfo, {
+		.path = "data/vertex.spv"
+	});
+	ecs_progress(world, 0.0f);
+
+	const EgGpusShaderVertex *shader = ecs_get(world, shader_entity, EgGpusShaderVertex);
+	test_assert(shader != NULL);
+	test_assert(shader->object != NULL);
 }

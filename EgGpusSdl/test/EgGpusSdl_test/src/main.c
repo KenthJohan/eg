@@ -15,6 +15,7 @@ void GpuResources_test_import(void);
 void GpuResources_test_device_add_initializes_handle(void);
 void GpuResources_test_texture_add_initializes_handle(void);
 void GpuResources_test_invalid_texture_size_disables_entity(void);
+void GpuResources_test_vertex_shader_create(void);
 
 bake_test_case GpuResources_testcases[] = {
     {
@@ -32,6 +33,10 @@ bake_test_case GpuResources_testcases[] = {
     {
         "test_invalid_texture_size_disables_entity",
         GpuResources_test_invalid_texture_size_disables_entity
+    },
+    {
+        "test_vertex_shader_create",
+        GpuResources_test_vertex_shader_create
     }
 };
 
@@ -40,7 +45,7 @@ static bake_test_suite suites[] = {
         "GpuResources",
         GpuResources_setup,
         GpuResources_teardown,
-        4,
+        5,
         GpuResources_testcases
     }
 };

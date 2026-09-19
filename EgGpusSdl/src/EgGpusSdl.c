@@ -77,4 +77,16 @@ void EgGpusSdlImport(ecs_world_t *world)
 	{.id = ecs_id(EgGpusShaderFragmentCreateInfo), .src.id = EcsSelf},
 	{.id = ecs_id(EgGpusShaderFragment), .oper = EcsNot}, // Adds this
 	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity   = ecs_entity(world, {.name = "EgGpusShaderVertex_Create"}),
+	.callback = EgGpusShaderVertex_Create,
+	.phase    = EcsOnUpdate,
+	.query.terms =
+	{
+	{.id = ecs_id(EgGpusDevice), .src.id = EcsUp, .trav = EcsChildOf},
+	{.id = ecs_id(EgGpusShaderVertexCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgGpusShaderVertex), .oper = EcsNot}, // Adds this
+	}});
 }
