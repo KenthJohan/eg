@@ -96,3 +96,33 @@ void GpuResources_test_fragment_shader_create(void) {
 	test_assert(shader != NULL);
 	test_assert(shader->object != NULL);
 }
+
+void GpuResources_test_graphics_pipeline_create(void) {
+	ecs_entity_t device_entity = ecs_new(world);
+	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
+	ecs_progress(world, 0.0f);
+
+	ecs_entity_t vertex_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
+	ecs_set(world, vertex_entity, EgGpusShaderVertexCreateInfo, {
+		.path = "data/vertex.spv"
+	});
+	ecs_entity_t fragment_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
+	ecs_set(world, fragment_entity, EgGpusShaderFragmentCreateInfo, {
+		.path = "data/fragment.spv"
+	});
+	ecs_progress(world, 0.0f);
+
+	ecs_entity_t pipeline_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
+	ecs_add_pair(world, pipeline_entity, EcsDependsOn, vertex_entity);
+	ecs_add_pair(world, pipeline_entity, EcsDependsOn, fragment_entity);
+	ecs_add_pair(world, pipeline_entity, EcsDependsOn, ecs_id(EgShapesRectangle));
+	ecs_set(world, pipeline_entity, EgGpusGraphicsPipelineCreateInfo, {
+		.sample_count = 0
+	});
+	ecs_progress(world, 0.0f);
+
+	const EgGpusGraphicsPipeline *pipeline = ecs_get(
+		world, pipeline_entity, EgGpusGraphicsPipeline);
+	test_assert(pipeline != NULL);
+	test_assert(pipeline->object != NULL);
+}

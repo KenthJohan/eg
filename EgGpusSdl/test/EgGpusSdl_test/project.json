@@ -20,7 +20,8 @@
 				"test_texture_add_initializes_handle",
 				"test_invalid_texture_size_disables_entity",
 				"test_vertex_shader_create",
-				"test_fragment_shader_create"
+				"test_fragment_shader_create",
+				"test_graphics_pipeline_create"
 			]
 		}]
 	},

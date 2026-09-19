@@ -52,6 +52,11 @@ void EcsMember_to_SDL_GPUVertexAttribute(SDL_GPUVertexAttribute *attribute, EcsM
 
 void EcsMember_to_SDL_GPUVertexAttribute_array(SDL_GPUVertexAttribute attribute[], ecs_world_t *world, ecs_entity_t type)
 {
-    ecs_type_t const * type_ptr = ecs_get_type(world, type);
-    return;
+    ecs_iter_t it = ecs_children(world, type);
+        while (ecs_children_next(&it)) {
+        for (int i = 0; i < it.count; i++) {
+            EcsMember const *member = ecs_field(&it, EcsMember, 1);
+            EcsMember_to_SDL_GPUVertexAttribute(&attribute[i], member);
+        }
+    }
 }
