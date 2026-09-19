@@ -28,10 +28,34 @@ typedef struct
 	int32_t location;
 } EgGpusLocation;
 
+typedef struct
+{
+	void *object;
+} EgGpusGraphicsPipeline;
+
+typedef struct
+{
+	int32_t sample_count;
+} EgGpusGraphicsPipelineCreateInfo;
+
+typedef struct
+{
+	void *object;
+} EgGpusShaderVertex;
+
+typedef struct
+{
+	void *object;
+} EgGpusShaderFragment;
+
 extern ECS_COMPONENT_DECLARE(EgGpusDevice);
 extern ECS_COMPONENT_DECLARE(EgGpusDeviceCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgGpusTexture);
 extern ECS_COMPONENT_DECLARE(EgGpusTextureCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgGpusLocation);
+extern ECS_COMPONENT_DECLARE(EgGpusGraphicsPipeline);
+extern ECS_COMPONENT_DECLARE(EgGpusGraphicsPipelineCreateInfo);
+extern ECS_COMPONENT_DECLARE(EgGpusShaderVertex);
+extern ECS_COMPONENT_DECLARE(EgGpusShaderFragment);
 
 void EgGpusImport(ecs_world_t *world);

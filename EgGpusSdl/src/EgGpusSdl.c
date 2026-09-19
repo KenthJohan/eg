@@ -5,6 +5,7 @@
 
 #include "EgGpusDevice.h"
 #include "EgGpusTexture.h"
+#include "EgGpusGraphicsPipeline.h"
 
 void EgGpusSdlImport(ecs_world_t *world)
 {
@@ -49,5 +50,18 @@ void EgGpusSdlImport(ecs_world_t *world)
 	{.id = ecs_id(EgGpusTexture), .inout = EcsInOutFilter},
 	{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
 	{.id = ecs_id(EgGpusTextureCreateInfo), .oper = EcsOptional, .inout = EcsInOutFilter},
+	}});
+
+	ecs_system(world,
+	{.entity     = ecs_entity(world, {.name = "EgGpusGraphicsPipeline_Create"}),
+	.callback    = EgGpusGraphicsPipeline_Create,
+	.phase    = EcsOnUpdate,
+	.query.terms = {
+	{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgGpusGraphicsPipelineCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgGpusShaderVertex), .trav = EcsDependsOn, .src.id = EcsUp},
+	{.id = ecs_id(EgGpusShaderFragment), .trav = EcsDependsOn, .src.id = EcsUp},
+	{.id = ecs_id(EcsComponent), .trav = EcsDependsOn, .src.id = EcsUp},
+	{.id = ecs_id(EgGpusGraphicsPipeline), .oper = EcsNot}, // Adds this
 	}});
 }
