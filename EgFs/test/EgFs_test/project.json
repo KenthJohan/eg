@@ -1,0 +1,28 @@
+{
+    "id": "EgFs_test",
+    "type": "application",
+    "value": {
+        "description": "Test project for EgFs",
+        "public": false,
+        "use": [
+            "EgFs",
+            "flecs"
+        ]
+    },
+    "test": {
+        "testsuites": [{
+            "id": "EgFs",
+            "setup": true,
+            "teardown": true,
+            "testcases": [
+                "test_path1_script_function"
+            ]
+        }]
+    },
+    "lang.c": {
+        "lib": [
+            "EgFs",
+            "flecs"
+        ]
+    }
+}

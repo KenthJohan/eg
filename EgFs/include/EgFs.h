@@ -34,7 +34,6 @@ extern ECS_COMPONENT_DECLARE(EgFsWatch);
 extern ECS_COMPONENT_DECLARE(EgFsFd);
 extern ECS_COMPONENT_DECLARE(EgFsReady);
 extern ECS_COMPONENT_DECLARE(EgFsContent);
-extern ECS_COMPONENT_DECLARE(EgFsContent);
 
 extern ECS_TAG_DECLARE(EgFs);
 extern ECS_TAG_DECLARE(EgFsDir);
