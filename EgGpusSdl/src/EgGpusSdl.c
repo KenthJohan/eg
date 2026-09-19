@@ -74,6 +74,7 @@ void EgGpusSdlImport(ecs_world_t *world)
 	.phase    = EcsOnUpdate,
 	.query.terms =
 	{
+	{.id = ecs_id(EgGpusDevice), .src.id = EcsUp, .trav = EcsChildOf},
 	{.id = ecs_id(EgGpusShaderFragmentCreateInfo), .src.id = EcsSelf},
 	{.id = ecs_id(EgGpusShaderFragment), .oper = EcsNot}, // Adds this
 	}});

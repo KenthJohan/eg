@@ -76,3 +76,23 @@ void GpuResources_test_vertex_shader_create(void) {
 	test_assert(shader != NULL);
 	test_assert(shader->object != NULL);
 }
+
+void GpuResources_test_fragment_shader_create(void) {
+	ecs_entity_t device_entity = ecs_new(world);
+	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
+	ecs_progress(world, 0.0f);
+
+	const EgGpusDevice *device = ecs_get(world, device_entity, EgGpusDevice);
+	test_assert(device != NULL);
+	test_assert(device->object != NULL);
+
+	ecs_entity_t shader_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
+	ecs_set(world, shader_entity, EgGpusShaderFragmentCreateInfo, {
+		.path = "data/fragment.spv"
+	});
+	ecs_progress(world, 0.0f);
+
+	const EgGpusShaderFragment *shader = ecs_get(world, shader_entity, EgGpusShaderFragment);
+	test_assert(shader != NULL);
+	test_assert(shader->object != NULL);
+}
