@@ -18,6 +18,7 @@ void GpuResources_test_invalid_texture_size_disables_entity(void);
 void GpuResources_test_vertex_shader_create(void);
 void GpuResources_test_fragment_shader_create(void);
 void GpuResources_test_graphics_pipeline_create(void);
+void GpuResources_test_graphics_pipeline_create_with_position_color_uv(void);
 
 bake_test_case GpuResources_testcases[] = {
     {
@@ -47,6 +48,10 @@ bake_test_case GpuResources_testcases[] = {
     {
         "test_graphics_pipeline_create",
         GpuResources_test_graphics_pipeline_create
+    },
+    {
+        "test_graphics_pipeline_create_with_position_color_uv",
+        GpuResources_test_graphics_pipeline_create_with_position_color_uv
     }
 };
 
@@ -55,7 +60,7 @@ static bake_test_suite suites[] = {
         "GpuResources",
         GpuResources_setup,
         GpuResources_teardown,
-        7,
+        8,
         GpuResources_testcases
     }
 };

@@ -7,13 +7,6 @@
 
 static ecs_world_t *world;
 
-typedef struct {
-	float x;
-	float y;
-} GpuTestVertex;
-
-ECS_COMPONENT_DECLARE(GpuTestVertex);
-
 void GpuResources_setup(void)
 {
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
@@ -24,17 +17,6 @@ void GpuResources_setup(void)
 	ECS_IMPORT(world, EgGpus);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgGpusSdl);
-	ECS_COMPONENT_DEFINE(world, GpuTestVertex);
-	ecs_struct_init(world,
-	&(ecs_struct_desc_t){
-	.entity  = ecs_id(GpuTestVertex),
-	.members = {
-	{.name = "x", .type = ecs_id(ecs_f32_t)},
-	{.name = "y", .type = ecs_id(ecs_f32_t)},
-	},
-	.create_member_entities = true
-	});
-	ecs_progress(world, 0.0f);
 }
 
 void GpuResources_teardown(void)
@@ -121,6 +103,27 @@ void GpuResources_test_fragment_shader_create(void)
 
 void GpuResources_test_graphics_pipeline_create(void)
 {
+	typedef struct {
+		float x;
+		float y;
+	} GpuTestVertex;
+
+	ecs_entity_t vertex_component = ecs_component_init(world, &(ecs_component_desc_t){
+		.entity = ecs_entity(world, {.name = "GpuTestVertex"}),
+		.type = {
+			.size = sizeof(GpuTestVertex),
+			.alignment = ECS_ALIGNOF(GpuTestVertex)
+		}
+	});
+	ecs_struct_init(world, &(ecs_struct_desc_t){
+		.entity = vertex_component,
+		.members = {
+			{.name = "x", .type = ecs_id(ecs_f32_t)},
+			{.name = "y", .type = ecs_id(ecs_f32_t)}
+		},
+		.create_member_entities = true
+	});
+
 	ecs_entity_t device_entity = ecs_new(world);
 	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
 	ecs_progress(world, 0.0f);
@@ -134,9 +137,9 @@ void GpuResources_test_graphics_pipeline_create(void)
 	ecs_entity_t pipeline_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
 	ecs_add_pair(world, pipeline_entity, EcsDependsOn, vertex_entity);
 	ecs_add_pair(world, pipeline_entity, EcsDependsOn, fragment_entity);
-	ecs_add_pair(world, pipeline_entity, EcsDependsOn, ecs_id(GpuTestVertex));
-	test_assert(ecs_lookup_child(world, ecs_id(GpuTestVertex), "x") != 0);
-	test_assert(ecs_lookup_child(world, ecs_id(GpuTestVertex), "y") != 0);
+	ecs_add_pair(world, pipeline_entity, EcsDependsOn, vertex_component);
+	test_assert(ecs_lookup_child(world, vertex_component, "x") != 0);
+	test_assert(ecs_lookup_child(world, vertex_component, "y") != 0);
 	ecs_set(world, pipeline_entity, EgGpusGraphicsPipelineCreateInfo, {.sample_count = 0});
 	ecs_progress(world, 0.0f);
 
@@ -145,4 +148,56 @@ void GpuResources_test_graphics_pipeline_create(void)
 	test_assert(pipeline != NULL);
 	test_assert(pipeline->object != NULL);
 	test_assert(pipeline->info_num_vertex_attributes == 2);
+}
+
+void GpuResources_test_graphics_pipeline_create_with_position_color_uv(void)
+{
+	typedef struct {
+		float position[3];
+		uint8_t color[4];
+		float uv[2];
+	} GpuTestVertexAttributes;
+
+	ecs_entity_t vertex_component = ecs_component_init(world, &(ecs_component_desc_t){
+		.entity = ecs_entity(world, {.name = "GpuTestVertexAttributes"}),
+		.type = {
+			.size = sizeof(GpuTestVertexAttributes),
+			.alignment = ECS_ALIGNOF(GpuTestVertexAttributes)
+		}
+	});
+	ecs_struct_init(world, &(ecs_struct_desc_t){
+		.entity = vertex_component,
+		.members = {
+			{.name = "position", .type = ecs_id(ecs_f32_t), .count = 3},
+			{.name = "color", .type = ecs_id(ecs_u8_t), .count = 4},
+			{.name = "uv", .type = ecs_id(ecs_f32_t), .count = 2}
+		},
+		.create_member_entities = true
+	});
+
+	ecs_entity_t device_entity = ecs_new(world);
+	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
+	ecs_progress(world, 0.0f);
+
+	ecs_entity_t vertex_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
+	ecs_set(world, vertex_entity, EgGpusShaderVertexCreateInfo, {.path = "data/vertex.spv"});
+	ecs_entity_t fragment_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
+	ecs_set(world, fragment_entity, EgGpusShaderFragmentCreateInfo, {.path = "data/fragment.spv"});
+	ecs_progress(world, 0.0f);
+
+	ecs_entity_t pipeline_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
+	ecs_add_pair(world, pipeline_entity, EcsDependsOn, vertex_entity);
+	ecs_add_pair(world, pipeline_entity, EcsDependsOn, fragment_entity);
+	ecs_add_pair(world, pipeline_entity, EcsDependsOn, vertex_component);
+	test_assert(ecs_lookup_child(world, vertex_component, "position") != 0);
+	test_assert(ecs_lookup_child(world, vertex_component, "color") != 0);
+	test_assert(ecs_lookup_child(world, vertex_component, "uv") != 0);
+	ecs_set(world, pipeline_entity, EgGpusGraphicsPipelineCreateInfo, {.sample_count = 0});
+	ecs_progress(world, 0.0f);
+
+	const EgGpusGraphicsPipeline *pipeline = ecs_get(
+		world, pipeline_entity, EgGpusGraphicsPipeline);
+	test_assert(pipeline != NULL);
+	test_assert(pipeline->object != NULL);
+	test_assert(pipeline->info_num_vertex_attributes == 3);
 }
