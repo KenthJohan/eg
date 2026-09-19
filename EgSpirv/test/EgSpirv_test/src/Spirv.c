@@ -20,6 +20,8 @@ void Spirv_test_import(void)
 	test_assert(ecs_id(EgSpirvShaderCreateInfo) != 0);
 	test_assert(ecs_id(EgSpirvShader) != 0);
 	test_assert(ecs_id(EgSpirvShaderInput) != 0);
+	test_assert(EgSpirvBaseType != 0);
+	test_assert(ecs_lookup_child(world, EgSpirvBaseType, "FP32") != 0);
 }
 
 void Spirv_test_reflect_vertex_inputs(void)
@@ -53,9 +55,9 @@ void Spirv_test_reflect_vertex_inputs(void)
 	const EgSpirvShaderInput *pos = ecs_get(world, a_pos, EgSpirvShaderInput);
 	const EgSpirvShaderInput *uv = ecs_get(world, a_uv, EgSpirvShaderInput);
 	const EgSpirvShaderInput *color = ecs_get(world, a_color, EgSpirvShaderInput);
-	test_assert(pos && pos->base_type == SPVC_BASETYPE_FP32 && pos->vector_size == 2 && pos->bit_width == 32);
-	test_assert(uv && uv->base_type == SPVC_BASETYPE_FP32 && uv->vector_size == 2 && uv->bit_width == 32);
-	test_assert(color && color->base_type == SPVC_BASETYPE_FP32 && color->vector_size == 4 && color->bit_width == 32);
+	test_assert(pos && pos->base_type == SPVC_BASETYPE_FP32 && pos->type == ecs_id(ecs_f32_t) && pos->vector_size == 2 && pos->bit_width == 32);
+	test_assert(uv && uv->base_type == SPVC_BASETYPE_FP32 && uv->type == ecs_id(ecs_f32_t) && uv->vector_size == 2 && uv->bit_width == 32);
+	test_assert(color && color->base_type == SPVC_BASETYPE_FP32 && color->type == ecs_id(ecs_f32_t) && color->vector_size == 4 && color->bit_width == 32);
 }
 
 void Spirv_test_invalid_shader_path_disables_entity(void)

@@ -6,6 +6,7 @@
 ECS_COMPONENT_DECLARE(EgSpirvShaderCreateInfo);
 ECS_COMPONENT_DECLARE(EgSpirvShader);
 ECS_COMPONENT_DECLARE(EgSpirvShaderInput);
+ecs_entity_t EgSpirvBaseType;
 
 static void EgSpirvShader_free(EgSpirvShader *shader)
 {
@@ -46,6 +47,24 @@ static bool EgSpirv_load(const char *path, uint32_t **words_out, uint32_t *count
 	return true;
 }
 
+static ecs_entity_t EgSpirv_flecs_type(spvc_basetype base_type)
+{
+	switch (base_type) {
+	case SPVC_BASETYPE_BOOLEAN: return ecs_id(ecs_bool_t);
+	case SPVC_BASETYPE_INT8: return ecs_id(ecs_i8_t);
+	case SPVC_BASETYPE_UINT8: return ecs_id(ecs_u8_t);
+	case SPVC_BASETYPE_INT16: return ecs_id(ecs_i16_t);
+	case SPVC_BASETYPE_UINT16: return ecs_id(ecs_u16_t);
+	case SPVC_BASETYPE_INT32: return ecs_id(ecs_i32_t);
+	case SPVC_BASETYPE_UINT32: return ecs_id(ecs_u32_t);
+	case SPVC_BASETYPE_INT64: return ecs_id(ecs_i64_t);
+	case SPVC_BASETYPE_UINT64: return ecs_id(ecs_u64_t);
+	case SPVC_BASETYPE_FP32: return ecs_id(ecs_f32_t);
+	case SPVC_BASETYPE_FP64: return ecs_id(ecs_f64_t);
+	default: return 0;
+	}
+}
+
 static bool EgSpirv_reflect_inputs(
 	ecs_world_t *world,
 	ecs_entity_t shader_entity,
@@ -76,6 +95,7 @@ static bool EgSpirv_reflect_inputs(
 	for (size_t i = 0; i < input_count; i++) {
 		const spvc_reflected_resource *input = &inputs[i];
 		spvc_type type = spvc_compiler_get_type_handle(compiler, input->type_id);
+		spvc_basetype base_type = spvc_type_get_basetype(type);
 		ecs_entity_t child = ecs_entity(world, {
 			.name = input->name ? input->name : "input"
 		});
@@ -85,7 +105,8 @@ static bool EgSpirv_reflect_inputs(
 				compiler, input->id, SpvDecorationLocation)
 		});
 		ecs_set(world, child, EgSpirvShaderInput, {
-			.base_type = (int32_t)spvc_type_get_basetype(type),
+			.base_type = (int32_t)base_type,
+			.type = EgSpirv_flecs_type(base_type),
 			.vector_size = spvc_type_get_vector_size(type),
 			.bit_width = spvc_type_get_bit_width(type)
 		});
@@ -138,6 +159,31 @@ void EgSpirvImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgSpirvShaderCreateInfo);
 	ECS_COMPONENT_DEFINE(world, EgSpirvShader);
 	ECS_COMPONENT_DEFINE(world, EgSpirvShaderInput);
+	EgSpirvBaseType = ecs_enum_init(world, &(ecs_enum_desc_t){
+		.entity = ecs_entity(world, {.name = "BaseType"}),
+		.constants = {
+			{.name = "Unknown", .value = SPVC_BASETYPE_UNKNOWN},
+			{.name = "Void", .value = SPVC_BASETYPE_VOID},
+			{.name = "Boolean", .value = SPVC_BASETYPE_BOOLEAN},
+			{.name = "Int8", .value = SPVC_BASETYPE_INT8},
+			{.name = "UInt8", .value = SPVC_BASETYPE_UINT8},
+			{.name = "Int16", .value = SPVC_BASETYPE_INT16},
+			{.name = "UInt16", .value = SPVC_BASETYPE_UINT16},
+			{.name = "Int32", .value = SPVC_BASETYPE_INT32},
+			{.name = "UInt32", .value = SPVC_BASETYPE_UINT32},
+			{.name = "Int64", .value = SPVC_BASETYPE_INT64},
+			{.name = "UInt64", .value = SPVC_BASETYPE_UINT64},
+			{.name = "AtomicCounter", .value = SPVC_BASETYPE_ATOMIC_COUNTER},
+			{.name = "FP16", .value = SPVC_BASETYPE_FP16},
+			{.name = "FP32", .value = SPVC_BASETYPE_FP32},
+			{.name = "FP64", .value = SPVC_BASETYPE_FP64},
+			{.name = "Struct", .value = SPVC_BASETYPE_STRUCT},
+			{.name = "Image", .value = SPVC_BASETYPE_IMAGE},
+			{.name = "SampledImage", .value = SPVC_BASETYPE_SAMPLED_IMAGE},
+			{.name = "Sampler", .value = SPVC_BASETYPE_SAMPLER},
+			{.name = "AccelerationStructure", .value = SPVC_BASETYPE_ACCELERATION_STRUCTURE}
+		}
+	});
 
 	ecs_struct(world, {.entity = ecs_id(EgSpirvShaderCreateInfo), .members = {
 		{.name = "path", .type = ecs_id(ecs_string_t)},
@@ -148,7 +194,8 @@ void EgSpirvImport(ecs_world_t *world)
 		{.name = "word_count", .type = ecs_id(ecs_u32_t)}
 	}});
 	ecs_struct(world, {.entity = ecs_id(EgSpirvShaderInput), .members = {
-		{.name = "base_type", .type = ecs_id(ecs_i32_t)},
+		{.name = "base_type", .type = EgSpirvBaseType},
+		{.name = "type", .type = ecs_id(ecs_entity_t)},
 		{.name = "vector_size", .type = ecs_id(ecs_u32_t)},
 		{.name = "bit_width", .type = ecs_id(ecs_u32_t)}
 	}});
