@@ -63,6 +63,7 @@ void EgGpusImport(ecs_world_t *world)
 	{.entity = ecs_id(EgGpusGraphicsPipeline),
 	.members = {
 	{.name = "object", .type = ecs_id(ecs_uptr_t)},
+	{.name = "info_num_vertex_attributes", .type = ecs_id(ecs_u32_t)},
 	}});
 
 	ecs_struct(world,

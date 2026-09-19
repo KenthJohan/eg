@@ -31,6 +31,7 @@ typedef struct
 typedef struct
 {
 	void *object;
+	uint32_t info_num_vertex_attributes;
 } EgGpusGraphicsPipeline;
 
 typedef struct
