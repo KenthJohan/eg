@@ -1,0 +1,25 @@
+{
+	"id": "EgSpirv_test",
+	"type": "application",
+	"value": {
+		"description": "Test project for EgSpirv",
+		"public": false,
+		"use": ["EgSpirv", "EgGpus", "flecs"]
+	},
+	"test": {
+		"testsuites": [{
+			"id": "Spirv",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+				"test_import",
+				"test_reflect_vertex_inputs",
+				"test_invalid_shader_path_disables_entity",
+				"test_wrong_stage_disables_entity"
+			]
+		}]
+	},
+	"lang.c": {
+			"lib": ["EgSpirv", "EgGpus", "flecs", "spirv-cross-c-shared"]
+	}
+}
