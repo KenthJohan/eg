@@ -68,12 +68,12 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 			*/
 
 			uint32_t info_num_vertex_attributes = EcsMember_to_SDL_GPUVertexAttribute_array(
-				vertex_attributes, world, field_component_src_entity);
+			vertex_attributes, world, field_component_src_entity);
 
 			pipelinedesc.vertex_input_state.num_vertex_buffers         = 1;
 			pipelinedesc.vertex_input_state.vertex_buffer_descriptions = &vertex_buffer_desc;
 
-			pipelinedesc.vertex_input_state.vertex_attributes = (SDL_GPUVertexAttribute *)&vertex_attributes;
+			pipelinedesc.vertex_input_state.vertex_attributes     = (SDL_GPUVertexAttribute *)&vertex_attributes;
 			pipelinedesc.vertex_input_state.num_vertex_attributes = info_num_vertex_attributes;
 
 			pipelinedesc.props = 0;
@@ -84,10 +84,7 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 				ecs_enable(world, e, false);
 				continue;
 			}
-			ecs_set(world, e, EgGpusGraphicsPipeline, {
-				.object = pipeline,
-				.info_num_vertex_attributes = info_num_vertex_attributes
-			});
+			ecs_set(world, e, EgGpusGraphicsPipeline, {.object = pipeline, .info_num_vertex_attributes = info_num_vertex_attributes});
 			ecs_trace("SDL_CreateGPUGraphicsPipeline(%p) -> %p", gpu->object, pipeline);
 		}
 		ecs_log_pop_(0);

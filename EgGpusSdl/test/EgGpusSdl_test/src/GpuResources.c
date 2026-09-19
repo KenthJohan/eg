@@ -108,21 +108,27 @@ void GpuResources_test_graphics_pipeline_create(void)
 		float y;
 	} GpuTestVertex;
 
-	ecs_entity_t vertex_component = ecs_component_init(world, &(ecs_component_desc_t){
-		.entity = ecs_entity(world, {.name = "GpuTestVertex"}),
-		.type = {
-			.size = sizeof(GpuTestVertex),
-			.alignment = ECS_ALIGNOF(GpuTestVertex)
-		}
+	ecs_entity_t vertex_component = ecs_component_init(world,
+	&(ecs_component_desc_t){
+	.entity = ecs_entity(world, {.name = "GpuTestVertex"}),
+	.type   = {
+	.size      = sizeof(GpuTestVertex),
+	.alignment = ECS_ALIGNOF(GpuTestVertex)}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = vertex_component,
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	},
+	.create_member_entities = true,
 	});
-	ecs_struct_init(world, &(ecs_struct_desc_t){
-		.entity = vertex_component,
-		.members = {
-			{.name = "x", .type = ecs_id(ecs_f32_t)},
-			{.name = "y", .type = ecs_id(ecs_f32_t)}
-		},
-		.create_member_entities = true
-	});
+
+	ecs_entity_t ecs_entity_member_x = ecs_lookup_child(world, vertex_component, "x");
+	ecs_entity_t ecs_entity_member_y = ecs_lookup_child(world, vertex_component, "y");
+	ecs_set(world, ecs_entity_member_x, EgGpusLocation, {0});
+	ecs_set(world, ecs_entity_member_y, EgGpusLocation, {1});
 
 	ecs_entity_t device_entity = ecs_new(world);
 	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
@@ -153,27 +159,36 @@ void GpuResources_test_graphics_pipeline_create(void)
 void GpuResources_test_graphics_pipeline_create_with_position_color_uv(void)
 {
 	typedef struct {
-		float position[3];
+		float   position[3];
 		uint8_t color[4];
-		float uv[2];
+		float   uv[2];
 	} GpuTestVertexAttributes;
 
-	ecs_entity_t vertex_component = ecs_component_init(world, &(ecs_component_desc_t){
-		.entity = ecs_entity(world, {.name = "GpuTestVertexAttributes"}),
-		.type = {
-			.size = sizeof(GpuTestVertexAttributes),
-			.alignment = ECS_ALIGNOF(GpuTestVertexAttributes)
-		}
+	ecs_entity_t vertex_component = ecs_component_init(world,
+	&(ecs_component_desc_t){
+	.entity = ecs_entity(world, {.name = "GpuTestVertexAttributes"}),
+	.type   = {
+	.size      = sizeof(GpuTestVertexAttributes),
+	.alignment = ECS_ALIGNOF(GpuTestVertexAttributes),
+	}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = vertex_component,
+	.members = {
+	{.name = "position", .type = ecs_id(ecs_f32_t), .count = 3},
+	{.name = "color", .type = ecs_id(ecs_u8_t), .count = 4},
+	{.name = "uv", .type = ecs_id(ecs_f32_t), .count = 2},
+	},
+	.create_member_entities = true,
 	});
-	ecs_struct_init(world, &(ecs_struct_desc_t){
-		.entity = vertex_component,
-		.members = {
-			{.name = "position", .type = ecs_id(ecs_f32_t), .count = 3},
-			{.name = "color", .type = ecs_id(ecs_u8_t), .count = 4},
-			{.name = "uv", .type = ecs_id(ecs_f32_t), .count = 2}
-		},
-		.create_member_entities = true
-	});
+
+	ecs_entity_t position_member = ecs_lookup_child(world, vertex_component, "position");
+	ecs_entity_t color_member    = ecs_lookup_child(world, vertex_component, "color");
+	ecs_entity_t uv_member       = ecs_lookup_child(world, vertex_component, "uv");
+	ecs_set(world, position_member, EgGpusLocation, {0});
+	ecs_set(world, color_member, EgGpusLocation, {1});
+	ecs_set(world, uv_member, EgGpusLocation, {2});
 
 	ecs_entity_t device_entity = ecs_new(world);
 	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
@@ -196,7 +211,7 @@ void GpuResources_test_graphics_pipeline_create_with_position_color_uv(void)
 	ecs_progress(world, 0.0f);
 
 	const EgGpusGraphicsPipeline *pipeline = ecs_get(
-		world, pipeline_entity, EgGpusGraphicsPipeline);
+	world, pipeline_entity, EgGpusGraphicsPipeline);
 	test_assert(pipeline != NULL);
 	test_assert(pipeline->object != NULL);
 	test_assert(pipeline->info_num_vertex_attributes == 3);
