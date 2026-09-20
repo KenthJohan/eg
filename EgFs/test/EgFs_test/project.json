@@ -11,7 +11,7 @@
     },
     "test": {
         "testsuites": [{
-            "id": "EgFs",
+            "id": "TestEgFs",
             "setup": true,
             "teardown": true,
             "testcases": [

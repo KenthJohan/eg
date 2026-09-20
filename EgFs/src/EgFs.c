@@ -90,6 +90,13 @@ static ECS_DTOR(EgFsContent, ptr, {
 	ecs_log_set_level(-1);
 })
 
+/*
+https://github.com/nanomsg/nng
+https://nng.nanomsg.org/ref/tran/udp.html
+https://nng.nanomsg.org/man/v1.10.0/index.html
+https://www.flecs.dev/flecs/group__liveliness.html#ga7995e931b0f8b7588f0519ae88b6e4c0
+https://github.com/copilot/c/caff1387-5a8d-4db9-a850-e167ba83926d
+*/
 ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 {
 	ecs_entity_t    parent    = 0;
@@ -126,31 +133,20 @@ ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 		f = ecs_id(EgFsDir);
 		break;
 	default:
+		return 0;
 		break;
 	}
 
-	if (path_type == ECSX_PATHKIND_FILE) {
-	} else if (path_type == ECSX_PATHKIND_DIR) {
-		f = ecs_id(EgFsDir);
-	} else {
-		return 0;
-	}
 	ecs_entity_t e = ecs_entity_init(world,
 	&(ecs_entity_desc_t){
 	.name   = path,
 	.sep    = "/",
-	.parent = parent});
+	.parent = parent,
+	});
 	ecs_add_id(world, e, f);
 	return e;
 }
 
-/*
-https://github.com/nanomsg/nng
-https://nng.nanomsg.org/ref/tran/udp.html
-https://nng.nanomsg.org/man/v1.10.0/index.html
-https://www.flecs.dev/flecs/group__liveliness.html#ga7995e931b0f8b7588f0519ae88b6e4c0
-https://github.com/copilot/c/caff1387-5a8d-4db9-a850-e167ba83926d
-*/
 static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_value_t *argv, ecs_value_t *result)
 {
 	int loglvl = 0;
@@ -201,8 +197,6 @@ static void Observer_OnModify_extra(ecs_world_t *world, ecs_entity_t e)
 		}
 	}
 }
-
-
 
 static void System_Dump(ecs_iter_t *it)
 {
@@ -307,7 +301,34 @@ void EgFsImport(ecs_world_t *world)
 		.return_type = ecs_id(ecs_entity_t),
 		.params      = {{.name = "name", .type = ecs_id(ecs_string_t)}},
 		.callback    = callback_newpath});
-		ecs_doc_set_brief(world, m, "Lookup child by name11");
+		ecs_doc_set_brief(world, m, "Creates a new path entity. The entity represents a path/address and is identified by the given name.");
+	}
+
+	{
+		ecs_entity_t s = ecs_observer_init(world,
+		&(ecs_observer_desc_t){
+		.entity      = ecs_entity(world, {.name = "EgFsContent_Load_Observer"}),
+		.callback    = EgFsContent_Load,
+		.events      = {EgFsEventModify},
+		.query.terms = {
+		{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter},
+		{.id = EgFsFile},
+		}});
+		ecs_doc_set_brief(world, s, "Reads the file content into EgFsContent component. It uses the the matched entities name as the file path.");
+	}
+
+	{
+		ecs_entity_t s = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "EgFsContent_Load_System"}),
+		.phase       = EcsOnUpdate,
+		.callback    = EgFsContent_Load,
+		.query.terms = {
+		{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
+		{.id = EgFsFile},
+		{.id = EgFsSync},
+		}});
+		ecs_doc_set_brief(world, s, "Reads the file content into EgFsContent component. It uses the the matched entities name as the file path.");
 	}
 
 	ecs_observer_init(world,
@@ -317,27 +338,6 @@ void EgFsImport(ecs_world_t *world)
 	.events      = {EgFsEventOpen},
 	.query.terms = {
 	{.id = ecs_pair(ecs_id(EcsIdentifier), EcsName)},
-	}});
-
-	ecs_observer_init(world,
-	&(ecs_observer_desc_t){
-	.entity      = ecs_entity(world, {.name = "EgFsContent_Load_Observer"}),
-	.callback    = EgFsContent_Load,
-	.events      = {EgFsEventModify},
-	.query.terms = {
-	{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter},
-	{.id = EgFsFile},
-	}});
-
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "EgFsContent_Load_System"}),
-	.phase       = EcsOnUpdate,
-	.callback    = EgFsContent_Load,
-	.query.terms = {
-	{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
-	{.id = EgFsFile},
-	{.id = EgFsSync},
 	}});
 
 	ecs_system_init(world,

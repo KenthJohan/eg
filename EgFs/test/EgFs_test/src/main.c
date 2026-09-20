@@ -8,30 +8,30 @@
 
 #include <EgFs_test.h>
 
-// Testsuite 'EgFs'
-void EgFs_setup(void);
-void EgFs_teardown(void);
-void EgFs_test_path_type_schemes(void);
-void EgFs_test_path1_script_function(void);
+// Testsuite 'TestEgFs'
+void TestEgFs_setup(void);
+void TestEgFs_teardown(void);
+void TestEgFs_test_path_type_schemes(void);
+void TestEgFs_test_path1_script_function(void);
 
-bake_test_case EgFs_testcases[] = {
+bake_test_case TestEgFs_testcases[] = {
     {
         "test_path_type_schemes",
-        EgFs_test_path_type_schemes
+        TestEgFs_test_path_type_schemes
     },
     {
         "test_path1_script_function",
-        EgFs_test_path1_script_function
+        TestEgFs_test_path1_script_function
     }
 };
 
 static bake_test_suite suites[] = {
     {
-        "EgFs",
-        EgFs_setup,
-        EgFs_teardown,
+        "TestEgFs",
+        TestEgFs_setup,
+        TestEgFs_teardown,
         2,
-        EgFs_testcases
+        TestEgFs_testcases
     }
 };
 
