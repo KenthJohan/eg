@@ -91,21 +91,43 @@ static ECS_DTOR(EgFsContent, ptr, {
 ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 {
 	ecs_entity_t    parent    = 0;
-	ecsx_pathkind_t path_type = ECSX_PATHKIND_NONE;
-	if ((path[0] == '.') && (path[1] == '/')) {
-		parent = EgFsCwd;
-		path_type = ecsx_pathkind_get_path_type(path);
-		path += 2;
-	} else if (path[0] == '/') {
-		parent = EgFsRoot;
-		path_type = ecsx_pathkind_get_path_type(path);
-		path += 1;
-	} else {
-		return 0;
+	ecsx_pathkind_t path_type = ecsx_pathkind_get_path_type(path);
+	switch (path_type) {
+	case ECSX_PATHKIND_DIR:
+	case ECSX_PATHKIND_FILE:
+	case ECSX_PATHKIND_LINK:
+		if ((path[0] == '.') && (path[1] == '/')) {
+			parent = EgFsCwd;
+			path += 2;
+		} else if (path[0] == '/') {
+			parent = EgFsRoot;
+			path += 1;
+		} else {
+			return 0;
+		}
+		break;
+	case ECSX_PATHKIND_TCP:
+	case ECSX_PATHKIND_UDP:
+	case ECSX_PATHKIND_HTTP:
+		parent = EgFsSockets;
+		break;
+	default:
+		break;
 	}
+
 	ecs_id_t f = 0;
-	if (path_type == ECSX_PATHKIND_FILE) {
+	switch (path_type) {
+	case ECSX_PATHKIND_FILE:
 		f = ecs_id(EgFsFile);
+		break;
+	case ECSX_PATHKIND_DIR:
+		f = ecs_id(EgFsDir);
+		break;
+	default:
+		break;
+	}
+
+	if (path_type == ECSX_PATHKIND_FILE) {
 	} else if (path_type == ECSX_PATHKIND_DIR) {
 		f = ecs_id(EgFsDir);
 	} else {
@@ -129,34 +151,29 @@ https://github.com/copilot/c/caff1387-5a8d-4db9-a850-e167ba83926d
 */
 static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_value_t *argv, ecs_value_t *result)
 {
-	ecs_log_set_level(0);
-	(void)ctx;
-	(void)argc;
+	int loglvl = 0;
+	
+	if (argc < 1) {
+		ecs_err("callback_newpath: insufficient arguments");
+		return;
+	}
+
 	ecs_world_t *world = ctx->world;
 	const char  *path  = *(char **)argv[0].ptr;
-	// char cwd[1024];
-	// getcwd(cwd, sizeof(cwd));
+
+	char cwd[1024];
+	ecsx_os_getcwd(cwd, sizeof(cwd));
+	ecs_log(loglvl, "callback_newpath: current working directory: '%s'", cwd);
+
 	ecs_entity_t e = EgFs_create_path_entity(world, path);
 	if (e) {
-		char *p = ecs_get_path_w_sep(world, EgFsSockets, e, ":", NULL);
-		ecs_trace("newpath '%s' -> '%s' entity:0x%jX", path, p, (uintmax_t)e);
+		char *p = ecs_get_path_w_sep(world, 0, e, "/", NULL);
+		ecs_log(loglvl, "newpath '%s' -> '%s' entity:0x%jX", path, p, (uintmax_t)e);
 		ecs_os_free(p);
-	} else if (strncmp(path, "udp://", 6) == 0) {
-		// fd_create_udp_socket
-		e = ecs_lookup_path_w_sep(world, EgFsSockets, path, "", NULL, false);
-		if (e == 0) {
-			int fd = fd_create_udp_socket(NULL, 5000);
-			if (fd < 0) {
-				e = 0;
-			} else {
-				e = fd + EGFS_FD_ENTITY_OFFSET;
-				ecs_make_alive(world, e);
-				ecs_add_path_w_sep(world, e, EgFsSockets, path, "", NULL);
-			}
-		}
+	} else {
+		ecs_err("failed to create path entity for path '%s'", path);
 	}
 	*(int64_t *)result->ptr = e;
-	ecs_log_set_level(-1);
 }
 
 static void Observer_OnOpen(ecs_iter_t *it)
@@ -185,22 +202,30 @@ static void Observer_OnModify_extra(ecs_world_t *world, ecs_entity_t e)
 
 static void Observer_OnModify(ecs_iter_t *it)
 {
-	ecs_log_set_level(0);
+	int32_t loglvl = 0;
+
 	ecs_world_t *world = it->world;
-	EgFsContent *c     = ecs_field(it, EgFsContent, 1); // self
+
+	EgFsContent *c = ecs_field_self(it, EgFsContent, 0);
+
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
 		if (c[i].data) {
 			// Free previous content
-			ecs_trace("free %i bytes previous EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
+			ecs_log(loglvl, "free %i bytes previous EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
 			ecs_os_free(c[i].data);
 			c[i].data = NULL;
 			c[i].size = 0;
 		}
-		size_t   size    = 0;
-		void    *content = NULL;
-		char    *path    = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./"); // Allocates
+		ecs_log(loglvl, "loading content for entity '%s'", ecs_get_name(world, e));
+		// Paths stored as entities and its hierarchy mirrors the filesystem structure.
+		// Allocate and build path from entity hierarchy, seperated by "/" and prefixed by "./"
+		char *path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./");
+
 		ecsx_pathkind_t path_type = ecsx_pathkind_get_path_type(path);
+
+		size_t size    = 0;
+		void  *content = NULL;
 		if (path_type == ECSX_PATHKIND_FILE) {
 			content = ecsx_file_load_alloc(path, &size);
 		}
@@ -210,7 +235,7 @@ static void Observer_OnModify(ecs_iter_t *it)
 		} else {
 			c[i].data = content;
 			c[i].size = (uint32_t)size;
-			ecs_trace("loaded %u bytes into EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
+			ecs_log(loglvl, "loaded %u bytes into EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
 			Observer_OnModify_extra(world, e);
 			// Add EgFsDump to dump content in System_Dump
 			// ecs_add(world, e, EgFsDump);
@@ -221,36 +246,37 @@ static void Observer_OnModify(ecs_iter_t *it)
 
 static void System_Dump(ecs_iter_t *it)
 {
-	ecs_log_set_level(0);
+	int32_t loglvl = 0;
+
 	ecs_world_t *world = it->world;
-	EgFsContent *c     = ecs_field_self(it, EgFsContent, 0);
-	(void)world;
+
+	EgFsContent *c = ecs_field_self(it, EgFsContent, 0);
+
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
 		ecs_remove(world, e, EgFsDump);
-		ecs_trace("System_Dump for entity '%s'", ecs_get_name(world, e));
+		ecs_log(loglvl, "System_Dump for entity '%s'", ecs_get_name(world, e));
 		if (c[i].data && (c[i].size > 0)) {
-			printf("---- content (%u bytes) ----\n", c[i].size);
+			ecs_log(loglvl, "---- content (%u bytes) ----", c[i].size);
 			fwrite(c[i].data, 1, c[i].size, stdout);
-			printf("\n---- end of content ----\n");
+			ecs_log(loglvl, "---- end of content ----");
 		} else {
-			printf("---- no content ----\n");
+			ecs_log(loglvl, "---- no content ----");
 		}
 	}
-	ecs_log_set_level(-1);
 }
 
 static void System_Dump1(ecs_iter_t *it)
 {
-	ecs_log_set_level(0);
+	int32_t loglvl = 0;
+
 	ecs_world_t *world = it->world;
+
 	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
 		ecs_remove(world, e, EgFsDump);
-		// print entity integer and name
-		printf("Entity %16i '%s'\n", (uint32_t)e, ecs_get_name(world, e));
+		ecs_log(loglvl, "Entity %16i '%s'", (uint32_t)e, ecs_get_name(world, e));
 	}
-	ecs_log_set_level(-1);
 }
 
 void EgFsImport(ecs_world_t *world)
@@ -338,8 +364,8 @@ void EgFsImport(ecs_world_t *world)
 	.callback    = Observer_OnModify,
 	.events      = {EgFsEventModify},
 	.query.terms = {
-	{.id = EgFsFile},
 	{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter},
+	{.id = EgFsFile},
 	}});
 
 	ecs_system_init(world,
