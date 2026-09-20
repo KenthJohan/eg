@@ -4,7 +4,7 @@
 	"value": {
 		"language": "c",
 		"public": true,
-		"use": ["EgGpus", "EgShapes", "ecsx", "flecs"]
+		"use": ["EgGpus", "EgFs", "EgShapes", "ecsx", "flecs"]
 	},
 	"lang.c": {
 		"c-standard": "c11",
@@ -12,6 +12,6 @@
 		"static": true,
 		"defines": [],
 		"cflags": [],
-		"lib": ["EgGpus", "EgShapes", "ecsx", "flecs"]
+		"lib": ["EgGpus", "EgFs", "EgShapes", "ecsx", "flecs"]
 	}
 }

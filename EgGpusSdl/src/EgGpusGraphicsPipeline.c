@@ -19,16 +19,37 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 
 	EgGpusDevice                     *gpu                        = ecs_field_shared(it, EgGpusDevice, 0);                   // shared, parent
 	EgGpusGraphicsPipelineCreateInfo *field_info                 = ecs_field_self(it, EgGpusGraphicsPipelineCreateInfo, 1); // self
-	EgGpusShaderVertex               *field_svertex              = ecs_field_shared(it, EgGpusShaderVertex, 2);             // shared
-	EgGpusShaderFragment             *field_sfragment            = ecs_field_shared(it, EgGpusShaderFragment, 3);           // shared
-	EcsComponent                     *field_component            = ecs_field_shared(it, EcsComponent, 4);                   // shared
-	ecs_entity_t                      field_component_src_entity = ecs_field_src(it, 4);                                    // shared
+	EcsComponent                     *field_component            = ecs_field_shared(it, EcsComponent, 2);                   // shared
+	ecs_entity_t                      field_component_src_entity = ecs_field_src(it, 2);                                    // shared
 
 	for (int i = 0; i < it->count; ++i, ++field_info) {
 		ecs_entity_t e = it->entities[i];
 		ecs_trace("Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_(0);
 		{
+			SDL_GPUShader *vertex_shader = NULL;
+			SDL_GPUShader *fragment_shader = NULL;
+			for (int dependency_index = 0;; ++dependency_index) {
+				ecs_entity_t dependency = ecs_get_target(world, e, EcsDependsOn, dependency_index);
+				if (dependency == 0) {
+					break;
+				}
+				const EgGpusShaderCreateInfo *shader_info = ecs_get(world, dependency, EgGpusShaderCreateInfo);
+				const EgGpusShader *shader = ecs_get(world, dependency, EgGpusShader);
+				if (shader_info == NULL || shader == NULL) {
+					continue;
+				}
+				if (shader_info->stage == SDL_GPU_SHADERSTAGE_VERTEX) {
+					vertex_shader = shader->object;
+				} else if (shader_info->stage == SDL_GPU_SHADERSTAGE_FRAGMENT) {
+					fragment_shader = shader->object;
+				}
+			}
+			if (vertex_shader == NULL || fragment_shader == NULL) {
+				ecs_err("Graphics pipeline requires vertex and fragment shaders");
+				ecs_enable(world, e, false);
+				continue;
+			}
 			SDL_GPUColorTargetDescription     color_target_desc                 = {0};
 			SDL_GPUVertexAttribute            vertex_attributes[MAX_ATTRIBUTES] = {0};
 			SDL_GPUVertexBufferDescription    vertex_buffer_desc                = {0};
@@ -48,8 +69,8 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 
 			pipelinedesc.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
 
-			pipelinedesc.vertex_shader   = field_svertex[i].object;
-			pipelinedesc.fragment_shader = field_sfragment[i].object;
+			pipelinedesc.vertex_shader   = vertex_shader;
+			pipelinedesc.fragment_shader = fragment_shader;
 
 			vertex_buffer_desc.slot               = 0;
 			vertex_buffer_desc.input_rate         = SDL_GPU_VERTEXINPUTRATE_VERTEX;

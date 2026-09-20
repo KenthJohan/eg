@@ -1,13 +1,13 @@
 #include "EgGpusSdl.h"
 #include <EgGpus.h>
+#include <EgFs.h>
 #include <EgShapes.h>
 #include <SDL3/SDL_gpu.h>
 
 #include "EgGpusDevice.h"
 #include "EgGpusTexture.h"
 #include "EgGpusGraphicsPipeline.h"
-#include "EgGpusShaderFragment.h"
-#include "EgGpusShaderVertex.h"
+#include "EgGpusShader.h"
 
 void EgGpusSdlImport(ecs_world_t *world)
 {
@@ -16,6 +16,7 @@ void EgGpusSdlImport(ecs_world_t *world)
 	ecs_entity_t module = ecs_get_scope(world);
 	ecs_set_scope(world, 0);
 	ECS_IMPORT(world, EgGpus);
+	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgShapes);
 	ecs_set_scope(world, module);
 
@@ -61,33 +62,20 @@ void EgGpusSdlImport(ecs_world_t *world)
 	.query.terms = {
 	{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgGpusGraphicsPipelineCreateInfo), .src.id = EcsSelf},
-	{.id = ecs_id(EgGpusShaderVertex), .trav = EcsDependsOn, .src.id = EcsUp},
-	{.id = ecs_id(EgGpusShaderFragment), .trav = EcsDependsOn, .src.id = EcsUp},
 	{.id = ecs_id(EcsComponent), .trav = EcsDependsOn, .src.id = EcsUp},
 	{.id = ecs_id(EgGpusGraphicsPipeline), .oper = EcsNot}, // Adds this
 	}});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity   = ecs_entity(world, {.name = "EgGpusShaderFragment_Create"}),
-	.callback = EgGpusShaderFragment_Create,
+		.entity   = ecs_entity(world, {.name = "EgGpusShader_Create"}),
+		.callback = EgGpusShader_Create,
 	.phase    = EcsOnUpdate,
 	.query.terms =
 	{
 	{.id = ecs_id(EgGpusDevice), .src.id = EcsUp, .trav = EcsChildOf},
-	{.id = ecs_id(EgGpusShaderFragmentCreateInfo), .src.id = EcsSelf},
-	{.id = ecs_id(EgGpusShaderFragment), .oper = EcsNot}, // Adds this
-	}});
-
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity   = ecs_entity(world, {.name = "EgGpusShaderVertex_Create"}),
-	.callback = EgGpusShaderVertex_Create,
-	.phase    = EcsOnUpdate,
-	.query.terms =
-	{
-	{.id = ecs_id(EgGpusDevice), .src.id = EcsUp, .trav = EcsChildOf},
-	{.id = ecs_id(EgGpusShaderVertexCreateInfo), .src.id = EcsSelf},
-	{.id = ecs_id(EgGpusShaderVertex), .oper = EcsNot}, // Adds this
+		{.id = ecs_id(EgGpusShaderCreateInfo), .src.id = EcsSelf},
+		{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
+		{.id = ecs_id(EgGpusShader), .oper = EcsNot}, // Adds this
 	}});
 }

@@ -42,22 +42,12 @@ typedef struct
 typedef struct
 {
 	void *object;
-} EgGpusShaderVertex;
+} EgGpusShader;
 
 typedef struct
 {
-	char const *path;
-} EgGpusShaderVertexCreateInfo;
-
-typedef struct
-{
-	void *object;
-} EgGpusShaderFragment;
-
-typedef struct
-{
-	char const *path;
-} EgGpusShaderFragmentCreateInfo;
+	int32_t stage;
+} EgGpusShaderCreateInfo;
 
 extern ECS_COMPONENT_DECLARE(EgGpusDevice);
 extern ECS_COMPONENT_DECLARE(EgGpusDeviceCreateInfo);
@@ -66,9 +56,7 @@ extern ECS_COMPONENT_DECLARE(EgGpusTextureCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgGpusLocation);
 extern ECS_COMPONENT_DECLARE(EgGpusGraphicsPipeline);
 extern ECS_COMPONENT_DECLARE(EgGpusGraphicsPipelineCreateInfo);
-extern ECS_COMPONENT_DECLARE(EgGpusShaderVertex);
-extern ECS_COMPONENT_DECLARE(EgGpusShaderVertexCreateInfo);
-extern ECS_COMPONENT_DECLARE(EgGpusShaderFragment);
-extern ECS_COMPONENT_DECLARE(EgGpusShaderFragmentCreateInfo);
+extern ECS_COMPONENT_DECLARE(EgGpusShader);
+extern ECS_COMPONENT_DECLARE(EgGpusShaderCreateInfo);
 
 void EgGpusImport(ecs_world_t *world);
