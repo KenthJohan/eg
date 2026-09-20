@@ -45,6 +45,21 @@ void TestEgFs_test_path1_same_entity_for_same_path(void)
 	test_assert(first == second);
 }
 
+void TestEgFs_test_reads_file_contents(void)
+{
+	ecs_entity_t file = EgFs_create_path_entity(world, "./project.json");
+	test_assert(file != 0);
+
+	ecs_add_id(world, file, EgFsReader);
+	ecs_progress(world, 0.0f);
+
+	const EgFsContent *content = ecs_get(world, file, EgFsContent);
+	test_assert(content != NULL);
+	test_assert(content->data != NULL);
+	test_assert(content->size > 0);
+	test_assert(ecs_has_id(world, file, ecs_id(EgFsContent)));
+}
+
 void TestEgFs_test_path1_nested_path_creates_child_entity(void)
 {
 	ecs_entity_t file = EgFs_create_path_entity(world, "./src/TestEgFs.c");

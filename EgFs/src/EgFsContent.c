@@ -8,11 +8,11 @@ void EgFsContent_Load(ecs_iter_t *it)
 
 	ecs_world_t *world = it->world;
 
-	EgFsContent *c = ecs_field_self(it, EgFsContent, 0);
-
-	for (int i = 0; i < it->count; ++i, ++c) {
+	for (int i = 0; i < it->count; ++i) {
 		ecs_entity_t e = it->entities[i];
-		ecs_remove(world, e, EgFsSync);
+
+		// ecs_ensure works whether EgFsContent already exists (reload) or not (initial add)
+		EgFsContent *c = ecs_ensure(world, e, EgFsContent);
 
 		if (c->data) {
 			// Free previous content
@@ -44,6 +44,7 @@ void EgFsContent_Load(ecs_iter_t *it)
 		c->data = content;
 		c->size = (uint32_t)size;
 		ecs_log(loglvl, "loaded %u bytes into EgFsContent for entity '%s'", c->size, ecs_get_name(world, e));
+		ecs_modified(world, e, EgFsContent);
 
 		// Observer_OnModify_extra(world, e);
 		// Add EgFsDump to dump content in System_Dump

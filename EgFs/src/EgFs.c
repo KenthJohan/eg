@@ -16,7 +16,7 @@ ECS_TAG_DECLARE(EgFs);
 ECS_TAG_DECLARE(EgFsFile);
 ECS_TAG_DECLARE(EgFsDir);
 ECS_TAG_DECLARE(EgFsRoot);
-ECS_TAG_DECLARE(EgFsSync);
+ECS_TAG_DECLARE(EgFsReader);
 ECS_TAG_DECLARE(EgFsCwd);
 ECS_TAG_DECLARE(EgFsSockets);
 ECS_TAG_DECLARE(EgFsDescriptors);
@@ -244,7 +244,7 @@ void EgFsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgFsContent);
 
 	ECS_TAG_DEFINE(world, EgFsCwd);
-	ECS_TAG_DEFINE(world, EgFsSync);
+	ECS_TAG_DEFINE(world, EgFsReader);
 	ECS_TAG_DEFINE(world, EgFsRoot);
 	ECS_TAG_DEFINE(world, EgFsSockets);
 	ECS_TAG_DEFINE(world, EgFsDescriptors);
@@ -313,6 +313,7 @@ void EgFsImport(ecs_world_t *world)
 		.query.terms = {
 		{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter},
 		{.id = EgFsFile},
+		{.id = EgFsReader},
 		}});
 		ecs_doc_set_brief(world, s, "Reads the file content into EgFsContent component. It uses the the matched entities name as the file path.");
 	}
@@ -324,9 +325,9 @@ void EgFsImport(ecs_world_t *world)
 		.phase       = EcsOnUpdate,
 		.callback    = EgFsContent_Load,
 		.query.terms = {
-		{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
 		{.id = EgFsFile},
-		{.id = EgFsSync},
+		{.id = EgFsReader},
+		{.id = ecs_id(EgFsContent), .src.id = EcsSelf, .oper = EcsNot}, // Adds this
 		}});
 		ecs_doc_set_brief(world, s, "Reads the file content into EgFsContent component. It uses the the matched entities name as the file path.");
 	}
