@@ -1,7 +1,7 @@
 #include "EgGpusShaderFragment.h"
 #include <EgGpus.h>
-#include <egmisc.h>
 #include <ecsx.h>
+#include <ecsx/ecsx_file.h>
 #include <SDL3/SDL_gpu.h>
 
 void EgGpusShaderFragment_Create(ecs_iter_t *it)
@@ -11,7 +11,7 @@ void EgGpusShaderFragment_Create(ecs_iter_t *it)
 
 	for (int i = 0; i < it->count; i++, ++ci) {
 		size_t source_size = 0;
-		char const *source = eg_file_load_alloc(ci->path, &source_size);
+		char const *source = ecsx_file_load_alloc(ci->path, &source_size);
 
 		SDL_GPUShaderCreateInfo info = {};
 		info.code = source;

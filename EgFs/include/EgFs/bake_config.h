@@ -19,7 +19,6 @@
 
 /* Headers of public dependencies */
 #include <ecsx.h>
-#include <egmisc.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */

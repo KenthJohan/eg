@@ -36,7 +36,6 @@ Required libs: -lglslang -lSPIRV-Tools -lSPIRV-Tools-opt
 #include <glslang/Public/resource_limits_c.h>
 #include <EgFs.h>
 
-#include <egmisc.h>
 #include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgGlslangCreate);

@@ -19,7 +19,6 @@
 
 /* Headers of public dependencies */
 #include <EgFs.h>
-#include <egmisc.h>
 #include <ecsx.h>
 #include <flecs.h>
 

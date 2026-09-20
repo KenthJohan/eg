@@ -4,7 +4,7 @@
 	"value": {
 		"language": "c",
 		"public": true,
-		"use": ["ecsx", "egmisc", "flecs"]
+		"use": ["ecsx", "flecs"]
 	},
 	"lang.c": {
 		"c-standard": "c11",
@@ -12,6 +12,6 @@
 		"static": true,
 		"defines": [],
 		"cflags": [],
-		"lib": ["ecsx", "egmisc", "flecs"]
+		"lib": ["ecsx", "flecs"]
 	}
 }

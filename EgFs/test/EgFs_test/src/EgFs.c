@@ -1,6 +1,6 @@
 #include <EgFs_test.h>
+#include <ecsx/ecsx_file.h>
 #include <ecsx/ecsx_pathkind.h>
-#include <egmisc/eg_file.h>
 
 static ecs_world_t *world;
 

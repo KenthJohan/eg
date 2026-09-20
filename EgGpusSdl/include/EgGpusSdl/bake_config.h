@@ -20,7 +20,6 @@
 /* Headers of public dependencies */
 #include <EgGpus.h>
 #include <EgShapes.h>
-#include <egmisc.h>
 #include <ecsx.h>
 #include <flecs.h>
 

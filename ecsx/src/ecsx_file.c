@@ -1,9 +1,11 @@
-#include "egmisc/eg_file.h"
-#include <stdio.h>
+#include "ecsx/ecsx_file.h"
+
 #include <errno.h>
+#include <stdio.h>
+
 #include <flecs.h>
 
-char *eg_file_load_alloc(const char *filename, size_t *length)
+char *ecsx_file_load_alloc(const char *filename, size_t *length)
 {
 	char   *content = NULL;
 	int32_t bytes;
@@ -12,14 +14,12 @@ char *eg_file_load_alloc(const char *filename, size_t *length)
 		*length = 0;
 	}
 
-	/* Open file for reading */
 	FILE *file = ecs_os_fopen(filename, "r");
 	if (!file) {
 		ecs_err("%s (%s)", ecs_os_strerror(errno), filename);
 		goto error;
 	}
 
-	/* Determine file size */
 	fseek(file, 0, SEEK_END);
 	bytes = (int32_t)ftell(file);
 	if (bytes == -1) {
@@ -30,7 +30,6 @@ char *eg_file_load_alloc(const char *filename, size_t *length)
 	}
 	fseek(file, 0, SEEK_SET);
 
-	/* Load contents in memory */
 	content = ecs_os_malloc(bytes + 1);
 	size    = (size_t)bytes;
 	if (!(size = fread(content, 1, size, file)) && bytes) {
@@ -49,4 +48,3 @@ error:
 	ecs_os_free(content);
 	return NULL;
 }
-

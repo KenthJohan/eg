@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-int ecsx_os_popen_to_strbuf(const char *command, int *out_exit_code, ecs_strbuf_t *str)
+int ecsx_os_popen(const char *command, int *out_exit_code, ecs_strbuf_t *str)
 {
 	FILE *f = NULL;
 	// printf("popen: %s\n", command);

@@ -2,9 +2,9 @@
 #include "fd.h"
 #include <stdio.h>
 #include <ecsx.h>
+#include <ecsx/ecsx_file.h>
 #include <ecsx/ecsx_pathkind.h>
 #include <ecsx/ecsx_trace.h>
-#include <egmisc/eg_file.h>
 
 ECS_COMPONENT_DECLARE(EgFsWatch);
 ECS_COMPONENT_DECLARE(EgFsFd);
@@ -202,7 +202,7 @@ static void Observer_OnModify(ecs_iter_t *it)
 		char    *path    = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./"); // Allocates
 		EcsxPathKind path_type = ecsx_pathkind_get_path_type(path);
 		if (path_type == ECSX_PATHKIND_FILE) {
-			content = eg_file_load_alloc(path, &size);
+			content = ecsx_file_load_alloc(path, &size);
 		}
 		ecs_os_free(path);
 		if (!content) {

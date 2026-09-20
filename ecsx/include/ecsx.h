@@ -2,10 +2,12 @@
 
 #include <flecs.h>
 
+#include "ecsx/ecsx_file.h"
 #include "ecsx/ecsx_os_popen.h"
 #include "ecsx/ecsx_pathkind.h"
 #include "ecsx/ecsx_reparent.h"
 #include "ecsx/ecsx_ser.h"
+#include "ecsx/ecsx_str.h"
 #include "ecsx/ecsx_ops.h"
 #include "ecsx/ecsx_trace.h"
 #include "ecsx/ecsx_script.h"
