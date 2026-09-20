@@ -11,16 +11,34 @@
 	},
 	"test": {
 		"testsuites": [{
-			"id": "GpuResources",
+			"id": "GpuResourcesDevice",
 			"setup": true,
 			"teardown": true,
 			"testcases": [
 				"test_import",
-				"test_device_add_initializes_handle",
+				"test_device_add_initializes_handle"
+			]
+		}, {
+			"id": "GpuResourcesTexture",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
 				"test_texture_add_initializes_handle",
-				"test_invalid_texture_size_disables_entity",
+				"test_invalid_texture_size_disables_entity"
+			]
+		}, {
+			"id": "GpuResourcesShader",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
 				"test_vertex_shader_create",
-				"test_fragment_shader_create",
+				"test_fragment_shader_create"
+			]
+		}, {
+			"id": "GpuResourcesPipeline",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
 				"test_graphics_pipeline_create",
 				"test_graphics_pipeline_create_with_position_color_uv"
 			]

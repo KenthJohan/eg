@@ -4,28 +4,14 @@
 #include <EgFs.h>
 #include <EgShapes.h>
 #include <ecsx/ecsx_file.h>
-#include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_init.h>
 #include <stdlib.h>
 
 static ecs_world_t *world;
+static ecs_entity_t vertex_shader_file;
+static ecs_entity_t fragment_shader_file;
 
-static void GpuResources_set_shader(ecs_entity_t entity, EgGpusShaderStage stage, char const *path)
-{
-	size_t      size    = 0;
-	EgFsContent content = {
-	.data = ecsx_file_load_alloc(path, &size),
-	.size = (uint32_t)size,
-	};
-	ecs_entity_t shader_file = ecs_new(world);
-	ecs_set_ptr(world, shader_file, EgFsContent, &content);
-
-	ecs_add_pair(world, entity, EcsDependsOn, shader_file);
-	ecs_set(world, entity, EgGpusShaderCreateInfo, {.stage = stage});
-}
-
-void GpuResources_setup(void)
-{
+void GpuResourcesPipeline_setup(void) {
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
 		fprintf(stderr, "SDL_InitSubSystem failed: %s\n", SDL_GetError());
 		abort();
@@ -34,92 +20,28 @@ void GpuResources_setup(void)
 	ECS_IMPORT(world, EgGpus);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgGpusSdl);
+
+	size_t length = 0;
+	char *content = ecsx_file_load_alloc("data/vertex.spv", &length);
+	vertex_shader_file = ecs_new(world);
+	EgFsContent vertex_content = {.data = content, .size = (uint32_t)length};
+	ecs_set_ptr(world, vertex_shader_file, EgFsContent, &vertex_content);
+
+	length = 0;
+	content = ecsx_file_load_alloc("data/fragment.spv", &length);
+	fragment_shader_file = ecs_new(world);
+	EgFsContent fragment_content = {.data = content, .size = (uint32_t)length};
+	ecs_set_ptr(world, fragment_shader_file, EgFsContent, &fragment_content);
 }
 
-void GpuResources_teardown(void)
-{
+void GpuResourcesPipeline_teardown(void) {
+	ecs_delete(world, vertex_shader_file);
+	ecs_delete(world, fragment_shader_file);
 	ecs_fini(world);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-void GpuResources_test_import(void)
-{
-	test_assert(ecs_id(EgGpusDevice) != 0);
-	test_assert(ecs_id(EgGpusTexture) != 0);
-}
-
-void GpuResources_test_device_add_initializes_handle(void)
-{
-	ecs_entity_t device_entity = ecs_new(world);
-	ecs_add(world, device_entity, EgGpusDevice);
-
-	const EgGpusDevice *device = ecs_get(world, device_entity, EgGpusDevice);
-	test_assert(device != NULL);
-	test_assert(device->object == NULL);
-}
-
-void GpuResources_test_texture_add_initializes_handle(void)
-{
-	ecs_entity_t texture_entity = ecs_new(world);
-	ecs_add(world, texture_entity, EgGpusTexture);
-
-	const EgGpusTexture *texture = ecs_get(world, texture_entity, EgGpusTexture);
-	test_assert(texture != NULL);
-	test_assert(texture->object == NULL);
-}
-
-void GpuResources_test_invalid_texture_size_disables_entity(void)
-{
-	ecs_entity_t device_entity = ecs_new(world);
-	ecs_add(world, device_entity, EgGpusDevice);
-
-	ecs_entity_t texture_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
-	ecs_add(world, texture_entity, EgGpusTexture);
-	ecs_set(world, texture_entity, EgShapesRectangle, {.w = 0.0f, .h = 64.0f});
-
-	test_assert(ecs_has_id(world, texture_entity, EcsDisabled));
-}
-
-void GpuResources_test_vertex_shader_create(void)
-{
-	ecs_entity_t device_entity = ecs_new(world);
-	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
-	ecs_progress(world, 0.0f);
-
-	const EgGpusDevice *device = ecs_get(world, device_entity, EgGpusDevice);
-	test_assert(device != NULL);
-	test_assert(device->object != NULL);
-
-	ecs_entity_t shader_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
-	GpuResources_set_shader(shader_entity, EgGpusShaderStageVertex, "data/vertex.spv");
-	ecs_progress(world, 0.0f);
-
-	const EgGpusShader *shader = ecs_get(world, shader_entity, EgGpusShader);
-	test_assert(shader != NULL);
-	test_assert(shader->object != NULL);
-}
-
-void GpuResources_test_fragment_shader_create(void)
-{
-	ecs_entity_t device_entity = ecs_new(world);
-	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
-	ecs_progress(world, 0.0f);
-
-	const EgGpusDevice *device = ecs_get(world, device_entity, EgGpusDevice);
-	test_assert(device != NULL);
-	test_assert(device->object != NULL);
-
-	ecs_entity_t shader_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
-	GpuResources_set_shader(shader_entity, EgGpusShaderStageFragment, "data/fragment.spv");
-	ecs_progress(world, 0.0f);
-
-	const EgGpusShader *shader = ecs_get(world, shader_entity, EgGpusShader);
-	test_assert(shader != NULL);
-	test_assert(shader->object != NULL);
-}
-
-void GpuResources_test_graphics_pipeline_create(void)
-{
+void GpuResourcesPipeline_test_graphics_pipeline_create(void) {
 	typedef struct {
 		float x;
 		float y;
@@ -152,9 +74,11 @@ void GpuResources_test_graphics_pipeline_create(void)
 	ecs_progress(world, 0.0f);
 
 	ecs_entity_t vertex_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
-	GpuResources_set_shader(vertex_entity, EgGpusShaderStageVertex, "data/vertex.spv");
+	ecs_add_pair(world, vertex_entity, EcsDependsOn, vertex_shader_file);
+	ecs_set(world, vertex_entity, EgGpusShaderCreateInfo, {.stage = EgGpusShaderStageVertex});
 	ecs_entity_t fragment_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
-	GpuResources_set_shader(fragment_entity, EgGpusShaderStageFragment, "data/fragment.spv");
+	ecs_add_pair(world, fragment_entity, EcsDependsOn, fragment_shader_file);
+	ecs_set(world, fragment_entity, EgGpusShaderCreateInfo, {.stage = EgGpusShaderStageFragment});
 	ecs_progress(world, 0.0f);
 
 	ecs_entity_t pipeline_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
@@ -173,8 +97,7 @@ void GpuResources_test_graphics_pipeline_create(void)
 	test_assert(pipeline->info_num_vertex_attributes == 2);
 }
 
-void GpuResources_test_graphics_pipeline_create_with_position_color_uv(void)
-{
+void GpuResourcesPipeline_test_graphics_pipeline_create_with_position_color_uv(void) {
 	typedef struct {
 		float   position[3];
 		uint8_t color[4];
@@ -212,9 +135,11 @@ void GpuResources_test_graphics_pipeline_create_with_position_color_uv(void)
 	ecs_progress(world, 0.0f);
 
 	ecs_entity_t vertex_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
-	GpuResources_set_shader(vertex_entity, EgGpusShaderStageVertex, "data/vertex.spv");
+	ecs_add_pair(world, vertex_entity, EcsDependsOn, vertex_shader_file);
+	ecs_set(world, vertex_entity, EgGpusShaderCreateInfo, {.stage = EgGpusShaderStageVertex});
 	ecs_entity_t fragment_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
-	GpuResources_set_shader(fragment_entity, EgGpusShaderStageFragment, "data/fragment.spv");
+	ecs_add_pair(world, fragment_entity, EcsDependsOn, fragment_shader_file);
+	ecs_set(world, fragment_entity, EgGpusShaderCreateInfo, {.stage = EgGpusShaderStageFragment});
 	ecs_progress(world, 0.0f);
 
 	ecs_entity_t pipeline_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
@@ -233,3 +158,4 @@ void GpuResources_test_graphics_pipeline_create_with_position_color_uv(void)
 	test_assert(pipeline->object != NULL);
 	test_assert(pipeline->info_num_vertex_attributes == 3);
 }
+

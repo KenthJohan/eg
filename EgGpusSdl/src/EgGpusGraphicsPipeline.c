@@ -88,8 +88,7 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 			vertex_attributes[1].offset = sizeof(float) * 3;
 			*/
 
-			uint32_t info_num_vertex_attributes = EcsMember_to_SDL_GPUVertexAttribute_array(
-			vertex_attributes, world, field_component_src_entity);
+			uint32_t info_num_vertex_attributes = EcsMember_to_SDL_GPUVertexAttribute_array(vertex_attributes, world, field_component_src_entity);
 
 			pipelinedesc.vertex_input_state.num_vertex_buffers         = 1;
 			pipelinedesc.vertex_input_state.vertex_buffer_descriptions = &vertex_buffer_desc;
