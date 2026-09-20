@@ -5,6 +5,7 @@
 #include <ecsx/ecsx_file.h>
 #include <ecsx/ecsx_pathkind.h>
 #include <ecsx/ecsx_trace.h>
+#include "EgFsContent.h"
 
 ECS_COMPONENT_DECLARE(EgFsWatch);
 ECS_COMPONENT_DECLARE(EgFsFd);
@@ -15,6 +16,7 @@ ECS_TAG_DECLARE(EgFs);
 ECS_TAG_DECLARE(EgFsFile);
 ECS_TAG_DECLARE(EgFsDir);
 ECS_TAG_DECLARE(EgFsRoot);
+ECS_TAG_DECLARE(EgFsSync);
 ECS_TAG_DECLARE(EgFsCwd);
 ECS_TAG_DECLARE(EgFsSockets);
 ECS_TAG_DECLARE(EgFsDescriptors);
@@ -152,7 +154,7 @@ https://github.com/copilot/c/caff1387-5a8d-4db9-a850-e167ba83926d
 static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_value_t *argv, ecs_value_t *result)
 {
 	int loglvl = 0;
-	
+
 	if (argc < 1) {
 		ecs_err("callback_newpath: insufficient arguments");
 		return;
@@ -200,49 +202,7 @@ static void Observer_OnModify_extra(ecs_world_t *world, ecs_entity_t e)
 	}
 }
 
-static void Observer_OnModify(ecs_iter_t *it)
-{
-	int32_t loglvl = 0;
 
-	ecs_world_t *world = it->world;
-
-	EgFsContent *c = ecs_field_self(it, EgFsContent, 0);
-
-	for (int i = 0; i < it->count; ++i) {
-		ecs_entity_t e = it->entities[i];
-		if (c[i].data) {
-			// Free previous content
-			ecs_log(loglvl, "free %i bytes previous EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
-			ecs_os_free(c[i].data);
-			c[i].data = NULL;
-			c[i].size = 0;
-		}
-		ecs_log(loglvl, "loading content for entity '%s'", ecs_get_name(world, e));
-		// Paths stored as entities and its hierarchy mirrors the filesystem structure.
-		// Allocate and build path from entity hierarchy, seperated by "/" and prefixed by "./"
-		char *path = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./");
-
-		ecsx_pathkind_t path_type = ecsx_pathkind_get_path_type(path);
-
-		size_t size    = 0;
-		void  *content = NULL;
-		if (path_type == ECSX_PATHKIND_FILE) {
-			content = ecsx_file_load_alloc(path, &size);
-		}
-		ecs_os_free(path);
-		if (!content) {
-			ecs_err("failed to load file for entity '%s'", ecs_get_name(world, e));
-		} else {
-			c[i].data = content;
-			c[i].size = (uint32_t)size;
-			ecs_log(loglvl, "loaded %u bytes into EgFsContent for entity '%s'", c[i].size, ecs_get_name(world, e));
-			Observer_OnModify_extra(world, e);
-			// Add EgFsDump to dump content in System_Dump
-			// ecs_add(world, e, EgFsDump);
-		}
-	}
-	ecs_log_set_level(-1);
-}
 
 static void System_Dump(ecs_iter_t *it)
 {
@@ -290,6 +250,7 @@ void EgFsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgFsContent);
 
 	ECS_TAG_DEFINE(world, EgFsCwd);
+	ECS_TAG_DEFINE(world, EgFsSync);
 	ECS_TAG_DEFINE(world, EgFsRoot);
 	ECS_TAG_DEFINE(world, EgFsSockets);
 	ECS_TAG_DEFINE(world, EgFsDescriptors);
@@ -360,12 +321,23 @@ void EgFsImport(ecs_world_t *world)
 
 	ecs_observer_init(world,
 	&(ecs_observer_desc_t){
-	.entity      = ecs_entity(world, {.name = "Observer_OnModify"}),
-	.callback    = Observer_OnModify,
+	.entity      = ecs_entity(world, {.name = "EgFsContent_Load_Observer"}),
+	.callback    = EgFsContent_Load,
 	.events      = {EgFsEventModify},
 	.query.terms = {
 	{.id = ecs_id(EgFsContent), .inout = EcsInOutFilter},
 	{.id = EgFsFile},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgFsContent_Load_System"}),
+	.phase       = EcsOnUpdate,
+	.callback    = EgFsContent_Load,
+	.query.terms = {
+	{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
+	{.id = EgFsFile},
+	{.id = EgFsSync},
 	}});
 
 	ecs_system_init(world,
