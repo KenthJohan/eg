@@ -13,6 +13,8 @@ void TestEgFs_setup(void);
 void TestEgFs_teardown(void);
 void TestEgFs_test_path_type_schemes(void);
 void TestEgFs_test_path1_script_function(void);
+void TestEgFs_test_path1_same_entity_for_same_path(void);
+void TestEgFs_test_path1_nested_path_creates_child_entity(void);
 
 bake_test_case TestEgFs_testcases[] = {
     {
@@ -22,6 +24,14 @@ bake_test_case TestEgFs_testcases[] = {
     {
         "test_path1_script_function",
         TestEgFs_test_path1_script_function
+    },
+    {
+        "test_path1_same_entity_for_same_path",
+        TestEgFs_test_path1_same_entity_for_same_path
+    },
+    {
+        "test_path1_nested_path_creates_child_entity",
+        TestEgFs_test_path1_nested_path_creates_child_entity
     }
 };
 
@@ -30,7 +40,7 @@ static bake_test_suite suites[] = {
         "TestEgFs",
         TestEgFs_setup,
         TestEgFs_teardown,
-        2,
+        4,
         TestEgFs_testcases
     }
 };

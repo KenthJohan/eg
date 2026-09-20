@@ -16,7 +16,9 @@
             "teardown": true,
             "testcases": [
                 "test_path_type_schemes",
-                "test_path1_script_function"
+                "test_path1_script_function",
+                "test_path1_same_entity_for_same_path",
+                "test_path1_nested_path_creates_child_entity"
             ]
         }]
     },
