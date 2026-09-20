@@ -12,10 +12,10 @@ typedef struct {
 } EgSpirvReflect;
 
 typedef struct {
-	int32_t base_type;
+	int32_t      base_type;
 	ecs_entity_t type;
-	uint32_t vector_size;
-	uint32_t bit_width;
+	uint32_t     vector_size;
+	uint32_t     bit_width;
 } EgSpirvShaderInput;
 
 extern ECS_COMPONENT_DECLARE(EgSpirvReflect);
