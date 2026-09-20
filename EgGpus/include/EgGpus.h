@@ -44,9 +44,15 @@ typedef struct
 	void *object;
 } EgGpusShader;
 
+typedef enum
+{
+	EgGpusShaderStageVertex,
+	EgGpusShaderStageFragment,
+} EgGpusShaderStage;
+
 typedef struct
 {
-	int32_t stage;
+	EgGpusShaderStage stage;
 } EgGpusShaderCreateInfo;
 
 extern ECS_COMPONENT_DECLARE(EgGpusDevice);
@@ -57,6 +63,7 @@ extern ECS_COMPONENT_DECLARE(EgGpusLocation);
 extern ECS_COMPONENT_DECLARE(EgGpusGraphicsPipeline);
 extern ECS_COMPONENT_DECLARE(EgGpusGraphicsPipelineCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgGpusShader);
+extern ECS_COMPONENT_DECLARE(EgGpusShaderStage);
 extern ECS_COMPONENT_DECLARE(EgGpusShaderCreateInfo);
 
 void EgGpusImport(ecs_world_t *world);

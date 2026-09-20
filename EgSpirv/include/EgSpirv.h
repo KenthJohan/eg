@@ -8,7 +8,7 @@
 #endif
 
 typedef struct {
-	int32_t stage;
+	EgGpusShaderStage stage;
 } EgSpirvReflect;
 
 typedef struct {

@@ -48,7 +48,7 @@ void EgSpirvImport(ecs_world_t *world)
 	&(ecs_struct_desc_t){
 	.entity  = ecs_id(EgSpirvReflect),
 	.members = {
-	{.name = "stage", .type = ecs_id(ecs_i32_t)},
+	{.name = "stage", .type = ecs_id(EgGpusShaderStage)},
 	}});
 
 	ecs_struct_init(world,
@@ -68,6 +68,6 @@ void EgSpirvImport(ecs_world_t *world)
 	.phase       = EcsOnUpdate,
 	.query.terms = {
 	{.id = ecs_id(EgSpirvReflect), .src.id = EcsSelf}, // removes this
-	{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
+	{.id = ecs_id(EgFsContent), .trav = EcsDependsOn, .src.id = EcsUp},
 	}});
 }

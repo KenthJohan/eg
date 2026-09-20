@@ -39,9 +39,9 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 				if (shader_info == NULL || shader == NULL) {
 					continue;
 				}
-				if (shader_info->stage == SDL_GPU_SHADERSTAGE_VERTEX) {
+				if (shader_info->stage == EgGpusShaderStageVertex) {
 					vertex_shader = shader->object;
-				} else if (shader_info->stage == SDL_GPU_SHADERSTAGE_FRAGMENT) {
+				} else if (shader_info->stage == EgGpusShaderStageFragment) {
 					fragment_shader = shader->object;
 				}
 			}

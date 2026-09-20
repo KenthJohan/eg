@@ -58,7 +58,7 @@ void EgGpusSdlImport(ecs_world_t *world)
 	ecs_system(world,
 	{.entity     = ecs_entity(world, {.name = "EgGpusGraphicsPipeline_Create"}),
 	.callback    = EgGpusGraphicsPipeline_Create,
-	.phase    = EcsOnUpdate,
+	.phase       = EcsOnUpdate,
 	.query.terms = {
 	{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgGpusGraphicsPipelineCreateInfo), .src.id = EcsSelf},
@@ -68,14 +68,14 @@ void EgGpusSdlImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-		.entity   = ecs_entity(world, {.name = "EgGpusShader_Create"}),
-		.callback = EgGpusShader_Create,
+	.entity   = ecs_entity(world, {.name = "EgGpusShader_Create"}),
+	.callback = EgGpusShader_Create,
 	.phase    = EcsOnUpdate,
 	.query.terms =
 	{
 	{.id = ecs_id(EgGpusDevice), .src.id = EcsUp, .trav = EcsChildOf},
-		{.id = ecs_id(EgGpusShaderCreateInfo), .src.id = EcsSelf},
-		{.id = ecs_id(EgFsContent), .src.id = EcsSelf},
-		{.id = ecs_id(EgGpusShader), .oper = EcsNot}, // Adds this
+	{.id = ecs_id(EgGpusShaderCreateInfo), .src.id = EcsSelf},
+	{.id = ecs_id(EgFsContent), .trav = EcsDependsOn, .src.id = EcsUp},
+	{.id = ecs_id(EgGpusShader), .oper = EcsNot}, // Adds this
 	}});
 }

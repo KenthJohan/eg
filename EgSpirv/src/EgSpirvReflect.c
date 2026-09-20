@@ -34,6 +34,18 @@ static ecs_entity_t EgSpirv_flecs_type(spvc_basetype base_type)
 	}
 }
 
+static SpvExecutionModel EgSpirv_execution_model(EgGpusShaderStage stage)
+{
+	switch (stage) {
+	case EgGpusShaderStageVertex:
+		return SpvExecutionModelVertex;
+	case EgGpusShaderStageFragment:
+		return SpvExecutionModelFragment;
+	default:
+		return SpvExecutionModelMax;
+	}
+}
+
 static bool EgSpirv_reflect_inputs(ecs_world_t *world, ecs_entity_t shader_entity, const EgSpirvReflect *reflect, const EgFsContent *content)
 {
 	spvc_context                   context     = NULL;
@@ -54,7 +66,7 @@ static bool EgSpirv_reflect_inputs(ecs_world_t *world, ecs_entity_t shader_entit
 	    spvc_context_parse_spirv(context, words, count, &ir) != SPVC_SUCCESS ||
 	    spvc_context_create_compiler(context, SPVC_BACKEND_NONE, ir,
 	    SPVC_CAPTURE_MODE_TAKE_OWNERSHIP, &compiler) != SPVC_SUCCESS ||
-	    spvc_compiler_get_execution_model(compiler) != (SpvExecutionModel)reflect->stage ||
+	    spvc_compiler_get_execution_model(compiler) != EgSpirv_execution_model(reflect->stage) ||
 	    spvc_compiler_create_shader_resources(compiler, &resources) != SPVC_SUCCESS ||
 	    spvc_resources_get_resource_list_for_type(resources,
 	    SPVC_RESOURCE_TYPE_STAGE_INPUT, &inputs, &input_count) != SPVC_SUCCESS) {
@@ -83,7 +95,7 @@ void EgSpirvReflect_System(ecs_iter_t *it)
 	ecs_world_t *world = it->world;
 
 	EgSpirvReflect *r = ecs_field_self(it, EgSpirvReflect, 0);
-	EgFsContent    *c = ecs_field_self(it, EgFsContent, 1);
+	EgFsContent    *c = ecs_field_shared(it, EgFsContent, 1);
 
 	for (int i = 0; i < it->count; ++i, ++r, ++c) {
 		ecs_entity_t e = it->entities[i];
