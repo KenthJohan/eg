@@ -15,6 +15,7 @@
             "setup": true,
             "teardown": true,
             "testcases": [
+                "test_path_type_schemes",
                 "test_path1_script_function"
             ]
         }]

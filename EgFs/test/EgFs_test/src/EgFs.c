@@ -1,4 +1,6 @@
 #include <EgFs_test.h>
+#include <ecsx/ecsx_pathkind.h>
+#include <egmisc/eg_file.h>
 
 static ecs_world_t *world;
 
@@ -11,6 +13,13 @@ void EgFs_setup(void)
 void EgFs_teardown(void)
 {
 	ecs_fini(world);
+}
+
+void EgFs_test_path_type_schemes(void)
+{
+	test_int(ecsx_pathkind_get_path_type("udp://127.0.0.1:5000"), ECSX_PATHKIND_UDP);
+	test_int(ecsx_pathkind_get_path_type("tcp://127.0.0.1:5000"), ECSX_PATHKIND_TCP);
+	test_int(ecsx_pathkind_get_path_type("http://example.com"), ECSX_PATHKIND_HTTP);
 }
 
 void EgFs_test_path1_script_function(void)

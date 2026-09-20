@@ -11,9 +11,14 @@
 // Testsuite 'EgFs'
 void EgFs_setup(void);
 void EgFs_teardown(void);
+void EgFs_test_path_type_schemes(void);
 void EgFs_test_path1_script_function(void);
 
 bake_test_case EgFs_testcases[] = {
+    {
+        "test_path_type_schemes",
+        EgFs_test_path_type_schemes
+    },
     {
         "test_path1_script_function",
         EgFs_test_path1_script_function
@@ -25,7 +30,7 @@ static bake_test_suite suites[] = {
         "EgFs",
         EgFs_setup,
         EgFs_teardown,
-        1,
+        2,
         EgFs_testcases
     }
 };

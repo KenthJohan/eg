@@ -1,7 +1,5 @@
 #include "egmisc/eg_file.h"
 #include <stdio.h>
-#include <sys/stat.h>
-#include <string.h>
 #include <errno.h>
 #include <flecs.h>
 
@@ -52,19 +50,3 @@ error:
 	return NULL;
 }
 
-
-uint32_t eg_file_get_path_flags(const char *path)
-{
-	struct stat path_stat;
-	if (stat(path, &path_stat) != 0) {
-		return FS_PATH_NONE; // Error accessing the path
-	}
-
-	if (S_ISREG(path_stat.st_mode)) {
-		return FS_PATH_FILE;
-	} else if (S_ISDIR(path_stat.st_mode)) {
-		return FS_PATH_DIR;
-	} else {
-		return FS_PATH_OTHER;
-	}
-}

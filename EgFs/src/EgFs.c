@@ -2,6 +2,7 @@
 #include "fd.h"
 #include <stdio.h>
 #include <ecsx.h>
+#include <ecsx/ecsx_pathkind.h>
 #include <ecsx/ecsx_trace.h>
 #include <egmisc/eg_file.h>
 
@@ -89,23 +90,23 @@ static ECS_DTOR(EgFsContent, ptr, {
 
 ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 {
-	ecs_entity_t parent = 0;
-	uint32_t     flags  = 0;
+	ecs_entity_t    parent    = 0;
+	EcsxPathKind path_type = ECSX_PATHKIND_NONE;
 	if ((path[0] == '.') && (path[1] == '/')) {
 		parent = EgFsCwd;
-		flags  = eg_file_get_path_flags(path);
+		path_type = ecsx_pathkind_get_path_type(path);
 		path += 2;
 	} else if (path[0] == '/') {
 		parent = EgFsRoot;
-		flags  = eg_file_get_path_flags(path);
+		path_type = ecsx_pathkind_get_path_type(path);
 		path += 1;
 	} else {
 		return 0;
 	}
 	ecs_id_t f = 0;
-	if (flags & FS_PATH_FILE) {
+	if (path_type == ECSX_PATHKIND_FILE) {
 		f = ecs_id(EgFsFile);
-	} else if (flags & FS_PATH_DIR) {
+	} else if (path_type == ECSX_PATHKIND_DIR) {
 		f = ecs_id(EgFsDir);
 	} else {
 		return 0;
@@ -114,8 +115,7 @@ ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 	&(ecs_entity_desc_t){
 	.name   = path,
 	.sep    = "/",
-	.parent = parent
-	});
+	.parent = parent});
 	ecs_add_id(world, e, f);
 	return e;
 }
@@ -136,8 +136,7 @@ static void callback_newpath(const ecs_function_ctx_t *ctx, int argc, const ecs_
 	const char  *path  = *(char **)argv[0].ptr;
 	// char cwd[1024];
 	// getcwd(cwd, sizeof(cwd));
-	ecs_entity_t e = 0;
-	e              = EgFs_create_path_entity(world, path);
+	ecs_entity_t e = EgFs_create_path_entity(world, path);
 	if (e) {
 		char *p = ecs_get_path_w_sep(world, EgFsSockets, e, ":", NULL);
 		ecs_trace("newpath '%s' -> '%s' entity:0x%jX", path, p, (uintmax_t)e);
@@ -201,8 +200,8 @@ static void Observer_OnModify(ecs_iter_t *it)
 		size_t   size    = 0;
 		void    *content = NULL;
 		char    *path    = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./"); // Allocates
-		uint32_t flags   = eg_file_get_path_flags(path);
-		if (flags & FS_PATH_FILE) {
+		EcsxPathKind path_type = ecsx_pathkind_get_path_type(path);
+		if (path_type == ECSX_PATHKIND_FILE) {
 			content = eg_file_load_alloc(path, &size);
 		}
 		ecs_os_free(path);

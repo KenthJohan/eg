@@ -3,6 +3,7 @@
 #include <flecs.h>
 
 #include "ecsx/ecsx_os_popen.h"
+#include "ecsx/ecsx_pathkind.h"
 #include "ecsx/ecsx_reparent.h"
 #include "ecsx/ecsx_ser.h"
 #include "ecsx/ecsx_ops.h"
