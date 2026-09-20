@@ -4,7 +4,7 @@
 	"value": {
 		"language": "c",
 		"public": true,
-		"use": ["EgGpus", "flecs"]
+		"use": ["EgFs", "EgGpus", "flecs"]
 	},
 	"lang.c": {
 		"c-standard": "c11",

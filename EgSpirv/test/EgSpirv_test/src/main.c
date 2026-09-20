@@ -13,7 +13,7 @@ void Spirv_setup(void);
 void Spirv_teardown(void);
 void Spirv_test_import(void);
 void Spirv_test_reflect_vertex_inputs(void);
-void Spirv_test_invalid_shader_path_disables_entity(void);
+void Spirv_test_invalid_shader_data_disables_entity(void);
 void Spirv_test_wrong_stage_disables_entity(void);
 
 bake_test_case Spirv_testcases[] = {
@@ -26,8 +26,8 @@ bake_test_case Spirv_testcases[] = {
         Spirv_test_reflect_vertex_inputs
     },
     {
-        "test_invalid_shader_path_disables_entity",
-        Spirv_test_invalid_shader_path_disables_entity
+        "test_invalid_shader_data_disables_entity",
+        Spirv_test_invalid_shader_data_disables_entity
     },
     {
         "test_wrong_stage_disables_entity",

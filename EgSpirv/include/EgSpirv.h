@@ -1,4 +1,5 @@
 #pragma once
+#include <EgFs.h>
 #include <EgGpus.h>
 #include <flecs.h>
 
@@ -7,14 +8,8 @@
 #endif
 
 typedef struct {
-	char const *path;
 	int32_t stage;
-} EgSpirvShaderCreateInfo;
-
-typedef struct {
-	uint32_t *words;
-	uint32_t word_count;
-} EgSpirvShader;
+} EgSpirvReflect;
 
 typedef struct {
 	int32_t base_type;
@@ -23,8 +18,7 @@ typedef struct {
 	uint32_t bit_width;
 } EgSpirvShaderInput;
 
-extern ECS_COMPONENT_DECLARE(EgSpirvShaderCreateInfo);
-extern ECS_COMPONENT_DECLARE(EgSpirvShader);
+extern ECS_COMPONENT_DECLARE(EgSpirvReflect);
 extern ECS_COMPONENT_DECLARE(EgSpirvShaderInput);
 extern ecs_entity_t EgSpirvBaseType;
 

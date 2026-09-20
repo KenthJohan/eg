@@ -14,12 +14,12 @@
 			"testcases": [
 				"test_import",
 				"test_reflect_vertex_inputs",
-				"test_invalid_shader_path_disables_entity",
+				"test_invalid_shader_data_disables_entity",
 				"test_wrong_stage_disables_entity"
 			]
 		}]
 	},
 	"lang.c": {
-			"lib": ["EgSpirv", "EgGpus", "flecs", "spirv-cross-c-shared"]
+			"lib": ["EgSpirv", "EgGpus", "EgFs", "flecs", "spirv-cross-c-shared"]
 	}
 }

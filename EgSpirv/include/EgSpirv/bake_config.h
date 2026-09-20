@@ -18,6 +18,7 @@
 #define EGSPIRV_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
+#include <EgFs.h>
 #include <EgGpus.h>
 #include <flecs.h>
 
