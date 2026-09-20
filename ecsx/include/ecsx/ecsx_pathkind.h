@@ -1,6 +1,6 @@
 #pragma once
 
-typedef enum EcsxPathKind {
+typedef enum {
 	ECSX_PATHKIND_NONE,
 	ECSX_PATHKIND_DIR,
 	ECSX_PATHKIND_FILE,
@@ -9,6 +9,6 @@ typedef enum EcsxPathKind {
 	ECSX_PATHKIND_UDP,
 	ECSX_PATHKIND_TCP,
 	ECSX_PATHKIND_HTTP
-} EcsxPathKind;
+} ecsx_pathkind_t;
 
-EcsxPathKind ecsx_pathkind_get_path_type(const char *path);
+ecsx_pathkind_t ecsx_pathkind_get_path_type(const char *path);

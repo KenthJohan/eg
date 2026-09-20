@@ -91,7 +91,7 @@ static ECS_DTOR(EgFsContent, ptr, {
 ecs_entity_t EgFs_create_path_entity(ecs_world_t *world, char const *path)
 {
 	ecs_entity_t    parent    = 0;
-	EcsxPathKind path_type = ECSX_PATHKIND_NONE;
+	ecsx_pathkind_t path_type = ECSX_PATHKIND_NONE;
 	if ((path[0] == '.') && (path[1] == '/')) {
 		parent = EgFsCwd;
 		path_type = ecsx_pathkind_get_path_type(path);
@@ -200,7 +200,7 @@ static void Observer_OnModify(ecs_iter_t *it)
 		size_t   size    = 0;
 		void    *content = NULL;
 		char    *path    = ecs_get_path_w_sep(world, EgFsCwd, e, "/", "./"); // Allocates
-		EcsxPathKind path_type = ecsx_pathkind_get_path_type(path);
+		ecsx_pathkind_t path_type = ecsx_pathkind_get_path_type(path);
 		if (path_type == ECSX_PATHKIND_FILE) {
 			content = ecsx_file_load_alloc(path, &size);
 		}

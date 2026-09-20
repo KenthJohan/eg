@@ -3,7 +3,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-EcsxPathKind ecsx_pathkind_get_path_type(const char *path)
+ecsx_pathkind_t ecsx_pathkind_get_path_type(const char *path)
 {
 	struct stat path_stat;
 	if (strncmp(path, "udp://", 6) == 0) {
