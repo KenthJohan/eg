@@ -1,11 +1,6 @@
 #pragma once
 #include <flecs.h>
 
-#include "EgFs/EgFsEpoll.h"
-#include "EgFs/EgFsFanotify.h"
-#include "EgFs/EgFsInotify.h"
-#include "EgFs/EgFsSocket.h"
-
 #define EGFS_FD_ENTITY_OFFSET 1000
 
 #ifdef __cplusplus

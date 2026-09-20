@@ -1,6 +1,6 @@
 #include "EgFs.h"
 #include "EgFs/EgFsInotify.h"
-#include "fd.h"
+#include "EgFs/fd.h"
 #include <stdio.h>
 #include <ecsx.h>
 

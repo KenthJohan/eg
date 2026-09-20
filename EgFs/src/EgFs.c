@@ -1,5 +1,5 @@
 #include "EgFs.h"
-#include "fd.h"
+#include "EgFs/fd.h"
 #include <stdio.h>
 #include <ecsx.h>
 #include <ecsx/ecsx_file.h>

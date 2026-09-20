@@ -1,6 +1,6 @@
 #include "EgFs.h"
 #include "EgFs/EgFsSocket.h"
-#include "fd.h"
+#include "EgFs/fd.h"
 #include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgFsSocketCreate);
