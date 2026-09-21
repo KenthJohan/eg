@@ -42,18 +42,20 @@ void EgGpusSdlImport(ecs_world_t *world)
 	{.id = ecs_id(EgGpusDevice), .oper = EcsNot}, // Adds this
 	}});
 
-	// Recreate textures when the associated rectangle changes
-	ecs_observer_init(world,
-	&(ecs_observer_desc_t){
-	.entity      = ecs_entity(world, {.name = "Observer_EgGpuTexture"}),
-	.callback    = EgGpusTexture_Observer,
-	.events      = {EcsOnSet},
-	.query.terms = {
-	{.id = ecs_id(EgShapesRectangle)},
-	{.id = ecs_id(EgGpusTexture), .inout = EcsInOutFilter},
-	{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
-	{.id = ecs_id(EgGpusTextureCreateInfo), .oper = EcsOptional, .inout = EcsInOutFilter},
-	}});
+	{
+		ecs_entity_t s = ecs_observer_init(world,
+		&(ecs_observer_desc_t){
+		.entity      = ecs_entity(world, {.name = "EgGpusTexture_Observer"}),
+		.callback    = EgGpusTexture_Observer,
+		.events      = {EcsOnSet},
+		.query.terms = {
+		{.id = ecs_id(EgShapesRectangle)},
+		{.id = ecs_id(EgGpusTexture), .inout = EcsInOutFilter},
+		{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutFilter},
+		{.id = ecs_id(EgGpusTextureCreateInfo), .oper = EcsOptional, .inout = EcsInOutFilter},
+		}});
+		ecs_doc_set_brief(world, s, "Recreate textures when the associated rectangle changes.");
+	}
 
 	ecs_system(world,
 	{.entity     = ecs_entity(world, {.name = "EgGpusGraphicsPipeline_Create"}),

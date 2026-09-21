@@ -2,25 +2,26 @@
 #include "EgGpusDevice.h"
 #include <SDL3/SDL_gpu.h>
 #include <EgShapes.h>
+#include <ecsx.h>
 
 void EgGpusTexture_add(ecs_iter_t *it)
 {
-	EgGpusTexture *texture = ecs_field(it, EgGpusTexture, 0);
+	EgGpusTexture *t = ecs_field(it, EgGpusTexture, 0);
 
-	for (int i = 0; i < it->count; i++, texture++) {
-		texture->object = NULL;
+	for (int i = 0; i < it->count; ++i, ++t) {
+		t->object = NULL;
 	}
 }
 
 void EgGpusTexture_remove(ecs_iter_t *it)
 {
-    int32_t loglvl = 0;
+	int32_t loglvl = 0;
 
 	ecs_world_t *world = it->world;
 
-	EgGpusTexture *texture = ecs_field(it, EgGpusTexture, 0);
+	EgGpusTexture *t = ecs_field(it, EgGpusTexture, 0);
 
-	for (int i = 0; i < it->count; i++, texture++) {
+	for (int i = 0; i < it->count; ++i, ++t) {
 		ecs_entity_t e = it->entities[i];
 
 		ecs_entity_t parent = ecs_get_parent(world, e);
@@ -28,28 +29,28 @@ void EgGpusTexture_remove(ecs_iter_t *it)
 			continue;
 		}
 		const EgGpusDevice *device = ecs_get(world, parent, EgGpusDevice);
-		if (texture->object && device && device->object) {
+		if (t->object && device && device->object) {
 			ecs_log(loglvl, EG_GPUS_LOGTAG "Releasing GPU texture: %s", ecs_get_name(world, e));
-			SDL_ReleaseGPUTexture(device->object, texture->object);
+			SDL_ReleaseGPUTexture(device->object, t->object);
 		}
 	}
 }
 
 void EgGpusTexture_Observer(ecs_iter_t *it)
 {
-    int32_t loglvl = 0;
+	int32_t loglvl = 0;
 
 	ecs_world_t *world = it->world;
 	if (it->event_id != ecs_id(EgShapesRectangle)) {
 		return;
 	}
 
-	EgShapesRectangle       *r      = ecs_field(it, EgShapesRectangle, 0); // self
-	EgGpusTexture           *t      = ecs_field(it, EgGpusTexture, 1);     // self
-	EgGpusDevice            *g      = ecs_field(it, EgGpusDevice, 2);      // shared
-	EgGpusTextureCreateInfo *create = ecs_field(it, EgGpusTextureCreateInfo, 3);
+	EgShapesRectangle       *r = ecs_field_self(it, EgShapesRectangle, 0);
+	EgGpusTexture           *t = ecs_field_self(it, EgGpusTexture, 1);
+	EgGpusDevice            *g = ecs_field_shared(it, EgGpusDevice, 2);
+	EgGpusTextureCreateInfo *c = ecs_field_self(it, EgGpusTextureCreateInfo, 3);
 
-	for (int i = 0; i < it->count; ++i, ++r, ++t) {
+	for (int i = 0; i < it->count; ++i, ++r, ++t, ++c) {
 		ecs_entity_t e = it->entities[i];
 
 		if (r->w < 1.0f || r->h < 1.0f || r->w > UINT32_MAX || r->h > UINT32_MAX) {
@@ -68,7 +69,7 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 		info.height                   = (uint32_t)r->h;
 		info.layer_count_or_depth     = 1;
 		info.num_levels               = 1;
-		info.sample_count             = create ? create[i].sample_count : 1;
+		info.sample_count             = c ? c[i].sample_count : 1;
 		info.usage                    = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
 		info.props                    = 0;
 		t->object                     = SDL_CreateGPUTexture(g->object, &info);
