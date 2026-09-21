@@ -63,7 +63,7 @@ void EgGpusImport(ecs_world_t *world)
 	.members = {
 	{.name = "location", .type = ecs_id(ecs_i32_t)},
 	}});
-	
+
 	ecs_struct(world,
 	{.entity = ecs_id(EgGpusGraphicsPipeline),
 	.members = {
@@ -75,6 +75,8 @@ void EgGpusImport(ecs_world_t *world)
 	{.entity = ecs_id(EgGpusGraphicsPipelineCreateInfo),
 	.members = {
 	{.name = "sample_count", .type = ecs_id(ecs_i32_t)},
+	{.name = "shader_vertex", .type = ecs_id(ecs_entity_t)},
+	{.name = "shader_fragment", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_struct(world,

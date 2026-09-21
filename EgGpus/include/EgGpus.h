@@ -30,13 +30,15 @@ typedef struct
 
 typedef struct
 {
-	void *object;
+	void    *object;
 	uint32_t info_num_vertex_attributes;
 } EgGpusGraphicsPipeline;
 
 typedef struct
 {
-	int32_t sample_count;
+	int32_t      sample_count;
+	ecs_entity_t shader_vertex;
+	ecs_entity_t shader_fragment;
 } EgGpusGraphicsPipelineCreateInfo;
 
 typedef struct
@@ -44,8 +46,7 @@ typedef struct
 	void *object;
 } EgGpusShader;
 
-typedef enum
-{
+typedef enum {
 	EgGpusShaderStageVertex,
 	EgGpusShaderStageFragment,
 } EgGpusShaderStage;
