@@ -21,6 +21,7 @@
 #include <EgGpus.h>
 #include <EgFs.h>
 #include <EgShapes.h>
+#include <EgSpatials.h>
 #include <ecsx.h>
 #include <flecs.h>
 
