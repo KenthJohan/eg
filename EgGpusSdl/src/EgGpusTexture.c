@@ -41,9 +41,6 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 	int32_t loglvl = 0;
 
 	ecs_world_t *world = it->world;
-	if (it->event_id != ecs_id(EgShapesRectangle)) {
-		return;
-	}
 
 	EgShapesRectangle       *r = ecs_field_self(it, EgShapesRectangle, 0);
 	EgGpusTexture           *t = ecs_field_self(it, EgGpusTexture, 1);
@@ -80,4 +77,5 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 		}
 		SDL_SetGPUTextureName(g->object, t->object, ecs_get_name(world, e));
 	} // END FOR LOOP
+	ecs_enable(world, it->system, true);
 }
