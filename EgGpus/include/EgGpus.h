@@ -37,14 +37,17 @@ typedef struct
 typedef struct
 {
 	int32_t      sample_count;
-	ecs_entity_t shader_vertex;
-	ecs_entity_t shader_fragment;
 } EgGpusGraphicsPipelineCreateInfo;
 
 typedef struct
 {
 	void *object;
-} EgGpusShader;
+} EgGpusShaderVertex;
+
+typedef struct
+{
+	void *object;
+} EgGpusShaderFragment;
 
 typedef enum {
 	EgGpusShaderStageVertex,
@@ -63,7 +66,8 @@ extern ECS_COMPONENT_DECLARE(EgGpusTextureCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgGpusLocation);
 extern ECS_COMPONENT_DECLARE(EgGpusGraphicsPipeline);
 extern ECS_COMPONENT_DECLARE(EgGpusGraphicsPipelineCreateInfo);
-extern ECS_COMPONENT_DECLARE(EgGpusShader);
+extern ECS_COMPONENT_DECLARE(EgGpusShaderVertex);
+extern ECS_COMPONENT_DECLARE(EgGpusShaderFragment);
 extern ECS_COMPONENT_DECLARE(EgGpusShaderStage);
 extern ECS_COMPONENT_DECLARE(EgGpusShaderCreateInfo);
 

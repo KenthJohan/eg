@@ -55,7 +55,7 @@ void GpuResourcesShader_test_vertex_shader_create(void) {
 	ecs_set(world, shader_entity, EgGpusShaderCreateInfo, {.stage = EgGpusShaderStageVertex});
 	ecs_progress(world, 0.0f);
 
-	const EgGpusShader *shader = ecs_get(world, shader_entity, EgGpusShader);
+	const EgGpusShaderVertex *shader = ecs_get(world, shader_entity, EgGpusShaderVertex);
 	test_assert(shader != NULL);
 	test_assert(shader->object != NULL);
 }
@@ -74,7 +74,7 @@ void GpuResourcesShader_test_fragment_shader_create(void) {
 	ecs_set(world, shader_entity, EgGpusShaderCreateInfo, {.stage = EgGpusShaderStageFragment});
 	ecs_progress(world, 0.0f);
 
-	const EgGpusShader *shader = ecs_get(world, shader_entity, EgGpusShader);
+	const EgGpusShaderFragment *shader = ecs_get(world, shader_entity, EgGpusShaderFragment);
 	test_assert(shader != NULL);
 	test_assert(shader->object != NULL);
 }

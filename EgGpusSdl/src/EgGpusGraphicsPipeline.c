@@ -23,27 +23,27 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 	EgGpusGraphicsPipelineCreateInfo *c = ecs_field_self(it, EgGpusGraphicsPipelineCreateInfo, 1); // self
 	EcsComponent                     *h = ecs_field_shared(it, EcsComponent, 2);                   // shared
 	ecs_entity_t                      k = ecs_field_src(it, 2);                                    // shared
+	EgGpusShaderVertex               *v = ecs_field_shared(it, EgGpusShaderVertex, 3);             // shared
+	EgGpusShaderFragment             *f = ecs_field_shared(it, EgGpusShaderFragment, 4);           // shared
 
 	for (int i = 0; i < it->count; ++i, ++c) {
 		ecs_entity_t e = it->entities[i];
 		ecs_log(loglvl, "Entity: '%s'", ecs_get_name(world, e));
 		ecs_log_push_(loglvl);
 
-		EgGpusShader const *vertex_shader   = ecs_get(world, c->shader_vertex, EgGpusShader);
-		EgGpusShader const *fragment_shader = ecs_get(world, c->shader_fragment, EgGpusShader);
+		SDL_GPUVertexBufferDescription buf = {0};
+		buf.slot                           = 0;
+		buf.input_rate                     = SDL_GPU_VERTEXINPUTRATE_VERTEX;
+		buf.instance_step_rate             = 0;
+		buf.pitch                          = h->size;
 
-		if (!vertex_shader || !fragment_shader) {
-			ecs_err("Failed to get shaders");
-			ecs_enable(world, e, false);
-			continue;
-		}
+		SDL_GPUColorTargetDescription color = {0};
+		color.format                        = SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
 
-		SDL_GPUColorTargetDescription     color                 = {0};
-		SDL_GPUVertexAttribute            attrs[MAX_ATTRIBUTES] = {0};
-		SDL_GPUVertexBufferDescription    buf                   = {0};
-		SDL_GPUGraphicsPipelineCreateInfo desc                  = {0};
+		SDL_GPUVertexAttribute attrs[MAX_ATTRIBUTES] = {0};
+		Uint32                 attrs_count           = EcsMember_to_SDL_GPUVertexAttribute_array(attrs, world, k);
 
-		color.format                                       = SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
+		SDL_GPUGraphicsPipelineCreateInfo desc             = {0};
 		desc.target_info.num_color_targets                 = 1;
 		desc.target_info.color_target_descriptions         = &color;
 		desc.target_info.depth_stencil_format              = SDL_GPU_TEXTUREFORMAT_D16_UNORM;
@@ -53,18 +53,15 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 		desc.depth_stencil_state.compare_op                = SDL_GPU_COMPAREOP_LESS_OR_EQUAL;
 		desc.multisample_state.sample_count                = c->sample_count;
 		desc.primitive_type                                = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
-		desc.vertex_shader                                 = vertex_shader->object;
-		desc.fragment_shader                               = fragment_shader->object;
-		buf.slot                                           = 0;
-		buf.input_rate                                     = SDL_GPU_VERTEXINPUTRATE_VERTEX;
-		buf.instance_step_rate                             = 0;
-		buf.pitch                                          = h->size;
+		desc.vertex_shader                                 = v->object;
+		desc.fragment_shader                               = f->object;
 		desc.vertex_input_state.num_vertex_buffers         = 1;
 		desc.vertex_input_state.vertex_buffer_descriptions = &buf;
-		desc.vertex_input_state.vertex_attributes          = (SDL_GPUVertexAttribute *)&attrs;
-		desc.vertex_input_state.num_vertex_attributes      = EcsMember_to_SDL_GPUVertexAttribute_array(attrs, world, k);
+		desc.vertex_input_state.vertex_attributes          = attrs;
+		desc.vertex_input_state.num_vertex_attributes      = attrs_count;
 		desc.props                                         = 0;
-		SDL_GPUGraphicsPipeline *pipeline                  = SDL_CreateGPUGraphicsPipeline(g->object, &desc);
+
+		SDL_GPUGraphicsPipeline *pipeline = SDL_CreateGPUGraphicsPipeline(g->object, &desc);
 		if (pipeline == NULL) {
 			ecs_err("SDL_CreateGPUGraphicsPipeline() failed");
 			ecs_enable(world, e, false);

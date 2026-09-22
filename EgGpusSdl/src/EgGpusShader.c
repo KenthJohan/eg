@@ -36,6 +36,11 @@ void EgGpusShader_Create(ecs_iter_t *it)
 			ecs_enable(it->world, e, false);
 			continue;
 		}
-		ecs_set(it->world, e, EgGpusShader, {.object = shader});
+
+		if (ci->stage == EgGpusShaderStageVertex) {
+			ecs_set(it->world, e, EgGpusShaderVertex, {.object = shader});
+		} else if (ci->stage == EgGpusShaderStageFragment) {
+			ecs_set(it->world, e, EgGpusShaderFragment, {.object = shader});
+		}
 	}
 }

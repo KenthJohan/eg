@@ -66,6 +66,8 @@ void EgGpusSdlImport(ecs_world_t *world)
 	{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgGpusGraphicsPipelineCreateInfo), .src.id = EcsSelf},
 	{.id = ecs_id(EcsComponent), .trav = EcsDependsOn, .src.id = EcsUp},
+	{.id = ecs_id(EgGpusShaderVertex), .trav = EcsDependsOn, .src.id = EcsUp},
+	{.id = ecs_id(EgGpusShaderFragment), .trav = EcsDependsOn, .src.id = EcsUp},
 	{.id = ecs_id(EgGpusGraphicsPipeline), .oper = EcsNot}, // Adds this
 	}});
 
@@ -79,6 +81,7 @@ void EgGpusSdlImport(ecs_world_t *world)
 	{.id = ecs_id(EgGpusDevice), .src.id = EcsUp, .trav = EcsChildOf},
 	{.id = ecs_id(EgGpusShaderCreateInfo), .src.id = EcsSelf},
 	{.id = ecs_id(EgFsContent), .trav = EcsDependsOn, .src.id = EcsUp},
-	{.id = ecs_id(EgGpusShader), .oper = EcsNot}, // Adds this
+	{.id = ecs_id(EgGpusShaderVertex), .oper = EcsNot},   // Adds this
+	{.id = ecs_id(EgGpusShaderFragment), .oper = EcsNot}, // Adds this
 	}});
 }

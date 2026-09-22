@@ -7,7 +7,8 @@ ECS_COMPONENT_DECLARE(EgGpusTextureCreateInfo);
 ECS_COMPONENT_DECLARE(EgGpusLocation);
 ECS_COMPONENT_DECLARE(EgGpusGraphicsPipeline);
 ECS_COMPONENT_DECLARE(EgGpusGraphicsPipelineCreateInfo);
-ECS_COMPONENT_DECLARE(EgGpusShader);
+ECS_COMPONENT_DECLARE(EgGpusShaderVertex);
+ECS_COMPONENT_DECLARE(EgGpusShaderFragment);
 ECS_COMPONENT_DECLARE(EgGpusShaderStage);
 ECS_COMPONENT_DECLARE(EgGpusShaderCreateInfo);
 
@@ -23,7 +24,8 @@ void EgGpusImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgGpusLocation);
 	ECS_COMPONENT_DEFINE(world, EgGpusGraphicsPipeline);
 	ECS_COMPONENT_DEFINE(world, EgGpusGraphicsPipelineCreateInfo);
-	ECS_COMPONENT_DEFINE(world, EgGpusShader);
+	ECS_COMPONENT_DEFINE(world, EgGpusShaderVertex);
+	ECS_COMPONENT_DEFINE(world, EgGpusShaderFragment);
 	ECS_COMPONENT_DEFINE(world, EgGpusShaderStage);
 	ECS_COMPONENT_DEFINE(world, EgGpusShaderCreateInfo);
 
@@ -32,7 +34,8 @@ void EgGpusImport(ecs_world_t *world)
 	.entity    = ecs_id(EgGpusShaderStage),
 	.constants = {
 	{.name = "Vertex", .value = EgGpusShaderStageVertex},
-	{.name = "Fragment", .value = EgGpusShaderStageFragment}}});
+	{.name = "Fragment", .value = EgGpusShaderStageFragment},
+	}});
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgGpusDeviceCreateInfo),
@@ -75,12 +78,16 @@ void EgGpusImport(ecs_world_t *world)
 	{.entity = ecs_id(EgGpusGraphicsPipelineCreateInfo),
 	.members = {
 	{.name = "sample_count", .type = ecs_id(ecs_i32_t)},
-	{.name = "shader_vertex", .type = ecs_id(ecs_entity_t)},
-	{.name = "shader_fragment", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(EgGpusShader),
+	{.entity = ecs_id(EgGpusShaderVertex),
+	.members = {
+	{.name = "object", .type = ecs_id(ecs_uptr_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgGpusShaderFragment),
 	.members = {
 	{.name = "object", .type = ecs_id(ecs_uptr_t)},
 	}});
