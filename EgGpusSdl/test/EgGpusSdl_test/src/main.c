@@ -20,6 +20,16 @@ void GpuResourcesTexture_teardown(void);
 void GpuResourcesTexture_test_texture_add_initializes_handle(void);
 void GpuResourcesTexture_test_invalid_texture_size_disables_entity(void);
 
+// Testsuite 'GpuResourcesBuffer'
+void GpuResourcesBuffer_setup(void);
+void GpuResourcesBuffer_teardown(void);
+void GpuResourcesBuffer_test_create(void);
+
+// Testsuite 'GpuResourcesSampler'
+void GpuResourcesSampler_setup(void);
+void GpuResourcesSampler_teardown(void);
+void GpuResourcesSampler_test_create(void);
+
 // Testsuite 'GpuResourcesShader'
 void GpuResourcesShader_setup(void);
 void GpuResourcesShader_teardown(void);
@@ -51,6 +61,20 @@ bake_test_case GpuResourcesTexture_testcases[] = {
     {
         "test_invalid_texture_size_disables_entity",
         GpuResourcesTexture_test_invalid_texture_size_disables_entity
+    }
+};
+
+bake_test_case GpuResourcesBuffer_testcases[] = {
+    {
+        "test_create",
+        GpuResourcesBuffer_test_create
+    }
+};
+
+bake_test_case GpuResourcesSampler_testcases[] = {
+    {
+        "test_create",
+        GpuResourcesSampler_test_create
     }
 };
 
@@ -92,6 +116,20 @@ static bake_test_suite suites[] = {
         GpuResourcesTexture_testcases
     },
     {
+        "GpuResourcesBuffer",
+        GpuResourcesBuffer_setup,
+        GpuResourcesBuffer_teardown,
+        1,
+        GpuResourcesBuffer_testcases
+    },
+    {
+        "GpuResourcesSampler",
+        GpuResourcesSampler_setup,
+        GpuResourcesSampler_teardown,
+        1,
+        GpuResourcesSampler_testcases
+    },
+    {
         "GpuResourcesShader",
         GpuResourcesShader_setup,
         GpuResourcesShader_teardown,
@@ -108,5 +146,5 @@ static bake_test_suite suites[] = {
 };
 
 int main(int argc, char *argv[]) {
-    return bake_test_run("EgGpusSdl_test", argc, argv, suites, 4);
+    return bake_test_run("EgGpusSdl_test", argc, argv, suites, 6);
 }

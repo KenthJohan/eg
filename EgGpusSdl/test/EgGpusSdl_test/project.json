@@ -27,6 +27,20 @@
 				"test_invalid_texture_size_disables_entity"
 			]
 		}, {
+			"id": "GpuResourcesBuffer",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+				"test_create"
+			]
+		}, {
+			"id": "GpuResourcesSampler",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+				"test_create"
+			]
+		}, {
 			"id": "GpuResourcesShader",
 			"setup": true,
 			"teardown": true,

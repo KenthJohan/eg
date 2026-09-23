@@ -5,6 +5,16 @@
 #include <EgShapes.h>
 #include <ecsx.h>
 
+static SDL_GPUTextureFormat EgGpusTexture_format(EgGpusTextureFormat format)
+{
+	return format == EgGpusTextureFormatRgba8Unorm ? SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM : SDL_GPU_TEXTUREFORMAT_D16_UNORM;
+}
+
+static SDL_GPUTextureUsageFlags EgGpusTexture_usage(EgGpusTextureUsage usage)
+{
+	return usage == EgGpusTextureUsageSampled ? SDL_GPU_TEXTUREUSAGE_SAMPLER : SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+}
+
 void EgGpusTexture_add(ecs_iter_t *it)
 {
 	EgGpusTexture *t = ecs_field(it, EgGpusTexture, 0);
@@ -62,13 +72,13 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 		}
 		SDL_GPUTextureCreateInfo info = {0};
 		info.type                     = SDL_GPU_TEXTURETYPE_2D;
-		info.format                   = SDL_GPU_TEXTUREFORMAT_D16_UNORM;
+		info.format                   = EgGpusTexture_format(c ? c[i].format : EgGpusTextureFormatD16Unorm);
 		info.width                    = (uint32_t)r->w;
 		info.height                   = (uint32_t)r->h;
 		info.layer_count_or_depth     = 1;
 		info.num_levels               = 1;
 		info.sample_count             = EgGpusSdl_SampleCountToEnum(c ? c[i].sample_count : 1);
-		info.usage                    = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
+		info.usage                    = EgGpusTexture_usage(c ? c[i].usage : EgGpusTextureUsageDepthStencil);
 		info.props                    = 0;
 		t->object                     = SDL_CreateGPUTexture(g->object, &info);
 		if (!t->object) {
