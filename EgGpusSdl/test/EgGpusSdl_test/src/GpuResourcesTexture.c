@@ -38,6 +38,11 @@ void GpuResourcesTexture_test_invalid_texture_size_disables_entity(void) {
 
 	ecs_entity_t texture_entity = ecs_new_w_pair(world, EcsChildOf, device_entity);
 	ecs_add(world, texture_entity, EgGpusTexture);
+	ecs_set(world, texture_entity, EgGpusTextureCreateInfo, {
+	.sample_count = 1,
+	.usage = EgGpusTextureUsageDepthStencil,
+	.format = EgGpusTextureFormatD16Unorm,
+	});
 	ecs_set(world, texture_entity, EgShapesRectangle, {.w = 0.0f, .h = 64.0f});
 
 	test_assert(ecs_has_id(world, texture_entity, EcsDisabled));

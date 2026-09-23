@@ -99,7 +99,7 @@ void EgGpusSdlImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle)},
 	{.id = ecs_id(EgGpusTexture)},
 	{.id = ecs_id(EgGpusDevice), .trav = EcsChildOf, .src.id = EcsUp},
-	{.id = ecs_id(EgGpusTextureCreateInfo), .oper = EcsOptional},
+	{.id = ecs_id(EgGpusTextureCreateInfo)},
 	}});
 
 	ecs_system_init(world,
