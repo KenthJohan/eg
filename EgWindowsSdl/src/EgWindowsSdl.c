@@ -144,7 +144,7 @@ static void System_Events_Update(ecs_iter_t *it)
 	EgButtonsState *s = ecs_field(it, EgButtonsState, 0); // Singleton
 
 	ecs_entity_t e = ecs_field_src(it, 0); // The entity that has the EgButtonsState component
-	(void)e; // Unused variable warning
+	(void)e;                               // Unused variable warning
 
 	for (int i = 0; i < EG_BUTTONS_SCANCODES_MAX; ++i) {
 		s->scancode[i] &= ~(EG_BUTTONS_STATE_PRESSED | EG_BUTTONS_STATE_RELEASED);
@@ -158,6 +158,7 @@ static void System_Events_Update(ecs_iter_t *it)
 		// SDLTest_CommonEvent(state, &event, &done);
 		switch (event.type) {
 		case SDL_EVENT_QUIT:
+			ecs_add(it->world, ecs_id(EgWindows), EgWindowsQuit);
 			break;
 		case SDL_EVENT_WINDOW_RESIZED:
 		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
@@ -249,7 +250,6 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgButtons);
 	ecs_set_name_prefix(world, "EgWindowsSdl");
-
 
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgShapes);

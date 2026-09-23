@@ -1,5 +1,6 @@
 #include "EgGpusTexture.h"
 #include "EgGpusDevice.h"
+#include "misc.h"
 #include <SDL3/SDL_gpu.h>
 #include <EgShapes.h>
 #include <ecsx.h>
@@ -66,7 +67,7 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 		info.height                   = (uint32_t)r->h;
 		info.layer_count_or_depth     = 1;
 		info.num_levels               = 1;
-		info.sample_count             = c ? c[i].sample_count : 1;
+		info.sample_count             = EgGpusSdl_SampleCountToEnum(c ? c[i].sample_count : 1);
 		info.usage                    = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
 		info.props                    = 0;
 		t->object                     = SDL_CreateGPUTexture(g->object, &info);

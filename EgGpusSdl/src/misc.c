@@ -2,6 +2,20 @@
 #include <EgGpus.h>
 #include <EgSpatials.h>
 
+SDL_GPUSampleCount EgGpusSdl_SampleCountToEnum(uint32_t sample_count)
+{
+	switch (sample_count) {
+	case 2:
+		return SDL_GPU_SAMPLECOUNT_2;
+	case 4:
+		return SDL_GPU_SAMPLECOUNT_4;
+	case 8:
+		return SDL_GPU_SAMPLECOUNT_8;
+	default:
+		return SDL_GPU_SAMPLECOUNT_1;
+	}
+}
+
 void EcsMember_to_SDL_GPUVertexAttribute(SDL_GPUVertexAttribute *attribute, ecs_world_t *world, ecs_entity_t entity)
 {
 	const EcsMember *member = ecs_get(world, entity, EcsMember);

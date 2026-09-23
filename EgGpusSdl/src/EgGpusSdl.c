@@ -30,6 +30,18 @@ void EgGpusSdlImport(ecs_world_t *world)
 	.on_add    = EgGpusTexture_add,
 	.on_remove = EgGpusTexture_remove,
 	});
+	ecs_set_hooks(world, EgGpusGraphicsPipeline,
+	{
+	.on_remove = EgGpusGraphicsPipeline_remove,
+	});
+	ecs_set_hooks(world, EgGpusShaderVertex,
+	{
+	.on_remove = EgGpusShaderVertex_remove,
+	});
+	ecs_set_hooks(world, EgGpusShaderFragment,
+	{
+	.on_remove = EgGpusShaderFragment_remove,
+	});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){

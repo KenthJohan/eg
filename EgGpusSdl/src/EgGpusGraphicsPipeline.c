@@ -51,7 +51,7 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 		desc.depth_stencil_state.enable_depth_test         = true;
 		desc.depth_stencil_state.enable_depth_write        = true;
 		desc.depth_stencil_state.compare_op                = SDL_GPU_COMPAREOP_LESS_OR_EQUAL;
-		desc.multisample_state.sample_count                = c->sample_count;
+		desc.multisample_state.sample_count                = EgGpusSdl_SampleCountToEnum(c->sample_count);
 		desc.primitive_type                                = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
 		desc.vertex_shader                                 = v->object;
 		desc.fragment_shader                               = f->object;
@@ -73,4 +73,27 @@ void EgGpusGraphicsPipeline_Create(ecs_iter_t *it)
 		ecs_log_pop_(loglvl);
 	} // END FOR LOOP
 	ecs_log_pop_(loglvl);
+}
+
+void EgGpusGraphicsPipeline_remove(ecs_iter_t *it)
+{
+	int32_t loglvl = 0;
+
+	ecs_world_t *world = it->world;
+
+	EgGpusGraphicsPipeline *p = ecs_field(it, EgGpusGraphicsPipeline, 0);
+
+	for (int i = 0; i < it->count; ++i, ++p) {
+		ecs_entity_t e = it->entities[i];
+
+		ecs_entity_t parent = ecs_get_parent(world, e);
+		if (!parent) {
+			continue;
+		}
+		const EgGpusDevice *device = ecs_get(world, parent, EgGpusDevice);
+		if (p->object && device && device->object) {
+			ecs_log(loglvl, EG_GPUS_LOGTAG "Releasing GPU pipeline: %s", ecs_get_name(world, e));
+			SDL_ReleaseGPUGraphicsPipeline(device->object, p->object);
+		}
+	}
 }
