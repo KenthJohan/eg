@@ -58,8 +58,9 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 	EgGpusDevice            *g = ecs_field_shared(it, EgGpusDevice, 2);
 	EgGpusTextureCreateInfo *c = ecs_field_self(it, EgGpusTextureCreateInfo, 3);
 
-	for (int i = 0; i < it->count; ++i, ++r, ++t, ++c) {
+	for (int i = 0; i < it->count; ++i, ++r, ++t) {
 		ecs_entity_t e = it->entities[i];
+		const EgGpusTextureCreateInfo *create = c ? &c[i] : NULL;
 
 		if (r->w < 1.0f || r->h < 1.0f || r->w > UINT32_MAX || r->h > UINT32_MAX) {
 			ecs_log(loglvl, EG_GPUS_LOGTAG "Invalid texture size (%f %f)", r->w, r->h);
@@ -72,13 +73,13 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 		}
 		SDL_GPUTextureCreateInfo info = {0};
 		info.type                     = SDL_GPU_TEXTURETYPE_2D;
-		info.format                   = EgGpusTexture_format(c ? c[i].format : EgGpusTextureFormatD16Unorm);
+		info.format                   = EgGpusTexture_format(create ? create->format : EgGpusTextureFormatD16Unorm);
 		info.width                    = (uint32_t)r->w;
 		info.height                   = (uint32_t)r->h;
 		info.layer_count_or_depth     = 1;
 		info.num_levels               = 1;
-		info.sample_count             = EgGpusSdl_SampleCountToEnum(c ? c[i].sample_count : 1);
-		info.usage                    = EgGpusTexture_usage(c ? c[i].usage : EgGpusTextureUsageDepthStencil);
+		info.sample_count             = EgGpusSdl_SampleCountToEnum(create ? create->sample_count : 1);
+		info.usage                    = EgGpusTexture_usage(create ? create->usage : EgGpusTextureUsageDepthStencil);
 		info.props                    = 0;
 		t->object                     = SDL_CreateGPUTexture(g->object, &info);
 		if (!t->object) {
