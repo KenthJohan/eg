@@ -2,6 +2,7 @@
 #include <EgGpus.h>
 #include <EgFs.h>
 #include <EgShapes.h>
+#include <EgSpatials.h>
 #include <SDL3/SDL_gpu.h>
 
 #include "EgGpusDevice.h"
@@ -20,6 +21,7 @@ void EgGpusSdlImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgGpus);
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgShapes);
+	ECS_IMPORT(world, EgSpatials);
 	ecs_set_scope(world, module);
 
 	ecs_set_hooks(world, EgGpusDevice,
