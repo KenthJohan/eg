@@ -24,12 +24,12 @@ void EgGpusShader_Create(ecs_iter_t *it)
 		info.stage                   = (SDL_GPUShaderStage)ci->stage;
 		info.format                  = SDL_GPU_SHADERFORMAT_SPIRV;
 		// Vertex stage uses a uniform buffer (scale/translate); fragment stage samples a texture.
-		info.num_uniform_buffers     = ci->stage == EgGpusShaderStageVertex ? 1 : 0;
-		info.num_storage_buffers     = 0;
-		info.num_storage_textures    = 0;
-		info.num_samplers            = ci->stage == EgGpusShaderStageFragment ? 1 : 0;
-		info.code                    = content->data;
-		info.code_size               = content->size;
+		info.num_uniform_buffers  = ci->stage == EgGpusShaderStageVertex ? 1 : 0;
+		info.num_storage_buffers  = 0;
+		info.num_storage_textures = 0;
+		info.num_samplers         = ci->stage == EgGpusShaderStageFragment ? 1 : 0;
+		info.code                 = content->data;
+		info.code_size            = content->size;
 
 		SDL_GPUShader *shader = SDL_CreateGPUShader((SDL_GPUDevice *)device->object, &info);
 		if (!shader) {
@@ -48,15 +48,23 @@ void EgGpusShader_Create(ecs_iter_t *it)
 
 static void EgGpusShader_release_object(ecs_world_t *world, ecs_entity_t e, void *shader_object)
 {
+	if (!shader_object) {
+		ecs_err(EG_GPUS_LOGTAG "Shader (%s) has no shader object", ecs_get_name(world, e));
+		return;
+	}
 	ecs_entity_t parent = ecs_get_parent(world, e);
 	if (!parent) {
+		ecs_err(EG_GPUS_LOGTAG "Shader (%s) has no parent device", ecs_get_name(world, e));
 		return;
 	}
 	const EgGpusDevice *device = ecs_get(world, parent, EgGpusDevice);
-	if (shader_object && device && device->object) {
-		ecs_log(0, EG_GPUS_LOGTAG "Releasing GPU shader: %s", ecs_get_name(world, e));
-		SDL_ReleaseGPUShader((SDL_GPUDevice *)device->object, (SDL_GPUShader *)shader_object);
+	if (!device || !device->object) {
+		ecs_err(EG_GPUS_LOGTAG "Shader (%s) has no valid parent device object", ecs_get_name(world, e));
+		return;
 	}
+	// This check is now redundant because it's included in the previous check.
+	ecs_log(0, EG_GPUS_LOGTAG "Releasing GPU shader: %s", ecs_get_name(world, e));
+	SDL_ReleaseGPUShader((SDL_GPUDevice *)device->object, (SDL_GPUShader *)shader_object);
 }
 
 void EgGpusShaderVertex_remove(ecs_iter_t *it)

@@ -35,15 +35,24 @@ void EgGpusTexture_remove(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++t) {
 		ecs_entity_t e = it->entities[i];
 
+		if (!t->object) {
+			ecs_err(EG_GPUS_LOGTAG "Texture (%s) has no GPU texture object", ecs_get_name(world, e));
+			continue;
+		}
+
 		ecs_entity_t parent = ecs_get_parent(world, e);
 		if (!parent) {
+			ecs_err(EG_GPUS_LOGTAG "Texture (%s) has no parent device", ecs_get_name(world, e));
 			continue;
 		}
 		const EgGpusDevice *device = ecs_get(world, parent, EgGpusDevice);
-		if (t->object && device && device->object) {
-			ecs_log(loglvl, EG_GPUS_LOGTAG "Releasing GPU texture: %s", ecs_get_name(world, e));
-			SDL_ReleaseGPUTexture(device->object, t->object);
+		if (!device || !device->object) {
+			ecs_err(EG_GPUS_LOGTAG "Texture (%s) has no valid parent device object", ecs_get_name(world, e));
+			continue;
 		}
+
+		ecs_log(loglvl, EG_GPUS_LOGTAG "Releasing GPU texture: %s", ecs_get_name(world, e));
+		SDL_ReleaseGPUTexture(device->object, t->object);
 	}
 }
 
