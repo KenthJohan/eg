@@ -58,16 +58,11 @@ static ECS_COPY(EgFsContent, dst, src, {
 */
 
 ECS_CTOR(EgFsContent, ptr, {
-	ecs_log_set_level(0);
-	ecs_trace("CTOR EgFsContent");
 	ptr->data = NULL;
 	ptr->size = 0;
-	ecs_log_set_level(-1);
 })
 
 static ECS_MOVE(EgFsContent, dst, src, {
-	ecs_log_set_level(0);
-	ecs_trace("MOVE EgFsContent src=%i, dst=%i", src->size, dst->size);
 	if (dst) {
 		ecs_os_free(dst->data);
 	}
@@ -80,14 +75,10 @@ static ECS_MOVE(EgFsContent, dst, src, {
 		dst->data = NULL;
 		dst->size = 0;
 	}
-	ecs_log_set_level(-1);
 })
 
 static ECS_DTOR(EgFsContent, ptr, {
-	ecs_log_set_level(0);
-	ecs_trace("DTOR EgFsContent %i", ptr->size);
 	ecs_os_free(ptr->data);
-	ecs_log_set_level(-1);
 })
 
 /*

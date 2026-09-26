@@ -75,7 +75,7 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 			ecs_enable(world, it->entities[i], false);
 			continue;
 		}
-		ecs_log(loglvl, EG_GPUS_LOGTAG "Changing texture (%s) to size (%f %f)\n", ecs_get_name(world, e), r->w, r->h);
+		ecs_log(loglvl, EG_GPUS_LOGTAG "Changing texture (%s) to size (%f %f)", ecs_get_name(world, e), r->w, r->h);
 		if (t->object) {
 			SDL_ReleaseGPUTexture(g->object, t->object);
 		}
