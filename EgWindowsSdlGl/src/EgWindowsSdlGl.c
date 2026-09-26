@@ -8,6 +8,7 @@
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_opengl.h>
+#include <SDL3/SDL_version.h>
 
 #include <EgShapes.h>
 #include <EgSpatials.h>
@@ -75,11 +76,18 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 
 void EgWindowsSdlGlImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgWindowsSdlGl);
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgButtons);
 	ECS_IMPORT(world, FlecsAlerts);
+
+	ECS_MODULE(world, EgWindowsSdlGl);
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
+
+	const int compiled = SDL_VERSION;
+	const int linked   = SDL_GetVersion();
+	ecs_log(-1, "EgDisplaysSdl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
+	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
+	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
 
 	ecs_system(world,
 	{.entity  = ecs_entity(world, {.name = "System_Render"}),
@@ -98,6 +106,8 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	.callback    = System_EgWindowsOpenGLContext_Create,
 	.immediate   = true,
 	.query.terms = {
-	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf}, {.id = ecs_id(EgWindowsOpenGLContextCreate), .src.id = EcsSelf}, {.id = ecs_id(EgWindowsOpenGLContext), .oper = EcsNot}, // Adds this
+	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf},
+	{.id = ecs_id(EgWindowsOpenGLContextCreate), .src.id = EcsSelf},
+	{.id = ecs_id(EgWindowsOpenGLContext), .oper = EcsNot}, // Adds this
 	}});
 }

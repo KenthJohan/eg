@@ -4,6 +4,7 @@
 #include <EgShapes.h>
 #include <EgSpatials.h>
 #include <SDL3/SDL_gpu.h>
+#include <SDL3/SDL_version.h>
 
 #include "EgGpusDevice.h"
 #include "EgGpusBuffer.h"
@@ -14,15 +15,19 @@
 
 void EgGpusSdlImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgGpusSdl);
-	ecs_set_name_prefix(world, "EgGpusSdl");
-	ecs_entity_t module = ecs_get_scope(world);
-	ecs_set_scope(world, 0);
 	ECS_IMPORT(world, EgGpus);
 	ECS_IMPORT(world, EgFs);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
-	ecs_set_scope(world, module);
+
+	ECS_MODULE(world, EgGpusSdl);
+	ecs_set_name_prefix(world, "EgGpusSdl");
+
+	const int compiled = SDL_VERSION;
+	const int linked   = SDL_GetVersion();
+	ecs_log(-1, "EgDisplaysSdl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
+	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
+	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
 
 	ecs_set_hooks(world, EgGpusDevice,
 	{

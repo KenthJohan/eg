@@ -7,6 +7,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_mouse.h>
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_version.h>
 
 #include <EgShapes.h>
 #include <EgSpatials.h>
@@ -246,14 +247,19 @@ static void System_Resize(ecs_iter_t *it)
 
 void EgWindowsSdlImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgWindowsSdl);
 	ECS_IMPORT(world, EgWindows);
 	ECS_IMPORT(world, EgButtons);
-	ecs_set_name_prefix(world, "EgWindowsSdl");
-
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgShapes);
-	ECS_IMPORT(world, EgButtons);
+
+	ECS_MODULE(world, EgWindowsSdl);
+	ecs_set_name_prefix(world, "EgWindowsSdl");
+
+	const int compiled = SDL_VERSION;
+	const int linked   = SDL_GetVersion();
+	ecs_log(-1, "EgDisplaysSdl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
+	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
+	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
 
 	ecs_map_init(&static_window_map, NULL);
 

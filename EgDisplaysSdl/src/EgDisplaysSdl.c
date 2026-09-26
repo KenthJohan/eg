@@ -8,22 +8,23 @@
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_video.h>
+#include <SDL3/SDL_version.h>
 
 static void private_list_modes(ecs_world_t *world, ecs_entity_t parent, SDL_DisplayID displayID)
 {
 	SDL_DisplayMode **modes;
 	/* Print available fullscreen video modes */
-	int m;
+	int                    m;
 	const SDL_DisplayMode *mode;
 	modes = SDL_GetFullscreenDisplayModes(displayID, &m);
 	if (m == 0) {
 		ecs_err("No available fullscreen video modes");
 		return;
 	}
-	
+
 	for (int j = 0; j < m; ++j) {
 		mode = modes[j];
-		int bpp;
+		int    bpp;
 		Uint32 Rmask, Gmask, Bmask, Amask;
 		SDL_GetMasksForPixelFormat(mode->format, &bpp, &Rmask, &Gmask, &Bmask, &Amask);
 
@@ -32,10 +33,10 @@ static void private_list_modes(ecs_world_t *world, ecs_entity_t parent, SDL_Disp
 		ecs_entity_t e = ecs_entity_init(world, &(ecs_entity_desc_t){.name = buf, .parent = parent});
 		ecs_set(world, e, EgDisplaysMode, {.bpp = bpp, .refresh_rate = mode->refresh_rate, .pixel_density = mode->pixel_density});
 		ecs_set(world, e, EgShapesRectangle, {.w = mode->w, .h = mode->h});
-		
+
 		snprintf(buf, sizeof(buf), "%i: %dx%d@%gx %gHz, %d bits-per-pixel (%s)", j, mode->w, mode->h, mode->pixel_density, mode->refresh_rate, bpp, SDL_GetPixelFormatName(mode->format));
 		ecs_doc_set_name(world, e, buf);
-		//SDL_Log("Mode %d: %dx%d@%gx %gHz, %d bits-per-pixel (%s)\n", j, mode->w, mode->h, mode->pixel_density, mode->refresh_rate, bpp, SDL_GetPixelFormatName(mode->format));
+		// SDL_Log("Mode %d: %dx%d@%gx %gHz, %d bits-per-pixel (%s)\n", j, mode->w, mode->h, mode->pixel_density, mode->refresh_rate, bpp, SDL_GetPixelFormatName(mode->format));
 	}
 
 	SDL_free(modes);
@@ -44,12 +45,12 @@ static void private_list_modes(ecs_world_t *world, ecs_entity_t parent, SDL_Disp
 static void private_list_displays(ecs_world_t *world, ecs_entity_t parent)
 {
 	SDL_DisplayID *displays;
-	SDL_Rect bounds, usablebounds;
-	int bpp;
-	Uint32 Rmask, Gmask, Bmask, Amask;
+	SDL_Rect       bounds, usablebounds;
+	int            bpp;
+	Uint32         Rmask, Gmask, Bmask, Amask;
 #ifdef SDL_VIDEO_DRIVER_WINDOWS
 	int adapterIndex = 0;
-	int outputIndex = 0;
+	int outputIndex  = 0;
 #endif
 	int n;
 	displays = SDL_GetDisplays(&n);
@@ -113,10 +114,18 @@ static void System_EgDisplaysUpdate(ecs_iter_t *it)
 
 void EgDisplaysSdlImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgDisplaysSdl);
-	ecs_set_name_prefix(world, "EgDisplaysSdl");
 	ECS_IMPORT(world, EgDisplays);
 	ECS_IMPORT(world, EgShapes);
+	
+	ECS_MODULE(world, EgDisplaysSdl);
+	ecs_set_name_prefix(world, "EgDisplaysSdl");
+
+	const int compiled = SDL_VERSION;
+	const int linked   = SDL_GetVersion();
+	ecs_log(-1, "EgDisplaysSdl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
+	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
+	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
+
 
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 
