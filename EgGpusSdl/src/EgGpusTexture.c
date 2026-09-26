@@ -58,7 +58,7 @@ void EgGpusTexture_remove(ecs_iter_t *it)
 
 void EgGpusTexture_Observer(ecs_iter_t *it)
 {
-	int32_t loglvl = -1;
+	int32_t loglvl = 0;
 
 	ecs_world_t *world = it->world;
 

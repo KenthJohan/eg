@@ -39,7 +39,7 @@ static void set_doc_from_SDL_GPUDevice(ecs_world_t *world, ecs_entity_t e, SDL_G
 
 void EgGpusDevice_Create(ecs_iter_t *it)
 {
-	int32_t loglvl = -1;
+	int32_t loglvl = 0;
 
 	ecs_world_t *world = it->world;
 

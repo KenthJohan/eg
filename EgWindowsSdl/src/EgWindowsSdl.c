@@ -26,13 +26,12 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 	ecs_world_t               *world  = it->world;
 	EgWindowsWindowCreateInfo *create = ecs_field(it, EgWindowsWindowCreateInfo, 0);
 	EgShapesRectangle         *rect   = ecs_field(it, EgShapesRectangle, 1);
-	ecs_log_set_level(1);
-	ecs_trace("System_EgWindowsWindow_Create() count:%i", it->count);
-	ecs_log_push_(0);
+	ecs_dbg_1("#[green]System_EgWindowsWindow_Create()#[normal] count:%i", it->count);
+	ecs_log_push_1();
 	for (int i = 0; i < it->count; ++i, ++create, ++rect) {
 		ecs_entity_t e = it->entities[i];
 		ecs_trace("Entity: '%s'", ecs_get_name(world, e));
-		ecs_log_push_(0);
+		ecs_log_push_1();
 		{
 			SDL_PropertiesID props = SDL_CreateProperties();
 			SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, ecs_get_name(world, e));
@@ -60,11 +59,10 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 			ecs_set(world, e, EgWindowsWindow, {.object = window});
 			ecs_trace("SDL_CreateWindowWithProperties() -> %p", window);
 		}
-		ecs_log_pop_(0);
+		ecs_log_pop_1();
 
 	} // END FOR LOOP
-	ecs_log_pop_(0);
-	ecs_log_set_level(0);
+	ecs_log_pop_1();
 }
 
 static void System_EgWindowsWindow_Rectangle(ecs_iter_t *it)

@@ -25,7 +25,7 @@ void EgGpusSdlImport(ecs_world_t *world)
 
 	const int compiled = SDL_VERSION;
 	const int linked   = SDL_GetVersion();
-	ecs_log(-1, "EgDisplaysSdl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
+	ecs_log(0, "EgDisplaysSdl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
 	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
 	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
 
