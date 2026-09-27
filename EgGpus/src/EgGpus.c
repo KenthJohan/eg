@@ -78,6 +78,7 @@ void EgGpusImport(ecs_world_t *world)
 	{.name = "Vertex", .value = EgGpusBufferUsageVertex},
 	{.name = "Index", .value = EgGpusBufferUsageIndex},
 	{.name = "Uniform", .value = EgGpusBufferUsageUniform},
+	{.name = "Storage", .value = EgGpusBufferUsageStorage},
 	}});
 
 	ecs_enum_init(world,
@@ -118,6 +119,7 @@ void EgGpusImport(ecs_world_t *world)
 	{.entity = ecs_id(EgGpusTextureCreateInfo),
 	.members = {
 	{.name = "sample_count", .type = ecs_id(ecs_u32_t)},
+	{.name = "layer_count", .type = ecs_id(ecs_u32_t)},
 	{.name = "usage", .type = ecs_id(EgGpusTextureUsage)},
 	{.name = "format", .type = ecs_id(EgGpusTextureFormat)},
 	}});
@@ -186,5 +188,7 @@ void EgGpusImport(ecs_world_t *world)
 	{.entity = ecs_id(EgGpusShaderCreateInfo),
 	.members = {
 	{.name = "stage", .type = ecs_id(EgGpusShaderStage)},
+	{.name = "storage_buffers", .type = ecs_id(ecs_u32_t)},
+	{.name = "samplers", .type = ecs_id(ecs_u32_t)},
 	}});
 }

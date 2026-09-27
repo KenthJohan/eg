@@ -33,6 +33,8 @@ static SDL_GPUBufferUsageFlags EgGpusBuffer_usage(EgGpusBufferUsage usage)
 		return SDL_GPU_BUFFERUSAGE_INDEX;
 	case EgGpusBufferUsageUniform:
 		return SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
+	case EgGpusBufferUsageStorage:
+		return SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
 	}
 	return 0;
 }

@@ -31,6 +31,7 @@ typedef enum {
 typedef struct
 {
 	uint32_t sample_count;
+	uint32_t layer_count;
 	EgGpusTextureUsage usage;
 	EgGpusTextureFormat format;
 } EgGpusTextureCreateInfo;
@@ -44,6 +45,7 @@ typedef enum {
 	EgGpusBufferUsageVertex,
 	EgGpusBufferUsageIndex,
 	EgGpusBufferUsageUniform,
+	EgGpusBufferUsageStorage,
 } EgGpusBufferUsage;
 
 typedef struct
@@ -110,6 +112,8 @@ typedef enum {
 typedef struct
 {
 	EgGpusShaderStage stage;
+	uint32_t storage_buffers;
+	uint32_t samplers;
 } EgGpusShaderCreateInfo;
 
 extern ECS_COMPONENT_DECLARE(EgGpusDevice);

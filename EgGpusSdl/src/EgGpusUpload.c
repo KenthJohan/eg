@@ -40,7 +40,7 @@ bool EgGpusSdlUploadBuffer(const EgGpusDevice *device, const EgGpusBuffer *buffe
 	return submitted;
 }
 
-bool EgGpusSdlUploadTexture2D(const EgGpusDevice *device, const EgGpusTexture *texture, const void *data, uint32_t size, uint32_t width, uint32_t height)
+static bool EgGpusSdlUploadTextureLayer(const EgGpusDevice *device, const EgGpusTexture *texture, const void *data, uint32_t size, uint32_t layer, uint32_t width, uint32_t height)
 {
 	if (!device || !device->object || !texture || !texture->object || !data || size == 0 || width == 0 || height == 0) {
 		return false;
@@ -70,10 +70,20 @@ bool EgGpusSdlUploadTexture2D(const EgGpusDevice *device, const EgGpusTexture *t
 	}
 	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
 	SDL_GPUTextureTransferInfo source = {.transfer_buffer = transfer, .offset = 0};
-	SDL_GPUTextureRegion destination = {.texture = texture->object, .w = width, .h = height, .d = 1};
+	SDL_GPUTextureRegion destination = {.texture = texture->object, .layer = layer, .w = width, .h = height, .d = 1};
 	SDL_UploadToGPUTexture(copy_pass, &source, &destination, false);
 	SDL_EndGPUCopyPass(copy_pass);
 	bool submitted = SDL_SubmitGPUCommandBuffer(command_buffer);
 	SDL_ReleaseGPUTransferBuffer(device->object, transfer);
 	return submitted;
+}
+
+bool EgGpusSdlUploadTexture2D(const EgGpusDevice *device, const EgGpusTexture *texture, const void *data, uint32_t size, uint32_t width, uint32_t height)
+{
+	return EgGpusSdlUploadTextureLayer(device, texture, data, size, 0, width, height);
+}
+
+bool EgGpusSdlUploadTextureArrayLayer(const EgGpusDevice *device, const EgGpusTexture *texture, const void *data, uint32_t size, uint32_t layer, uint32_t width, uint32_t height)
+{
+	return EgGpusSdlUploadTextureLayer(device, texture, data, size, layer, width, height);
 }

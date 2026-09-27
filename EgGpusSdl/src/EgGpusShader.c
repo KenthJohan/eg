@@ -25,9 +25,9 @@ void EgGpusShader_Create(ecs_iter_t *it)
 		info.format                  = SDL_GPU_SHADERFORMAT_SPIRV;
 		// Vertex stage uses a uniform buffer (scale/translate); fragment stage samples a texture.
 		info.num_uniform_buffers  = ci->stage == EgGpusShaderStageVertex ? 1 : 0;
-		info.num_storage_buffers  = 0;
+		info.num_storage_buffers  = ci->storage_buffers;
 		info.num_storage_textures = 0;
-		info.num_samplers         = ci->stage == EgGpusShaderStageFragment ? 1 : 0;
+		info.num_samplers         = ci->samplers ? ci->samplers : (ci->stage == EgGpusShaderStageFragment ? 1 : 0);
 		info.code                 = content->data;
 		info.code_size            = content->size;
 

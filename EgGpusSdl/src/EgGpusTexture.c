@@ -80,11 +80,11 @@ void EgGpusTexture_Observer(ecs_iter_t *it)
 			SDL_ReleaseGPUTexture(g->object, t->object);
 		}
 		SDL_GPUTextureCreateInfo info = {0};
-		info.type                     = SDL_GPU_TEXTURETYPE_2D;
+		info.type                     = c->layer_count ? SDL_GPU_TEXTURETYPE_2D_ARRAY : SDL_GPU_TEXTURETYPE_2D;
 		info.format                   = EgGpusTexture_format(c->format);
 		info.width                    = (uint32_t)r->w;
 		info.height                   = (uint32_t)r->h;
-		info.layer_count_or_depth     = 1;
+		info.layer_count_or_depth     = c->layer_count ? c->layer_count : 1;
 		info.num_levels               = 1;
 		info.sample_count             = EgGpusSdl_SampleCountToEnum(c->sample_count);
 		info.usage                    = EgGpusTexture_usage(c->usage);
