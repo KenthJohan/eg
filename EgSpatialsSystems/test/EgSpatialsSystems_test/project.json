@@ -1,0 +1,29 @@
+{
+	"id": "EgSpatialsSystems_test",
+	"type": "application",
+	"value": {
+		"description": "Test project for EgSpatialsSystems",
+		"public": false,
+		"use": [
+			"EgSpatialsSystems",
+			"flecs"
+		]
+	},
+	"test": {
+		"testsuites": [{
+			"id": "Transform",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+				"test_positive_z_rotation_moves_child_toward_positive_y"
+			]
+		}]
+	},
+	"lang.c": {
+		"lib": [
+			"EgSpatialsSystems",
+			"flecs",
+			"m"
+		]
+	}
+}
