@@ -1,10 +1,12 @@
 #include "EgSpatialsSystems.h"
 
 #include <EgSpatials.h>
+#include <ecsx.h>
+#include <math.h>
 
 static void Position3World_Reset(ecs_iter_t *it)
 {
-	Position3World *l = ecs_field(it, Position3World, 0); // self, out
+	Position3World *l = ecs_field_self(it, Position3World, 0); // out
 	for (int i = 0; i < it->count; ++i, ++l) {
 		l[0].x = 0;
 		l[0].y = 0;
@@ -14,8 +16,8 @@ static void Position3World_Reset(ecs_iter_t *it)
 
 static void Orientation_To_RotMat3(ecs_iter_t *it)
 {
-	RotMat3     *r = ecs_field(it, RotMat3, 0);     // self, out
-	Orientation *o = ecs_field(it, Orientation, 1); // self, in
+	RotMat3     *r = ecs_field_self(it, RotMat3, 0);     // out
+	Orientation *o = ecs_field_self(it, Orientation, 1); // in
 	for (int i = 0; i < it->count; ++i, ++o, ++r) {
 		qf32_unit_to_m3((float *)o, (m3f32 *)r);
 	}
@@ -23,9 +25,9 @@ static void Orientation_To_RotMat3(ecs_iter_t *it)
 
 static void Orientation_Cascade(ecs_iter_t *it)
 {
-	OrientationWorld *g = ecs_field(it, OrientationWorld, 0); // self, out
-	Orientation      *l = ecs_field(it, Orientation, 1);      // self, in
-	OrientationWorld *p = ecs_field(it, OrientationWorld, 2); // parent, in
+	OrientationWorld *g = ecs_field_self(it, OrientationWorld, 0); // out
+	Orientation      *l = ecs_field_self(it, Orientation, 1);      // in
+	OrientationWorld *p = ecs_field(it, OrientationWorld, 2);      // in, optional can be NULL
 	for (int i = 0; i < it->count; ++i, ++l, ++g) {
 		g->x = l->x;
 		g->y = l->y;
@@ -41,9 +43,9 @@ static void Orientation_Cascade(ecs_iter_t *it)
 
 static void Scale3_Cascade(ecs_iter_t *it)
 {
-	Scale3World      *g = ecs_field(it, Scale3World, 0); // self, out
-	Scale3 const     *l = ecs_field(it, Scale3, 1);      // self, in
-	Scale3World const *p = ecs_field(it, Scale3World, 2); // parent, in
+	Scale3World       *g = ecs_field_self(it, Scale3World, 0); // out
+	Scale3 const      *l = ecs_field_self(it, Scale3, 1);      // in
+	Scale3World const *p = ecs_field(it, Scale3World, 2);      // in, optional can be NULL
 	for (int i = 0; i < it->count; ++i, ++l, ++g) {
 		g->x = l->x;
 		g->y = l->y;
@@ -58,15 +60,14 @@ static void Scale3_Cascade(ecs_iter_t *it)
 
 static void Position3_Cascade(ecs_iter_t *it)
 {
-	Position3World         *g  = ecs_field(it, Position3World, 0);   // self, out
-	Position3 const        *l  = ecs_field(it, Position3, 1);        // self, in
-	Position3World const   *p  = ecs_field(it, Position3World, 2);   // parent, in
-	Transformation const *qq = ecs_field(it, Transformation, 3); // parent, in
+	Position3World       *g = ecs_field_self(it, Position3World, 0); // out
+	Position3 const      *l = ecs_field_self(it, Position3, 1);      // in
+	Position3World const *p = ecs_field(it, Position3World, 2);      // in, optional can be NULL
+	Transformation const *x = ecs_field(it, Transformation, 3);      // in, optional can be NULL
 	for (int i = 0; i < it->count; ++i, ++l, ++g) {
 		float bb[4] = {l->x, l->y, l->z, 0.0f};
-		if (qq) {
-			//m4f32_mul_vector3((float const *)qq, (float const *)l, bb);
-			m4f32_mulv(&qq->matrix, (float const *)l, bb);
+		if (x) {
+			m4f32_mulv(&x->matrix, (float const *)l, bb);
 		}
 		g->x += bb[0];
 		g->y += bb[1];
@@ -79,72 +80,73 @@ static void Position3_Cascade(ecs_iter_t *it)
 	}
 }
 
-static void RotateQuaternion1(ecs_iter_t *it)
+static void Orientation_Rotate1(ecs_iter_t *it)
 {
-	Orientation   *orientation = ecs_field(it, Orientation, 0); // self, out
-	Rotate3 const *rotate      = ecs_field(it, Rotate3, 1);     // self, in
-	for (int i = 0; i < it->count; ++i, ++rotate, ++orientation) {
-		float *q = (float *)orientation;
-		// assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
-		float dq_pitch[4];                                 // Quaternion delta pitch rotation
-		float dq_yaw[4];                                   // Quaternion delta yaw rotation
-		float dq_roll[4];                                  // Quaternion delta roll rotation
-		qf32_normalize(q, q, 0.000001f);                   // Normalize quaternion against floating point error
-		qf32_xyza(dq_pitch, 1.0f, 0.0f, 0.0f, rotate->dx); // Make delta pitch quaternion
-		qf32_xyza(dq_yaw, 0.0f, 1.0f, 0.0f, rotate->dy);   // Make delta yaw quaternion
-		qf32_xyza(dq_roll, 0.0f, 0.0f, 1.0f, rotate->dz);  // Make delta roll quaternion
-		qf32_mul(q, q, dq_roll);                           // Apply roll delta rotation
-		qf32_mul(q, q, dq_yaw);                            // Apply yaw delta rotation
-		qf32_mul(q, q, dq_pitch);                          // Apply pitch delta rotation
+	Orientation   *q = ecs_field_self(it, Orientation, 0); // out
+	Rotate3 const *r = ecs_field_self(it, Rotate3, 1);     // in
+	for (int i = 0; i < it->count; ++i, ++r, ++q) {
+		// Check quaternion validity
+		ecs_assert(fabsf(V4_DOT((float *)q, (float *)q) - 1.0f) < 0.1f, ECS_INTERNAL_ERROR, NULL);
+
+		// Normalize quaternion against floating point error
+		qf32_normalize((float *)q, (float *)q, 0.000001f);
+
+		float dp[4];                            // Quaternion delta pitch rotation
+		float dy[4];                            // Quaternion delta yaw rotation
+		float dr[4];                            // Quaternion delta roll rotation
+		qf32_xyza(dp, 1.0f, 0.0f, 0.0f, r->dx); // Make delta pitch quaternion
+		qf32_xyza(dy, 0.0f, 1.0f, 0.0f, r->dy); // Make delta yaw quaternion
+		qf32_xyza(dr, 0.0f, 0.0f, 1.0f, r->dz); // Make delta roll quaternion
+		qf32_mul((float *)q, (float *)q, dr);   // Apply roll delta rotation
+		qf32_mul((float *)q, (float *)q, dy);   // Apply yaw delta rotation
+		qf32_mul((float *)q, (float *)q, dp);   // Apply pitch delta rotation
 	}
 }
 
-static void RotateQuaternion2(ecs_iter_t *it)
+static void Orientation_Rotate2(ecs_iter_t *it)
 {
-	Orientation   *orientation = ecs_field(it, Orientation, 0); // self, out
-	Rotate3 const *rotate      = ecs_field(it, Rotate3, 1);     // self, in
-	for (int i = 0; i < it->count; ++i, ++rotate, ++orientation) {
-		float *q = (float *)orientation;
-		// assert(fabsf(V4_DOT(q, q) - 1.0f) < 0.1f);         // Check quaternion validity
-		float dq_pitch[4];                                 // Quaternion delta pitch rotation
-		float dq_yaw[4];                                   // Quaternion delta yaw rotation
-		float dq_roll[4];                                  // Quaternion delta roll rotation
-		qf32_normalize(q, q, 0.000001f);                   // Normalize quaternion against floating point error
-		qf32_xyza(dq_pitch, 1.0f, 0.0f, 0.0f, rotate->dx); // Make delta pitch quaternion
-		qf32_xyza(dq_yaw, 0.0f, 1.0f, 0.0f, rotate->dy);   // Make delta yaw quaternion
-		qf32_xyza(dq_roll, 0.0f, 0.0f, 1.0f, rotate->dz);  // Make delta roll quaternion
-		qf32_mul(q, dq_roll, q);                           // Apply roll delta rotation
-		qf32_mul(q, dq_yaw, q);                            // Apply yaw delta rotation
-		qf32_mul(q, dq_pitch, q);                          // Apply pitch delta rotation
+	Orientation   *q = ecs_field_self(it, Orientation, 0); // out
+	Rotate3 const *r = ecs_field_self(it, Rotate3, 1);     // in
+	for (int i = 0; i < it->count; ++i, ++r, ++q) {
+		// Check quaternion validity
+		ecs_assert(fabsf(V4_DOT((float *)q, (float *)q) - 1.0f) < 0.1f, ECS_INTERNAL_ERROR, NULL);
+
+		// Normalize quaternion against floating point error
+		qf32_normalize((float *)q, (float *)q, 0.000001f);
+
+		float dp[4];                            // Quaternion delta pitch rotation
+		float dy[4];                            // Quaternion delta yaw rotation
+		float dr[4];                            // Quaternion delta roll rotation
+		qf32_xyza(dp, 1.0f, 0.0f, 0.0f, r->dx); // Make delta pitch quaternion
+		qf32_xyza(dy, 0.0f, 1.0f, 0.0f, r->dy); // Make delta yaw quaternion
+		qf32_xyza(dr, 0.0f, 0.0f, 1.0f, r->dz); // Make delta roll quaternion
+		qf32_mul((float *)q, dr, (float *)q);   // Apply roll delta rotation
+		qf32_mul((float *)q, dy, (float *)q);   // Apply yaw delta rotation
+		qf32_mul((float *)q, dp, (float *)q);   // Apply pitch delta rotation
 	}
 }
 
-static void TransformationPosition(ecs_iter_t *it)
+static void Transformation_Trs(ecs_iter_t *it)
 {
-	Transformation         *t           = ecs_field(it, Transformation, 0);   // self, out
-	Position3World const   *pos         = ecs_field(it, Position3World, 1);   // self, in
-	OrientationWorld const *orientation = ecs_field(it, OrientationWorld, 2); // self, in
-	Scale3World const      *scale       = ecs_field(it, Scale3World, 3);      // self, in
-	for (int i = 0; i < it->count; ++i, ++t, ++pos, ++orientation, ++scale) {
-		// t->matrix = (m4f32)M4_IDENTITY;
-		// qf32_unit_to_m4((float *)orientation, &t->matrix);
-		// m4f32_translation3(&t->matrix, (float const *)pos);
-		// float s[3] = {1,1,1};
-		m4f32_trs((float const *)pos, (float *)orientation, (float *)scale, &t->matrix);
+	Transformation         *t = ecs_field_self(it, Transformation, 0);   // out
+	Position3World const   *p = ecs_field_self(it, Position3World, 1);   // in
+	OrientationWorld const *q = ecs_field_self(it, OrientationWorld, 2); // in
+	Scale3World const      *s = ecs_field_self(it, Scale3World, 3);      // in
+	for (int i = 0; i < it->count; ++i, ++t, ++p, ++q, ++s) {
+		m4f32_trs((float const *)p, (float *)q, (float *)s, &t->matrix);
 	}
 }
 
-static void Move(ecs_iter_t *it)
+static void Position3_Move(ecs_iter_t *it)
 {
-	Position3         *p = ecs_field(it, Position3, 0);   // self, out
-	Velocity3 const   *v = ecs_field(it, Velocity3, 1);   // self, in
-	Orientation const *o = ecs_field(it, Orientation, 2); // self, in
+	Position3         *p = ecs_field_self(it, Position3, 0);   // out
+	Velocity3 const   *v = ecs_field_self(it, Velocity3, 1);   // in
+	Orientation const *o = ecs_field_self(it, Orientation, 2); // in
 
 	for (int i = 0; i < it->count; ++i, ++p, ++v, ++o) {
 		// Convert unit quaternion to rotation matrix (r)
 		m4f32 r = M4_IDENTITY;
 		qf32_unit_to_m4((float *)o, &r);
-		// m4f32_transpose(&r);
 
 		// Translate postion (pos) relative to direction of camera rotation:
 		float dir[3];
@@ -153,27 +155,14 @@ static void Move(ecs_iter_t *it)
 		dir[2] = V3_DOT((float *)v, r.c2);
 
 		v3f32_mul((float *)dir, (float *)dir, it->delta_time);
-
-		/*
-		TODO:
-		Rotation matrix transposed is its inverse.
-		Figure out if we need a common move system for both camera and 3d objects.
-		*/
-
-		// Move 3D-objects releative to its own orientation:
-		// dir[0] = V3_DOTE((float *)v, M3_R0(r));
-		// dir[1] = V3_DOTE((float *)v, M3_R1(r));
-		// dir[2] = V3_DOTE((float *)v, M3_R2(r));
-
-		// v3f32_print((float*)dir);
 		v3f32_add((float *)p, (float *)p, dir);
 	}
 }
 
 static void SinewaveSystem(ecs_iter_t *it)
 {
-	Position3World *p = ecs_field(it, Position3World, 0); // self, out
-	Sinewave const *w = ecs_field(it, Sinewave, 1);       // self, in
+	Position3World *p = ecs_field_self(it, Position3World, 0); // out
+	Sinewave const *w = ecs_field_self(it, Sinewave, 1);       // in
 	for (int i = 0; i < it->count; ++i, ++w, ++p) {
 		ecs_time_t time;
 		ecs_os_get_time(&time);
@@ -186,13 +175,12 @@ static void SinewaveSystem(ecs_iter_t *it)
 
 static void EulerToQ(ecs_iter_t *it)
 {
-	Orientation       *o = ecs_field(it, Orientation, 0); // self, out
-	EulerAngles const *e = ecs_field(it, EulerAngles, 1); // self, in
+	Orientation       *o = ecs_field_self(it, Orientation, 0); // out
+	EulerAngles const *e = ecs_field_self(it, EulerAngles, 1); // in
 	for (int i = 0; i < it->count; ++i, ++e, ++o) {
 		qf32_from_euler((float *)o, e->pitch, e->yaw, e->roll);
 	}
 }
-
 
 void EgSpatialsSystemsImport(ecs_world_t *world)
 {
@@ -200,9 +188,9 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgSpatialsSystems");
 
 	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "RotateQuaternion1"}),
+	{.entity     = ecs_entity(world, {.name = "Orientation_Rotate1"}),
 	.phase       = EcsOnUpdate,
-	.callback    = RotateQuaternion1,
+	.callback    = Orientation_Rotate1,
 	.query.terms = {
 	{.id = ecs_id(Orientation), .inout = EcsOut},
 	{.id = ecs_id(Rotate3), .inout = EcsIn},
@@ -210,9 +198,9 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "RotateQuaternion2"}),
+	{.entity     = ecs_entity(world, {.name = "Orientation_Rotate2"}),
 	.phase       = EcsOnUpdate,
-	.callback    = RotateQuaternion2,
+	.callback    = Orientation_Rotate2,
 	.query.terms = {
 	{.id = ecs_id(Orientation), .inout = EcsOut},
 	{.id = ecs_id(Rotate3), .inout = EcsIn},
@@ -247,9 +235,9 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Move"}),
+	{.entity     = ecs_entity(world, {.name = "Position3_Move"}),
 	.phase       = EcsOnUpdate,
-	.callback    = Move,
+	.callback    = Position3_Move,
 	.query.terms = {{.id = ecs_id(Position3), .inout = EcsOut}, {.id = ecs_id(Velocity3), .inout = EcsIn}, {.id = ecs_id(Orientation), .inout = EcsIn}}});
 
 	ecs_system(world,
@@ -293,9 +281,9 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "TransformationPosition"}),
+	{.entity     = ecs_entity(world, {.name = "Transformation_Trs"}),
 	.phase       = EcsOnUpdate,
-	.callback    = TransformationPosition,
+	.callback    = Transformation_Trs,
 	.query.terms = {
 	{.id = ecs_id(Transformation), .inout = EcsOut},
 	{.id = ecs_id(Position3World), .inout = EcsIn},
