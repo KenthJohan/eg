@@ -15,36 +15,12 @@ ECS_COMPONENT_DECLARE(Orientation);
 ECS_COMPONENT_DECLARE(OrientationWorld);
 ECS_COMPONENT_DECLARE(EulerAngles);
 ECS_COMPONENT_DECLARE(Transformation);
-ECS_COMPONENT_DECLARE(TransformationCollector);
 ECS_COMPONENT_DECLARE(Sinewave);
 ECS_COMPONENT_DECLARE(Color3);
 ECS_TAG_DECLARE(RotateOrder1);
 ECS_TAG_DECLARE(RotateOrder2);
 ECS_TAG_DECLARE(PositionWorldNoReset);
 ECS_TAG_DECLARE(Normalized);
-
-ECS_CTOR(TransformationCollector, ptr, {
-	ecs_trace("TransformationCollector::Ctor");
-	ecs_os_memset_t(ptr, 0, TransformationCollector);
-})
-
-ECS_DTOR(TransformationCollector, ptr, {
-	ecs_trace("TransformationCollector::Dtor");
-	ecs_os_free(ptr->data);
-})
-
-ECS_MOVE(TransformationCollector, dst, src, {
-	ecs_trace("TransformationCollector::Move");
-	ecs_os_free(dst->data);
-	dst->data = src->data;
-	src->data = NULL;
-})
-
-ECS_COPY(TransformationCollector, dst, src, {
-	ecs_trace("TransformationCollector::Copy");
-	ecs_os_free(dst->data);
-	dst->data = ecs_os_memdup_n(src->data, m4f32, src->count);
-})
 
 ECS_CTOR(Transformation, ptr, {
 	ptr->matrix = (m4f32)M4_IDENTITY;
@@ -111,7 +87,6 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EulerAngles);
 	ECS_COMPONENT_DEFINE(world, Rotate3);
 	ECS_COMPONENT_DEFINE(world, Transformation);
-	ECS_COMPONENT_DEFINE(world, TransformationCollector);
 	ECS_COMPONENT_DEFINE(world, RotMat3);
 	ECS_COMPONENT_DEFINE(world, Sinewave);
 	ECS_COMPONENT_DEFINE(world, Color3);
@@ -127,13 +102,6 @@ void EgSpatialsImport(ecs_world_t *world)
 	ecs_set_hooks(world, RotMat3, {.ctor = ecs_ctor(RotMat3)});
 	ecs_set_hooks(world, Scale3, {.ctor = ecs_ctor(Scale3)});
 	ecs_set_hooks(world, Scale3World, {.ctor = ecs_ctor(Scale3World)});
-	ecs_set_hooks(world, TransformationCollector,
-	{
-	.ctor = ecs_ctor(TransformationCollector),
-	.move = ecs_move(TransformationCollector),
-	.copy = ecs_copy(TransformationCollector),
-	.dtor = ecs_dtor(TransformationCollector),
-	});
 
 	ecs_struct(world,
 	{.entity = ecs_id(Position2),
@@ -256,15 +224,6 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.name = "c1", .type = ecs_id(V4f32)},
 	{.name = "c2", .type = ecs_id(V4f32)},
 	{.name = "c3", .type = ecs_id(V4f32)},
-	}});
-
-	ecs_struct(world,
-	{.entity = ecs_id(TransformationCollector),
-	.members = {
-	{.name = "data", .type = ecs_id(ecs_uptr_t)},
-	{.name = "count", .type = ecs_id(ecs_i32_t)},
-	{.name = "cap", .type = ecs_id(ecs_i32_t)},
-	{.name = "total", .type = ecs_id(ecs_i32_t)},
 	}});
 
 	ecs_struct(world,

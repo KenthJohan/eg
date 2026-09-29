@@ -193,32 +193,6 @@ static void EulerToQ(ecs_iter_t *it)
 	}
 }
 
-static void TransformationCollector_Append(ecs_iter_t *it)
-{
-	Transformation          *t = ecs_field(it, Transformation, 0);          // self
-	TransformationCollector *d = ecs_field(it, TransformationCollector, 1); // up, shared
-
-	int32_t sum = d->count + it->count;
-	if (sum > d->cap) {
-		d->cap = sum * 2;
-		ecs_trace("AppendTransforms::ecs_os_realloc_n");
-		d->data = ecs_os_realloc_n(d->data, m4f32, d->cap);
-	}
-
-	for (int i = 0; i < it->count; ++i, ++t) {
-		d->data[d->count] = t->matrix;
-		d->count++;
-	}
-}
-
-static void TransformationCollector_Reset(ecs_iter_t *it)
-{
-	TransformationCollector *d = ecs_field(it, TransformationCollector, 0);
-	for (int i = 0; i < it->count; ++i, ++d) {
-		d->total = d->count;
-		d->count = 0;
-	}
-}
 
 void EgSpatialsSystemsImport(ecs_world_t *world)
 {
@@ -327,22 +301,5 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	{.id = ecs_id(Position3World), .inout = EcsIn},
 	{.id = ecs_id(OrientationWorld), .inout = EcsIn},
 	{.id = ecs_id(Scale3World), .inout = EcsIn},
-	}});
-
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "TransformationCollector_Append"}),
-	.phase       = EcsOnUpdate,
-	.callback    = TransformationCollector_Append,
-	.query.terms = {
-	{.id = ecs_id(Transformation), .src.id = EcsSelf},
-	{.id = ecs_id(TransformationCollector), .trav = EcsDependsOn, .src.id = EcsUp},
-	}});
-
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "TransformationCollector_Reset"}),
-	.phase       = EcsOnUpdate,
-	.callback    = TransformationCollector_Reset,
-	.query.terms = {
-	{.id = ecs_id(TransformationCollector), .src.id = EcsSelf},
 	}});
 }
