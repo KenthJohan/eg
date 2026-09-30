@@ -23,6 +23,8 @@ void Transform_teardown(void)
 void Transform_test_positive_z_rotation_moves_child_toward_positive_y(void)
 {
 	const float half_sqrt_two = 0.70710678f;
+	const float sin_pi_eighth = 0.38268343f;
+	const float cos_pi_eighth = 0.92387953f;
 	const ecs_entity_t parent = ecs_new(world);
 	const ecs_entity_t child = ecs_new_w_pair(world, EcsChildOf, parent);
 
@@ -30,19 +32,19 @@ void Transform_test_positive_z_rotation_moves_child_toward_positive_y(void)
 	ecs_set(world, parent, Position3World, {0.0f, 0.0f, 0.0f});
 	ecs_set(world, parent, Orientation, {0.0f, 0.0f, half_sqrt_two, half_sqrt_two});
 	ecs_set(world, parent, OrientationWorld, {0.0f, 0.0f, 0.0f, 1.0f});
-	ecs_set(world, parent, Scale3, {1.0f, 1.0f, 1.0f});
-	ecs_set(world, parent, Scale3World, {1.0f, 1.0f, 1.0f});
+	ecs_set(world, parent, Scale3, {2.0f, 1.0f, 1.0f});
+	ecs_set(world, parent, Scale3World, {2.0f, 1.0f, 1.0f});
 	ecs_set(world, parent, Transformation, {{0}});
 
 	ecs_set(world, child, Position3, {1.0f, 0.0f, 0.0f});
 	ecs_set(world, child, Position3World, {0.0f, 0.0f, 0.0f});
-	ecs_set(world, child, Orientation, {0.0f, 0.0f, 0.0f, 1.0f});
+	ecs_set(world, child, Orientation, {0.0f, 0.0f, sin_pi_eighth, cos_pi_eighth});
 	ecs_set(world, child, OrientationWorld, {0.0f, 0.0f, 0.0f, 1.0f});
 	ecs_set(world, child, Scale3, {1.0f, 1.0f, 1.0f});
 	ecs_set(world, child, Scale3World, {1.0f, 1.0f, 1.0f});
 	ecs_set(world, child, Transformation, {{0}});
+	ecs_set(world, child, Sinewave, {0.0f, 3.0f});
 
-	ecs_progress(world, 0.0f);
 	ecs_progress(world, 0.0f);
 
 	const Position3World *child_position = ecs_get(world, child, Position3World);
@@ -50,7 +52,8 @@ void Transform_test_positive_z_rotation_moves_child_toward_positive_y(void)
 	test_assert(child_position != NULL);
 	test_assert(child_transform != NULL);
 	test_assert(fabsf(child_position->x) < EPSILON);
-	test_assert(fabsf(child_position->y - 1.0f) < EPSILON);
-	test_assert(fabsf(child_transform->matrix.c0[0]) < EPSILON);
-	test_assert(fabsf(child_transform->matrix.c0[1] - 1.0f) < EPSILON);
+	test_assert(fabsf(child_position->y - 5.0f) < EPSILON);
+	test_assert(fabsf(child_transform->matrix.c0[0] + 0.70710678f) < EPSILON);
+	test_assert(fabsf(child_transform->matrix.c0[1] - 1.41421356f) < EPSILON);
+	test_assert(fabsf(child_transform->matrix.c3[1] - 5.0f) < EPSILON);
 }

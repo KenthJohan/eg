@@ -35,8 +35,6 @@ static void Orientation_Cascade(ecs_iter_t *it)
 		g->w = l->w;
 		if (p) {
 			qf32_mul((float *)g, (float const *)p, (float const *)g);
-			// qf32_rotate_vector(g, pos, pos);
-			// qf32_mul((float*)g, (float const*)g, (float const*)p);
 		}
 	}
 }
@@ -54,28 +52,6 @@ static void Scale3_Cascade(ecs_iter_t *it)
 			g->x *= p->x;
 			g->y *= p->y;
 			g->z *= p->z;
-		}
-	}
-}
-
-static void Position3_Cascade(ecs_iter_t *it)
-{
-	Position3World       *g = ecs_field_self(it, Position3World, 0); // out
-	Position3 const      *l = ecs_field_self(it, Position3, 1);      // in
-	Position3World const *p = ecs_field(it, Position3World, 2);      // in, optional can be NULL
-	Transformation const *x = ecs_field(it, Transformation, 3);      // in, optional can be NULL
-	for (int i = 0; i < it->count; ++i, ++l, ++g) {
-		float bb[4] = {l->x, l->y, l->z, 0.0f};
-		if (x) {
-			m4f32_mulv(&x->matrix, (float const *)l, bb);
-		}
-		g->x += bb[0];
-		g->y += bb[1];
-		g->z += bb[2];
-		if (p) {
-			g->x += p->x;
-			g->y += p->y;
-			g->z += p->z;
 		}
 	}
 }
@@ -126,14 +102,31 @@ static void Orientation_Rotate2(ecs_iter_t *it)
 	}
 }
 
-static void Transformation_Trs(ecs_iter_t *it)
+static void Transformation_Cascade(ecs_iter_t *it)
 {
-	Transformation         *t = ecs_field_self(it, Transformation, 0);   // out
-	Position3World const   *p = ecs_field_self(it, Position3World, 1);   // in
-	OrientationWorld const *q = ecs_field_self(it, OrientationWorld, 2); // in
-	Scale3World const      *s = ecs_field_self(it, Scale3World, 3);      // in
-	for (int i = 0; i < it->count; ++i, ++t, ++p, ++q, ++s) {
-		m4f32_trs((float const *)p, (float *)q, (float *)s, &t->matrix);
+	Transformation       *t      = ecs_field_self(it, Transformation, 0); // out
+	Position3 const      *p      = ecs_field_self(it, Position3, 1);      // in
+	Orientation const    *q      = ecs_field_self(it, Orientation, 2);    // in
+	Scale3 const         *s      = ecs_field_self(it, Scale3, 3);         // in
+	Position3World       *offset = ecs_field_self(it, Position3World, 4); // inout: per-frame effects
+	Transformation const *parent = ecs_field(it, Transformation, 5);      // parent, optional
+	for (int i = 0; i < it->count; ++i, ++t, ++p, ++q, ++s, ++offset) {
+		m4f32 local;
+		m4f32 world;
+		m4f32_trs((float const *)p, (float const *)q, (float const *)s, &local);
+		if (parent) {
+			m4f32_mul(&world, &parent->matrix, &local);
+		} else {
+			world = local;
+		}
+
+		world.c3[0] += offset->x;
+		world.c3[1] += offset->y;
+		world.c3[2] += offset->z;
+		offset->x = world.c3[0];
+		offset->y = world.c3[1];
+		offset->z = world.c3[2];
+		t->matrix = world;
 	}
 }
 
@@ -270,24 +263,15 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Position3_Cascade"}),
+	{.entity     = ecs_entity(world, {.name = "Transformation_Cascade"}),
 	.phase       = EcsOnUpdate,
-	.callback    = Position3_Cascade,
-	.query.terms = {
-	{.id = ecs_id(Position3World), .inout = EcsOut},
-	{.id = ecs_id(Position3), .inout = EcsIn},
-	{.id = ecs_id(Position3World), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(Transformation), .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
-	}});
-
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Transformation_Trs"}),
-	.phase       = EcsOnUpdate,
-	.callback    = Transformation_Trs,
+	.callback    = Transformation_Cascade,
 	.query.terms = {
 	{.id = ecs_id(Transformation), .inout = EcsOut},
-	{.id = ecs_id(Position3World), .inout = EcsIn},
-	{.id = ecs_id(OrientationWorld), .inout = EcsIn},
-	{.id = ecs_id(Scale3World), .inout = EcsIn},
+	{.id = ecs_id(Position3), .inout = EcsIn},
+	{.id = ecs_id(Orientation), .inout = EcsIn},
+	{.id = ecs_id(Scale3), .inout = EcsIn},
+	{.id = ecs_id(Position3World), .inout = EcsInOut},
+	{.id = ecs_id(Transformation), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
 	}});
 }
