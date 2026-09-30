@@ -87,13 +87,13 @@ static void Orientation_Rotate2(ecs_iter_t *it)
 
 static void Transformation_Cascade(ecs_iter_t *it)
 {
-	Transformation       *t      = ecs_field_self(it, Transformation, 0); // out
-	Position3 const      *p      = ecs_field_self(it, Position3, 1);      // in
-	Orientation const    *q      = ecs_field_self(it, Orientation, 2);    // in
-	Scale3 const         *s      = ecs_field_self(it, Scale3, 3);         // in
-	Position3WorldOffset const *offset = ecs_field(it, Position3WorldOffset, 4); // in, optional effect offset
-	Position3World       *world_position = ecs_field_self(it, Position3World, 5); // out
-	Transformation const *parent = ecs_field(it, Transformation, 6);      // parent, optional
+	Transformation             *t              = ecs_field_self(it, Transformation, 0);  // out
+	Position3 const            *p              = ecs_field_self(it, Position3, 1);       // in
+	Orientation const          *q              = ecs_field_self(it, Orientation, 2);     // in
+	Scale3 const               *s              = ecs_field_self(it, Scale3, 3);          // in
+	Position3WorldOffset const *offset         = ecs_field(it, Position3WorldOffset, 4); // in, optional effect offset
+	Position3World             *world_position = ecs_field_self(it, Position3World, 5);  // out
+	Transformation const       *parent         = ecs_field(it, Transformation, 6);       // parent, optional
 	for (int i = 0; i < it->count; ++i, ++t, ++p, ++q, ++s, ++world_position) {
 		m4f32 local;
 		m4f32 world;
@@ -112,7 +112,7 @@ static void Transformation_Cascade(ecs_iter_t *it)
 		world_position->x = world.c3[0];
 		world_position->y = world.c3[1];
 		world_position->z = world.c3[2];
-		t->matrix = world;
+		t->matrix         = world;
 	}
 }
 
@@ -141,7 +141,7 @@ static void Position3_Move(ecs_iter_t *it)
 static void SinewaveSystem(ecs_iter_t *it)
 {
 	Position3WorldOffset *p = ecs_field_self(it, Position3WorldOffset, 0); // out
-	Sinewave const *w = ecs_field_self(it, Sinewave, 1);       // in
+	Sinewave const       *w = ecs_field_self(it, Sinewave, 1);             // in
 	for (int i = 0; i < it->count; ++i, ++w, ++p) {
 		ecs_time_t time;
 		ecs_os_get_time(&time);
@@ -166,88 +166,141 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	ECS_MODULE(world, EgSpatialsSystems);
 	ecs_set_name_prefix(world, "EgSpatialsSystems");
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Orientation_Rotate1"}),
-	.phase       = EcsOnUpdate,
-	.callback    = Orientation_Rotate1,
-	.query.terms = {
-	{.id = ecs_id(Orientation), .inout = EcsOut},
-	{.id = ecs_id(Rotate3), .inout = EcsIn},
-	{.id = RotateOrder1},
-	}});
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "Orientation_Rotate1"}),
+		.phase       = EcsOnUpdate,
+		.callback    = Orientation_Rotate1,
+		.query.terms = {
+		{.id = ecs_id(Orientation), .inout = EcsOut},
+		{.id = ecs_id(Rotate3), .inout = EcsIn},
+		{.id = RotateOrder1},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Applies pitch, yaw, and roll deltas to the local orientation by post-multiplying each delta. "
+		"Use RotateOrder1 for this rotation order.");
+	}
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Orientation_Rotate2"}),
-	.phase       = EcsOnUpdate,
-	.callback    = Orientation_Rotate2,
-	.query.terms = {
-	{.id = ecs_id(Orientation), .inout = EcsOut},
-	{.id = ecs_id(Rotate3), .inout = EcsIn},
-	{.id = RotateOrder2},
-	}});
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "Orientation_Rotate2"}),
+		.phase       = EcsOnUpdate,
+		.callback    = Orientation_Rotate2,
+		.query.terms = {
+		{.id = ecs_id(Orientation), .inout = EcsOut},
+		{.id = ecs_id(Rotate3), .inout = EcsIn},
+		{.id = RotateOrder2},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Applies pitch, yaw, and roll deltas to the local orientation by pre-multiplying each delta. "
+		"Use RotateOrder2 for this rotation order.");
+	}
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Position3World_Reset"}),
-	.phase       = EcsPreUpdate,
-	.callback    = Position3World_Reset,
-	.query.terms = {
-	{.id = ecs_id(Position3WorldOffset), .inout = EcsOut},
-	}});
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "Position3World_Reset"}),
+		.phase       = EcsPreUpdate,
+		.callback    = Position3World_Reset,
+		.query.terms = {
+		{.id = ecs_id(Position3WorldOffset), .inout = EcsOut},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Clears per-frame world-position effect offsets before effect systems add their contributions.");
+	}
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "EulerToQ"}),
-	.phase       = EcsOnUpdate,
-	.callback    = EulerToQ,
-	.query.terms = {
-	{.id = ecs_id(Orientation), .inout = EcsOut},
-	{.id = ecs_id(EulerAngles), .inout = EcsIn},
-	}});
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "EulerToQ"}),
+		.phase       = EcsOnUpdate,
+		.callback    = EulerToQ,
+		.query.terms = {
+		{.id = ecs_id(Orientation), .inout = EcsOut},
+		{.id = ecs_id(EulerAngles), .inout = EcsIn},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Converts pitch, yaw, and roll Euler angles into the entity's local orientation quaternion.");
+	}
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Orientation_To_RotMat3"}),
-	.phase       = EcsOnUpdate,
-	.callback    = Orientation_To_RotMat3,
-	.query.terms = {
-	{.id = ecs_id(RotMat3), .inout = EcsOut},
-	{.id = ecs_id(Orientation), .inout = EcsIn},
-	}});
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "Orientation_To_RotMat3"}),
+		.phase       = EcsOnUpdate,
+		.callback    = Orientation_To_RotMat3,
+		.query.terms = {
+		{.id = ecs_id(RotMat3), .inout = EcsOut},
+		{.id = ecs_id(Orientation), .inout = EcsIn},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Converts the local orientation quaternion into a 3x3 rotation matrix for systems that consume matrix-form rotation.");
+	}
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Position3_Move"}),
-	.phase       = EcsOnUpdate,
-	.callback    = Position3_Move,
-	.query.terms = {{.id = ecs_id(Position3), .inout = EcsOut}, {.id = ecs_id(Velocity3), .inout = EcsIn}, {.id = ecs_id(Orientation), .inout = EcsIn}}});
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "Position3_Move"}),
+		.phase       = EcsOnUpdate,
+		.callback    = Position3_Move,
+		.query.terms = {
+		{.id = ecs_id(Position3), .inout = EcsOut},
+		{.id = ecs_id(Velocity3), .inout = EcsIn},
+		{.id = ecs_id(Orientation), .inout = EcsIn},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Moves the entity's local position using velocity rotated by its local orientation and scaled by frame delta time.");
+	}
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "SinewaveSystem"}),
-	.phase       = EcsOnUpdate,
-	.callback    = SinewaveSystem,
-	.query.terms = {
-	{.id = ecs_id(Position3WorldOffset), .inout = EcsOut},
-	{.id = ecs_id(Sinewave), .inout = EcsIn},
-	}});
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "SinewaveSystem"}),
+		.phase       = EcsOnUpdate,
+		.callback    = SinewaveSystem,
+		.query.terms = {
+		{.id = ecs_id(Position3WorldOffset), .inout = EcsOut},
+		{.id = ecs_id(Sinewave), .inout = EcsIn},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Adds a time-based sinusoidal world-position offset using the entity's Sinewave frequency and amplitude.");
+	}
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Orientation_Cascade"}),
-	.phase       = EcsOnUpdate,
-	.callback    = Orientation_Cascade,
-	.query.terms = {
-	{.id = ecs_id(OrientationWorld), .inout = EcsOut},
-	{.id = ecs_id(Orientation), .inout = EcsIn},
-	{.id = ecs_id(OrientationWorld), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
-	}});
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "Orientation_Cascade"}),
+		.phase       = EcsOnUpdate,
+		.callback    = Orientation_Cascade,
+		.query.terms = {
+		{.id = ecs_id(OrientationWorld), .inout = EcsOut},
+		{.id = ecs_id(Orientation), .inout = EcsIn},
+		{.id = ecs_id(OrientationWorld), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Propagates local orientations through the entity hierarchy into OrientationWorld. "
+		"Use when systems need an entity's world-space rotation as a quaternion.");
+	}
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Transformation_Cascade"}),
-	.phase       = EcsPostUpdate,
-	.callback    = Transformation_Cascade,
-	.query.terms = {
-	{.id = ecs_id(Transformation), .inout = EcsOut},
-	{.id = ecs_id(Position3), .inout = EcsIn},
-	{.id = ecs_id(Orientation), .inout = EcsIn},
-	{.id = ecs_id(Scale3), .inout = EcsIn},
-	{.id = ecs_id(Position3WorldOffset), .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(Position3World), .inout = EcsOut},
-	{.id = ecs_id(Transformation), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
-	}});
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "Transformation_Cascade"}),
+		.phase       = EcsPostUpdate,
+		.callback    = Transformation_Cascade,
+		.query.terms = {
+		{.id = ecs_id(Transformation), .inout = EcsOut},
+		{.id = ecs_id(Position3), .inout = EcsIn},
+		{.id = ecs_id(Orientation), .inout = EcsIn},
+		{.id = ecs_id(Scale3), .inout = EcsIn},
+		{.id = ecs_id(Position3WorldOffset), .inout = EcsIn, .oper = EcsOptional},
+		{.id = ecs_id(Position3World), .inout = EcsOut},
+		{.id = ecs_id(Transformation), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Composes local position, orientation, and scale through the parent hierarchy into world Transformation matrices. "
+		"Applies any Position3WorldOffset and writes the resulting world position to Position3World.");
+	}
 }
