@@ -3,26 +3,30 @@
 #include <stdio.h>
 #include <math.h>
 
-#define EPSILON 1e-5f
+#define EPSILON               1e-5f
 #define ASSERT_FLOAT_EQ(a, b) test_assert(fabsf((a) - (b)) < EPSILON)
-#define ASSERT_V3_EQ(a, b) do { \
-	ASSERT_FLOAT_EQ((a)[0], (b)[0]); \
-	ASSERT_FLOAT_EQ((a)[1], (b)[1]); \
-	ASSERT_FLOAT_EQ((a)[2], (b)[2]); \
-} while (0)
+#define ASSERT_V3_EQ(a, b)               \
+	do {                                 \
+		ASSERT_FLOAT_EQ((a)[0], (b)[0]); \
+		ASSERT_FLOAT_EQ((a)[1], (b)[1]); \
+		ASSERT_FLOAT_EQ((a)[2], (b)[2]); \
+	} while (0)
 
 // Setup function (called once before tests)
-void Vector3_setup(void) {
+void Vector3_setup(void)
+{
 }
 
-void Vector3_test_xyz(void) {
+void Vector3_test_xyz(void)
+{
 	float v[3];
 	v3f32_xyz(v, 1.0f, 2.0f, 3.0f);
 
 	ASSERT_V3_EQ(v, ((float[]){1.0f, 2.0f, 3.0f}));
 }
 
-void Vector3_test_mul(void) {
+void Vector3_test_mul(void)
+{
 	float a[3] = {1.0f, -2.0f, 3.0f};
 	float r[3];
 
@@ -31,7 +35,8 @@ void Vector3_test_mul(void) {
 	ASSERT_V3_EQ(r, ((float[]){2.0f, -4.0f, 6.0f}));
 }
 
-void Vector3_test_add(void) {
+void Vector3_test_add(void)
+{
 	float a[3] = {1.0f, 2.0f, 3.0f};
 	float b[3] = {4.0f, -1.0f, 0.5f};
 	float r[3];
@@ -41,7 +46,8 @@ void Vector3_test_add(void) {
 	ASSERT_V3_EQ(r, ((float[]){5.0f, 1.0f, 3.5f}));
 }
 
-void Vector3_test_cross(void) {
+void Vector3_test_cross(void)
+{
 	int a[3] = {1, 0, 0};
 	int b[3] = {0, 1, 0};
 	int r[3];
@@ -53,7 +59,8 @@ void Vector3_test_cross(void) {
 	test_assert(r[2] == 1);
 }
 
-void Vector3_test_distance(void) {
+void Vector3_test_distance(void)
+{
 	float a[3] = {0.0f, 0.0f, 0.0f};
 	float b[3] = {3.0f, 4.0f, 0.0f};
 
@@ -62,7 +69,8 @@ void Vector3_test_distance(void) {
 	ASSERT_FLOAT_EQ(d, 5.0f);
 }
 
-void Vector3_test_distance2(void) {
+void Vector3_test_distance2(void)
+{
 	float a[3] = {0.0f, 0.0f, 0.0f};
 	float b[3] = {3.0f, 4.0f, 0.0f};
 
@@ -71,7 +79,8 @@ void Vector3_test_distance2(void) {
 	ASSERT_FLOAT_EQ(d2, 25.0f);
 }
 
-void Vector3_test_normalize(void) {
+void Vector3_test_normalize(void)
+{
 	float v[3] = {3.0f, 0.0f, 4.0f};
 	float r[3];
 
@@ -82,7 +91,8 @@ void Vector3_test_normalize(void) {
 	ASSERT_V3_EQ(r, ((float[]){0.6f, 0.0f, 0.8f}));
 }
 
-void Vector3_test_proj(void) {
+void Vector3_test_proj(void)
+{
 	float bnorm[3] = {1.0f, 0.0f, 0.0f};
 	float a[3]     = {3.0f, 4.0f, 0.0f};
 	float r[3];
@@ -92,7 +102,8 @@ void Vector3_test_proj(void) {
 	ASSERT_V3_EQ(r, ((float[]){3.0f, 0.0f, 0.0f}));
 }
 
-void Vector3_test_oproj(void) {
+void Vector3_test_oproj(void)
+{
 	float bnorm[3] = {1.0f, 0.0f, 0.0f};
 	float a[3]     = {3.0f, 4.0f, 0.0f};
 	float r[3];
@@ -102,7 +113,8 @@ void Vector3_test_oproj(void) {
 	ASSERT_V3_EQ(r, ((float[]){0.0f, 4.0f, 0.0f}));
 }
 
-void Vector3_test_l1l2_distance(void) {
+void Vector3_test_l1l2_distance(void)
+{
 	float p1[3] = {0.0f, 0.0f, 0.0f};
 	float v1[3] = {1.0f, 0.0f, 0.0f};
 	float p2[3] = {0.0f, 0.0f, 1.0f};
@@ -114,8 +126,9 @@ void Vector3_test_l1l2_distance(void) {
 	test_assert(fabsf(d - 1.0f) < 1e-3f);
 }
 
-void Vector3_test_plane_point_line_distance(void) {
-	float v[3] = {0.0f, 0.0f, -1.0f};
+void Vector3_test_plane_point_line_distance(void)
+{
+	float v[3]  = {0.0f, 0.0f, -1.0f};
 	float l0[3] = {0.0f, 0.0f, 5.0f};
 	float c[3]  = {0.0f, 0.0f, 0.0f};
 	float n[3]  = {0.0f, 0.0f, 1.0f};

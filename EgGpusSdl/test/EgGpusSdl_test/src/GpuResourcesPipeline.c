@@ -11,7 +11,8 @@ static ecs_world_t *world;
 static ecs_entity_t vertex_shader_file;
 static ecs_entity_t fragment_shader_file;
 
-void GpuResourcesPipeline_setup(void) {
+void GpuResourcesPipeline_setup(void)
+{
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
 		fprintf(stderr, "SDL_InitSubSystem failed: %s\n", SDL_GetError());
 		abort();
@@ -21,27 +22,29 @@ void GpuResourcesPipeline_setup(void) {
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgGpusSdl);
 
-	size_t length = 0;
-	char *content = ecsx_file_load_alloc("data/vertex.spv", &length);
-	vertex_shader_file = ecs_new(world);
+	size_t length              = 0;
+	char  *content             = ecsx_file_load_alloc("data/vertex.spv", &length);
+	vertex_shader_file         = ecs_new(world);
 	EgFsContent vertex_content = {.data = content, .size = (uint32_t)length};
 	ecs_set_ptr(world, vertex_shader_file, EgFsContent, &vertex_content);
 
-	length = 0;
-	content = ecsx_file_load_alloc("data/fragment.spv", &length);
-	fragment_shader_file = ecs_new(world);
+	length                       = 0;
+	content                      = ecsx_file_load_alloc("data/fragment.spv", &length);
+	fragment_shader_file         = ecs_new(world);
 	EgFsContent fragment_content = {.data = content, .size = (uint32_t)length};
 	ecs_set_ptr(world, fragment_shader_file, EgFsContent, &fragment_content);
 }
 
-void GpuResourcesPipeline_teardown(void) {
+void GpuResourcesPipeline_teardown(void)
+{
 	ecs_delete(world, vertex_shader_file);
 	ecs_delete(world, fragment_shader_file);
 	ecs_fini(world);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-void GpuResourcesPipeline_test_graphics_pipeline_create(void) {
+void GpuResourcesPipeline_test_graphics_pipeline_create(void)
+{
 	typedef struct {
 		float x;
 		float y;
@@ -51,8 +54,8 @@ void GpuResourcesPipeline_test_graphics_pipeline_create(void) {
 	&(ecs_component_desc_t){
 	.entity = ecs_entity(world, {.name = "GpuTestVertex"}),
 	.type   = {
-	.size      = sizeof(GpuTestVertex),
-	.alignment = ECS_ALIGNOF(GpuTestVertex)}});
+	  .size      = sizeof(GpuTestVertex),
+	  .alignment = ECS_ALIGNOF(GpuTestVertex)}});
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
@@ -97,7 +100,8 @@ void GpuResourcesPipeline_test_graphics_pipeline_create(void) {
 	test_assert(pipeline->info_num_vertex_attributes == 2);
 }
 
-void GpuResourcesPipeline_test_graphics_pipeline_create_with_position_color_uv(void) {
+void GpuResourcesPipeline_test_graphics_pipeline_create_with_position_color_uv(void)
+{
 	typedef struct {
 		float   position[3];
 		uint8_t color[4];
@@ -108,9 +112,9 @@ void GpuResourcesPipeline_test_graphics_pipeline_create_with_position_color_uv(v
 	&(ecs_component_desc_t){
 	.entity = ecs_entity(world, {.name = "GpuTestVertexAttributes"}),
 	.type   = {
-	.size      = sizeof(GpuTestVertexAttributes),
-	.alignment = ECS_ALIGNOF(GpuTestVertexAttributes),
-	}});
+	  .size      = sizeof(GpuTestVertexAttributes),
+	  .alignment = ECS_ALIGNOF(GpuTestVertexAttributes),
+    }});
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
@@ -158,4 +162,3 @@ void GpuResourcesPipeline_test_graphics_pipeline_create_with_position_color_uv(v
 	test_assert(pipeline->object != NULL);
 	test_assert(pipeline->info_num_vertex_attributes == 3);
 }
-

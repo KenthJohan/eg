@@ -126,7 +126,6 @@ void EgDisplaysSdlImport(ecs_world_t *world)
 	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
 	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
 
-
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 
 	ecs_system(world,

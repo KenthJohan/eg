@@ -10,7 +10,7 @@ bool EgGpusSdlUploadBuffer(const EgGpusDevice *device, const EgGpusBuffer *buffe
 
 	SDL_GPUTransferBufferCreateInfo transfer_info = {
 	.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-	.size = size,
+	.size  = size,
 	};
 	SDL_GPUTransferBuffer *transfer = SDL_CreateGPUTransferBuffer(device->object, &transfer_info);
 	if (!transfer) {
@@ -30,9 +30,9 @@ bool EgGpusSdlUploadBuffer(const EgGpusDevice *device, const EgGpusBuffer *buffe
 		SDL_ReleaseGPUTransferBuffer(device->object, transfer);
 		return false;
 	}
-	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
-	SDL_GPUTransferBufferLocation source = {.transfer_buffer = transfer, .offset = 0};
-	SDL_GPUBufferRegion destination = {.buffer = buffer->object, .offset = 0, .size = size};
+	SDL_GPUCopyPass              *copy_pass   = SDL_BeginGPUCopyPass(command_buffer);
+	SDL_GPUTransferBufferLocation source      = {.transfer_buffer = transfer, .offset = 0};
+	SDL_GPUBufferRegion           destination = {.buffer = buffer->object, .offset = 0, .size = size};
 	SDL_UploadToGPUBuffer(copy_pass, &source, &destination, false);
 	SDL_EndGPUCopyPass(copy_pass);
 	bool submitted = SDL_SubmitGPUCommandBuffer(command_buffer);
@@ -48,7 +48,7 @@ static bool EgGpusSdlUploadTextureLayer(const EgGpusDevice *device, const EgGpus
 
 	SDL_GPUTransferBufferCreateInfo transfer_info = {
 	.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-	.size = size,
+	.size  = size,
 	};
 	SDL_GPUTransferBuffer *transfer = SDL_CreateGPUTransferBuffer(device->object, &transfer_info);
 	if (!transfer) {
@@ -68,9 +68,9 @@ static bool EgGpusSdlUploadTextureLayer(const EgGpusDevice *device, const EgGpus
 		SDL_ReleaseGPUTransferBuffer(device->object, transfer);
 		return false;
 	}
-	SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(command_buffer);
-	SDL_GPUTextureTransferInfo source = {.transfer_buffer = transfer, .offset = 0};
-	SDL_GPUTextureRegion destination = {.texture = texture->object, .layer = layer, .w = width, .h = height, .d = 1};
+	SDL_GPUCopyPass           *copy_pass   = SDL_BeginGPUCopyPass(command_buffer);
+	SDL_GPUTextureTransferInfo source      = {.transfer_buffer = transfer, .offset = 0};
+	SDL_GPUTextureRegion       destination = {.texture = texture->object, .layer = layer, .w = width, .h = height, .d = 1};
 	SDL_UploadToGPUTexture(copy_pass, &source, &destination, false);
 	SDL_EndGPUCopyPass(copy_pass);
 	bool submitted = SDL_SubmitGPUCommandBuffer(command_buffer);

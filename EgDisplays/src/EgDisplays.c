@@ -3,11 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
 ECS_COMPONENT_DECLARE(EgDisplaysDevice);
 ECS_COMPONENT_DECLARE(EgDisplaysMode);
 ECS_COMPONENT_DECLARE(EgDisplaysUpdate);
-
 
 void EgDisplaysImport(ecs_world_t *world)
 {
@@ -17,7 +15,6 @@ void EgDisplaysImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgDisplaysDevice);
 	ECS_COMPONENT_DEFINE(world, EgDisplaysMode);
 	ECS_COMPONENT_DEFINE(world, EgDisplaysUpdate);
-
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgDisplaysDevice),

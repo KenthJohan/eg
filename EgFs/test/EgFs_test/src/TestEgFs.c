@@ -24,7 +24,7 @@ void TestEgFs_test_path_type_schemes(void)
 
 void TestEgFs_test_path1_script_function(void)
 {
-	const char *script = "const result: entity = eg.fs.path1(\"./project.json\")";
+	const char  *script   = "const result: entity = eg.fs.path1(\"./project.json\")";
 	ecs_entity_t function = ecs_lookup(world, "eg.fs.path1");
 	test_assert(function != 0);
 
@@ -37,7 +37,7 @@ void TestEgFs_test_path1_script_function(void)
 
 void TestEgFs_test_path1_same_entity_for_same_path(void)
 {
-	ecs_entity_t first = EgFs_create_path_entity(world, "./project.json");
+	ecs_entity_t first  = EgFs_create_path_entity(world, "./project.json");
 	ecs_entity_t second = EgFs_create_path_entity(world, "./project.json");
 
 	test_assert(first != 0);

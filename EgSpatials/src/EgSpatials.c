@@ -14,14 +14,14 @@ ECS_COMPONENT_DECLARE(RotMat3);
 ECS_COMPONENT_DECLARE(Orientation);
 ECS_COMPONENT_DECLARE(OrientationWorld);
 ECS_COMPONENT_DECLARE(EulerAngles);
-ECS_COMPONENT_DECLARE(Transformation);
+ECS_COMPONENT_DECLARE(Matrix4);
 ECS_COMPONENT_DECLARE(Sinewave);
 ECS_COMPONENT_DECLARE(Color3);
 ECS_TAG_DECLARE(RotateOrder1);
 ECS_TAG_DECLARE(RotateOrder2);
 ECS_TAG_DECLARE(Normalized);
 
-ECS_CTOR(Transformation, ptr, {
+ECS_CTOR(Matrix4, ptr, {
 	ptr->matrix = (m4f32)M4_IDENTITY;
 })
 
@@ -79,7 +79,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, OrientationWorld);
 	ECS_COMPONENT_DEFINE(world, EulerAngles);
 	ECS_COMPONENT_DEFINE(world, Rotate3);
-	ECS_COMPONENT_DEFINE(world, Transformation);
+	ECS_COMPONENT_DEFINE(world, Matrix4);
 	ECS_COMPONENT_DEFINE(world, RotMat3);
 	ECS_COMPONENT_DEFINE(world, Sinewave);
 	ECS_COMPONENT_DEFINE(world, Color3);
@@ -90,7 +90,7 @@ void EgSpatialsImport(ecs_world_t *world)
 
 	ecs_set_hooks(world, Orientation, {.ctor = ecs_ctor(Orientation)});
 	ecs_set_hooks(world, OrientationWorld, {.ctor = ecs_ctor(OrientationWorld)});
-	ecs_set_hooks(world, Transformation, {.ctor = ecs_ctor(Transformation)});
+	ecs_set_hooks(world, Matrix4, {.ctor = ecs_ctor(Matrix4)});
 	ecs_set_hooks(world, RotMat3, {.ctor = ecs_ctor(RotMat3)});
 	ecs_set_hooks(world, Scale3, {.ctor = ecs_ctor(Scale3)});
 
@@ -208,7 +208,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(Transformation),
+	{.entity = ecs_id(Matrix4),
 	.members = {
 	//{.name = "matrix", .type = ecs_id(ecs_f32_t), .count = 16},
 	{.name = "c0", .type = ecs_id(V4f32)},

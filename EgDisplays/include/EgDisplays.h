@@ -2,7 +2,6 @@
 #include <flecs.h>
 #include <stdint.h>
 
-
 typedef struct
 {
 	uint32_t id;
@@ -19,7 +18,6 @@ typedef struct
 {
 	uint32_t dummy;
 } EgDisplaysUpdate;
-
 
 extern ECS_COMPONENT_DECLARE(EgDisplaysDevice);
 extern ECS_COMPONENT_DECLARE(EgDisplaysMode);

@@ -64,7 +64,7 @@ typedef struct {
 
 typedef struct {
 	m4f32 matrix;
-} Transformation;
+} Matrix4;
 
 typedef struct {
 	float x;
@@ -122,7 +122,7 @@ extern ECS_COMPONENT_DECLARE(Orientation);
 extern ECS_COMPONENT_DECLARE(OrientationWorld);
 extern ECS_COMPONENT_DECLARE(EulerAngles);
 extern ECS_COMPONENT_DECLARE(Rotate3);
-extern ECS_COMPONENT_DECLARE(Transformation);
+extern ECS_COMPONENT_DECLARE(Matrix4);
 extern ECS_COMPONENT_DECLARE(RotMat3);
 extern ECS_COMPONENT_DECLARE(Sinewave);
 extern ECS_COMPONENT_DECLARE(Color3);

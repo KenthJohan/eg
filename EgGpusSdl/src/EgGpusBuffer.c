@@ -16,7 +16,7 @@ void EgGpusBuffer_remove(ecs_iter_t *it)
 	EgGpusBuffer *buffer = ecs_field(it, EgGpusBuffer, 0);
 
 	for (int i = 0; i < it->count; ++i, ++buffer) {
-		ecs_entity_t parent = ecs_get_parent(it->world, it->entities[i]);
+		ecs_entity_t        parent = ecs_get_parent(it->world, it->entities[i]);
 		const EgGpusDevice *device = parent ? ecs_get(it->world, parent, EgGpusDevice) : NULL;
 		if (buffer->object && device && device->object) {
 			SDL_ReleaseGPUBuffer(device->object, buffer->object);
@@ -41,7 +41,7 @@ static SDL_GPUBufferUsageFlags EgGpusBuffer_usage(EgGpusBufferUsage usage)
 
 void EgGpusBuffer_Create(ecs_iter_t *it)
 {
-	EgGpusDevice *device = ecs_field_shared(it, EgGpusDevice, 0);
+	EgGpusDevice           *device = ecs_field_shared(it, EgGpusDevice, 0);
 	EgGpusBufferCreateInfo *create = ecs_field_self(it, EgGpusBufferCreateInfo, 1);
 
 	for (int i = 0; i < it->count; ++i, ++create) {
@@ -52,7 +52,7 @@ void EgGpusBuffer_Create(ecs_iter_t *it)
 
 		SDL_GPUBufferCreateInfo info = {
 		.usage = EgGpusBuffer_usage(create->usage),
-		.size = create->size,
+		.size  = create->size,
 		};
 		SDL_GPUBuffer *object = SDL_CreateGPUBuffer(device->object, &info);
 		if (!object) {

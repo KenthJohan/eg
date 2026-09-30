@@ -6,7 +6,8 @@
 
 static ecs_world_t *world;
 
-void GpuResourcesBuffer_setup(void) {
+void GpuResourcesBuffer_setup(void)
+{
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
 		fprintf(stderr, "SDL_InitSubSystem failed: %s\n", SDL_GetError());
 		abort();
@@ -16,12 +17,14 @@ void GpuResourcesBuffer_setup(void) {
 	ECS_IMPORT(world, EgGpusSdl);
 }
 
-void GpuResourcesBuffer_teardown(void) {
+void GpuResourcesBuffer_teardown(void)
+{
 	ecs_fini(world);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-void GpuResourcesBuffer_test_create(void) {
+void GpuResourcesBuffer_test_create(void)
+{
 	ecs_entity_t device_entity = ecs_new(world);
 	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
 	ecs_progress(world, 0.0f);

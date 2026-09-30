@@ -11,7 +11,8 @@ static ecs_world_t *world;
 static ecs_entity_t vertex_shader_file;
 static ecs_entity_t fragment_shader_file;
 
-void GpuResourcesShader_setup(void) {
+void GpuResourcesShader_setup(void)
+{
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
 		fprintf(stderr, "SDL_InitSubSystem failed: %s\n", SDL_GetError());
 		abort();
@@ -21,27 +22,29 @@ void GpuResourcesShader_setup(void) {
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgGpusSdl);
 
-	size_t length = 0;
-	char *content = ecsx_file_load_alloc("data/vertex.spv", &length);
-	vertex_shader_file = ecs_new(world);
+	size_t length              = 0;
+	char  *content             = ecsx_file_load_alloc("data/vertex.spv", &length);
+	vertex_shader_file         = ecs_new(world);
 	EgFsContent vertex_content = {.data = content, .size = (uint32_t)length};
 	ecs_set_ptr(world, vertex_shader_file, EgFsContent, &vertex_content);
 
-	length = 0;
-	content = ecsx_file_load_alloc("data/fragment.spv", &length);
-	fragment_shader_file = ecs_new(world);
+	length                       = 0;
+	content                      = ecsx_file_load_alloc("data/fragment.spv", &length);
+	fragment_shader_file         = ecs_new(world);
 	EgFsContent fragment_content = {.data = content, .size = (uint32_t)length};
 	ecs_set_ptr(world, fragment_shader_file, EgFsContent, &fragment_content);
 }
 
-void GpuResourcesShader_teardown(void) {
+void GpuResourcesShader_teardown(void)
+{
 	ecs_delete(world, vertex_shader_file);
 	ecs_delete(world, fragment_shader_file);
 	ecs_fini(world);
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
-void GpuResourcesShader_test_vertex_shader_create(void) {
+void GpuResourcesShader_test_vertex_shader_create(void)
+{
 	ecs_entity_t device_entity = ecs_new(world);
 	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
 	ecs_progress(world, 0.0f);
@@ -60,7 +63,8 @@ void GpuResourcesShader_test_vertex_shader_create(void) {
 	test_assert(shader->object != NULL);
 }
 
-void GpuResourcesShader_test_fragment_shader_create(void) {
+void GpuResourcesShader_test_fragment_shader_create(void)
+{
 	ecs_entity_t device_entity = ecs_new(world);
 	ecs_set(world, device_entity, EgGpusDeviceCreateInfo, {0});
 	ecs_progress(world, 0.0f);
@@ -78,4 +82,3 @@ void GpuResourcesShader_test_fragment_shader_create(void) {
 	test_assert(shader != NULL);
 	test_assert(shader->object != NULL);
 }
-

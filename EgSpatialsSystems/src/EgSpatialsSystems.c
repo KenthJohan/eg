@@ -85,15 +85,15 @@ static void Orientation_Rotate2(ecs_iter_t *it)
 	}
 }
 
-static void Transformation_Cascade(ecs_iter_t *it)
+static void Matrix4_Cascade(ecs_iter_t *it)
 {
-	Transformation             *t              = ecs_field_self(it, Transformation, 0);  // out
+	Matrix4                    *t              = ecs_field_self(it, Matrix4, 0);         // out
 	Position3 const            *p              = ecs_field_self(it, Position3, 1);       // in
 	Orientation const          *q              = ecs_field_self(it, Orientation, 2);     // in
 	Scale3 const               *s              = ecs_field_self(it, Scale3, 3);          // in
 	Position3WorldOffset const *offset         = ecs_field(it, Position3WorldOffset, 4); // in, optional effect offset
 	Position3World             *world_position = ecs_field_self(it, Position3World, 5);  // out
-	Transformation const       *parent         = ecs_field(it, Transformation, 6);       // parent, optional
+	Matrix4 const              *parent         = ecs_field(it, Matrix4, 6);              // parent, optional
 	for (int i = 0; i < it->count; ++i, ++t, ++p, ++q, ++s, ++world_position) {
 		m4f32 local;
 		m4f32 world;
@@ -287,20 +287,20 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	{
 		ecs_entity_t e = ecs_system_init(world,
 		&(ecs_system_desc_t){
-		.entity      = ecs_entity(world, {.name = "Transformation_Cascade"}),
+		.entity      = ecs_entity(world, {.name = "Matrix4_Cascade"}),
 		.phase       = EcsPostUpdate,
-		.callback    = Transformation_Cascade,
+		.callback    = Matrix4_Cascade,
 		.query.terms = {
-		{.id = ecs_id(Transformation), .inout = EcsOut},
+		{.id = ecs_id(Matrix4), .inout = EcsOut},
 		{.id = ecs_id(Position3), .inout = EcsIn},
 		{.id = ecs_id(Orientation), .inout = EcsIn},
 		{.id = ecs_id(Scale3), .inout = EcsIn},
 		{.id = ecs_id(Position3WorldOffset), .inout = EcsIn, .oper = EcsOptional},
 		{.id = ecs_id(Position3World), .inout = EcsOut},
-		{.id = ecs_id(Transformation), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
+		{.id = ecs_id(Matrix4), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
 		}});
 		ecs_doc_set_detail(world, e,
-		"Composes local position, orientation, and scale through the parent hierarchy into world Transformation matrices. "
+		"Composes local position, orientation, and scale with parent matrices to produce a world matrix. "
 		"Applies any Position3WorldOffset and writes the resulting world position to Position3World.");
 	}
 }

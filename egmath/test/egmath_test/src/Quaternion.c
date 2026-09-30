@@ -217,6 +217,6 @@ void Quaternion_test_composed_rotations(void)
 	ASSERT_V3_EQ(result, expected);
 }
 
-void Quaternion_setup(void) {
+void Quaternion_setup(void)
+{
 }
-

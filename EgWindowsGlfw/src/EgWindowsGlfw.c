@@ -60,9 +60,9 @@ static void System_EgWindowsWindowGlfw_Create(ecs_iter_t *it)
 
 		/*
 		if (!gladLoadGL()) {
-			fprintf(stderr, "Failed to initialize glad\n");
-			ecs_enable(it->world, it->entities[i], false);
-			continue;
+		    fprintf(stderr, "Failed to initialize glad\n");
+		    ecs_enable(it->world, it->entities[i], false);
+		    continue;
 		}
 		*/
 		const char *gl_version   = (const char *)glGetString(GL_VERSION);

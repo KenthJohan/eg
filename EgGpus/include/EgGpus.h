@@ -30,9 +30,9 @@ typedef enum {
 
 typedef struct
 {
-	uint32_t sample_count;
-	uint32_t layer_count;
-	EgGpusTextureUsage usage;
+	uint32_t            sample_count;
+	uint32_t            layer_count;
+	EgGpusTextureUsage  usage;
 	EgGpusTextureFormat format;
 } EgGpusTextureCreateInfo;
 
@@ -50,7 +50,7 @@ typedef enum {
 
 typedef struct
 {
-	uint32_t size;
+	uint32_t          size;
 	EgGpusBufferUsage usage;
 } EgGpusBufferCreateInfo;
 
@@ -91,7 +91,7 @@ typedef struct
 
 typedef struct
 {
-	int32_t      sample_count;
+	int32_t sample_count;
 } EgGpusGraphicsPipelineCreateInfo;
 
 typedef struct
@@ -112,8 +112,8 @@ typedef enum {
 typedef struct
 {
 	EgGpusShaderStage stage;
-	uint32_t storage_buffers;
-	uint32_t samplers;
+	uint32_t          storage_buffers;
+	uint32_t          samplers;
 } EgGpusShaderCreateInfo;
 
 extern ECS_COMPONENT_DECLARE(EgGpusDevice);
