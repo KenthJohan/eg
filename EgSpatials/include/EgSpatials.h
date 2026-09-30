@@ -43,13 +43,13 @@ typedef struct {
 	float x;
 	float y;
 	float z;
-} Scale3World;
+} Position3World;
 
 typedef struct {
 	float x;
 	float y;
 	float z;
-} Position3World;
+} Position3WorldOffset;
 
 typedef struct {
 	float x;
@@ -114,8 +114,8 @@ extern ECS_COMPONENT_DECLARE(Position2);
 extern ECS_COMPONENT_DECLARE(Position3);
 extern ECS_COMPONENT_DECLARE(Ray3);
 extern ECS_COMPONENT_DECLARE(Scale3);
-extern ECS_COMPONENT_DECLARE(Scale3World);
 extern ECS_COMPONENT_DECLARE(Position3World);
+extern ECS_COMPONENT_DECLARE(Position3WorldOffset);
 extern ECS_COMPONENT_DECLARE(Velocity2);
 extern ECS_COMPONENT_DECLARE(Velocity3);
 extern ECS_COMPONENT_DECLARE(Orientation);
@@ -129,7 +129,6 @@ extern ECS_COMPONENT_DECLARE(Color3);
 
 extern ECS_TAG_DECLARE(RotateOrder1);
 extern ECS_TAG_DECLARE(RotateOrder2);
-extern ECS_TAG_DECLARE(PositionWorldNoReset);
 extern ECS_TAG_DECLARE(Normalized);
 
 void EgSpatialsImport(ecs_world_t *world);

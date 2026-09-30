@@ -6,7 +6,7 @@
 
 static void Position3World_Reset(ecs_iter_t *it)
 {
-	Position3World *l = ecs_field_self(it, Position3World, 0); // out
+	Position3WorldOffset *l = ecs_field_self(it, Position3WorldOffset, 0); // out
 	for (int i = 0; i < it->count; ++i, ++l) {
 		l[0].x = 0;
 		l[0].y = 0;
@@ -35,23 +35,6 @@ static void Orientation_Cascade(ecs_iter_t *it)
 		g->w = l->w;
 		if (p) {
 			qf32_mul((float *)g, (float const *)p, (float const *)g);
-		}
-	}
-}
-
-static void Scale3_Cascade(ecs_iter_t *it)
-{
-	Scale3World       *g = ecs_field_self(it, Scale3World, 0); // out
-	Scale3 const      *l = ecs_field_self(it, Scale3, 1);      // in
-	Scale3World const *p = ecs_field(it, Scale3World, 2);      // in, optional can be NULL
-	for (int i = 0; i < it->count; ++i, ++l, ++g) {
-		g->x = l->x;
-		g->y = l->y;
-		g->z = l->z;
-		if (p) {
-			g->x *= p->x;
-			g->y *= p->y;
-			g->z *= p->z;
 		}
 	}
 }
@@ -108,9 +91,10 @@ static void Transformation_Cascade(ecs_iter_t *it)
 	Position3 const      *p      = ecs_field_self(it, Position3, 1);      // in
 	Orientation const    *q      = ecs_field_self(it, Orientation, 2);    // in
 	Scale3 const         *s      = ecs_field_self(it, Scale3, 3);         // in
-	Position3World       *offset = ecs_field_self(it, Position3World, 4); // inout: per-frame effects
-	Transformation const *parent = ecs_field(it, Transformation, 5);      // parent, optional
-	for (int i = 0; i < it->count; ++i, ++t, ++p, ++q, ++s, ++offset) {
+	Position3WorldOffset const *offset = ecs_field(it, Position3WorldOffset, 4); // in, optional effect offset
+	Position3World       *world_position = ecs_field_self(it, Position3World, 5); // out
+	Transformation const *parent = ecs_field(it, Transformation, 6);      // parent, optional
+	for (int i = 0; i < it->count; ++i, ++t, ++p, ++q, ++s, ++world_position) {
 		m4f32 local;
 		m4f32 world;
 		m4f32_trs((float const *)p, (float const *)q, (float const *)s, &local);
@@ -120,12 +104,14 @@ static void Transformation_Cascade(ecs_iter_t *it)
 			world = local;
 		}
 
-		world.c3[0] += offset->x;
-		world.c3[1] += offset->y;
-		world.c3[2] += offset->z;
-		offset->x = world.c3[0];
-		offset->y = world.c3[1];
-		offset->z = world.c3[2];
+		if (offset) {
+			world.c3[0] += offset[i].x;
+			world.c3[1] += offset[i].y;
+			world.c3[2] += offset[i].z;
+		}
+		world_position->x = world.c3[0];
+		world_position->y = world.c3[1];
+		world_position->z = world.c3[2];
 		t->matrix = world;
 	}
 }
@@ -154,7 +140,7 @@ static void Position3_Move(ecs_iter_t *it)
 
 static void SinewaveSystem(ecs_iter_t *it)
 {
-	Position3World *p = ecs_field_self(it, Position3World, 0); // out
+	Position3WorldOffset *p = ecs_field_self(it, Position3WorldOffset, 0); // out
 	Sinewave const *w = ecs_field_self(it, Sinewave, 1);       // in
 	for (int i = 0; i < it->count; ++i, ++w, ++p) {
 		ecs_time_t time;
@@ -202,11 +188,10 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 
 	ecs_system(world,
 	{.entity     = ecs_entity(world, {.name = "Position3World_Reset"}),
-	.phase       = EcsOnUpdate,
+	.phase       = EcsPreUpdate,
 	.callback    = Position3World_Reset,
 	.query.terms = {
-	{.id = ecs_id(Position3World), .inout = EcsOut},
-	{.id = PositionWorldNoReset, .oper = EcsNot},
+	{.id = ecs_id(Position3WorldOffset), .inout = EcsOut},
 	}});
 
 	ecs_system(world,
@@ -238,7 +223,7 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	.phase       = EcsOnUpdate,
 	.callback    = SinewaveSystem,
 	.query.terms = {
-	{.id = ecs_id(Position3World), .inout = EcsOut},
+	{.id = ecs_id(Position3WorldOffset), .inout = EcsOut},
 	{.id = ecs_id(Sinewave), .inout = EcsIn},
 	}});
 
@@ -253,25 +238,16 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "Scale3_Cascade"}),
-	.phase       = EcsOnUpdate,
-	.callback    = Scale3_Cascade,
-	.query.terms = {
-	{.id = ecs_id(Scale3World), .inout = EcsOut},
-	{.id = ecs_id(Scale3), .inout = EcsIn},
-	{.id = ecs_id(Scale3World), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
-	}});
-
-	ecs_system(world,
 	{.entity     = ecs_entity(world, {.name = "Transformation_Cascade"}),
-	.phase       = EcsOnUpdate,
+	.phase       = EcsPostUpdate,
 	.callback    = Transformation_Cascade,
 	.query.terms = {
 	{.id = ecs_id(Transformation), .inout = EcsOut},
 	{.id = ecs_id(Position3), .inout = EcsIn},
 	{.id = ecs_id(Orientation), .inout = EcsIn},
 	{.id = ecs_id(Scale3), .inout = EcsIn},
-	{.id = ecs_id(Position3World), .inout = EcsInOut},
+	{.id = ecs_id(Position3WorldOffset), .inout = EcsIn, .oper = EcsOptional},
+	{.id = ecs_id(Position3World), .inout = EcsOut},
 	{.id = ecs_id(Transformation), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
 	}});
 }

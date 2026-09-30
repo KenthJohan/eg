@@ -15,7 +15,8 @@
 			"setup": true,
 			"teardown": true,
 			"testcases": [
-				"test_positive_z_rotation_moves_child_toward_positive_y"
+				"test_positive_z_rotation_moves_child_toward_positive_y",
+				"test_three_level_scene_graph_composes_scale"
 			]
 		}]
 	},

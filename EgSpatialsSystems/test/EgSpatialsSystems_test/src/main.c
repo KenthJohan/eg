@@ -12,11 +12,16 @@
 void Transform_setup(void);
 void Transform_teardown(void);
 void Transform_test_positive_z_rotation_moves_child_toward_positive_y(void);
+void Transform_test_three_level_scene_graph_composes_scale(void);
 
 bake_test_case Transform_testcases[] = {
     {
         "test_positive_z_rotation_moves_child_toward_positive_y",
         Transform_test_positive_z_rotation_moves_child_toward_positive_y
+    },
+    {
+        "test_three_level_scene_graph_composes_scale",
+        Transform_test_three_level_scene_graph_composes_scale
     }
 };
 
@@ -25,7 +30,7 @@ static bake_test_suite suites[] = {
         "Transform",
         Transform_setup,
         Transform_teardown,
-        1,
+        2,
         Transform_testcases
     }
 };
