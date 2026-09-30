@@ -1,6 +1,9 @@
 #include "EgSpatials.h"
 
 ECS_COMPONENT_DECLARE(Position2);
+ECS_COMPONENT_DECLARE(Scale2);
+ECS_COMPONENT_DECLARE(Rotation2);
+ECS_COMPONENT_DECLARE(Position2World);
 ECS_COMPONENT_DECLARE(Position3);
 ECS_COMPONENT_DECLARE(V4f32);
 ECS_COMPONENT_DECLARE(Ray3);
@@ -15,6 +18,7 @@ ECS_COMPONENT_DECLARE(Orientation);
 ECS_COMPONENT_DECLARE(OrientationWorld);
 ECS_COMPONENT_DECLARE(EulerAngles);
 ECS_COMPONENT_DECLARE(Matrix4);
+ECS_COMPONENT_DECLARE(Matrix3);
 ECS_COMPONENT_DECLARE(Sinewave);
 ECS_COMPONENT_DECLARE(Color3);
 ECS_TAG_DECLARE(RotateOrder1);
@@ -23,6 +27,10 @@ ECS_TAG_DECLARE(Normalized);
 
 ECS_CTOR(Matrix4, ptr, {
 	ptr->matrix = (m4f32)M4_IDENTITY;
+})
+
+ECS_CTOR(Matrix3, ptr, {
+	ptr->matrix = (m3f32)M3_IDENTITY;
 })
 
 ECS_CTOR(RotMat3, ptr, {
@@ -61,12 +69,20 @@ ECS_CTOR(Scale3, ptr, {
 	ptr->z = 1.0f;
 })
 
+ECS_CTOR(Scale2, ptr, {
+	ptr->x = 1.0f;
+	ptr->y = 1.0f;
+})
+
 void EgSpatialsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSpatials);
 	ecs_set_name_prefix(world, "EgSpatials");
 
 	ECS_COMPONENT_DEFINE(world, Position2);
+	ECS_COMPONENT_DEFINE(world, Scale2);
+	ECS_COMPONENT_DEFINE(world, Rotation2);
+	ECS_COMPONENT_DEFINE(world, Position2World);
 	ECS_COMPONENT_DEFINE(world, Position3);
 	ECS_COMPONENT_DEFINE(world, V4f32);
 	ECS_COMPONENT_DEFINE(world, Ray3);
@@ -80,6 +96,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EulerAngles);
 	ECS_COMPONENT_DEFINE(world, Rotate3);
 	ECS_COMPONENT_DEFINE(world, Matrix4);
+	ECS_COMPONENT_DEFINE(world, Matrix3);
 	ECS_COMPONENT_DEFINE(world, RotMat3);
 	ECS_COMPONENT_DEFINE(world, Sinewave);
 	ECS_COMPONENT_DEFINE(world, Color3);
@@ -91,11 +108,33 @@ void EgSpatialsImport(ecs_world_t *world)
 	ecs_set_hooks(world, Orientation, {.ctor = ecs_ctor(Orientation)});
 	ecs_set_hooks(world, OrientationWorld, {.ctor = ecs_ctor(OrientationWorld)});
 	ecs_set_hooks(world, Matrix4, {.ctor = ecs_ctor(Matrix4)});
+	ecs_set_hooks(world, Matrix3, {.ctor = ecs_ctor(Matrix3)});
 	ecs_set_hooks(world, RotMat3, {.ctor = ecs_ctor(RotMat3)});
 	ecs_set_hooks(world, Scale3, {.ctor = ecs_ctor(Scale3)});
+	ecs_set_hooks(world, Scale2, {.ctor = ecs_ctor(Scale2)});
 
 	ecs_struct(world,
 	{.entity = ecs_id(Position2),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(Scale2),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(Rotation2),
+	.members = {
+	{.name = "radians", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(Position2World),
 	.members = {
 	{.name = "x", .type = ecs_id(ecs_f32_t)},
 	{.name = "y", .type = ecs_id(ecs_f32_t)},
@@ -215,6 +254,14 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.name = "c1", .type = ecs_id(V4f32)},
 	{.name = "c2", .type = ecs_id(V4f32)},
 	{.name = "c3", .type = ecs_id(V4f32)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(Matrix3),
+	.members = {
+	{.name = "c0", .type = ecs_id(ecs_f32_t), .count = 3},
+	{.name = "c1", .type = ecs_id(ecs_f32_t), .count = 3},
+	{.name = "c2", .type = ecs_id(ecs_f32_t), .count = 3},
 	}});
 
 	ecs_struct(world,

@@ -95,3 +95,32 @@ void Transform_test_three_level_scene_graph_composes_scale(void)
 	test_assert(fabsf(leaf_transform->matrix.c0[0] - 3.0f) < EPSILON);
 	test_assert(fabsf(leaf_transform->matrix.c3[0] - 8.0f) < EPSILON);
 }
+
+void Transform_test_two_dimensional_cascade_composes_rotation_and_scale(void)
+{
+	const ecs_entity_t parent = ecs_new(world);
+	const ecs_entity_t child = ecs_new_w_pair(world, EcsChildOf, parent);
+
+	ecs_set(world, parent, Position2, {10.0f, 20.0f});
+	ecs_set(world, parent, Rotation2, {1.57079632679f});
+	ecs_set(world, parent, Scale2, {2.0f, 3.0f});
+	ecs_set(world, parent, Matrix3, {{0}});
+	ecs_set(world, parent, Position2World, {0.0f, 0.0f});
+
+	ecs_set(world, child, Position2, {1.0f, 0.0f});
+	ecs_set(world, child, Rotation2, {0.0f});
+	ecs_set(world, child, Scale2, {1.0f, 1.0f});
+	ecs_set(world, child, Matrix3, {{0}});
+	ecs_set(world, child, Position2World, {0.0f, 0.0f});
+
+	ecs_progress(world, 0.0f);
+
+	const Position2World *child_position = ecs_get(world, child, Position2World);
+	const Matrix3 *child_transform = ecs_get(world, child, Matrix3);
+	test_assert(child_position != NULL);
+	test_assert(child_transform != NULL);
+	test_assert(fabsf(child_position->x - 10.0f) < EPSILON);
+	test_assert(fabsf(child_position->y - 22.0f) < EPSILON);
+	test_assert(fabsf(child_transform->matrix.c0[0]) < EPSILON);
+	test_assert(fabsf(child_transform->matrix.c0[1] - 2.0f) < EPSILON);
+}

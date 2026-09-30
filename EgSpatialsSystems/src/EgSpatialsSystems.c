@@ -116,6 +116,39 @@ static void Matrix4_Cascade(ecs_iter_t *it)
 	}
 }
 
+static void Matrix3_Cascade(ecs_iter_t *it)
+{
+	Matrix3            *transform      = ecs_field_self(it, Matrix3, 0);
+	Position2 const    *position      = ecs_field_self(it, Position2, 1);
+	Rotation2 const    *rotation      = ecs_field_self(it, Rotation2, 2);
+	Scale2 const       *scale         = ecs_field_self(it, Scale2, 3);
+	Position2World     *world_position = ecs_field_self(it, Position2World, 4);
+	Matrix3 const      *parent        = ecs_field(it, Matrix3, 5);
+
+	for (int i = 0; i < it->count; ++i, ++transform, ++position, ++rotation, ++scale, ++world_position) {
+		float cosine = cosf(rotation->radians);
+		float sine = sinf(rotation->radians);
+		m3f32 local = M3_IDENTITY;
+		m3f32 world;
+		local.c0[0] = cosine * scale->x;
+		local.c0[1] = sine * scale->x;
+		local.c1[0] = -sine * scale->y;
+		local.c1[1] = cosine * scale->y;
+		local.c2[0] = position->x;
+		local.c2[1] = position->y;
+
+		if (parent) {
+			m3f32_mul(&world, &parent->matrix, &local);
+		} else {
+			world = local;
+		}
+
+		world_position->x = world.c2[0];
+		world_position->y = world.c2[1];
+		transform->matrix = world;
+	}
+}
+
 static void Position3_Move(ecs_iter_t *it)
 {
 	Position3         *p = ecs_field_self(it, Position3, 0);   // out
@@ -302,5 +335,24 @@ void EgSpatialsSystemsImport(ecs_world_t *world)
 		ecs_doc_set_detail(world, e,
 		"Composes local position, orientation, and scale with parent matrices to produce a world matrix. "
 		"Applies any Position3WorldOffset and writes the resulting world position to Position3World.");
+	}
+
+	{
+		ecs_entity_t e = ecs_system_init(world,
+		&(ecs_system_desc_t){
+		.entity      = ecs_entity(world, {.name = "Matrix3_Cascade"}),
+		.phase       = EcsPostUpdate,
+		.callback    = Matrix3_Cascade,
+		.query.terms = {
+		{.id = ecs_id(Matrix3), .inout = EcsOut},
+		{.id = ecs_id(Position2), .inout = EcsIn},
+		{.id = ecs_id(Rotation2), .inout = EcsIn},
+		{.id = ecs_id(Scale2), .inout = EcsIn},
+		{.id = ecs_id(Position2World), .inout = EcsOut},
+		{.id = ecs_id(Matrix3), .src.id = EcsCascade, .inout = EcsIn, .oper = EcsOptional},
+		}});
+		ecs_doc_set_detail(world, e,
+		"Composes local 2D position, rotation, and scale with an optional parent matrix, "
+		"then writes the world matrix and world position.");
 	}
 }

@@ -18,6 +18,20 @@ typedef struct {
 typedef struct {
 	float x;
 	float y;
+} Scale2;
+
+typedef struct {
+	float radians;
+} Rotation2;
+
+typedef struct {
+	float x;
+	float y;
+} Position2World;
+
+typedef struct {
+	float x;
+	float y;
 	float z;
 } Position3;
 
@@ -67,6 +81,10 @@ typedef struct {
 } Matrix4;
 
 typedef struct {
+	m3f32 matrix;
+} Matrix3;
+
+typedef struct {
 	float x;
 	float y;
 	float z;
@@ -111,6 +129,9 @@ typedef struct {
 
 extern ECS_COMPONENT_DECLARE(V4f32);
 extern ECS_COMPONENT_DECLARE(Position2);
+extern ECS_COMPONENT_DECLARE(Scale2);
+extern ECS_COMPONENT_DECLARE(Rotation2);
+extern ECS_COMPONENT_DECLARE(Position2World);
 extern ECS_COMPONENT_DECLARE(Position3);
 extern ECS_COMPONENT_DECLARE(Ray3);
 extern ECS_COMPONENT_DECLARE(Scale3);
@@ -123,6 +144,7 @@ extern ECS_COMPONENT_DECLARE(OrientationWorld);
 extern ECS_COMPONENT_DECLARE(EulerAngles);
 extern ECS_COMPONENT_DECLARE(Rotate3);
 extern ECS_COMPONENT_DECLARE(Matrix4);
+extern ECS_COMPONENT_DECLARE(Matrix3);
 extern ECS_COMPONENT_DECLARE(RotMat3);
 extern ECS_COMPONENT_DECLARE(Sinewave);
 extern ECS_COMPONENT_DECLARE(Color3);
