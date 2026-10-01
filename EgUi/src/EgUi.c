@@ -10,8 +10,9 @@ static void EgUiFlow_Reset(ecs_iter_t *it)
 {
 	EgUiFlow *flow = ecs_field_self(it, EgUiFlow, 0);
 	for (int i = 0; i < it->count; ++i, ++flow) {
-		flow->cursor = (Position2){0};
-		flow->max    = 0;
+		flow->cursor  = (Position2){0};
+		flow->max     = 0;
+		flow->started = false;
 	}
 }
 
@@ -22,37 +23,46 @@ static void EgUiFlow_Update(ecs_iter_t *it)
 	Position2         *cp = ecs_field_self(it, Position2, 2);
 	EgShapesRectangle *cr = ecs_field_self(it, EgShapesRectangle, 3);
 
-	bool   horizontal = pf->direction.x != 0;
-	float  sign       = horizontal ? pf->direction.x : pf->direction.y;
-	float  bound      = horizontal ? pr->w : pr->h;
-	float *along      = horizontal ? &pf->cursor.x : &pf->cursor.y;
-	float *across     = horizontal ? &pf->cursor.y : &pf->cursor.x;
+	// direction is a unit vector (a 2d rotation applied to the x axis); only its
+	// dominant axis is used to pick the flow axis, its sign picks the flow's start corner
+	bool   horizontal  = pf->direction.x != 0;
+	float  sign        = horizontal ? pf->direction.x : pf->direction.y;
+	float  halfBound   = (horizontal ? pr->w : pr->h) * 0.5f;
+	float  halfAcross  = (horizontal ? pr->h : pr->w) * 0.5f;
+	float *edge        = horizontal ? &pf->cursor.x : &pf->cursor.y; // leading edge along the flow axis
+	float *line        = horizontal ? &pf->cursor.y : &pf->cursor.x; // near edge of the current line
 
-	// a reversed flow starts at the far edge of the parent instead of at zero
-	if (*along == 0.0f && sign < 0.0f) *along = bound;
+	if (!pf->started) {
+		*edge      = sign < 0.0f ? halfBound : -halfBound;
+		*line      = -halfAcross;
+		pf->started = true;
+	}
 
 	for (int i = 0; i < it->count; ++i, ++cp, ++cr) {
 		float childAlong  = horizontal ? cr->w : cr->h;
 		float childAcross = horizontal ? cr->h : cr->w;
 
-		// wrap to the next line once the child no longer fits along the flow axis
-		if (*along != (sign < 0.0f ? bound : 0.0f) &&
-		    (sign >= 0.0f ? *along + childAlong > bound : *along - childAlong < 0.0f)) {
-			*along   = sign < 0.0f ? bound : 0.0f;
-			*across += pf->max;
-			pf->max  = 0;
+		// wrap to a new line once the child's far edge no longer fits along the flow axis
+		bool atStart = *edge == (sign < 0.0f ? halfBound : -halfBound);
+		bool fits    = sign >= 0.0f ? *edge + childAlong <= halfBound : *edge - childAlong >= -halfBound;
+		if (!atStart && !fits) {
+			*edge  = sign < 0.0f ? halfBound : -halfBound;
+			*line += pf->max;
+			pf->max = 0;
 		}
 
-		float alongPos = sign >= 0.0f ? *along : *along - childAlong;
+		// positions are centers, so offset the edge by half the child's size
+		float alongCenter  = *edge + (sign >= 0.0f ? childAlong : -childAlong) * 0.5f;
+		float acrossCenter = *line + childAcross * 0.5f;
 		if (horizontal) {
-			cp->x = alongPos;
-			cp->y = *across;
+			cp->x = alongCenter;
+			cp->y = acrossCenter;
 		} else {
-			cp->y = alongPos;
-			cp->x = *across;
+			cp->y = alongCenter;
+			cp->x = acrossCenter;
 		}
 
-		*along += sign >= 0.0f ? childAlong : -childAlong;
+		*edge += sign >= 0.0f ? childAlong : -childAlong;
 		if (childAcross > pf->max) pf->max = childAcross;
 	}
 }

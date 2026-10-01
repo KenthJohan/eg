@@ -7,6 +7,7 @@ typedef struct {
 	Position2 cursor;
 	V2f32     direction;
 	float     max;
+	bool      started;
 } EgUiFlow;
 
 extern ECS_COMPONENT_DECLARE(EgUiFlow);

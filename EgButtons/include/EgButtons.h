@@ -32,6 +32,8 @@ typedef struct
 	ecs_id_t     component;
 	uint8_t      byte_offset;
 	float        factor;
+	float        w0;
+	float        w1;
 } EgButtonsIncrementer;
 
 typedef struct

@@ -69,9 +69,10 @@ static void System_Bindings(ecs_iter_t *it)
 		}
 		int32_t v0    = get_button_state(a->button0, a->mask, buttons);
 		int32_t v1    = get_button_state(a->button1, a->mask, buttons);
-		int32_t delta = v0 - v1;
+		float   delta = (float)v0 - (float)v1;
 		float  *f     = (float *)((uint8_t *)ptr + b->byte_offset);
-		(*f)          = (float)delta * b->factor;
+		float   a     = delta * b->factor;
+		f[0]          = f[0] * b->w0 + a * b->w1;
 	}
 	ecs_log_set_level(0);
 }
@@ -150,6 +151,8 @@ void EgButtonsImport(ecs_world_t *world)
 	{.name = "component", .type = ecs_id(ecs_id_t)},
 	{.name = "byte_offset", .type = ecs_id(ecs_u8_t)},
 	{.name = "factor", .type = ecs_id(ecs_f32_t)},
+	{.name = "w0", .type = ecs_id(ecs_f32_t)},
+	{.name = "w1", .type = ecs_id(ecs_f32_t)},
 	}});
 
 	ecs_struct(world,
