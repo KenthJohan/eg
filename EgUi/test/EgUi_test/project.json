@@ -1,0 +1,32 @@
+{
+	"id": "EgUi_test",
+	"type": "application",
+	"value": {
+		"description": "Test project for EgUi",
+		"public": false,
+		"use": [
+			"EgUi",
+			"EgSpatials",
+			"EgShapes",
+			"flecs"
+		]
+	},
+	"test": {
+		"testsuites": [{
+			"id": "FlowLayout",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+			]
+		}]
+	},
+	"lang.c": {
+		"lib": [
+			"EgUi",
+			"EgSpatials",
+			"EgShapes",
+			"flecs",
+			"m"
+		]
+	}
+}

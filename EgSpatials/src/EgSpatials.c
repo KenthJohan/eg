@@ -5,11 +5,13 @@ ECS_COMPONENT_DECLARE(Scale2);
 ECS_COMPONENT_DECLARE(Rotation2);
 ECS_COMPONENT_DECLARE(Position2World);
 ECS_COMPONENT_DECLARE(Position3);
-ECS_COMPONENT_DECLARE(V4f32);
-ECS_COMPONENT_DECLARE(Ray3);
-ECS_COMPONENT_DECLARE(Scale3);
 ECS_COMPONENT_DECLARE(Position3World);
 ECS_COMPONENT_DECLARE(Position3WorldOffset);
+ECS_COMPONENT_DECLARE(V4f32);
+ECS_COMPONENT_DECLARE(V3f32);
+ECS_COMPONENT_DECLARE(V2f32);
+ECS_COMPONENT_DECLARE(Ray3);
+ECS_COMPONENT_DECLARE(Scale3);
 ECS_COMPONENT_DECLARE(Velocity2);
 ECS_COMPONENT_DECLARE(Velocity3);
 ECS_COMPONENT_DECLARE(Rotate3);
@@ -85,6 +87,8 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Position2World);
 	ECS_COMPONENT_DEFINE(world, Position3);
 	ECS_COMPONENT_DEFINE(world, V4f32);
+	ECS_COMPONENT_DEFINE(world, V3f32);
+	ECS_COMPONENT_DEFINE(world, V2f32);
 	ECS_COMPONENT_DEFINE(world, Ray3);
 	ECS_COMPONENT_DEFINE(world, Scale3);
 	ECS_COMPONENT_DEFINE(world, Position3World);
@@ -244,6 +248,21 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.name = "y", .type = ecs_id(ecs_f32_t)},
 	{.name = "z", .type = ecs_id(ecs_f32_t)},
 	{.name = "w", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(V3f32),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	{.name = "z", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(V2f32),
+	.members = {
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
 	}});
 
 	ecs_struct(world,

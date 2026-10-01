@@ -237,7 +237,6 @@ static void System_Resize(ecs_iter_t *it)
 	ecs_id_t     pair = ecs_field_id(it, 1);
 	ecs_entity_t food = ecs_pair_second(it->world, pair);
 	printf("food: %s\n", ecs_get_name(it->world, food));
-	ecs_add(it->world, food, EgBaseUpdate);
 	for (int i = 0; i < it->count; ++i) {
 		ecs_remove(it->world, it->entities[i], EgWindowsEventResize);
 	}

@@ -13,6 +13,17 @@ typedef struct {
 typedef struct {
 	float x;
 	float y;
+	float z;
+} V3f32;
+
+typedef struct {
+	float x;
+	float y;
+} V2f32;
+
+typedef struct {
+	float x;
+	float y;
 } Position2;
 
 typedef struct {
@@ -128,6 +139,8 @@ typedef struct {
 } Sinewave;
 
 extern ECS_COMPONENT_DECLARE(V4f32);
+extern ECS_COMPONENT_DECLARE(V3f32);
+extern ECS_COMPONENT_DECLARE(V2f32);
 extern ECS_COMPONENT_DECLARE(Position2);
 extern ECS_COMPONENT_DECLARE(Scale2);
 extern ECS_COMPONENT_DECLARE(Rotation2);

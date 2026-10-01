@@ -14,30 +14,28 @@
  * dependencies will automatically show up in this file. Include bake_config.h
  * in your main project file. Do not edit! */
 
-#ifndef EGMESHES_BAKE_CONFIG_H
-#define EGMESHES_BAKE_CONFIG_H
+#ifndef EGUI_BAKE_CONFIG_H
+#define EGUI_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
 #include <EgShapes.h>
-#include <EgBase.h>
 #include <EgSpatials.h>
 #include <ecsx.h>
-#include <egmath.h>
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef egmeshes_STATIC
-#if defined(egmeshes_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
-  #define EGMESHES_API __declspec(dllexport)
-#elif defined(egmeshes_EXPORTS)
-  #define EGMESHES_API __attribute__((__visibility__("default")))
+#ifndef egui_STATIC
+#if defined(egui_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+  #define EGUI_API __declspec(dllexport)
+#elif defined(egui_EXPORTS)
+  #define EGUI_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
-  #define EGMESHES_API __declspec(dllimport)
+  #define EGUI_API __declspec(dllimport)
 #else
-  #define EGMESHES_API
+  #define EGUI_API
 #endif
 #else
-  #define EGMESHES_API
+  #define EGUI_API
 #endif
 
 #endif
