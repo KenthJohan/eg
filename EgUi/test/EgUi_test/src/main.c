@@ -22,6 +22,13 @@ void TableLayout_test_empty_table_has_no_space(void);
 void TableLayout_test_sparse_cells_leave_empty_columns(void);
 void TableLayout_test_relayout_after_child_resize(void);
 
+// Testsuite 'MouseHitTesting'
+void MouseHitTesting_setup(void);
+void MouseHitTesting_teardown(void);
+void MouseHitTesting_test_axis_aligned_hit_and_clear(void);
+void MouseHitTesting_test_rotated_scaled_hit(void);
+void MouseHitTesting_test_overlapping_rectangles_all_hover(void);
+
 bake_test_case FlowLayout_testcases[] = {
     {
         "test_children_flow_right_then_wrap_down",
@@ -52,6 +59,21 @@ bake_test_case TableLayout_testcases[] = {
     }
 };
 
+bake_test_case MouseHitTesting_testcases[] = {
+    {
+        "test_axis_aligned_hit_and_clear",
+        MouseHitTesting_test_axis_aligned_hit_and_clear
+    },
+    {
+        "test_rotated_scaled_hit",
+        MouseHitTesting_test_rotated_scaled_hit
+    },
+    {
+        "test_overlapping_rectangles_all_hover",
+        MouseHitTesting_test_overlapping_rectangles_all_hover
+    }
+};
+
 static bake_test_suite suites[] = {
     {
         "FlowLayout",
@@ -66,9 +88,16 @@ static bake_test_suite suites[] = {
         TableLayout_teardown,
         4,
         TableLayout_testcases
+    },
+    {
+        "MouseHitTesting",
+        MouseHitTesting_setup,
+        MouseHitTesting_teardown,
+        3,
+        MouseHitTesting_testcases
     }
 };
 
 int main(int argc, char *argv[]) {
-    return bake_test_run("EgUi_test", argc, argv, suites, 2);
+    return bake_test_run("EgUi_test", argc, argv, suites, 3);
 }

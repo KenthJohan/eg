@@ -30,6 +30,15 @@
 				"test_sparse_cells_leave_empty_columns",
 				"test_relayout_after_child_resize"
 			]
+		}, {
+			"id": "MouseHitTesting",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+				"test_axis_aligned_hit_and_clear",
+				"test_rotated_scaled_hit",
+				"test_overlapping_rectangles_all_hover"
+			]
 		}]
 	},
 	"lang.c": {
