@@ -5,14 +5,12 @@
 #include <math.h>
 
 ECS_COMPONENT_DECLARE(EgUiFlow);
+ECS_COMPONENT_DECLARE(EgUiDirection);
 
 static void EgUiFlow_Reset(ecs_iter_t *it)
 {
 	EgUiFlow *flow = ecs_field_self(it, EgUiFlow, 0);
 	for (int i = 0; i < it->count; ++i, ++flow) {
-		flow->cursor  = (Position2){0};
-		flow->max     = 0;
-		flow->started = false;
 	}
 }
 
@@ -22,49 +20,6 @@ static void EgUiFlow_Update(ecs_iter_t *it)
 	EgShapesRectangle *pr = ecs_field_shared(it, EgShapesRectangle, 1);
 	Position2         *cp = ecs_field_self(it, Position2, 2);
 	EgShapesRectangle *cr = ecs_field_self(it, EgShapesRectangle, 3);
-
-	// direction is a unit vector (a 2d rotation applied to the x axis); only its
-	// dominant axis is used to pick the flow axis, its sign picks the flow's start corner
-	bool   horizontal  = pf->direction.x != 0;
-	float  sign        = horizontal ? pf->direction.x : pf->direction.y;
-	float  halfBound   = (horizontal ? pr->w : pr->h) * 0.5f;
-	float  halfAcross  = (horizontal ? pr->h : pr->w) * 0.5f;
-	float *edge        = horizontal ? &pf->cursor.x : &pf->cursor.y; // leading edge along the flow axis
-	float *line        = horizontal ? &pf->cursor.y : &pf->cursor.x; // near edge of the current line
-
-	if (!pf->started) {
-		*edge      = sign < 0.0f ? halfBound : -halfBound;
-		*line      = -halfAcross;
-		pf->started = true;
-	}
-
-	for (int i = 0; i < it->count; ++i, ++cp, ++cr) {
-		float childAlong  = horizontal ? cr->w : cr->h;
-		float childAcross = horizontal ? cr->h : cr->w;
-
-		// wrap to a new line once the child's far edge no longer fits along the flow axis
-		bool atStart = *edge == (sign < 0.0f ? halfBound : -halfBound);
-		bool fits    = sign >= 0.0f ? *edge + childAlong <= halfBound : *edge - childAlong >= -halfBound;
-		if (!atStart && !fits) {
-			*edge  = sign < 0.0f ? halfBound : -halfBound;
-			*line += pf->max;
-			pf->max = 0;
-		}
-
-		// positions are centers, so offset the edge by half the child's size
-		float alongCenter  = *edge + (sign >= 0.0f ? childAlong : -childAlong) * 0.5f;
-		float acrossCenter = *line + childAcross * 0.5f;
-		if (horizontal) {
-			cp->x = alongCenter;
-			cp->y = acrossCenter;
-		} else {
-			cp->y = alongCenter;
-			cp->x = acrossCenter;
-		}
-
-		*edge += sign >= 0.0f ? childAlong : -childAlong;
-		if (childAcross > pf->max) pf->max = childAcross;
-	}
 }
 
 void EgUiImport(ecs_world_t *world)
@@ -73,13 +28,25 @@ void EgUiImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgUi");
 
 	ECS_COMPONENT_DEFINE(world, EgUiFlow);
+	ECS_COMPONENT_DEFINE(world, EgUiDirection);
+
+	ecs_enum_init(world,
+	&(ecs_enum_desc_t){
+	.entity    = ecs_id(EgUiDirection),
+	.constants = {
+	{.name = "None", .value = EgUiDirectionNone},
+	{.name = "Right", .value = EgUiDirectionRight},
+	{.name = "Left", .value = EgUiDirectionLeft},
+	{.name = "Up", .value = EgUiDirectionUp},
+	{.name = "Down", .value = EgUiDirectionDown},
+	}});
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
 	.entity  = ecs_id(EgUiFlow),
 	.members = {
-	{.name = "cursor", .type = ecs_id(Position2)},
-	{.name = "direction", .type = ecs_id(V2f32)},
+	{.name = "direction", .type = ecs_id(EgUiDirection)},
+	{.name = "wrap", .type = ecs_id(EgUiDirection)},
 	}});
 
 	ecs_system_init(world,
