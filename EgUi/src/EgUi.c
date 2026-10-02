@@ -2,9 +2,168 @@
 
 #include <EgShapes.h>
 #include <ecsx.h>
+#include <string.h>
 
 ECS_COMPONENT_DECLARE(EgUiFlow);
 ECS_COMPONENT_DECLARE(EgUiDirection);
+ECS_COMPONENT_DECLARE(EgUiTable);
+ECS_COMPONENT_DECLARE(EgUiCell);
+
+static float EgUiTable_MapGet(const ecs_map_t *map, int32_t key)
+{
+	ecs_map_val_t *val = ecs_map_get(map, (ecs_map_key_t)(uint32_t)key);
+	if (!val) {
+		return 0.0f;
+	}
+	float f;
+	memcpy(&f, val, sizeof(f));
+	return f;
+}
+
+static void EgUiTable_MapMax(ecs_map_t *map, int32_t key, float value)
+{
+	ecs_map_val_t *val = ecs_map_ensure(map, (ecs_map_key_t)(uint32_t)key);
+	float          f   = 0.0f;
+	memcpy(&f, val, sizeof(f));
+	if (value > f) {
+		*val = 0;
+		memcpy(val, &value, sizeof(value));
+	}
+}
+
+// Sum of sizes (plus gaps) of indices [0, index).
+static float EgUiTable_Offset(const ecs_map_t *map, int32_t index, float gap)
+{
+	float sum = 0.0f;
+	for (int32_t k = 0; k < index; ++k) {
+		sum += EgUiTable_MapGet(map, k) + gap;
+	}
+	return sum;
+}
+
+static void EgUiTable_ctor(void *ptr, int32_t count, const ecs_type_info_t *ti)
+{
+	(void)ti;
+	EgUiTable *t = ptr;
+	for (int32_t i = 0; i < count; ++i) {
+		memset(&t[i], 0, sizeof(EgUiTable));
+		ecs_map_init(&t[i].rows_height, NULL);
+		ecs_map_init(&t[i].cols_width, NULL);
+	}
+}
+
+static void EgUiTable_dtor(void *ptr, int32_t count, const ecs_type_info_t *ti)
+{
+	(void)ti;
+	EgUiTable *t = ptr;
+	for (int32_t i = 0; i < count; ++i) {
+		ecs_map_fini(&t[i].rows_height);
+		ecs_map_fini(&t[i].cols_width);
+	}
+}
+
+static void EgUiTable_move(void *dst_ptr, void *src_ptr, int32_t count, const ecs_type_info_t *ti)
+{
+	(void)ti;
+	EgUiTable *dst = dst_ptr;
+	EgUiTable *src = src_ptr;
+	for (int32_t i = 0; i < count; ++i) {
+		ecs_map_fini(&dst[i].rows_height);
+		ecs_map_fini(&dst[i].cols_width);
+		dst[i] = src[i];
+		ecs_map_init(&src[i].rows_height, NULL);
+		ecs_map_init(&src[i].cols_width, NULL);
+	}
+}
+
+static void EgUiTable_copy(void *dst_ptr, const void *src_ptr, int32_t count, const ecs_type_info_t *ti)
+{
+	(void)ti;
+	EgUiTable       *dst = dst_ptr;
+	const EgUiTable *src = src_ptr;
+	for (int32_t i = 0; i < count; ++i) {
+		ecs_map_fini(&dst[i].rows_height);
+		ecs_map_fini(&dst[i].cols_width);
+		ecs_map_init(&dst[i].rows_height, NULL);
+		ecs_map_init(&dst[i].cols_width, NULL);
+		// ecs_map_copy leaves dst finalized (dangling buckets) when src is uninitialized.
+		if (ecs_map_is_init(&src[i].rows_height)) {
+			ecs_map_copy(&dst[i].rows_height, &src[i].rows_height);
+		}
+		if (ecs_map_is_init(&src[i].cols_width)) {
+			ecs_map_copy(&dst[i].cols_width, &src[i].cols_width);
+		}
+		dst[i].total_space = src[i].total_space;
+		dst[i].row_gap     = src[i].row_gap;
+		dst[i].col_gap     = src[i].col_gap;
+		dst[i].row_count   = src[i].row_count;
+		dst[i].col_count   = src[i].col_count;
+	}
+}
+
+static void EgUiTable_Reset(ecs_iter_t *it)
+{
+	EgUiTable *table = ecs_field_self(it, EgUiTable, 0);
+	for (int i = 0; i < it->count; ++i) {
+		ecs_map_clear(&table[i].rows_height);
+		ecs_map_clear(&table[i].cols_width);
+		table[i].row_count = 0;
+		table[i].col_count = 0;
+		table[i].total_space.w = 0.0f;
+		table[i].total_space.h = 0.0f;
+	}
+}
+
+static void EgUiTable_Measure(ecs_iter_t *it)
+{
+	EgUiTable         *table = ecs_field_shared(it, EgUiTable, 0);
+	EgUiCell          *cells = ecs_field_self(it, EgUiCell, 1);
+	EgShapesRectangle *rects = ecs_field_self(it, EgShapesRectangle, 2);
+	for (int i = 0; i < it->count; ++i) {
+		if (cells[i].row < 0 || cells[i].col < 0) {
+			continue;
+		}
+		EgUiTable_MapMax(&table->rows_height, cells[i].row, rects[i].h);
+		EgUiTable_MapMax(&table->cols_width, cells[i].col, rects[i].w);
+		if (cells[i].row + 1 > table->row_count) {
+			table->row_count = cells[i].row + 1;
+		}
+		if (cells[i].col + 1 > table->col_count) {
+			table->col_count = cells[i].col + 1;
+		}
+	}
+}
+
+static void EgUiTable_Finalize(ecs_iter_t *it)
+{
+	EgUiTable *table = ecs_field_self(it, EgUiTable, 0);
+	for (int i = 0; i < it->count; ++i) {
+		float w = EgUiTable_Offset(&table[i].cols_width, table[i].col_count, table[i].col_gap);
+		float h = EgUiTable_Offset(&table[i].rows_height, table[i].row_count, table[i].row_gap);
+		table[i].total_space.w = table[i].col_count > 0 ? w - table[i].col_gap : 0.0f;
+		table[i].total_space.h = table[i].row_count > 0 ? h - table[i].row_gap : 0.0f;
+	}
+}
+
+static void EgUiTable_Layout(ecs_iter_t *it)
+{
+	EgUiTable         *table     = ecs_field_shared(it, EgUiTable, 0);
+	EgUiCell          *cells     = ecs_field_self(it, EgUiCell, 1);
+	EgShapesRectangle *rects     = ecs_field_self(it, EgShapesRectangle, 2);
+	Position2         *positions = ecs_field_self(it, Position2, 3);
+	for (int i = 0; i < it->count; ++i) {
+		if (cells[i].row < 0 || cells[i].col < 0) {
+			continue;
+		}
+		float col_w = EgUiTable_MapGet(&table->cols_width, cells[i].col);
+		float row_h = EgUiTable_MapGet(&table->rows_height, cells[i].row);
+		float left  = EgUiTable_Offset(&table->cols_width, cells[i].col, table->col_gap);
+		float top   = EgUiTable_Offset(&table->rows_height, cells[i].row, table->row_gap);
+		// Child is centered in its cell; table is centered on the parent origin, rows grow downward (+y is up).
+		positions[i].x = -table->total_space.w * 0.5f + left + col_w * 0.5f;
+		positions[i].y = table->total_space.h * 0.5f - top - row_h * 0.5f;
+	}
+}
 
 static bool EgUiFlow_GetAxis(EgUiDirection direction, int *axis, float *sign)
 {
@@ -117,6 +276,32 @@ void EgUiImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, EgUiFlow);
 	ECS_COMPONENT_DEFINE(world, EgUiDirection);
+	ECS_COMPONENT_DEFINE(world, EgUiTable);
+	ECS_COMPONENT_DEFINE(world, EgUiCell);
+
+	ecs_set_hooks(world, EgUiTable, {
+	.ctor = EgUiTable_ctor,
+	.dtor = EgUiTable_dtor,
+	.move = EgUiTable_move,
+	.copy = EgUiTable_copy,
+	});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = ecs_id(EgUiCell),
+	.members = {
+	{.name = "row", .type = ecs_id(ecs_i32_t)},
+	{.name = "col", .type = ecs_id(ecs_i32_t)},
+	}});
+
+	// Maps are not reflected; explicit offsets let scripts set the gaps.
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = ecs_id(EgUiTable),
+	.members = {
+	{.name = "row_gap", .type = ecs_id(ecs_f32_t), .offset = offsetof(EgUiTable, row_gap)},
+	{.name = "col_gap", .type = ecs_id(ecs_f32_t), .offset = offsetof(EgUiTable, col_gap)},
+	}});
 
 	ecs_enum_init(world,
 	&(ecs_enum_desc_t){
@@ -161,5 +346,47 @@ void EgUiImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(Position2), .inout = EcsOut},
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
+	}});
+
+	// Systems run in declaration order: Reset, Measure, Finalize, Layout.
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiTable_Reset"}),
+	.phase       = EcsOnUpdate,
+	.callback    = EgUiTable_Reset,
+	.query.terms = {
+	{.id = ecs_id(EgUiTable), .inout = EcsInOut},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiTable_Measure"}),
+	.phase       = EcsOnUpdate,
+	.callback    = EgUiTable_Measure,
+	.query.terms = {
+	{.id = ecs_id(EgUiTable), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
+	{.id = ecs_id(EgUiCell), .inout = EcsIn},
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiTable_Finalize"}),
+	.phase       = EcsOnUpdate,
+	.callback    = EgUiTable_Finalize,
+	.query.terms = {
+	{.id = ecs_id(EgUiTable), .inout = EcsInOut},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiTable_Layout"}),
+	.phase       = EcsOnUpdate,
+	.callback    = EgUiTable_Layout,
+	.query.terms = {
+	{.id = ecs_id(EgUiTable), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgUiCell), .inout = EcsIn},
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
+	{.id = ecs_id(Position2), .inout = EcsOut},
 	}});
 }
