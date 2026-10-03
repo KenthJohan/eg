@@ -122,8 +122,8 @@ static void Transform3_trs(ecs_iter_t *it)
 	Scale2 const    *s = ecs_field_self(it, Scale2, 2);     // in
 	Rotation2 const *r = ecs_field_self(it, Rotation2, 3);  // in, expressed as an angle in radians
 	for (int i = 0; i < it->count; ++i, ++t, ++p, ++s, ++r) {
-		// Convert 2D rotation radians to a 2D quaternion representation with cosine and sine:
-		float q[2] = {cosf(r->radians * 0.5f), sinf(r->radians * 0.5f)};
+		// m3f32_trs expects the 2D quaternion as {z, w}.
+		float q[2] = {sinf(r->radians * 0.5f), cosf(r->radians * 0.5f)};
 		// Construct the local transform matrix from position, scale, and rotation
 		m3f32_trs((float *)p, (float *)q, (float *)s, &(t->matrix));
 	}
@@ -131,7 +131,13 @@ static void Transform3_trs(ecs_iter_t *it)
 
 static void Transform4_trs(ecs_iter_t *it)
 {
-	for (int i = 0; i < it->count; ++i) {
+	Transform4        *t = ecs_field_self(it, Transform4, 0);  // out
+	Position3 const   *p = ecs_field_self(it, Position3, 1);   // in
+	Scale3 const      *s = ecs_field_self(it, Scale3, 2);      // in
+	Orientation const *o = ecs_field_self(it, Orientation, 3); // in, expressed as a quaternion
+	for (int i = 0; i < it->count; ++i, ++t, ++p, ++s, ++o) {
+		// Construct the local transform matrix from position, scale, and orientation
+		m4f32_trs((float *)p, (float *)o, (float *)s, &(t->matrix));
 	}
 }
 
