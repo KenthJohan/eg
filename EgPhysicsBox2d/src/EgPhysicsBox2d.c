@@ -206,14 +206,19 @@ static void System_Overlap_Checking_Update(ecs_iter_t *it)
 	}
 }
 
-static void System_Get_Position(ecs_iter_t *it)
+static void System_Get_Transform(ecs_iter_t *it)
 {
 	b2BodyId  *b = ecs_field_self(it, b2BodyId, 0);
-	Position2 *p = ecs_field_self(it, Position2, 1);
-	for (int i = 0; i < it->count; ++i, ++b, ++p) {
-		b2Vec2 pos = b2Body_GetPosition(b[0]);
-		p->x       = pos.x;
-		p->y       = pos.y;
+	WorldTransform3 *m3 = ecs_field_self(it, WorldTransform3, 1);
+	for (int i = 0; i < it->count; ++i, ++b, ++m3) {
+		b2WorldTransform xf =b2Body_GetTransform(b[0]);
+		m3->matrix.c0[0] = xf.q.c;
+		m3->matrix.c0[1] = xf.q.s;
+		m3->matrix.c1[0] = -xf.q.s;
+		m3->matrix.c1[1] = xf.q.c;
+		m3->matrix.c2[0] = xf.p.x;
+		m3->matrix.c2[1] = xf.p.y;
+		m3->matrix.c2[2] = 1.0f;
 	}
 }
 
@@ -347,12 +352,12 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	}});
 
 	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "System_Get_Position"}),
+	{.entity     = ecs_entity(world, {.name = "System_Get_Transform"}),
 	.phase       = EcsOnUpdate,
-	.callback    = System_Get_Position,
+	.callback    = System_Get_Transform,
 	.query.terms = {
 	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
+	{.id = ecs_id(WorldTransform3), .src.id = EcsSelf, .inout = EcsOut},
 	}});
 
 	ecs_observer(world,

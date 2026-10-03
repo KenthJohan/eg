@@ -110,9 +110,9 @@ void EgCamerasImport(ecs_world_t *world)
 	{.name = "fov", .type = ecs_id(ecs_f32_t)},
 	{.name = "pixel_coords", .type = ecs_id(ecs_bool_t)},
 	{.name = "pixelScale", .type = ecs_id(ecs_f32_t)},
-	{.name = "view", .type = ecs_id(Matrix4)},
-	{.name = "projection", .type = ecs_id(Matrix4)},
-	{.name = "vp", .type = ecs_id(Matrix4)},
+	{.name = "view", .type = ecs_id(Transform4)},
+	{.name = "projection", .type = ecs_id(Transform4)},
+	{.name = "vp", .type = ecs_id(Transform4)},
 	}});
 
 	ecs_system(world,

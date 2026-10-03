@@ -101,6 +101,7 @@ void m3f32_mul(m3f32 *y, m3f32 const *a, m3f32 const *b);
 void m3f32_transpose(m3f32 *x);
 void m3f32_rs_inverse(float const q[4], float const s[3], m3f32 *r);
 void m3f32_rs_inverse_transposed(float const q[4], float const s[3], m3f32 *r);
+void m3f32_trs(float const t[2], float const q[2], float const s[2], m3f32 *r);
 
 void v4f32_xyzw(float v[4], float x, float y, float z, float w);
 void v4f32_mul(float r[4], float const a[4], float b);

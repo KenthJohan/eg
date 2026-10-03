@@ -73,6 +73,9 @@ static void System_Bindings(ecs_iter_t *it)
 		float  *f     = (float *)((uint8_t *)ptr + b->byte_offset);
 		float   a     = delta * b->factor;
 		f[0]          = f[0] * b->w0 + a * b->w1;
+		if (a) {
+			printf("incrementer applied: delta=%f, factor=%f, a=%f, f[0]=%f, w0=%f, w1=%f\n", delta, b->factor, a, f[0], b->w0, b->w1);
+		}
 	}
 	ecs_log_set_level(0);
 }

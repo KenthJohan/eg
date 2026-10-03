@@ -13,40 +13,7 @@ ECS_COMPONENT_DECLARE(EgUiMouseHitTesting);
 
 static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 {
-	EgUiMouseHitTesting *config = ecs_field_shared(it, EgUiMouseHitTesting, 0);
-	EgShapesRectangle   *rect   = ecs_field_self(it, EgShapesRectangle, 1);
-	Matrix3             *matrix = ecs_field_self(it, Matrix3, 2);
-	Position2World      *center = ecs_field_self(it, Position2World, 3);
-	ecs_entity_t         source = ecs_field_src(it, 0);
-	ecs_entity_t         mouse_entity = ecs_get_target(it->world, source, ecs_id(EgUiMouseHitTesting), 0);
-	Position2 const     *mouse = ecs_get(it->world, mouse_entity, Position2);
 
-	if (!ecs_is_valid(it->world, config->tag)) {
-		return;
-	}
-
-	for (int i = 0; i < it->count; ++i, ++rect, ++matrix, ++center) {
-		float basis_xx = matrix->matrix.c0[0];
-		float basis_yx = matrix->matrix.c1[0];
-		float basis_xy = matrix->matrix.c0[1];
-		float basis_yy = matrix->matrix.c1[1];
-		float determinant = basis_xx * basis_yy - basis_yx * basis_xy;
-		bool  hit         = false;
-
-		if (mouse && fabsf(determinant) > 1e-8f) {
-			float offset_x = mouse->x - center->x;
-			float offset_y = mouse->y - center->y;
-			float local_x  = (basis_yy * offset_x - basis_yx * offset_y) / determinant;
-			float local_y  = (basis_xx * offset_y - basis_xy * offset_x) / determinant;
-			hit = fabsf(local_x) <= rect->w * 0.5f && fabsf(local_y) <= rect->h * 0.5f;
-		}
-
-		if (hit) {
-			ecs_add_id(it->world, it->entities[i], config->tag);
-		} else {
-			ecs_remove_id(it->world, it->entities[i], config->tag);
-		}
-	}
 }
 
 static float EgUiTable_MapGet(const ecs_map_t *map, int32_t key)
@@ -446,8 +413,6 @@ void EgUiImport(ecs_world_t *world)
 	.callback    = EgUiMouseHitTesting_Update,
 	.query.terms = {
 	{.id = ecs_pair(ecs_id(EgUiMouseHitTesting), EcsWildcard), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
-	{.id = ecs_id(Matrix3), .inout = EcsIn},
-	{.id = ecs_id(Position2World), .inout = EcsIn},
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn}
 	}});
 }

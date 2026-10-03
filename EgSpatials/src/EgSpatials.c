@@ -3,10 +3,7 @@
 ECS_COMPONENT_DECLARE(Position2);
 ECS_COMPONENT_DECLARE(Scale2);
 ECS_COMPONENT_DECLARE(Rotation2);
-ECS_COMPONENT_DECLARE(Position2World);
 ECS_COMPONENT_DECLARE(Position3);
-ECS_COMPONENT_DECLARE(Position3World);
-ECS_COMPONENT_DECLARE(Position3WorldOffset);
 ECS_COMPONENT_DECLARE(V4f32);
 ECS_COMPONENT_DECLARE(V3f32);
 ECS_COMPONENT_DECLARE(V2f32);
@@ -17,46 +14,34 @@ ECS_COMPONENT_DECLARE(Velocity3);
 ECS_COMPONENT_DECLARE(Rotate3);
 ECS_COMPONENT_DECLARE(RotMat3);
 ECS_COMPONENT_DECLARE(Orientation);
-ECS_COMPONENT_DECLARE(OrientationWorld);
 ECS_COMPONENT_DECLARE(EulerAngles);
-ECS_COMPONENT_DECLARE(Matrix4);
-ECS_COMPONENT_DECLARE(Matrix3);
+ECS_COMPONENT_DECLARE(Transform4);
+ECS_COMPONENT_DECLARE(Transform3);
+ECS_COMPONENT_DECLARE(WorldTransform4);
+ECS_COMPONENT_DECLARE(WorldTransform3);
 ECS_COMPONENT_DECLARE(Sinewave);
 ECS_COMPONENT_DECLARE(Color3);
 ECS_TAG_DECLARE(RotateOrder1);
 ECS_TAG_DECLARE(RotateOrder2);
 ECS_TAG_DECLARE(Normalized);
 
-ECS_CTOR(Matrix4, ptr, {
+ECS_CTOR(Transform4, ptr, {
 	ptr->matrix = (m4f32)M4_IDENTITY;
 })
 
-ECS_CTOR(Matrix3, ptr, {
+ECS_CTOR(Transform3, ptr, {
 	ptr->matrix = (m3f32)M3_IDENTITY;
 })
 
-ECS_CTOR(RotMat3, ptr, {
-	ptr->x1 = 1.0f;
-	ptr->y1 = 0.0f;
-	ptr->z1 = 0.0f;
-	ptr->x2 = 0.0f;
-	ptr->y2 = 1.0f;
-	ptr->z2 = 0.0f;
-	ptr->x3 = 0.0f;
-	ptr->y3 = 0.0f;
-	ptr->z3 = 1.0f;
+ECS_CTOR(WorldTransform4, ptr, {
+	ptr->matrix = (m4f32)M4_IDENTITY;
+})
+
+ECS_CTOR(WorldTransform3, ptr, {
+	ptr->matrix = (m3f32)M3_IDENTITY;
 })
 
 ECS_CTOR(Orientation, ptr, {
-	// QF32_IDENTITY;
-	// printf("Orientation::ECS_CTOR\n");
-	ptr->x = 0.0f;
-	ptr->y = 0.0f;
-	ptr->z = 0.0f;
-	ptr->w = 1.0f;
-})
-
-ECS_CTOR(OrientationWorld, ptr, {
 	// QF32_IDENTITY;
 	// printf("Orientation::ECS_CTOR\n");
 	ptr->x = 0.0f;
@@ -84,24 +69,21 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, Position2);
 	ECS_COMPONENT_DEFINE(world, Scale2);
 	ECS_COMPONENT_DEFINE(world, Rotation2);
-	ECS_COMPONENT_DEFINE(world, Position2World);
 	ECS_COMPONENT_DEFINE(world, Position3);
 	ECS_COMPONENT_DEFINE(world, V4f32);
 	ECS_COMPONENT_DEFINE(world, V3f32);
 	ECS_COMPONENT_DEFINE(world, V2f32);
 	ECS_COMPONENT_DEFINE(world, Ray3);
 	ECS_COMPONENT_DEFINE(world, Scale3);
-	ECS_COMPONENT_DEFINE(world, Position3World);
-	ECS_COMPONENT_DEFINE(world, Position3WorldOffset);
 	ECS_COMPONENT_DEFINE(world, Velocity2);
 	ECS_COMPONENT_DEFINE(world, Velocity3);
 	ECS_COMPONENT_DEFINE(world, Orientation);
-	ECS_COMPONENT_DEFINE(world, OrientationWorld);
 	ECS_COMPONENT_DEFINE(world, EulerAngles);
 	ECS_COMPONENT_DEFINE(world, Rotate3);
-	ECS_COMPONENT_DEFINE(world, Matrix4);
-	ECS_COMPONENT_DEFINE(world, Matrix3);
-	ECS_COMPONENT_DEFINE(world, RotMat3);
+	ECS_COMPONENT_DEFINE(world, Transform4);
+	ECS_COMPONENT_DEFINE(world, Transform3);
+	ECS_COMPONENT_DEFINE(world, WorldTransform4);
+	ECS_COMPONENT_DEFINE(world, WorldTransform3);
 	ECS_COMPONENT_DEFINE(world, Sinewave);
 	ECS_COMPONENT_DEFINE(world, Color3);
 
@@ -110,10 +92,10 @@ void EgSpatialsImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, Normalized);
 
 	ecs_set_hooks(world, Orientation, {.ctor = ecs_ctor(Orientation)});
-	ecs_set_hooks(world, OrientationWorld, {.ctor = ecs_ctor(OrientationWorld)});
-	ecs_set_hooks(world, Matrix4, {.ctor = ecs_ctor(Matrix4)});
-	ecs_set_hooks(world, Matrix3, {.ctor = ecs_ctor(Matrix3)});
-	ecs_set_hooks(world, RotMat3, {.ctor = ecs_ctor(RotMat3)});
+	ecs_set_hooks(world, Transform4, {.ctor = ecs_ctor(Transform4)});
+	ecs_set_hooks(world, Transform3, {.ctor = ecs_ctor(Transform3)});
+	ecs_set_hooks(world, WorldTransform4, {.ctor = ecs_ctor(WorldTransform4)});
+	ecs_set_hooks(world, WorldTransform3, {.ctor = ecs_ctor(WorldTransform3)});
 	ecs_set_hooks(world, Scale3, {.ctor = ecs_ctor(Scale3)});
 	ecs_set_hooks(world, Scale2, {.ctor = ecs_ctor(Scale2)});
 
@@ -135,13 +117,6 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.entity = ecs_id(Rotation2),
 	.members = {
 	{.name = "radians", .type = ecs_id(ecs_f32_t)},
-	}});
-
-	ecs_struct(world,
-	{.entity = ecs_id(Position2World),
-	.members = {
-	{.name = "x", .type = ecs_id(ecs_f32_t)},
-	{.name = "y", .type = ecs_id(ecs_f32_t)},
 	}});
 
 	ecs_struct(world,
@@ -177,22 +152,6 @@ void EgSpatialsImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(Position3World),
-	.members = {
-	{.name = "x", .type = ecs_id(ecs_f32_t)},
-	{.name = "y", .type = ecs_id(ecs_f32_t)},
-	{.name = "z", .type = ecs_id(ecs_f32_t)},
-	}});
-
-	ecs_struct(world,
-	{.entity = ecs_id(Position3WorldOffset),
-	.members = {
-	{.name = "x", .type = ecs_id(ecs_f32_t)},
-	{.name = "y", .type = ecs_id(ecs_f32_t)},
-	{.name = "z", .type = ecs_id(ecs_f32_t)},
-	}});
-
-	ecs_struct(world,
 	{.entity = ecs_id(Velocity2),
 	.members = {
 	{.name = "x", .type = ecs_id(ecs_f32_t)},
@@ -209,15 +168,6 @@ void EgSpatialsImport(ecs_world_t *world)
 
 	ecs_struct(world,
 	{.entity = ecs_id(Orientation),
-	.members = {
-	{.name = "x", .type = ecs_id(ecs_f32_t)},
-	{.name = "y", .type = ecs_id(ecs_f32_t)},
-	{.name = "z", .type = ecs_id(ecs_f32_t)},
-	{.name = "w", .type = ecs_id(ecs_f32_t)},
-	}});
-
-	ecs_struct(world,
-	{.entity = ecs_id(OrientationWorld),
 	.members = {
 	{.name = "x", .type = ecs_id(ecs_f32_t)},
 	{.name = "y", .type = ecs_id(ecs_f32_t)},
@@ -266,7 +216,7 @@ void EgSpatialsImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(Matrix4),
+	{.entity = ecs_id(Transform4),
 	.members = {
 	//{.name = "matrix", .type = ecs_id(ecs_f32_t), .count = 16},
 	{.name = "c0", .type = ecs_id(V4f32)},
@@ -276,25 +226,29 @@ void EgSpatialsImport(ecs_world_t *world)
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(Matrix3),
+	{.entity = ecs_id(Transform3),
 	.members = {
-	{.name = "c0", .type = ecs_id(ecs_f32_t), .count = 3},
-	{.name = "c1", .type = ecs_id(ecs_f32_t), .count = 3},
-	{.name = "c2", .type = ecs_id(ecs_f32_t), .count = 3},
+	{.name = "c0", .type = ecs_id(V3f32)},
+	{.name = "c1", .type = ecs_id(V3f32)},
+	{.name = "c2", .type = ecs_id(V3f32)},
 	}});
 
 	ecs_struct(world,
-	{.entity = ecs_id(RotMat3),
+	{.entity = ecs_id(WorldTransform4),
 	.members = {
-	{.name = "x1", .type = ecs_id(ecs_f32_t)},
-	{.name = "y1", .type = ecs_id(ecs_f32_t)},
-	{.name = "z1", .type = ecs_id(ecs_f32_t)},
-	{.name = "x2", .type = ecs_id(ecs_f32_t)},
-	{.name = "y2", .type = ecs_id(ecs_f32_t)},
-	{.name = "z2", .type = ecs_id(ecs_f32_t)},
-	{.name = "x3", .type = ecs_id(ecs_f32_t)},
-	{.name = "y3", .type = ecs_id(ecs_f32_t)},
-	{.name = "z3", .type = ecs_id(ecs_f32_t)}}});
+	{.name = "c0", .type = ecs_id(V4f32)},
+	{.name = "c1", .type = ecs_id(V4f32)},
+	{.name = "c2", .type = ecs_id(V4f32)},
+	{.name = "c3", .type = ecs_id(V4f32)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(WorldTransform3),
+	.members = {
+	{.name = "c0", .type = ecs_id(V3f32)},
+	{.name = "c1", .type = ecs_id(V3f32)},
+	{.name = "c2", .type = ecs_id(V3f32)},
+	}});
 
 	ecs_struct(world,
 	{.entity = ecs_id(Sinewave),

@@ -38,11 +38,6 @@ typedef struct {
 typedef struct {
 	float x;
 	float y;
-} Position2World;
-
-typedef struct {
-	float x;
-	float y;
 	float z;
 } Position3;
 
@@ -67,18 +62,6 @@ typedef struct {
 typedef struct {
 	float x;
 	float y;
-	float z;
-} Position3World;
-
-typedef struct {
-	float x;
-	float y;
-	float z;
-} Position3WorldOffset;
-
-typedef struct {
-	float x;
-	float y;
 } Velocity2;
 
 typedef struct {
@@ -89,11 +72,19 @@ typedef struct {
 
 typedef struct {
 	m4f32 matrix;
-} Matrix4;
+} Transform4;
 
 typedef struct {
 	m3f32 matrix;
-} Matrix3;
+} Transform3;
+
+typedef struct {
+	m4f32 matrix;
+} WorldTransform4;
+
+typedef struct {
+	m3f32 matrix;
+} WorldTransform3;
 
 typedef struct {
 	float x;
@@ -101,13 +92,6 @@ typedef struct {
 	float z;
 	float w;
 } Orientation;
-
-typedef struct {
-	float x;
-	float y;
-	float z;
-	float w;
-} OrientationWorld;
 
 typedef struct {
 	float pitch;
@@ -122,18 +106,6 @@ typedef struct {
 } Rotate3;
 
 typedef struct {
-	float x1;
-	float y1;
-	float z1;
-	float x2;
-	float y2;
-	float z2;
-	float x3;
-	float y3;
-	float z3;
-} RotMat3;
-
-typedef struct {
 	float frequency;
 	float amplitude;
 } Sinewave;
@@ -144,21 +116,18 @@ extern ECS_COMPONENT_DECLARE(V2f32);
 extern ECS_COMPONENT_DECLARE(Position2);
 extern ECS_COMPONENT_DECLARE(Scale2);
 extern ECS_COMPONENT_DECLARE(Rotation2);
-extern ECS_COMPONENT_DECLARE(Position2World);
 extern ECS_COMPONENT_DECLARE(Position3);
 extern ECS_COMPONENT_DECLARE(Ray3);
 extern ECS_COMPONENT_DECLARE(Scale3);
-extern ECS_COMPONENT_DECLARE(Position3World);
-extern ECS_COMPONENT_DECLARE(Position3WorldOffset);
 extern ECS_COMPONENT_DECLARE(Velocity2);
 extern ECS_COMPONENT_DECLARE(Velocity3);
 extern ECS_COMPONENT_DECLARE(Orientation);
-extern ECS_COMPONENT_DECLARE(OrientationWorld);
 extern ECS_COMPONENT_DECLARE(EulerAngles);
 extern ECS_COMPONENT_DECLARE(Rotate3);
-extern ECS_COMPONENT_DECLARE(Matrix4);
-extern ECS_COMPONENT_DECLARE(Matrix3);
-extern ECS_COMPONENT_DECLARE(RotMat3);
+extern ECS_COMPONENT_DECLARE(Transform4);
+extern ECS_COMPONENT_DECLARE(Transform3);
+extern ECS_COMPONENT_DECLARE(WorldTransform4);
+extern ECS_COMPONENT_DECLARE(WorldTransform3);
 extern ECS_COMPONENT_DECLARE(Sinewave);
 extern ECS_COMPONENT_DECLARE(Color3);
 

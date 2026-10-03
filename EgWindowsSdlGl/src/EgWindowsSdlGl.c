@@ -91,7 +91,7 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 
 	ecs_system(world,
 	{.entity  = ecs_entity(world, {.name = "System_Render"}),
-	.phase    = EcsOnUpdate,
+	.phase    = EcsPostFrame,
 	.callback = System_Render,
 	.query.terms =
 	{

@@ -138,3 +138,26 @@ void m3f32_rs_inverse_transposed(float const q[4], float const s[3], m3f32 *r)
 	r->c2[1] = (yz - xw) * sz * 2.0f;
 	r->c2[2] = (1.0f - 2.0f * (xx + yy)) * sz;
 }
+
+// Construct a 3x3 transformation matrix from translation(t), rotation(q), and scale(s) (2D version)
+void m3f32_trs(float const t[2], float const q[2], float const s[2], m3f32 *r)
+{
+	float z = q[0];
+	float w = q[1];
+	float sx = s[0];
+	float sy = s[1];
+	float zz = z * z;
+	float zw = z * w;
+
+	r->c0[0] = (1.0f - 2.0f * zz) * sx;
+	r->c0[1] = 2.0f * zw * sx;
+	r->c0[2] = 0.0f;
+
+	r->c1[0] = -2.0f * zw * sy;
+	r->c1[1] = (1.0f - 2.0f * zz) * sy;
+	r->c1[2] = 0.0f;
+
+	r->c2[0] = t[0];
+	r->c2[1] = t[1];
+	r->c2[2] = 1.0f;
+}
