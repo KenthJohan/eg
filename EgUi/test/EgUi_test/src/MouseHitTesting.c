@@ -35,13 +35,12 @@ static ecs_entity_t make_rect(ecs_entity_t root, float w, float h, float center_
 {
 	ecs_entity_t rect = ecs_new_w_pair(world, EcsChildOf, root);
 	ecs_set(world, rect, EgShapesRectangle, {.w = w, .h = h});
-	ecs_set(world, rect, Position2World, {center_x, center_y});
-	ecs_set(world, rect, Matrix3, {{0}});
-	Matrix3 *matrix = ecs_get_mut(world, rect, Matrix3);
-	matrix->matrix.c0[0] = basis_xx;
-	matrix->matrix.c0[1] = basis_xy;
-	matrix->matrix.c1[0] = basis_yx;
-	matrix->matrix.c1[1] = basis_yy;
+	ecs_set(world, rect, WorldTransform3, {
+	.matrix = {
+	{basis_xx, basis_xy, 0.0f},
+	{basis_yx, basis_yy, 0.0f},
+	{center_x, center_y, 1.0f}
+	}});
 	return rect;
 }
 

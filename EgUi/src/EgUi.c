@@ -13,7 +13,39 @@ ECS_COMPONENT_DECLARE(EgUiMouseHitTesting);
 
 static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 {
+	EgUiMouseHitTesting *hit_testing = ecs_field(it, EgUiMouseHitTesting, 0);
+	EgShapesRectangle const *rectangles = ecs_field(it, EgShapesRectangle, 1);
+	WorldTransform3 const *transforms = ecs_field(it, WorldTransform3, 2);
+	ecs_id_t pair = ecs_field_id(it, 0);
+	ecs_entity_t mouse_entity = ecs_pair_second(it->world, pair);
+	Position2 const *mouse = ecs_get(it->world, mouse_entity, Position2);
 
+	for (int32_t i = 0; i < it->count; ++i) {
+		ecs_entity_t tag = hit_testing[i].tag;
+		bool hovered = false;
+
+		if (mouse && tag) {
+			m3f32 const *matrix = &transforms[i].matrix;
+			float dx = mouse->x - matrix->c2[0];
+			float dy = mouse->y - matrix->c2[1];
+			float determinant = matrix->c0[0] * matrix->c1[1] - matrix->c1[0] * matrix->c0[1];
+
+			if (fabsf(determinant) > 1e-8f) {
+				float local_x = (dx * matrix->c1[1] - dy * matrix->c1[0]) / determinant;
+				float local_y = (dy * matrix->c0[0] - dx * matrix->c0[1]) / determinant;
+				hovered = fabsf(local_x) <= fabsf(rectangles[i].w) * 0.5f &&
+					fabsf(local_y) <= fabsf(rectangles[i].h) * 0.5f;
+			}
+		}
+
+		if (tag) {
+			if (hovered) {
+				ecs_add_id(it->world, it->entities[i], tag);
+			} else {
+				ecs_remove_id(it->world, it->entities[i], tag);
+			}
+		}
+	}
 }
 
 static float EgUiTable_MapGet(const ecs_map_t *map, int32_t key)
@@ -413,6 +445,7 @@ void EgUiImport(ecs_world_t *world)
 	.callback    = EgUiMouseHitTesting_Update,
 	.query.terms = {
 	{.id = ecs_pair(ecs_id(EgUiMouseHitTesting), EcsWildcard), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn}
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
+	{.id = ecs_id(WorldTransform3), .inout = EcsIn}
 	}});
 }
