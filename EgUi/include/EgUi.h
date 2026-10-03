@@ -27,10 +27,6 @@ typedef struct {
 } EgUiCell;
 
 typedef struct {
-	ecs_entity_t tag;
-} EgUiMouseHitTesting;
-
-typedef struct {
 	ecs_map_t         rows_height; // Key = row index, Value = height which are the maximum gathered from children rectangle height
 	ecs_map_t         cols_width;  // Key = column index, Value = width which are the maximum gathered from children rectangle width
 	EgShapesRectangle total_space; // The total space occupied by the table

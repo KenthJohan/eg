@@ -1,6 +1,7 @@
 #include "EgUi.h"
 
 #include <EgShapes.h>
+#include <EgPhysics.h>
 #include <ecsx.h>
 #include <math.h>
 #include <string.h>
@@ -9,41 +10,31 @@ ECS_COMPONENT_DECLARE(EgUiFlow);
 ECS_COMPONENT_DECLARE(EgUiDirection);
 ECS_COMPONENT_DECLARE(EgUiTable);
 ECS_COMPONENT_DECLARE(EgUiCell);
-ECS_COMPONENT_DECLARE(EgUiMouseHitTesting);
 
 static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 {
-	EgUiMouseHitTesting *hit_testing = ecs_field(it, EgUiMouseHitTesting, 0);
-	EgShapesRectangle const *rectangles = ecs_field(it, EgShapesRectangle, 1);
-	WorldTransform3 const *transforms = ecs_field(it, WorldTransform3, 2);
-	ecs_id_t pair = ecs_field_id(it, 0);
-	ecs_entity_t mouse_entity = ecs_pair_second(it->world, pair);
-	Position2 const *mouse = ecs_get(it->world, mouse_entity, Position2);
+	EgPhysicsOverlapChecking *c  = ecs_field_self(it, EgPhysicsOverlapChecking, 0);
+	Position2                *p0 = ecs_field_shared(it, Position2, 1);
+	EgShapesRectangle const  *r  = ecs_field_self(it, EgShapesRectangle, 2);
+	WorldTransform3 const    *x  = ecs_field_self(it, WorldTransform3, 3);
 
-	for (int32_t i = 0; i < it->count; ++i) {
-		ecs_entity_t tag = hit_testing[i].tag;
+	for (int32_t i = 0; i < it->count; ++i, ++c, ++r, ++x) {
 		bool hovered = false;
-
-		if (mouse && tag) {
-			m3f32 const *matrix = &transforms[i].matrix;
-			float dx = mouse->x - matrix->c2[0];
-			float dy = mouse->y - matrix->c2[1];
-			float determinant = matrix->c0[0] * matrix->c1[1] - matrix->c1[0] * matrix->c0[1];
-
-			if (fabsf(determinant) > 1e-8f) {
-				float local_x = (dx * matrix->c1[1] - dy * matrix->c1[0]) / determinant;
-				float local_y = (dy * matrix->c0[0] - dx * matrix->c0[1]) / determinant;
-				hovered = fabsf(local_x) <= fabsf(rectangles[i].w) * 0.5f &&
-					fabsf(local_y) <= fabsf(rectangles[i].h) * 0.5f;
-			}
+		if (!c->tag) {
+			continue;
 		}
-
-		if (tag) {
-			if (hovered) {
-				ecs_add_id(it->world, it->entities[i], tag);
-			} else {
-				ecs_remove_id(it->world, it->entities[i], tag);
-			}
+		float dx  = p0->x - x->matrix.c2[0];
+		float dy  = p0->y - x->matrix.c2[1];
+		float det = x->matrix.c0[0] * x->matrix.c1[1] - x->matrix.c1[0] * x->matrix.c0[1];
+		if (fabsf(det) > 1e-8f) {
+			float local_x = (dx * x->matrix.c1[1] - dy * x->matrix.c1[0]) / det;
+			float local_y = (dy * x->matrix.c0[0] - dx * x->matrix.c0[1]) / det;
+			hovered       = (fabsf(local_x) <= fabsf(r[i].w) * 0.5f) && (fabsf(local_y) <= fabsf(r[i].h) * 0.5f);
+		}
+		if (hovered) {
+			ecs_add_id(it->world, it->entities[i], c->tag);
+		} else {
+			ecs_remove_id(it->world, it->entities[i], c->tag);
 		}
 	}
 }
@@ -146,8 +137,8 @@ static void EgUiTable_Reset(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i) {
 		ecs_map_clear(&table[i].rows_height);
 		ecs_map_clear(&table[i].cols_width);
-		table[i].row_count = 0;
-		table[i].col_count = 0;
+		table[i].row_count     = 0;
+		table[i].col_count     = 0;
 		table[i].total_space.w = 0.0f;
 		table[i].total_space.h = 0.0f;
 	}
@@ -177,8 +168,8 @@ static void EgUiTable_Finalize(ecs_iter_t *it)
 {
 	EgUiTable *table = ecs_field_self(it, EgUiTable, 0);
 	for (int i = 0; i < it->count; ++i) {
-		float w = EgUiTable_Offset(&table[i].cols_width, table[i].col_count, table[i].col_gap);
-		float h = EgUiTable_Offset(&table[i].rows_height, table[i].row_count, table[i].row_gap);
+		float w                = EgUiTable_Offset(&table[i].cols_width, table[i].col_count, table[i].col_gap);
+		float h                = EgUiTable_Offset(&table[i].rows_height, table[i].row_count, table[i].row_gap);
 		table[i].total_space.w = table[i].col_count > 0 ? w - table[i].col_gap : 0.0f;
 		table[i].total_space.h = table[i].row_count > 0 ? h - table[i].row_gap : 0.0f;
 	}
@@ -230,59 +221,59 @@ static bool EgUiFlow_GetAxis(EgUiDirection direction, int *axis, float *sign)
 
 static void EgUiFlow_Reset(ecs_iter_t *it)
 {
-	EgUiFlow *flow = ecs_field_self(it, EgUiFlow, 0);
+	EgUiFlow          *flow   = ecs_field_self(it, EgUiFlow, 0);
 	EgShapesRectangle *bounds = ecs_field_self(it, EgShapesRectangle, 1);
 	for (int i = 0; i < it->count; ++i) {
-		int primary_axis = 0;
+		int   primary_axis = 0;
 		float primary_sign = 0.0f;
-		int wrap_axis = 0;
-		float wrap_sign = 0.0f;
+		int   wrap_axis    = 0;
+		float wrap_sign    = 0.0f;
 		if (!EgUiFlow_GetAxis(flow[i].direction, &primary_axis, &primary_sign)) {
-			flow[i].cursor_primary = 0.0f;
-			flow[i].cursor_wrap = 0.0f;
-			flow[i].line_wrap_extent = 0.0f;
+			flow[i].cursor_primary    = 0.0f;
+			flow[i].cursor_wrap       = 0.0f;
+			flow[i].line_wrap_extent  = 0.0f;
 			flow[i].line_has_children = false;
 			continue;
 		}
-		bool can_wrap = EgUiFlow_GetAxis(flow[i].wrap, &wrap_axis, &wrap_sign) && wrap_axis != primary_axis;
-		float half_width = bounds[i].w * 0.5f;
-		float half_height = bounds[i].h * 0.5f;
-		float primary_limit = primary_axis == 0 ? half_width : half_height;
-		float wrap_limit = wrap_axis == 0 ? half_width : half_height;
-		flow[i].cursor_primary = primary_sign > 0.0f ? -primary_limit : primary_limit;
-		flow[i].cursor_wrap = can_wrap ? (wrap_sign > 0.0f ? -wrap_limit : wrap_limit) : 0.0f;
-		flow[i].line_wrap_extent = 0.0f;
+		bool  can_wrap            = EgUiFlow_GetAxis(flow[i].wrap, &wrap_axis, &wrap_sign) && wrap_axis != primary_axis;
+		float half_width          = bounds[i].w * 0.5f;
+		float half_height         = bounds[i].h * 0.5f;
+		float primary_limit       = primary_axis == 0 ? half_width : half_height;
+		float wrap_limit          = wrap_axis == 0 ? half_width : half_height;
+		flow[i].cursor_primary    = primary_sign > 0.0f ? -primary_limit : primary_limit;
+		flow[i].cursor_wrap       = can_wrap ? (wrap_sign > 0.0f ? -wrap_limit : wrap_limit) : 0.0f;
+		flow[i].line_wrap_extent  = 0.0f;
 		flow[i].line_has_children = false;
 	}
 }
 
 static void EgUiFlow_Update(ecs_iter_t *it)
 {
-	ecs_world_t *world = it->world;
-	EgUiFlow *flow = ecs_field_shared(it, EgUiFlow, 0);
-	EgShapesRectangle *parent_rect = ecs_field_shared(it, EgShapesRectangle, 1);
-	Position2 *child_positions = ecs_field_self(it, Position2, 2);
-	EgShapesRectangle *child_rects = ecs_field_self(it, EgShapesRectangle, 3);
+	ecs_world_t       *world           = it->world;
+	EgUiFlow          *flow            = ecs_field_shared(it, EgUiFlow, 0);
+	EgShapesRectangle *parent_rect     = ecs_field_shared(it, EgShapesRectangle, 1);
+	Position2         *child_positions = ecs_field_self(it, Position2, 2);
+	EgShapesRectangle *child_rects     = ecs_field_self(it, EgShapesRectangle, 3);
 
-	int primary_axis;
+	int   primary_axis;
 	float primary_sign;
-	int wrap_axis = 0;
+	int   wrap_axis = 0;
 	float wrap_sign = 0.0f;
 	if (!EgUiFlow_GetAxis(flow->direction, &primary_axis, &primary_sign)) {
 		return;
 	}
-	bool can_wrap = EgUiFlow_GetAxis(flow->wrap, &wrap_axis, &wrap_sign) && wrap_axis != primary_axis;
+	bool  can_wrap      = EgUiFlow_GetAxis(flow->wrap, &wrap_axis, &wrap_sign) && wrap_axis != primary_axis;
 	float primary_limit = (primary_axis == 0 ? parent_rect->w : parent_rect->h) * 0.5f;
 
 	for (int i = 0; i < it->count; ++i) {
-		float child_size[2] = {child_rects[i].w, child_rects[i].h};
-		float primary_size = child_size[primary_axis];
-		float next_primary = flow->cursor_primary + primary_sign * primary_size;
-		bool exceeds_primary = primary_sign > 0.0f ? next_primary > primary_limit : next_primary < -primary_limit;
+		float child_size[2]   = {child_rects[i].w, child_rects[i].h};
+		float primary_size    = child_size[primary_axis];
+		float next_primary    = flow->cursor_primary + primary_sign * primary_size;
+		bool  exceeds_primary = primary_sign > 0.0f ? next_primary > primary_limit : next_primary < -primary_limit;
 		if (can_wrap && flow->line_has_children && exceeds_primary) {
 			flow->cursor_wrap += wrap_sign * flow->line_wrap_extent;
-			flow->cursor_primary = primary_sign > 0.0f ? -primary_limit : primary_limit;
-			flow->line_wrap_extent = 0.0f;
+			flow->cursor_primary    = primary_sign > 0.0f ? -primary_limit : primary_limit;
+			flow->line_wrap_extent  = 0.0f;
 			flow->line_has_children = false;
 		}
 
@@ -313,14 +304,17 @@ void EgUiImport(ecs_world_t *world)
 	ECS_MODULE(world, EgUi);
 	ecs_set_name_prefix(world, "EgUi");
 
+	ECS_IMPORT(world, EgPhysics);
+	ECS_IMPORT(world, EgShapes);
+	ECS_IMPORT(world, EgSpatials);
+
 	ECS_COMPONENT_DEFINE(world, EgUiFlow);
 	ECS_COMPONENT_DEFINE(world, EgUiDirection);
 	ECS_COMPONENT_DEFINE(world, EgUiTable);
 	ECS_COMPONENT_DEFINE(world, EgUiCell);
-	ECS_COMPONENT_DEFINE(world, EgUiMouseHitTesting);
-	ecs_add_id(world, ecs_id(EgUiMouseHitTesting), EcsTraversable);
 
-	ecs_set_hooks(world, EgUiTable, {
+	ecs_set_hooks(world, EgUiTable,
+	{
 	.ctor = EgUiTable_ctor,
 	.dtor = EgUiTable_dtor,
 	.move = EgUiTable_move,
@@ -333,13 +327,6 @@ void EgUiImport(ecs_world_t *world)
 	.members = {
 	{.name = "row", .type = ecs_id(ecs_i32_t)},
 	{.name = "col", .type = ecs_id(ecs_i32_t)},
-	}});
-
-	ecs_struct_init(world,
-	&(ecs_struct_desc_t){
-	.entity  = ecs_id(EgUiMouseHitTesting),
-	.members = {
-	{.name = "tag", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	// Maps are not reflected; explicit offsets let scripts set the gaps.
@@ -441,11 +428,11 @@ void EgUiImport(ecs_world_t *world)
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity      = ecs_entity(world, {.name = "EgUiMouseHitTesting_Update"}),
-	.phase       = EcsPostUpdate,
+	.phase       = EcsPreStore,
 	.callback    = EgUiMouseHitTesting_Update,
 	.query.terms = {
-	{.id = ecs_pair(ecs_id(EgUiMouseHitTesting), EcsWildcard), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_pair(ecs_id(EgPhysicsOverlapChecking), EcsWildcard), .inout = EcsIn},
+	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
-	{.id = ecs_id(WorldTransform3), .inout = EcsIn}
-	}});
+	{.id = ecs_id(WorldTransform3), .inout = EcsIn}}});
 }
