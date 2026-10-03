@@ -23,14 +23,21 @@ static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 		if (!c->tag) {
 			continue;
 		}
+		char const *name = ecs_get_name(it->world, it->entities[i]);
+
 		float dx  = p0->x - x->matrix.c2[0];
 		float dy  = p0->y - x->matrix.c2[1];
 		float det = x->matrix.c0[0] * x->matrix.c1[1] - x->matrix.c1[0] * x->matrix.c0[1];
-		if (fabsf(det) > 1e-8f) {
-			float local_x = (dx * x->matrix.c1[1] - dy * x->matrix.c1[0]) / det;
-			float local_y = (dy * x->matrix.c0[0] - dx * x->matrix.c0[1]) / det;
-			hovered       = (fabsf(local_x) <= fabsf(r[i].w) * 0.5f) && (fabsf(local_y) <= fabsf(r[i].h) * 0.5f);
+
+		if (fabsf(det) < 1e-8f) {
+			continue;
 		}
+
+		float local_x = (dx * x->matrix.c1[1] - dy * x->matrix.c1[0]) / det;
+		float local_y = (dy * x->matrix.c0[0] - dx * x->matrix.c0[1]) / det;
+
+		hovered = (fabsf(local_x) <= fabsf(r->w) * 0.5f) && (fabsf(local_y) <= fabsf(r->h) * 0.5f);
+
 		if (hovered) {
 			ecs_add_id(it->world, it->entities[i], c->tag);
 		} else {
