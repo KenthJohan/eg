@@ -9,6 +9,8 @@
 
 ECS_COMPONENT_DECLARE(EgShapedrawList);
 ECS_COMPONENT_DECLARE(EgShapedrawZ);
+ECS_COMPONENT_DECLARE(EgShapedrawBorder);
+ECS_COMPONENT_DECLARE(EgShapedrawSolid);
 
 static void EgShapedrawList_Free(EgShapedrawList *l)
 {
@@ -154,34 +156,29 @@ static void EgShapedrawList_Reset(ecs_iter_t *it)
 	}
 }
 
-static void EgShapedrawRectangle_Collect3D(ecs_iter_t *it)
+static void EgShapedrawSolid_Collect2D(ecs_iter_t *it)
 {
-	EgShapedrawList         *l   = ecs_field_shared(it, EgShapedrawList, 0);
-	EgShapesRectangle const *r   = ecs_field_self(it, EgShapesRectangle, 1);
-	WorldTransform4 const   *w   = ecs_field_self(it, WorldTransform4, 2);
-	EgBaseColor const       *col = ecs_field_self(it, EgBaseColor, 3);
-	EgShapedrawZ const      *zs  = ecs_field_self(it, EgShapedrawZ, 4);
-	for (int i = 0; i < it->count; ++i) {
-		uint32_t color = col != NULL ? col[i].color : 0x00FFFF00u;
-		m3f32 transform = {
-			.c0 = {w[i].matrix.c0[0], w[i].matrix.c0[1], 0.0f},
-			.c1 = {w[i].matrix.c1[0], w[i].matrix.c1[1], 0.0f},
-			.c2 = {w[i].matrix.c3[0], w[i].matrix.c3[1], 1.0f},
-		};
-		EgShapedraw_AddRectangle(l, zs != NULL ? zs[i].z : 0, &r[i], &transform, color);
+	EgShapedrawList         *l0 = ecs_field_shared(it, EgShapedrawList, 0);
+	EgShapedrawSolid const  *s  = ecs_field_self(it, EgShapedrawSolid, 1);
+	EgShapesRectangle const *r  = ecs_field_self(it, EgShapesRectangle, 2);
+	WorldTransform3 const   *w  = ecs_field_self(it, WorldTransform3, 3);
+	EgShapedrawZ const      *zs = ecs_field_self(it, EgShapedrawZ, 4); // Optional
+	for (int i = 0; i < it->count; ++i, ++s, ++r, ++w) {
+		float z = zs != NULL ? zs[i].z : 0;
+		EgShapedrawList_AddRectangle(l0, z, &w->matrix, r->w, r->h, s->color);
 	}
 }
 
-static void EgShapedrawRectangle_Collect2D(ecs_iter_t *it)
+static void EgShapedrawBorder_Collect2D(ecs_iter_t *it)
 {
-	EgShapedrawList         *l   = ecs_field_shared(it, EgShapedrawList, 0);
-	EgShapesRectangle const *r   = ecs_field_self(it, EgShapesRectangle, 1);
-	WorldTransform3 const   *w   = ecs_field_self(it, WorldTransform3, 2);
-	EgBaseColor const       *col = ecs_field_self(it, EgBaseColor, 3);
-	EgShapedrawZ const      *zs  = ecs_field_self(it, EgShapedrawZ, 4);
-	for (int i = 0; i < it->count; ++i) {
-		uint32_t color = col != NULL ? col[i].color : 0x00FFFF00u;
-		EgShapedraw_AddRectangle(l, zs != NULL ? zs[i].z : 0, &r[i], &w[i].matrix, color);
+	EgShapedrawList         *l0 = ecs_field_shared(it, EgShapedrawList, 0);
+	EgShapedrawBorder const *b  = ecs_field_self(it, EgShapedrawBorder, 1);
+	EgShapesRectangle const *r  = ecs_field_self(it, EgShapesRectangle, 2);
+	WorldTransform3 const   *w  = ecs_field_self(it, WorldTransform3, 3);
+	EgShapedrawZ const      *zs = ecs_field_self(it, EgShapedrawZ, 4); // Optional
+	for (int i = 0; i < it->count; ++i, ++b, ++r, ++w) {
+		float z = zs != NULL ? zs[i].z : 0;
+		EgShapedrawList_AddRectangleOutline(l0, z, &w->matrix, r->w, r->h, b->thickness, b->color);
 	}
 }
 
@@ -214,6 +211,8 @@ void EgShapedrawImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, EgShapedrawList);
 	ECS_COMPONENT_DEFINE(world, EgShapedrawZ);
+	ECS_COMPONENT_DEFINE(world, EgShapedrawBorder);
+	ECS_COMPONENT_DEFINE(world, EgShapedrawSolid);
 
 	ecs_set_hooks(world, EgShapedrawList,
 	{
@@ -229,6 +228,19 @@ void EgShapedrawImport(ecs_world_t *world)
 	{.name = "layerCount", .type = ecs_id(ecs_i32_t)},
 	{.name = "layerCapacity", .type = ecs_id(ecs_i32_t)},
 	{.name = "pixelScale", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgShapedrawBorder),
+	.members = {
+	{.name = "thickness", .type = ecs_id(ecs_f32_t)},
+	{.name = "color", .type = ecs_id(ecs_u32_t)},
+	}});
+
+	ecs_struct(world,
+	{.entity = ecs_id(EgShapedrawSolid),
+	.members = {
+	{.name = "color", .type = ecs_id(ecs_u32_t)},
 	}});
 
 	ecs_struct(world,
@@ -248,27 +260,26 @@ void EgShapedrawImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "EgShapedrawRectangle_Collect3D"}),
+	.entity      = ecs_entity(world, {.name = "EgShapedrawSolid_Collect2D"}),
 	.phase       = EcsPostUpdate,
-	.callback    = EgShapedrawRectangle_Collect3D,
+	.callback    = EgShapedrawSolid_Collect2D,
 	.query.terms = {
 	{.id = ecs_id(EgShapedrawList), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
+	{.id = ecs_id(EgShapedrawSolid), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_id(WorldTransform4), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_id(EgBaseColor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(EgShapedrawZ), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
-	}});
+	{.id = ecs_id(WorldTransform3), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgShapedrawZ), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional}}});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "EgShapedrawRectangle_Collect2D"}),
+	.entity      = ecs_entity(world, {.name = "EgShapedrawBorder_Collect2D"}),
 	.phase       = EcsPostUpdate,
-	.callback    = EgShapedrawRectangle_Collect2D,
+	.callback    = EgShapedrawBorder_Collect2D,
 	.query.terms = {
 	{.id = ecs_id(EgShapedrawList), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
+	{.id = ecs_id(EgShapedrawBorder), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(WorldTransform3), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_id(EgBaseColor), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapedrawZ), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	}});
 

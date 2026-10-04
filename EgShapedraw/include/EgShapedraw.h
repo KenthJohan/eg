@@ -40,8 +40,20 @@ typedef struct {
 	float y;
 } EgShapedrawVec2;
 
+
+typedef struct {
+	float thickness;
+	uint32_t color;
+} EgShapedrawBorder;
+
+typedef struct {
+	uint32_t color;
+} EgShapedrawSolid;
+
 extern ECS_COMPONENT_DECLARE(EgShapedrawList);
 extern ECS_COMPONENT_DECLARE(EgShapedrawZ);
+extern ECS_COMPONENT_DECLARE(EgShapedrawBorder);
+extern ECS_COMPONENT_DECLARE(EgShapedrawSolid);
 
 // Standalone list (not an ECS component); free with EgShapedrawList_Destroy.
 EgShapedrawList *EgShapedrawList_Create(void);
