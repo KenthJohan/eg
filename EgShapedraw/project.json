@@ -1,0 +1,30 @@
+{
+	"id": "EgShapedraw",
+	"type": "package",
+	"value": {
+		"language": "c",
+		"public": true,
+		"use": [
+			"EgShapes",
+			"EgSpatials",
+			"EgBase",
+			"ecsx",
+			"flecs"
+		]
+	},
+	"lang.c": {
+		"c-standard": "c11",
+		"export-symbols": true,
+		"static": true,
+		"defines": [],
+		"cflags": [],
+		"lib": [
+			"EgShapes",
+			"EgSpatials",
+			"EgBase",
+			"ecsx",
+			"flecs",
+			"m"
+		]
+	}
+}
