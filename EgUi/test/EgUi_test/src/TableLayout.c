@@ -107,3 +107,23 @@ void TableLayout_test_relayout_after_child_resize(void)
 	test_assert(fabsf(t->total_space.w - 30.0f) < EPSILON);
 	test_assert(fabsf(t->total_space.h - 20.0f) < EPSILON);
 }
+
+void TableLayout_test_nested_descendant_is_not_a_cell(void)
+{
+	ecs_entity_t table = ecs_new(world);
+	ecs_set(world, table, EgUiTable, {0});
+	ecs_entity_t intermediate = ecs_new(world);
+	ecs_add_pair(world, intermediate, EcsChildOf, table);
+	ecs_entity_t nested_cell = make_cell(intermediate, 0, 0, 100, 80);
+	ecs_set(world, nested_cell, Position2, {7.0f, 9.0f});
+
+	ecs_progress(world, 0);
+
+	const EgUiTable *t = ecs_get(world, table, EgUiTable);
+	test_assert(t != NULL);
+	test_int(t->row_count, 0);
+	test_int(t->col_count, 0);
+	test_assert(t->total_space.w == 0.0f);
+	test_assert(t->total_space.h == 0.0f);
+	assert_pos(nested_cell, 7.0f, 9.0f);
+}

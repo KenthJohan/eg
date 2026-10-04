@@ -153,9 +153,9 @@ static void EgUiTable_Reset(ecs_iter_t *it)
 
 static void EgUiTable_Measure(ecs_iter_t *it)
 {
-	EgUiTable         *table = ecs_field_shared(it, EgUiTable, 0);
-	EgUiCell          *cells = ecs_field_self(it, EgUiCell, 1);
-	EgShapesRectangle *rects = ecs_field_self(it, EgShapesRectangle, 2);
+	EgUiTable         *table = ecs_field_shared(it, EgUiTable, 1);
+	EgUiCell          *cells = ecs_field_self(it, EgUiCell, 2);
+	EgShapesRectangle *rects = ecs_field_self(it, EgShapesRectangle, 3);
 	for (int i = 0; i < it->count; ++i) {
 		if (cells[i].row < 0 || cells[i].col < 0) {
 			continue;
@@ -184,10 +184,10 @@ static void EgUiTable_Finalize(ecs_iter_t *it)
 
 static void EgUiTable_Layout(ecs_iter_t *it)
 {
-	EgUiTable         *table     = ecs_field_shared(it, EgUiTable, 0);
-	EgUiCell          *cells     = ecs_field_self(it, EgUiCell, 1);
-	EgShapesRectangle *rects     = ecs_field_self(it, EgShapesRectangle, 2);
-	Position2         *positions = ecs_field_self(it, Position2, 3);
+	EgUiTable         *table     = ecs_field_shared(it, EgUiTable, 1);
+	EgUiCell          *cells     = ecs_field_self(it, EgUiCell, 2);
+	EgShapesRectangle *rects     = ecs_field_self(it, EgShapesRectangle, 3);
+	Position2         *positions = ecs_field_self(it, Position2, 4);
 	for (int i = 0; i < it->count; ++i) {
 		if (cells[i].row < 0 || cells[i].col < 0) {
 			continue;
@@ -406,7 +406,8 @@ void EgUiImport(ecs_world_t *world)
 	.phase       = EcsOnUpdate,
 	.callback    = EgUiTable_Measure,
 	.query.terms = {
-	{.id = ecs_id(EgUiTable), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
+	{.first.id = EcsChildOf, .second.name = "$table"},
+	{.id = ecs_id(EgUiTable), .src.name = "$table", .inout = EcsInOut},
 	{.id = ecs_id(EgUiCell), .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	}});
@@ -426,7 +427,8 @@ void EgUiImport(ecs_world_t *world)
 	.phase       = EcsOnUpdate,
 	.callback    = EgUiTable_Layout,
 	.query.terms = {
-	{.id = ecs_id(EgUiTable), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.first.id = EcsChildOf, .second.name = "$table"},
+	{.id = ecs_id(EgUiTable), .src.name = "$table", .inout = EcsIn},
 	{.id = ecs_id(EgUiCell), .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	{.id = ecs_id(Position2), .inout = EcsOut},

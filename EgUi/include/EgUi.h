@@ -40,6 +40,5 @@ extern ECS_COMPONENT_DECLARE(EgUiFlow);
 extern ECS_COMPONENT_DECLARE(EgUiDirection);
 extern ECS_COMPONENT_DECLARE(EgUiTable);
 extern ECS_COMPONENT_DECLARE(EgUiCell);
-extern ECS_COMPONENT_DECLARE(EgUiMouseHitTesting);
 
 void EgUiImport(ecs_world_t *world);

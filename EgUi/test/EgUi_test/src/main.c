@@ -21,6 +21,7 @@ void TableLayout_test_cells_size_to_largest_child_and_position(void);
 void TableLayout_test_empty_table_has_no_space(void);
 void TableLayout_test_sparse_cells_leave_empty_columns(void);
 void TableLayout_test_relayout_after_child_resize(void);
+void TableLayout_test_nested_descendant_is_not_a_cell(void);
 
 // Testsuite 'MouseHitTesting'
 void MouseHitTesting_setup(void);
@@ -56,6 +57,10 @@ bake_test_case TableLayout_testcases[] = {
     {
         "test_relayout_after_child_resize",
         TableLayout_test_relayout_after_child_resize
+    },
+    {
+        "test_nested_descendant_is_not_a_cell",
+        TableLayout_test_nested_descendant_is_not_a_cell
     }
 };
 
@@ -86,7 +91,7 @@ static bake_test_suite suites[] = {
         "TableLayout",
         TableLayout_setup,
         TableLayout_teardown,
-        4,
+        5,
         TableLayout_testcases
     },
     {
