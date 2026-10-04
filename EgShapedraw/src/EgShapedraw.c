@@ -32,9 +32,9 @@ static void EgShapedrawList_move(void *dst_ptr, void *src_ptr, int32_t count, co
 	EgShapedrawList *src = src_ptr;
 	for (int32_t i = 0; i < count; ++i) {
 		free(dst[i].data);
-		dst[i]     = src[i];
-		src[i].data = NULL;
-		src[i].count = 0;
+		dst[i]          = src[i];
+		src[i].data     = NULL;
+		src[i].count    = 0;
 		src[i].capacity = 0;
 	}
 }
@@ -141,6 +141,17 @@ static void EgShapedrawRectangle_Collect2D(ecs_iter_t *it)
 	}
 }
 
+static void EgShapedrawList_CollectText(ecs_iter_t *it)
+{
+	EgShapedrawList   *l0   = ecs_field_shared(it, EgShapedrawList, 0);
+	EgBaseText const  *t   = ecs_field_self(it, EgBaseText, 1);
+	EgBaseFont const  *f   = ecs_field_self(it, EgBaseFont, 2);
+	EgBaseColor const *c = ecs_field_self(it, EgBaseColor, 3);
+	for (int i = 0; i < it->count; ++i, ++t, ++f, ++c) {
+
+	}
+}
+
 void EgShapedrawImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgShapedraw);
@@ -159,6 +170,14 @@ void EgShapedrawImport(ecs_world_t *world)
 	.move = EgShapedrawList_move,
 	});
 
+	ecs_struct(world,
+	{.entity = ecs_id(EgShapedrawList),
+	.members = {
+	{.name = "data", .type = ecs_id(ecs_uptr_t)},
+	{.name = "count", .type = ecs_id(ecs_i32_t)},
+	{.name = "capacity", .type = ecs_id(ecs_i32_t)},
+	}});
+
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity      = ecs_entity(world, {.name = "EgShapedrawList_Reset"}),
@@ -174,7 +193,7 @@ void EgShapedrawImport(ecs_world_t *world)
 	.phase       = EcsPostUpdate,
 	.callback    = EgShapedrawRectangle_Collect3D,
 	.query.terms = {
-	{.id = ecs_id(EgShapedrawList), .trav = EcsDependsOn, .src.id = EcsUp, .inout = EcsInOut},
+	{.id = ecs_id(EgShapedrawList), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(WorldTransform4), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgBaseColor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
@@ -186,9 +205,20 @@ void EgShapedrawImport(ecs_world_t *world)
 	.phase       = EcsPostUpdate,
 	.callback    = EgShapedrawRectangle_Collect2D,
 	.query.terms = {
-	{.id = ecs_id(EgShapedrawList), .trav = EcsDependsOn, .src.id = EcsUp, .inout = EcsInOut},
+	{.id = ecs_id(EgShapedrawList), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(WorldTransform3), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgBaseColor), .src.id = EcsSelf, .inout = EcsIn},
+	}});
+
+	ecs_system(world,
+	{.entity     = ecs_entity(world, {.name = "EgShapedrawList_CollectText"}),
+	.phase       = EcsPostUpdate,
+	.callback    = EgShapedrawList_CollectText,
+	.query.terms = {
+	{.id = ecs_id(EgShapedrawList), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
+	{.id = ecs_id(EgBaseText), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgBaseFont), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgBaseColor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	}});
 }
