@@ -51,6 +51,7 @@ void EgBaseImport(ecs_world_t *world)
 	{.entity = ecs_id(EgBaseFont),
 	.members = {
 	{.name = "font_size", .type = ecs_id(ecs_f32_t)},
+	{.name = "color", .type = ecs_id(ecs_u32_t)},
 	}});
 
 	ecs_struct(world,

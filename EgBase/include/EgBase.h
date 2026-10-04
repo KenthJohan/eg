@@ -9,13 +9,14 @@ typedef struct
 
 typedef struct
 {
-	float font_size;
-} EgBaseFont;
+	uint32_t color;
+} EgBaseColor;
 
 typedef struct
 {
+	float font_size;
 	uint32_t color;
-} EgBaseColor;
+} EgBaseFont;
 
 
 extern ECS_COMPONENT_DECLARE(EgBaseText);
