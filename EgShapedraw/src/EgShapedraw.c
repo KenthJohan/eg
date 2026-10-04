@@ -200,19 +200,19 @@ static void EgShapedrawRectangle_Collect2D(ecs_iter_t *it)
 
 static void EgShapedrawList_CollectText(ecs_iter_t *it)
 {
-	EgShapedrawList       *l          = ecs_field_shared(it, EgShapedrawList, 0);
+	EgShapedrawList       *l0         = ecs_field_shared(it, EgShapedrawList, 0);
 	EgBaseText const      *t          = ecs_field_self(it, EgBaseText, 1);
 	EgBaseFont const      *f          = ecs_field_self(it, EgBaseFont, 2);
 	WorldTransform3 const *x          = ecs_field_self(it, WorldTransform3, 3);
 	EgShapedrawZ const    *z_optional = ecs_field_self(it, EgShapedrawZ, 4);
 
 	for (int i = 0; i < it->count; ++i, ++t, ++f, ++x) {
-		if (t[i].value == NULL || t[i].value[0] == '\0') {
+		float z = z_optional != NULL ? z_optional[i].z : 0;
+		if (t->value == NULL || t->value[0] == '\0') {
 			continue;
 		}
-		float z        = z_optional != NULL ? z_optional[i].z : 0;
-		float fontSize = f[i].font_size > 0.0f ? f[i].font_size : 24.0f;
-		EgShapedrawList_AddText(l, z, &(x->matrix), fontSize, f[i].color, t[i].value);
+		float fontSize = f->font_size > 0.0f ? f->font_size : 24.0f;
+		EgShapedrawList_AddText(l0, z, &(x->matrix), fontSize, f->color, t->value);
 	}
 }
 
