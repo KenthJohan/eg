@@ -141,27 +141,9 @@ void EgShapedrawList_Append(EgShapedrawList *dst, const EgShapedrawList *src)
 	}
 }
 
-// Centered rectangle; (a,b) and (c,d) are the transformed x and y axes, (tx,ty) the origin.
-static void EgShapedraw_AddRectangle(EgShapedrawList *l, int32_t z, const EgShapesRectangle *r, float a, float b, float c, float d, float tx, float ty, uint32_t color)
+static void EgShapedraw_AddRectangle(EgShapedrawList *l, int32_t z, const EgShapesRectangle *r, const m3f32 *transform, uint32_t color)
 {
-	if (r->w <= 0.0f || r->h <= 0.0f) {
-		return;
-	}
-
-	float hw = r->w * 0.5f;
-	float hh = r->h * 0.5f;
-	float x[4];
-	float y[4];
-	// Corner order: (-,-), (+,-), (+,+), (-,+).
-	const float sx[4] = {-hw, hw, hw, -hw};
-	const float sy[4] = {-hh, -hh, hh, hh};
-	for (int i = 0; i < 4; ++i) {
-		x[i] = a * sx[i] + c * sy[i] + tx;
-		y[i] = b * sx[i] + d * sy[i] + ty;
-	}
-
-	EgShapedrawList_AddTriangle(l, z, x[0], y[0], x[1], y[1], x[2], y[2], color);
-	EgShapedrawList_AddTriangle(l, z, x[0], y[0], x[2], y[2], x[3], y[3], color);
+	EgShapedrawList_AddRectangle(l, z, transform, r->w, r->h, color);
 }
 
 static void EgShapedrawList_Reset(ecs_iter_t *it)
@@ -181,7 +163,12 @@ static void EgShapedrawRectangle_Collect3D(ecs_iter_t *it)
 	EgShapedrawZ const      *zs  = ecs_field_self(it, EgShapedrawZ, 4);
 	for (int i = 0; i < it->count; ++i) {
 		uint32_t color = col != NULL ? col[i].color : 0x00FFFF00u;
-		EgShapedraw_AddRectangle(l, zs != NULL ? zs[i].z : 0, &r[i], w[i].matrix.c0[0], w[i].matrix.c0[1], w[i].matrix.c1[0], w[i].matrix.c1[1], w[i].matrix.c3[0], w[i].matrix.c3[1], color);
+		m3f32 transform = {
+			.c0 = {w[i].matrix.c0[0], w[i].matrix.c0[1], 0.0f},
+			.c1 = {w[i].matrix.c1[0], w[i].matrix.c1[1], 0.0f},
+			.c2 = {w[i].matrix.c3[0], w[i].matrix.c3[1], 1.0f},
+		};
+		EgShapedraw_AddRectangle(l, zs != NULL ? zs[i].z : 0, &r[i], &transform, color);
 	}
 }
 
@@ -194,7 +181,7 @@ static void EgShapedrawRectangle_Collect2D(ecs_iter_t *it)
 	EgShapedrawZ const      *zs  = ecs_field_self(it, EgShapedrawZ, 4);
 	for (int i = 0; i < it->count; ++i) {
 		uint32_t color = col != NULL ? col[i].color : 0x00FFFF00u;
-		EgShapedraw_AddRectangle(l, zs != NULL ? zs[i].z : 0, &r[i], w[i].matrix.c0[0], w[i].matrix.c0[1], w[i].matrix.c1[0], w[i].matrix.c1[1], w[i].matrix.c2[0], w[i].matrix.c2[1], color);
+		EgShapedraw_AddRectangle(l, zs != NULL ? zs[i].z : 0, &r[i], &w[i].matrix, color);
 	}
 }
 

@@ -60,29 +60,29 @@ void EgShapedrawList_Append(EgShapedrawList *dst, const EgShapedrawList *src);
 void EgShapedrawList_SetPixelScale(EgShapedrawList *list, float pixelScale);
 
 // Colors are 0xAARRGGBB with alpha 0 meaning opaque.
-void EgShapedrawList_AddTriangle(EgShapedrawList *list, int32_t z, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t color);
+void EgShapedrawList_AddTriangle(EgShapedrawList *list, int32_t z, const m3f32 *transform, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t color);
 
 void EgShapedrawList_AddText(EgShapedrawList *list, int32_t z, const m3f32 *transform, float fontSize, uint32_t color, const char *string);
 
-void EgShapedrawList_AddLine(EgShapedrawList *list, int32_t z, float x1, float y1, float x2, float y2, float thickness, uint32_t color);
+void EgShapedrawList_AddLine(EgShapedrawList *list, int32_t z, const m3f32 *transform, float x1, float y1, float x2, float y2, float thickness, uint32_t color);
 
-void EgShapedrawList_AddPoint(EgShapedrawList *list, int32_t z, float x, float y, float size, uint32_t color);
+void EgShapedrawList_AddPoint(EgShapedrawList *list, int32_t z, const m3f32 *transform, float size, uint32_t color);
 
-void EgShapedrawList_AddCircle(EgShapedrawList *list, int32_t z, float x, float y, float radius, uint32_t color);
+void EgShapedrawList_AddCircle(EgShapedrawList *list, int32_t z, const m3f32 *transform, float radius, uint32_t color);
 
-void EgShapedrawList_AddCircleOutline(EgShapedrawList *list, int32_t z, float x, float y, float radius, float thickness, uint32_t color);
+void EgShapedrawList_AddCircleOutline(EgShapedrawList *list, int32_t z, const m3f32 *transform, float radius, float thickness, uint32_t color);
 
-void EgShapedrawList_AddCapsuleOutline(EgShapedrawList *list, int32_t z, float x1, float y1, float x2, float y2, float radius, float thickness, uint32_t color);
+void EgShapedrawList_AddCapsuleOutline(EgShapedrawList *list, int32_t z, const m3f32 *transform, float x1, float y1, float x2, float y2, float radius, float thickness, uint32_t color);
 
-void EgShapedrawList_AddTransform(EgShapedrawList *list, int32_t z, float x, float y, float rotationCos, float rotationSin, float scale, uint32_t color);
+void EgShapedrawList_AddTransform(EgShapedrawList *list, int32_t z, const m3f32 *transform, float scale, uint32_t color);
 
-void EgShapedrawList_AddRectangle(EgShapedrawList *list, int32_t z, float x, float y, float rotationCos, float rotationSin, float width, float height, uint32_t color);
+void EgShapedrawList_AddRectangle(EgShapedrawList *list, int32_t z, const m3f32 *transform, float width, float height, uint32_t color);
 
-void EgShapedrawList_AddRectangleOutline(EgShapedrawList *list, int32_t z, float x, float y, float rotationCos, float rotationSin, float width, float height, float thickness, uint32_t color);
+void EgShapedrawList_AddRectangleOutline(EgShapedrawList *list, int32_t z, const m3f32 *transform, float width, float height, float thickness, uint32_t color);
 
-void EgShapedrawList_AddBounds(EgShapedrawList *list, int32_t z, float minX, float minY, float maxX, float maxY, uint32_t color);
+void EgShapedrawList_AddBounds(EgShapedrawList *list, int32_t z, const m3f32 *transform, float minX, float minY, float maxX, float maxY, uint32_t color);
 
-void EgShapedrawList_AddPolygon(EgShapedrawList *list, int32_t z, const EgShapedrawVec2 *vertices, int vertexCount, float tx, float ty, float rotationCos, float rotationSin, uint32_t color);
+void EgShapedrawList_AddPolygon(EgShapedrawList *list, int32_t z, const m3f32 *transform, const EgShapedrawVec2 *vertices, int vertexCount, uint32_t color);
 
 // Single-channel EG_SHAPEDRAW_ATLAS_WIDTH x EG_SHAPEDRAW_ATLAS_HEIGHT glyph bitmap, baked once; NULL if no font was found.
 const unsigned char *EgShapedrawFont_GetBitmap(void);

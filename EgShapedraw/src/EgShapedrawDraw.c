@@ -14,16 +14,9 @@
 #define FONT_LINE_HEIGHT   (FONT_BAKE_SIZE * 1.2f)
 
 typedef struct {
-	float x;
-	float y;
-	float c;
-	float s;
-} sXform_t;
-
-typedef struct {
 	EgShapedrawLayer *layer;
 	float             pixelScale;
-	sXform_t          xf;
+	m3f32             transform;
 	uint8_t           r;
 	uint8_t           g;
 	uint8_t           b;
@@ -108,7 +101,7 @@ const unsigned char *EgShapedrawFont_GetBitmap(void)
 	return sFontState == 1 ? sBitmap : NULL;
 }
 
-static void sAppendVertex(EgShapedrawLayer *l, float x, float y, sXform_t xf, float u, float v, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static void sAppendVertex(EgShapedrawLayer *l, float x, float y, const m3f32 *transform, float u, float v, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
 	if (l->count >= l->capacity) {
 		int32_t            cap  = l->capacity > 0 ? l->capacity * 2 : 256;
@@ -121,8 +114,11 @@ static void sAppendVertex(EgShapedrawLayer *l, float x, float y, sXform_t xf, fl
 	}
 
 	EgShapedrawVertex *dst = &l->data[l->count++];
-	dst->position[0]       = xf.c * x - xf.s * y + xf.x;
-	dst->position[1]       = xf.s * x + xf.c * y + xf.y;
+	float              position[3] = {x, y, 1.0f};
+	float              transformed[3];
+	m3f32_mulv(transform, position, transformed);
+	dst->position[0]       = transformed[0];
+	dst->position[1]       = transformed[1];
 	dst->uv[0]             = u;
 	dst->uv[1]             = v;
 	dst->rgba[0]           = r;
@@ -131,42 +127,45 @@ static void sAppendVertex(EgShapedrawLayer *l, float x, float y, sXform_t xf, fl
 	dst->rgba[3]           = a;
 }
 
-static void sAddQuad(EgShapedrawLayer *l, float x0, float y0, float x1, float y1, sXform_t xf, float u0, float v0, float u1, float v1, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static void sAddQuad(EgShapedrawLayer *l, float x0, float y0, float x1, float y1, const m3f32 *transform, float u0, float v0, float u1, float v1, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-	sAppendVertex(l, x0, y0, xf, u0, v0, r, g, b, a);
-	sAppendVertex(l, x1, y0, xf, u1, v0, r, g, b, a);
-	sAppendVertex(l, x1, y1, xf, u1, v1, r, g, b, a);
-	sAppendVertex(l, x0, y0, xf, u0, v0, r, g, b, a);
-	sAppendVertex(l, x1, y1, xf, u1, v1, r, g, b, a);
-	sAppendVertex(l, x0, y1, xf, u0, v1, r, g, b, a);
+	sAppendVertex(l, x0, y0, transform, u0, v0, r, g, b, a);
+	sAppendVertex(l, x1, y0, transform, u1, v0, r, g, b, a);
+	sAppendVertex(l, x1, y1, transform, u1, v1, r, g, b, a);
+	sAppendVertex(l, x0, y0, transform, u0, v0, r, g, b, a);
+	sAppendVertex(l, x1, y1, transform, u1, v1, r, g, b, a);
+	sAppendVertex(l, x0, y1, transform, u0, v1, r, g, b, a);
 }
 
 static void sAddTriangle(const sBatch_t *batch, float x0, float y0, float x1, float y1, float x2, float y2)
 {
 	const float whiteU = 0.5f / EG_SHAPEDRAW_ATLAS_WIDTH;
 	const float whiteV = 0.5f / EG_SHAPEDRAW_ATLAS_HEIGHT;
-	sAppendVertex(batch->layer, x0, y0, batch->xf, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, x1, y1, batch->xf, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, x2, y2, batch->xf, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->layer, x0, y0, &batch->transform, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->layer, x1, y1, &batch->transform, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->layer, x2, y2, &batch->transform, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
 }
 
 static void sAddSolidQuad(const sBatch_t *batch, float x0, float y0, float x1, float y1)
 {
 	const float whiteU = 0.5f / EG_SHAPEDRAW_ATLAS_WIDTH;
 	const float whiteV = 0.5f / EG_SHAPEDRAW_ATLAS_HEIGHT;
-	sAddQuad(batch->layer, x0, y0, x1, y1, batch->xf, whiteU, whiteV, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
+	sAddQuad(batch->layer, x0, y0, x1, y1, &batch->transform, whiteU, whiteV, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
 }
 
 // Fetches the z layer, stores the transform applied to appended vertices and decodes the color.
-static int sBeginBatch(sBatch_t *batch, EgShapedrawList *list, int32_t z, float x, float y, float c, float s, uint32_t color)
+static int sBeginBatch(sBatch_t *batch, EgShapedrawList *list, int32_t z, const m3f32 *transform, uint32_t color)
 {
+	if (transform == NULL) {
+		return 0;
+	}
 	batch->layer = EgShapedrawList_GetLayer(list, z);
 	if (batch->layer == NULL) {
 		return 0;
 	}
 
 	batch->pixelScale = list->pixelScale > 0.0f ? list->pixelScale : 1.0f;
-	batch->xf         = (sXform_t){x, y, c, s};
+	batch->transform  = *transform;
 	batch->r          = (uint8_t)((color >> 16) & 0xFF);
 	batch->g          = (uint8_t)((color >> 8) & 0xFF);
 	batch->b          = (uint8_t)(color & 0xFF);
@@ -177,10 +176,10 @@ static int sBeginBatch(sBatch_t *batch, EgShapedrawList *list, int32_t z, float 
 	return 1;
 }
 
-void EgShapedrawList_AddTriangle(EgShapedrawList *list, int32_t z, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t color)
+void EgShapedrawList_AddTriangle(EgShapedrawList *list, int32_t z, const m3f32 *transform, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t color)
 {
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, 0.0f, 0.0f, 1.0f, 0.0f, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
@@ -221,13 +220,13 @@ static void sAddTextQuad(const sBatch_t *batch, const m3f32 *transform, float x0
 		m3f32_mulv(transform, positions[i], transformed[i]);
 	}
 
-	sXform_t identity = {0.0f, 0.0f, 1.0f, 0.0f};
-	sAppendVertex(batch->layer, transformed[0][0], transformed[0][1], identity, u0, v0, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[1][0], transformed[1][1], identity, u1, v0, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[2][0], transformed[2][1], identity, u1, v1, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[0][0], transformed[0][1], identity, u0, v0, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[2][0], transformed[2][1], identity, u1, v1, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[3][0], transformed[3][1], identity, u0, v1, batch->r, batch->g, batch->b, batch->a);
+	m3f32 identity = M3_IDENTITY;
+	sAppendVertex(batch->layer, transformed[0][0], transformed[0][1], &identity, u0, v0, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->layer, transformed[1][0], transformed[1][1], &identity, u1, v0, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->layer, transformed[2][0], transformed[2][1], &identity, u1, v1, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->layer, transformed[0][0], transformed[0][1], &identity, u0, v0, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->layer, transformed[2][0], transformed[2][1], &identity, u1, v1, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->layer, transformed[3][0], transformed[3][1], &identity, u0, v1, batch->r, batch->g, batch->b, batch->a);
 }
 
 void EgShapedrawList_AddText(EgShapedrawList *list, int32_t z, const m3f32 *transform, float fontSize, uint32_t color, const char *string)
@@ -242,7 +241,8 @@ void EgShapedrawList_AddText(EgShapedrawList *list, int32_t z, const m3f32 *tran
 	}
 
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, 0.0f, 0.0f, 1.0f, 0.0f, color)) {
+	const m3f32 identity = M3_IDENTITY;
+	if (!sBeginBatch(&batch, list, z, &identity, color)) {
 		return;
 	}
 
@@ -283,24 +283,24 @@ void EgShapedrawList_AddText(EgShapedrawList *list, int32_t z, const m3f32 *tran
 	}
 }
 
-void EgShapedrawList_AddLine(EgShapedrawList *list, int32_t z, float x1, float y1, float x2, float y2, float thickness, uint32_t color)
+void EgShapedrawList_AddLine(EgShapedrawList *list, int32_t z, const m3f32 *transform, float x1, float y1, float x2, float y2, float thickness, uint32_t color)
 {
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, 0.0f, 0.0f, 1.0f, 0.0f, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
 	sAddLine(&batch, x1, y1, x2, y2, thickness);
 }
 
-void EgShapedrawList_AddPoint(EgShapedrawList *list, int32_t z, float x, float y, float size, uint32_t color)
+void EgShapedrawList_AddPoint(EgShapedrawList *list, int32_t z, const m3f32 *transform, float size, uint32_t color)
 {
 	if (size <= 0.0f) {
 		return;
 	}
 
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, x, y, 1.0f, 0.0f, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
@@ -308,14 +308,14 @@ void EgShapedrawList_AddPoint(EgShapedrawList *list, int32_t z, float x, float y
 	sAddSolidQuad(&batch, -scaledSize, -scaledSize, scaledSize, scaledSize);
 }
 
-void EgShapedrawList_AddCircle(EgShapedrawList *list, int32_t z, float x, float y, float radius, uint32_t color)
+void EgShapedrawList_AddCircle(EgShapedrawList *list, int32_t z, const m3f32 *transform, float radius, uint32_t color)
 {
 	if (radius <= 0.0f) {
 		return;
 	}
 
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, x, y, 1.0f, 0.0f, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
@@ -327,14 +327,14 @@ void EgShapedrawList_AddCircle(EgShapedrawList *list, int32_t z, float x, float 
 	}
 }
 
-void EgShapedrawList_AddCircleOutline(EgShapedrawList *list, int32_t z, float x, float y, float radius, float thickness, uint32_t color)
+void EgShapedrawList_AddCircleOutline(EgShapedrawList *list, int32_t z, const m3f32 *transform, float radius, float thickness, uint32_t color)
 {
 	if (radius <= 0.0f || thickness <= 0.0f) {
 		return;
 	}
 
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, 0.0f, 0.0f, 1.0f, 0.0f, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
@@ -350,14 +350,14 @@ void EgShapedrawList_AddCircleOutline(EgShapedrawList *list, int32_t z, float x,
 		float angle0 = (float)i * (2.0f * EG_PI / (float)segments);
 		float angle1 = (float)(i + 1) * (2.0f * EG_PI / (float)segments);
 
-		float x0Outer = x + cosf(angle0) * outerRadius;
-		float y0Outer = y + sinf(angle0) * outerRadius;
-		float x1Outer = x + cosf(angle1) * outerRadius;
-		float y1Outer = y + sinf(angle1) * outerRadius;
-		float x0Inner = x + cosf(angle0) * innerRadius;
-		float y0Inner = y + sinf(angle0) * innerRadius;
-		float x1Inner = x + cosf(angle1) * innerRadius;
-		float y1Inner = y + sinf(angle1) * innerRadius;
+		float x0Outer = cosf(angle0) * outerRadius;
+		float y0Outer = sinf(angle0) * outerRadius;
+		float x1Outer = cosf(angle1) * outerRadius;
+		float y1Outer = sinf(angle1) * outerRadius;
+		float x0Inner = cosf(angle0) * innerRadius;
+		float y0Inner = sinf(angle0) * innerRadius;
+		float x1Inner = cosf(angle1) * innerRadius;
+		float y1Inner = sinf(angle1) * innerRadius;
 
 		sAddTriangle(&batch, x0Outer, y0Outer, x1Outer, y1Outer, x1Inner, y1Inner);
 		sAddTriangle(&batch, x0Outer, y0Outer, x1Inner, y1Inner, x0Inner, y0Inner);
@@ -385,14 +385,14 @@ static void sAddCap(const sBatch_t *batch, float cx, float cy, float startAngle,
 	}
 }
 
-void EgShapedrawList_AddCapsuleOutline(EgShapedrawList *list, int32_t z, float x1, float y1, float x2, float y2, float radius, float thickness, uint32_t color)
+void EgShapedrawList_AddCapsuleOutline(EgShapedrawList *list, int32_t z, const m3f32 *transform, float x1, float y1, float x2, float y2, float radius, float thickness, uint32_t color)
 {
 	if (radius <= 0.0f || thickness <= 0.0f) {
 		return;
 	}
 
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, 0.0f, 0.0f, 1.0f, 0.0f, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
@@ -417,10 +417,10 @@ void EgShapedrawList_AddCapsuleOutline(EgShapedrawList *list, int32_t z, float x
 	sAddCap(&batch, centerX - nx * halfLength, centerY - ny * halfLength, 0.0f, radius, innerRadius, segments);
 }
 
-void EgShapedrawList_AddTransform(EgShapedrawList *list, int32_t z, float x, float y, float rotationCos, float rotationSin, float scale, uint32_t color)
+void EgShapedrawList_AddTransform(EgShapedrawList *list, int32_t z, const m3f32 *transform, float scale, uint32_t color)
 {
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, x, y, rotationCos, rotationSin, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
@@ -428,28 +428,28 @@ void EgShapedrawList_AddTransform(EgShapedrawList *list, int32_t z, float x, flo
 	sAddLine(&batch, 0.0f, 0.0f, 0.0f, scale, 0.05f);
 }
 
-void EgShapedrawList_AddRectangle(EgShapedrawList *list, int32_t z, float x, float y, float rotationCos, float rotationSin, float width, float height, uint32_t color)
+void EgShapedrawList_AddRectangle(EgShapedrawList *list, int32_t z, const m3f32 *transform, float width, float height, uint32_t color)
 {
 	if (width <= 0.0f || height <= 0.0f) {
 		return;
 	}
 
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, x, y, rotationCos, rotationSin, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
 	sAddSolidQuad(&batch, -width * 0.5f, -height * 0.5f, width * 0.5f, height * 0.5f);
 }
 
-void EgShapedrawList_AddRectangleOutline(EgShapedrawList *list, int32_t z, float x, float y, float rotationCos, float rotationSin, float width, float height, float thickness, uint32_t color)
+void EgShapedrawList_AddRectangleOutline(EgShapedrawList *list, int32_t z, const m3f32 *transform, float width, float height, float thickness, uint32_t color)
 {
 	if (width <= 0.0f || height <= 0.0f || thickness <= 0.0f) {
 		return;
 	}
 
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, x, y, rotationCos, rotationSin, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
@@ -461,10 +461,10 @@ void EgShapedrawList_AddRectangleOutline(EgShapedrawList *list, int32_t z, float
 	sAddLine(&batch, -hw, hh, -hw, -hh, thickness);
 }
 
-void EgShapedrawList_AddBounds(EgShapedrawList *list, int32_t z, float minX, float minY, float maxX, float maxY, uint32_t color)
+void EgShapedrawList_AddBounds(EgShapedrawList *list, int32_t z, const m3f32 *transform, float minX, float minY, float maxX, float maxY, uint32_t color)
 {
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, 0.0f, 0.0f, 1.0f, 0.0f, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
@@ -474,14 +474,14 @@ void EgShapedrawList_AddBounds(EgShapedrawList *list, int32_t z, float minX, flo
 	sAddLine(&batch, minX, maxY, minX, minY, 0.05f);
 }
 
-void EgShapedrawList_AddPolygon(EgShapedrawList *list, int32_t z, const EgShapedrawVec2 *vertices, int vertexCount, float tx, float ty, float rotationCos, float rotationSin, uint32_t color)
+void EgShapedrawList_AddPolygon(EgShapedrawList *list, int32_t z, const m3f32 *transform, const EgShapedrawVec2 *vertices, int vertexCount, uint32_t color)
 {
 	if (vertices == NULL || vertexCount < 3) {
 		return;
 	}
 
 	sBatch_t batch;
-	if (!sBeginBatch(&batch, list, z, tx, ty, rotationCos, rotationSin, color)) {
+	if (!sBeginBatch(&batch, list, z, transform, color)) {
 		return;
 	}
 
