@@ -4,9 +4,9 @@
 #define EG_BUTTONS_SCANCODES_MAX 512
 #define EG_BUTTONS_MOUSE_MAX     16
 
-#define EG_BUTTONS_STATE_HELD     0x01
-#define EG_BUTTONS_STATE_PRESSED  0x02
-#define EG_BUTTONS_STATE_RELEASED 0x04
+#define EG_BUTTONS_STATE_HELD     0x01 // Button is currently held down
+#define EG_BUTTONS_STATE_PRESSED  0x02 // Button was pressed this frame
+#define EG_BUTTONS_STATE_RELEASED 0x04 // Button was released this frame
 
 typedef struct
 {
@@ -18,6 +18,8 @@ typedef struct
 	uint8_t scancode[EG_BUTTONS_SCANCODES_MAX];
 	uint8_t mouse[EG_BUTTONS_MOUSE_MAX];
 } EgButtonsState;
+
+uint8_t EgButtonsState_get(EgButtonsState *state, uint32_t key);
 
 typedef struct
 {

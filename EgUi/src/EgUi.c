@@ -36,8 +36,13 @@ static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 		float local_x = (dx * x->matrix.c1[1] - dy * x->matrix.c1[0]) / det;
 		float local_y = (dy * x->matrix.c0[0] - dx * x->matrix.c0[1]) / det;
 
+		bool mouse_held = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
+
 		b->hovered = (fabsf(local_x) <= fabsf(r->w) * 0.5f) && (fabsf(local_y) <= fabsf(r->h) * 0.5f);
-		b->held    = b->hovered && !!(s->mouse[0] & EG_BUTTONS_STATE_PRESSED);
+
+
+		b->held = (b->held && mouse_held) || (b->hovered && mouse_held);
+		
 
 		printf("Button %s hovered: %d, held: %d\n", name, b->hovered, b->held);
 
@@ -341,6 +346,7 @@ void EgUiImport(ecs_world_t *world)
 	&(ecs_struct_desc_t){
 	.entity  = ecs_id(EgUiButton),
 	.members = {
+	{.name = "key", .type = ecs_id(ecs_u32_t)},
 	{.name = "hovered", .type = ecs_id(ecs_bool_t)},
 	{.name = "held", .type = ecs_id(ecs_bool_t)},
 	}});

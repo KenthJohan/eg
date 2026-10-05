@@ -37,6 +37,7 @@ typedef struct {
 } EgUiTable;
 
 typedef struct {
+	uint32_t key; // The key code associated with the button
 	bool hovered; // Indicates if the button is currently hovered over
 	bool held; // Indicates if the button is currently held down
 } EgUiButton;

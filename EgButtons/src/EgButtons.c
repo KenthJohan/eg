@@ -18,9 +18,9 @@ ECS_COMPONENT_DECLARE(EgButtonsEngageRule);
  *
  * @param key The key code.
  * @param buttons The buttons state.
- * @return The state of the button, or -1 if out of range.
+ * @return The mask of the button state.
  */
-static int32_t get_button_state(int32_t key, uint8_t mask, EgButtonsState *buttons)
+uint8_t EgButtonsState_get(EgButtonsState *buttons, uint32_t key)
 {
 	uint8_t  b     = (key >> 0) & 0xFF;
 	uint8_t  s     = (key >> 16) & 0xFF;
@@ -29,7 +29,7 @@ static int32_t get_button_state(int32_t key, uint8_t mask, EgButtonsState *butto
 	if ((s >= 2) || (b >= max[s])) {
 		return 0;
 	}
-	return (set[s][b] & mask) ? 1 : 0;
+	return set[s][b];
 }
 
 static void System_Toggle(ecs_iter_t *it)
@@ -39,7 +39,7 @@ static void System_Toggle(ecs_iter_t *it)
 	EgButtonsBinding            *b       = ecs_field(it, EgButtonsBinding, 1);            // self
 	EgButtonsActionToggleEntity *a       = ecs_field(it, EgButtonsActionToggleEntity, 2); // self
 	for (int i = 0; i < it->count; ++i, ++a, ++b) {
-		bool state = get_button_state(b->button0, b->mask, buttons);
+		bool state = !!(EgButtonsState_get(buttons, b->button0) & b->mask);
 		if (!state) {
 			continue;
 		}
@@ -67,8 +67,8 @@ static void System_Bindings(ecs_iter_t *it)
 			ecs_dbg("ecs_get_id(%s,%s) == NULL", ecs_get_name(it->world, b->entity), ecs_get_name(it->world, b->component));
 			continue;
 		}
-		int32_t v0    = get_button_state(a->button0, a->mask, buttons);
-		int32_t v1    = get_button_state(a->button1, a->mask, buttons);
+		int32_t v0    = !!(EgButtonsState_get(buttons, a->button0) & a->mask);
+		int32_t v1    = !!(EgButtonsState_get(buttons, a->button1) & a->mask);
 		float   delta = (float)v0 - (float)v1;
 		float  *f     = (float *)((uint8_t *)ptr + b->byte_offset);
 		float   a     = delta * b->factor;
@@ -86,7 +86,7 @@ void EgButtonsEngageRule_System_Update(ecs_iter_t *it)
 	EgButtonsBinding    *a = ecs_field_self(it, EgButtonsBinding, 1);
 	EgButtonsState      *b = ecs_field_shared(it, EgButtonsState, 2);
 	for (int i = 0; i < it->count; ++i, ++r, ++a) {
-		int32_t button_enable = get_button_state(a->button0, a->mask, b);
+		int32_t button_enable = !!(EgButtonsState_get(b, a->button0) & a->mask);
 		if (!button_enable) {
 			continue;
 		}
