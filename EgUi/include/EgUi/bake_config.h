@@ -21,6 +21,7 @@
 #include <EgShapes.h>
 #include <EgSpatials.h>
 #include <EgPhysics.h>
+#include <EgButtons.h>
 #include <ecsx.h>
 #include <flecs.h>
 

@@ -36,9 +36,15 @@ typedef struct {
 	int32_t           col_count;   // Highest column index seen + 1
 } EgUiTable;
 
+typedef struct {
+	bool hovered; // Indicates if the button is currently hovered over
+	bool held; // Indicates if the button is currently held down
+} EgUiButton;
+
 extern ECS_COMPONENT_DECLARE(EgUiFlow);
 extern ECS_COMPONENT_DECLARE(EgUiDirection);
 extern ECS_COMPONENT_DECLARE(EgUiTable);
 extern ECS_COMPONENT_DECLARE(EgUiCell);
+extern ECS_COMPONENT_DECLARE(EgUiButton);
 
 void EgUiImport(ecs_world_t *world);

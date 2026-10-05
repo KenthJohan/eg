@@ -2,6 +2,7 @@
 
 #include <EgShapes.h>
 #include <EgPhysics.h>
+#include <EgButtons.h>
 #include <ecsx.h>
 #include <math.h>
 #include <string.h>
@@ -10,19 +11,18 @@ ECS_COMPONENT_DECLARE(EgUiFlow);
 ECS_COMPONENT_DECLARE(EgUiDirection);
 ECS_COMPONENT_DECLARE(EgUiTable);
 ECS_COMPONENT_DECLARE(EgUiCell);
+ECS_COMPONENT_DECLARE(EgUiButton);
 
 static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 {
-	EgPhysicsOverlapChecking *c  = ecs_field_self(it, EgPhysicsOverlapChecking, 0);
-	Position2                *p0 = ecs_field_shared(it, Position2, 1);
-	EgShapesRectangle const  *r  = ecs_field_self(it, EgShapesRectangle, 2);
-	WorldTransform3 const    *x  = ecs_field_self(it, WorldTransform3, 3);
+	Position2               *p0 = ecs_field_shared(it, Position2, 0);
+	EgShapesRectangle const *r  = ecs_field_self(it, EgShapesRectangle, 1);
+	WorldTransform3 const   *x  = ecs_field_self(it, WorldTransform3, 2);
+	EgUiButton              *b  = ecs_field_self(it, EgUiButton, 3);
+	EgButtonsState          *s  = ecs_field_shared(it, EgButtonsState, 4);
 
-	for (int32_t i = 0; i < it->count; ++i, ++c, ++r, ++x) {
-		bool hovered = false;
-		if (!c->tag) {
-			continue;
-		}
+	for (int32_t i = 0; i < it->count; ++i, ++r, ++x, ++b) {
+
 		char const *name = ecs_get_name(it->world, it->entities[i]);
 
 		float dx  = p0->x - x->matrix.c2[0];
@@ -36,13 +36,12 @@ static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 		float local_x = (dx * x->matrix.c1[1] - dy * x->matrix.c1[0]) / det;
 		float local_y = (dy * x->matrix.c0[0] - dx * x->matrix.c0[1]) / det;
 
-		hovered = (fabsf(local_x) <= fabsf(r->w) * 0.5f) && (fabsf(local_y) <= fabsf(r->h) * 0.5f);
+		b->hovered = (fabsf(local_x) <= fabsf(r->w) * 0.5f) && (fabsf(local_y) <= fabsf(r->h) * 0.5f);
+		b->held    = b->hovered && !!(s->mouse[0] & EG_BUTTONS_STATE_PRESSED);
 
-		if (hovered) {
-			ecs_add_id(it->world, it->entities[i], c->tag);
-		} else {
-			ecs_remove_id(it->world, it->entities[i], c->tag);
-		}
+		printf("Button %s hovered: %d, held: %d\n", name, b->hovered, b->held);
+
+		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiButton));
 	}
 }
 
@@ -308,17 +307,19 @@ static void EgUiFlow_Update(ecs_iter_t *it)
 
 void EgUiImport(ecs_world_t *world)
 {
-	ECS_MODULE(world, EgUi);
-	ecs_set_name_prefix(world, "EgUi");
-
 	ECS_IMPORT(world, EgPhysics);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
+	ECS_IMPORT(world, EgButtons);
+
+	ECS_MODULE(world, EgUi);
+	ecs_set_name_prefix(world, "EgUi");
 
 	ECS_COMPONENT_DEFINE(world, EgUiFlow);
 	ECS_COMPONENT_DEFINE(world, EgUiDirection);
 	ECS_COMPONENT_DEFINE(world, EgUiTable);
 	ECS_COMPONENT_DEFINE(world, EgUiCell);
+	ECS_COMPONENT_DEFINE(world, EgUiButton);
 
 	ecs_set_hooks(world, EgUiTable,
 	{
@@ -334,6 +335,14 @@ void EgUiImport(ecs_world_t *world)
 	.members = {
 	{.name = "row", .type = ecs_id(ecs_i32_t)},
 	{.name = "col", .type = ecs_id(ecs_i32_t)},
+	}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = ecs_id(EgUiButton),
+	.members = {
+	{.name = "hovered", .type = ecs_id(ecs_bool_t)},
+	{.name = "held", .type = ecs_id(ecs_bool_t)},
 	}});
 
 	// Maps are not reflected; explicit offsets let scripts set the gaps.
@@ -440,8 +449,10 @@ void EgUiImport(ecs_world_t *world)
 	.phase       = EcsPreStore,
 	.callback    = EgUiMouseHitTesting_Update,
 	.query.terms = {
-	{.id = ecs_pair(ecs_id(EgPhysicsOverlapChecking), EcsWildcard), .inout = EcsIn},
 	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
-	{.id = ecs_id(WorldTransform3), .inout = EcsIn}}});
+	{.id = ecs_id(WorldTransform3), .inout = EcsIn},
+	{.id = ecs_id(EgUiButton), .inout = EcsInOut},
+	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
+	}});
 }
