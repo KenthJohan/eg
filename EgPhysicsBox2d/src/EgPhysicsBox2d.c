@@ -74,7 +74,7 @@ static void b2JointId_Create(ecs_iter_t *it)
 	EgPhysicsJointDef *def    = ecs_field_self(it, EgPhysicsJointDef, 1);
 	b2BodyId          *body_a = ecs_field_shared(it, b2BodyId, 2);
 	b2BodyId          *body_b = ecs_field_shared(it, b2BodyId, 3);
-	for (int i = 0; i < it->count; ++i, ++def, ++body_a, ++body_b) {
+	for (int i = 0; i < it->count; ++i, ++def) {
 		b2MotorJointDef jointDef    = b2DefaultMotorJointDef();
 		jointDef.base.bodyIdA       = body_a[0];
 		jointDef.base.bodyIdB       = body_b[0];
@@ -82,9 +82,10 @@ static void b2JointId_Create(ecs_iter_t *it)
 		jointDef.linearDampingRatio = def->linear_damping;
 
 		// Test:
-		b2MassData massData     = b2Body_GetMassData(body_a[0]);
+		b2MassData massDataA     = b2Body_GetMassData(body_a[0]);
+		b2MassData massDataB     = b2Body_GetMassData(body_b[0]);
 		float      g            = b2Length(b2World_GetGravity(bw[0]));
-		float      mg           = massData.mass * g;
+		float      mg           = (massDataA.mass + massDataB.mass) * g;
 		jointDef.maxSpringForce = 100.0f * mg;
 
 		b2JointId joint = b2CreateMotorJoint(bw[0], &jointDef);
