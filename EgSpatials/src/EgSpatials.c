@@ -61,6 +61,22 @@ ECS_CTOR(Scale2, ptr, {
 	ptr->y = 1.0f;
 })
 
+void WorldTransform3_trs(const ecs_function_ctx_t *ctx, int argc, const ecs_value_t *argv, ecs_value_t *result)
+{
+	(void)ctx;
+	(void)argc;
+
+	float t[2] = {*(float *)argv[0].ptr, *(float *)argv[1].ptr};
+	float a    = *(float *)argv[2].ptr;
+	float s[2] = {*(float *)argv[3].ptr, *(float *)argv[4].ptr};
+
+	// Get 2d quaternion from angle
+	float q[2] = {cosf(a * 0.5f), sinf(a * 0.5f)};
+
+	WorldTransform3 *x = (WorldTransform3 *)result->ptr;
+	m3f32_trs(t, q, s, &x->matrix);
+}
+
 void EgSpatialsImport(ecs_world_t *world)
 {
 	ECS_MODULE(world, EgSpatials);
@@ -256,4 +272,16 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.name = "frequency", .type = ecs_id(ecs_f32_t)},
 	{.name = "amplitude", .type = ecs_id(ecs_f32_t)},
 	}});
+
+	ecs_function(world,
+	{.name       = "trs",
+	.return_type = ecs_id(WorldTransform3),
+	.params      = {
+	{.name = "tx", .type = ecs_id(ecs_f32_t)},
+	{.name = "ty", .type = ecs_id(ecs_f32_t)},
+	{.name = "angle", .type = ecs_id(ecs_f32_t)},
+	{.name = "sx", .type = ecs_id(ecs_f32_t)},
+	{.name = "sy", .type = ecs_id(ecs_f32_t)},
+	},
+	.callback = WorldTransform3_trs});
 }

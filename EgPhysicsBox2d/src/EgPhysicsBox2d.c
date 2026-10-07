@@ -27,12 +27,12 @@ static void b2BodyId_Create(ecs_iter_t *it)
 {
 	ecs_log_set_level(0);
 	b2WorldId        *bw  = ecs_field_shared(it, b2WorldId, 0);      //
-	Position2        *pos = ecs_field_self(it, Position2, 1);        //
+	WorldTransform3  *x   = ecs_field_self(it, WorldTransform3, 1);  //
 	EgPhysicsBodyDef *def = ecs_field_self(it, EgPhysicsBodyDef, 2); //
-	for (int i = 0; i < it->count; ++i, ++def, ++pos) {
+	for (int i = 0; i < it->count; ++i, ++def, ++x) {
 		b2BodyDef body_def = b2DefaultBodyDef();
 		body_def.type      = def->type;
-		body_def.position  = (b2Pos){pos->x, pos->y};
+		body_def.position  = (b2Pos){x->matrix.c2[0], x->matrix.c2[1]};
 		body_def.userData  = (void *)(uintptr_t)it->entities[i]; // Use the ECS entity as user data
 		b2BodyId body      = b2CreateBody(bw[0], &body_def);
 		ecs_set_ptr(it->world, it->entities[i], b2BodyId, &body);
@@ -82,8 +82,8 @@ static void b2JointId_Create(ecs_iter_t *it)
 		jointDef.linearDampingRatio = def->linear_damping;
 
 		// Test:
-		b2MassData massDataA     = b2Body_GetMassData(body_a[0]);
-		b2MassData massDataB     = b2Body_GetMassData(body_b[0]);
+		b2MassData massDataA    = b2Body_GetMassData(body_a[0]);
+		b2MassData massDataB    = b2Body_GetMassData(body_b[0]);
 		float      g            = b2Length(b2World_GetGravity(bw[0]));
 		float      mg           = (massDataA.mass + massDataB.mass) * g;
 		jointDef.maxSpringForce = 100.0f * mg;
@@ -209,17 +209,17 @@ static void System_Overlap_Checking_Update(ecs_iter_t *it)
 
 static void System_Get_Transform(ecs_iter_t *it)
 {
-	b2BodyId  *b = ecs_field_self(it, b2BodyId, 0);
+	b2BodyId        *b  = ecs_field_self(it, b2BodyId, 0);
 	WorldTransform3 *m3 = ecs_field_self(it, WorldTransform3, 1);
 	for (int i = 0; i < it->count; ++i, ++b, ++m3) {
-		b2WorldTransform xf =b2Body_GetTransform(b[0]);
-		m3->matrix.c0[0] = xf.q.c;
-		m3->matrix.c0[1] = xf.q.s;
-		m3->matrix.c1[0] = -xf.q.s;
-		m3->matrix.c1[1] = xf.q.c;
-		m3->matrix.c2[0] = xf.p.x;
-		m3->matrix.c2[1] = xf.p.y;
-		m3->matrix.c2[2] = 1.0f;
+		b2WorldTransform xf = b2Body_GetTransform(b[0]);
+		m3->matrix.c0[0]    = xf.q.c;
+		m3->matrix.c0[1]    = xf.q.s;
+		m3->matrix.c1[0]    = -xf.q.s;
+		m3->matrix.c1[1]    = xf.q.c;
+		m3->matrix.c2[0]    = xf.p.x;
+		m3->matrix.c2[1]    = xf.p.y;
+		m3->matrix.c2[2]    = 1.0f;
 	}
 }
 
@@ -287,7 +287,7 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	.callback    = b2BodyId_Create,
 	.query.terms = {
 	{.id = ecs_id(b2WorldId), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(WorldTransform3), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgPhysicsBodyDef), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(b2BodyId), .oper = EcsNot}, // Adds this
 	}});
