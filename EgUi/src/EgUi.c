@@ -3,6 +3,7 @@
 #include <EgShapes.h>
 #include <EgPhysics.h>
 #include <EgButtons.h>
+#include <EgShapedraw.h>
 #include <ecsx.h>
 #include <math.h>
 #include <string.h>
@@ -13,6 +14,40 @@ ECS_COMPONENT_DECLARE(EgUiTable);
 ECS_COMPONENT_DECLARE(EgUiCell);
 ECS_COMPONENT_DECLARE(EgUiButton);
 ECS_COMPONENT_DECLARE(EgUiResizable);
+ECS_COMPONENT_DECLARE(EgUiTableGrid);
+ECS_COMPONENT_DECLARE(EgUiAnchorKind);
+ECS_COMPONENT_DECLARE(EgUiAnchor);
+
+// Unit direction of an anchor kind, +y is up.
+static void EgUiAnchorKind_Dir(EgUiAnchorKind k, float *x, float *y)
+{
+	static const float dir[][2] = {
+	{0, 0}, {-1, 1}, {0, 1}, {1, 1}, {-1, 0}, {1, 0}, {-1, -1}, {0, -1}, {1, -1}};
+	if ((int)k < 0 || (int)k > EgUiAnchorKindBottomRight) {
+		k = EgUiAnchorKindMiddle;
+	}
+	*x = dir[k][0];
+	*y = dir[k][1];
+}
+
+static void EgUiAnchor_Update(ecs_iter_t *it)
+{
+	EgUiAnchor              *a      = ecs_field_self(it, EgUiAnchor, 0);
+	EgShapesRectangle const *r      = ecs_field_self(it, EgShapesRectangle, 1);
+	Scale2 const            *scl    = ecs_field_self(it, Scale2, 2);
+	Position2               *pos    = ecs_field_self(it, Position2, 3);
+	EgShapesRectangle const *parent = ecs_field_is_set(it, 4) ? ecs_field_shared(it, EgShapesRectangle, 4) : NULL;
+
+	float pw = parent ? parent->w * 0.5f : 0.0f;
+	float ph = parent ? parent->h * 0.5f : 0.0f;
+	for (int32_t i = 0; i < it->count; ++i) {
+		float ax, ay, vx, vy;
+		EgUiAnchorKind_Dir(a[i].parent, &ax, &ay);
+		EgUiAnchorKind_Dir(a[i].pivot, &vx, &vy);
+		pos[i].x = ax * pw + a[i].x - vx * r[i].w * 0.5f * scl[i].x;
+		pos[i].y = ay * ph + a[i].y - vy * r[i].h * 0.5f * scl[i].y;
+	}
+}
 
 static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 {
@@ -38,6 +73,30 @@ static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 	}
 }
 
+static float EgUiTable_MapGet(const ecs_map_t *map, int32_t key);
+static void  EgUiTable_MapSet(ecs_map_t *map, int32_t key, float value);
+
+// Moves the track boundary next to the dragged cell edge; the neighbour track gives or takes the space.
+static void EgUiTable_DragTracks(EgUiTable *t, const EgUiCell *c, uint8_t edge, float dw, float dh, float min_w, float min_h)
+{
+	if (edge & (EG_UI_EDGE_LEFT | EG_UI_EDGE_RIGHT)) {
+		int32_t nb = (edge & EG_UI_EDGE_RIGHT) ? c->col + 1 : c->col - 1;
+		float   w0 = EgUiTable_MapGet(&t->cols_width, c->col);
+		float   w1 = EgUiTable_MapGet(&t->cols_width, nb);
+		dw         = fminf(fmaxf(dw, min_w - w0), w1 - min_w);
+		EgUiTable_MapSet(&t->cols_size, c->col, w0 + dw);
+		EgUiTable_MapSet(&t->cols_size, nb, w1 - dw);
+	}
+	if (edge & (EG_UI_EDGE_TOP | EG_UI_EDGE_BOTTOM)) {
+		int32_t nb = (edge & EG_UI_EDGE_BOTTOM) ? c->row + 1 : c->row - 1;
+		float   h0 = EgUiTable_MapGet(&t->rows_height, c->row);
+		float   h1 = EgUiTable_MapGet(&t->rows_height, nb);
+		dh         = fminf(fmaxf(dh, min_h - h0), h1 - min_h);
+		EgUiTable_MapSet(&t->rows_size, c->row, h0 + dh);
+		EgUiTable_MapSet(&t->rows_size, nb, h1 - dh);
+	}
+}
+
 static void EgUiResizable_Update(ecs_iter_t *it)
 {
 	Position2             *mouse = ecs_field_shared(it, Position2, 0);
@@ -48,6 +107,10 @@ static void EgUiResizable_Update(ecs_iter_t *it)
 	Position2             *pos   = ecs_field_self(it, Position2, 5);
 	Rotation2 const       *rot   = ecs_field_self(it, Rotation2, 6);
 	Scale2 const          *scl   = ecs_field_self(it, Scale2, 7);
+	EgShapesRectangle const *parent = ecs_field_is_set(it, 8) ? ecs_field_shared(it, EgShapesRectangle, 8) : NULL;
+	EgUiAnchor              *anc    = ecs_field_is_set(it, 9) ? ecs_field_self(it, EgUiAnchor, 9) : NULL;
+	EgUiTable               *tbl    = ecs_field_is_set(it, 10) ? ecs_field_shared(it, EgUiTable, 10) : NULL;
+	EgUiCell const          *cell   = ecs_field_is_set(it, 11) ? ecs_field_self(it, EgUiCell, 11) : NULL;
 
 	for (int32_t i = 0; i < it->count; ++i) {
 		float dx  = mouse->x - x[i].matrix.c2[0];
@@ -79,6 +142,30 @@ static void EgUiResizable_Update(ecs_iter_t *it)
 				e |= EG_UI_EDGE_BOTTOM;
 			if (in_x && fabsf(ly - hh) <= z[i].grab)
 				e |= EG_UI_EDGE_TOP;
+			// The side pinned by the anchor pivot is not draggable, otherwise the inset would change
+			if (anc) {
+				float vx, vy;
+				EgUiAnchorKind_Dir(anc[i].pivot, &vx, &vy);
+				if (vx > 0.0f)
+					e &= (uint8_t)~EG_UI_EDGE_RIGHT;
+				if (vx < 0.0f)
+					e &= (uint8_t)~EG_UI_EDGE_LEFT;
+				if (vy > 0.0f)
+					e &= (uint8_t)~EG_UI_EDGE_TOP;
+				if (vy < 0.0f)
+					e &= (uint8_t)~EG_UI_EDGE_BOTTOM;
+			}
+			// Table borders are not draggable
+			if (cell && tbl) {
+				if (cell[i].col <= 0)
+					e &= (uint8_t)~EG_UI_EDGE_LEFT;
+				if (cell[i].col >= tbl->col_count - 1)
+					e &= (uint8_t)~EG_UI_EDGE_RIGHT;
+				if (cell[i].row <= 0)
+					e &= (uint8_t)~EG_UI_EDGE_TOP;
+				if (cell[i].row >= tbl->row_count - 1)
+					e &= (uint8_t)~EG_UI_EDGE_BOTTOM;
+			}
 			z[i].edge = e;
 			// Only a fresh press starts a drag
 			if (held && !z[i].was_held && e) {
@@ -111,8 +198,65 @@ static void EgUiResizable_Update(ecs_iter_t *it)
 			if (e & EG_UI_EDGE_BOTTOM)
 				dh = -(my + hh);
 
+			// A table cell resizes its track; layout then rewrites the cell Rectangle and Position2
+			if (cell && tbl) {
+				EgUiTable_DragTracks(tbl, &cell[i], e, dw, dh, z[i].min_w, z[i].min_h);
+				if (z[i].edge != prev_edge || z[i].dragging != prev_drag) {
+					ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiResizable));
+				}
+				continue;
+			}
+
+			// Middle pivot keeps the center, so both sides move and the edge follows the mouse
+			if (anc) {
+				float vx, vy;
+				EgUiAnchorKind_Dir(anc[i].pivot, &vx, &vy);
+				if (vx == 0.0f)
+					dw *= 2.0f;
+				if (vy == 0.0f)
+					dh *= 2.0f;
+			}
+
 			dw = fmaxf(dw, z[i].min_w - r[i].w);
 			dh = fmaxf(dh, z[i].min_h - r[i].h);
+
+			// Layout owns the position of cells and flow children, so they grow around their center.
+			bool         centered   = ecs_has_id(it->world, it->entities[i], ecs_id(EgUiCell));
+			ecs_entity_t parent_ent = ecs_get_parent(it->world, it->entities[i]);
+			if (parent_ent && ecs_has_id(it->world, parent_ent, ecs_id(EgUiFlow))) {
+				centered = true;
+			}
+
+			// Moving edge may not pass the parent boundary; ignores rotation. Never forces a shrink.
+			if (parent && centered) {
+				float max_w = 2.0f * fmaxf(0.0f, parent->w * 0.5f - fabsf(pos[i].x)) / scl[i].x;
+				float max_h = 2.0f * fmaxf(0.0f, parent->h * 0.5f - fabsf(pos[i].y)) / scl[i].y;
+				if (e & (EG_UI_EDGE_LEFT | EG_UI_EDGE_RIGHT)) {
+					dw = fminf(dw, fmaxf(0.0f, max_w - r[i].w));
+				}
+				if (e & (EG_UI_EDGE_TOP | EG_UI_EDGE_BOTTOM)) {
+					dh = fminf(dh, fmaxf(0.0f, max_h - r[i].h));
+				}
+			} else if (parent) {
+				float pw = parent->w * 0.5f;
+				float ph = parent->h * 0.5f;
+				if ((e & EG_UI_EDGE_RIGHT) && scl[i].x > 0.0f) {
+					float max_w = (pw - (pos[i].x - hw * scl[i].x)) / scl[i].x;
+					dw          = fminf(dw, fmaxf(0.0f, max_w - r[i].w));
+				}
+				if ((e & EG_UI_EDGE_LEFT) && scl[i].x > 0.0f) {
+					float max_w = ((pos[i].x + hw * scl[i].x) + pw) / scl[i].x;
+					dw          = fminf(dw, fmaxf(0.0f, max_w - r[i].w));
+				}
+				if ((e & EG_UI_EDGE_TOP) && scl[i].y > 0.0f) {
+					float max_h = (ph - (pos[i].y - hh * scl[i].y)) / scl[i].y;
+					dh          = fminf(dh, fmaxf(0.0f, max_h - r[i].h));
+				}
+				if ((e & EG_UI_EDGE_BOTTOM) && scl[i].y > 0.0f) {
+					float max_h = ((pos[i].y + hh * scl[i].y) + ph) / scl[i].y;
+					dh          = fminf(dh, fmaxf(0.0f, max_h - r[i].h));
+				}
+			}
 
 			// Opposite side stays fixed: size changes by d, center by d/2
 			float sx = (e & EG_UI_EDGE_RIGHT) ? 0.5f : (e & EG_UI_EDGE_LEFT) ? -0.5f
@@ -126,8 +270,14 @@ static void EgUiResizable_Update(ecs_iter_t *it)
 
 			r[i].w += dw;
 			r[i].h += dh;
-			pos[i].x += px * c - py * sn;
-			pos[i].y += px * sn + py * c;
+			if (anc) {
+				// The pivot side stays put and the anchor rebuilds Position2, so the offset is unchanged
+			} else if (centered) {
+				// Position2 is rewritten by the layout
+			} else {
+				pos[i].x += px * c - py * sn;
+				pos[i].y += px * sn + py * c;
+			}
 		}
 
 		if (z[i].edge != prev_edge || z[i].dragging != prev_drag) {
@@ -147,15 +297,11 @@ static float EgUiTable_MapGet(const ecs_map_t *map, int32_t key)
 	return f;
 }
 
-static void EgUiTable_MapMax(ecs_map_t *map, int32_t key, float value)
+static void EgUiTable_MapSet(ecs_map_t *map, int32_t key, float value)
 {
 	ecs_map_val_t *val = ecs_map_ensure(map, (ecs_map_key_t)(uint32_t)key);
-	float          f   = 0.0f;
-	memcpy(&f, val, sizeof(f));
-	if (value > f) {
-		*val = 0;
-		memcpy(val, &value, sizeof(value));
-	}
+	*val               = 0;
+	memcpy(val, &value, sizeof(value));
 }
 
 // Sum of sizes (plus gaps) of indices [0, index).
@@ -176,6 +322,8 @@ static void EgUiTable_ctor(void *ptr, int32_t count, const ecs_type_info_t *ti)
 		memset(&t[i], 0, sizeof(EgUiTable));
 		ecs_map_init(&t[i].rows_height, NULL);
 		ecs_map_init(&t[i].cols_width, NULL);
+		ecs_map_init(&t[i].rows_size, NULL);
+		ecs_map_init(&t[i].cols_size, NULL);
 	}
 }
 
@@ -186,6 +334,8 @@ static void EgUiTable_dtor(void *ptr, int32_t count, const ecs_type_info_t *ti)
 	for (int32_t i = 0; i < count; ++i) {
 		ecs_map_fini(&t[i].rows_height);
 		ecs_map_fini(&t[i].cols_width);
+		ecs_map_fini(&t[i].rows_size);
+		ecs_map_fini(&t[i].cols_size);
 	}
 }
 
@@ -197,9 +347,13 @@ static void EgUiTable_move(void *dst_ptr, void *src_ptr, int32_t count, const ec
 	for (int32_t i = 0; i < count; ++i) {
 		ecs_map_fini(&dst[i].rows_height);
 		ecs_map_fini(&dst[i].cols_width);
+		ecs_map_fini(&dst[i].rows_size);
+		ecs_map_fini(&dst[i].cols_size);
 		dst[i] = src[i];
 		ecs_map_init(&src[i].rows_height, NULL);
 		ecs_map_init(&src[i].cols_width, NULL);
+		ecs_map_init(&src[i].rows_size, NULL);
+		ecs_map_init(&src[i].cols_size, NULL);
 	}
 }
 
@@ -211,14 +365,24 @@ static void EgUiTable_copy(void *dst_ptr, const void *src_ptr, int32_t count, co
 	for (int32_t i = 0; i < count; ++i) {
 		ecs_map_fini(&dst[i].rows_height);
 		ecs_map_fini(&dst[i].cols_width);
+		ecs_map_fini(&dst[i].rows_size);
+		ecs_map_fini(&dst[i].cols_size);
 		ecs_map_init(&dst[i].rows_height, NULL);
 		ecs_map_init(&dst[i].cols_width, NULL);
+		ecs_map_init(&dst[i].rows_size, NULL);
+		ecs_map_init(&dst[i].cols_size, NULL);
 		// ecs_map_copy leaves dst finalized (dangling buckets) when src is uninitialized.
 		if (ecs_map_is_init(&src[i].rows_height)) {
 			ecs_map_copy(&dst[i].rows_height, &src[i].rows_height);
 		}
 		if (ecs_map_is_init(&src[i].cols_width)) {
 			ecs_map_copy(&dst[i].cols_width, &src[i].cols_width);
+		}
+		if (ecs_map_is_init(&src[i].rows_size)) {
+			ecs_map_copy(&dst[i].rows_size, &src[i].rows_size);
+		}
+		if (ecs_map_is_init(&src[i].cols_size)) {
+			ecs_map_copy(&dst[i].cols_size, &src[i].cols_size);
 		}
 		dst[i].total_space = src[i].total_space;
 		dst[i].row_gap     = src[i].row_gap;
@@ -243,15 +407,12 @@ static void EgUiTable_Reset(ecs_iter_t *it)
 
 static void EgUiTable_Measure(ecs_iter_t *it)
 {
-	EgUiTable         *table = ecs_field_shared(it, EgUiTable, 1);
-	EgUiCell          *cells = ecs_field_self(it, EgUiCell, 2);
-	EgShapesRectangle *rects = ecs_field_self(it, EgShapesRectangle, 3);
+	EgUiTable *table = ecs_field_shared(it, EgUiTable, 1);
+	EgUiCell  *cells = ecs_field_self(it, EgUiCell, 2);
 	for (int i = 0; i < it->count; ++i) {
 		if (cells[i].row < 0 || cells[i].col < 0) {
 			continue;
 		}
-		EgUiTable_MapMax(&table->rows_height, cells[i].row, rects[i].h);
-		EgUiTable_MapMax(&table->cols_width, cells[i].col, rects[i].w);
 		if (cells[i].row + 1 > table->row_count) {
 			table->row_count = cells[i].row + 1;
 		}
@@ -261,10 +422,33 @@ static void EgUiTable_Measure(ecs_iter_t *it)
 	}
 }
 
+// Tracks with an explicit size keep it; the others share what is left of the table extent.
+static void EgUiTable_ResolveTracks(ecs_map_t *resolved, const ecs_map_t *fixed, int32_t count, float gap, float extent)
+{
+	float   fixed_sum = 0.0f;
+	int32_t unset     = 0;
+	for (int32_t k = 0; k < count; ++k) {
+		if (ecs_map_get(fixed, (ecs_map_key_t)(uint32_t)k)) {
+			fixed_sum += EgUiTable_MapGet(fixed, k);
+		} else {
+			++unset;
+		}
+	}
+	float free_space = fmaxf(0.0f, extent - gap * (float)(count > 0 ? count - 1 : 0) - fixed_sum);
+	float share      = unset > 0 ? free_space / (float)unset : 0.0f;
+	for (int32_t k = 0; k < count; ++k) {
+		bool has = ecs_map_get(fixed, (ecs_map_key_t)(uint32_t)k) != NULL;
+		EgUiTable_MapSet(resolved, k, has ? EgUiTable_MapGet(fixed, k) : share);
+	}
+}
+
 static void EgUiTable_Finalize(ecs_iter_t *it)
 {
-	EgUiTable *table = ecs_field_self(it, EgUiTable, 0);
+	EgUiTable               *table = ecs_field_self(it, EgUiTable, 0);
+	EgShapesRectangle const *rect  = ecs_field_self(it, EgShapesRectangle, 1);
 	for (int i = 0; i < it->count; ++i) {
+		EgUiTable_ResolveTracks(&table[i].cols_width, &table[i].cols_size, table[i].col_count, table[i].col_gap, rect[i].w);
+		EgUiTable_ResolveTracks(&table[i].rows_height, &table[i].rows_size, table[i].row_count, table[i].row_gap, rect[i].h);
 		float w                = EgUiTable_Offset(&table[i].cols_width, table[i].col_count, table[i].col_gap);
 		float h                = EgUiTable_Offset(&table[i].rows_height, table[i].row_count, table[i].row_gap);
 		table[i].total_space.w = table[i].col_count > 0 ? w - table[i].col_gap : 0.0f;
@@ -286,9 +470,39 @@ static void EgUiTable_Layout(ecs_iter_t *it)
 		float row_h = EgUiTable_MapGet(&table->rows_height, cells[i].row);
 		float left  = EgUiTable_Offset(&table->cols_width, cells[i].col, table->col_gap);
 		float top   = EgUiTable_Offset(&table->rows_height, cells[i].row, table->row_gap);
-		// Child is centered in its cell; table is centered on the parent origin, rows grow downward (+y is up).
+		// The cell fills its slot; table is centered on the parent origin, rows grow downward (+y is up).
+		rects[i].w     = col_w;
+		rects[i].h     = row_h;
 		positions[i].x = -table->total_space.w * 0.5f + left + col_w * 0.5f;
 		positions[i].y = table->total_space.h * 0.5f - top - row_h * 0.5f;
+	}
+}
+
+static void EgUiTableGrid_Draw(ecs_iter_t *it)
+{
+	EgShapedrawList       *l  = ecs_field_shared(it, EgShapedrawList, 0);
+	EgUiTable const       *t  = ecs_field_self(it, EgUiTable, 1);
+	EgUiTableGrid const   *g  = ecs_field_self(it, EgUiTableGrid, 2);
+	WorldTransform3 const *w  = ecs_field_self(it, WorldTransform3, 3);
+	EgShapedrawZ const    *zs = ecs_field_self(it, EgShapedrawZ, 4);
+
+	for (int i = 0; i < it->count; ++i) {
+		int32_t z  = zs ? zs[i].z : 0;
+		float   hw = t[i].total_space.w * 0.5f;
+		float   hh = t[i].total_space.h * 0.5f;
+
+		// Separators sit in the middle of each gap between neighbouring slots
+		for (int32_t c = 0; c + 1 < t[i].col_count; ++c) {
+			float x = -hw + EgUiTable_Offset(&t[i].cols_width, c + 1, t[i].col_gap) - t[i].col_gap * 0.5f;
+			EgShapedrawList_AddLine(l, z, &w[i].matrix, x, -hh, x, hh, g[i].thickness, g[i].color);
+		}
+		for (int32_t r = 0; r + 1 < t[i].row_count; ++r) {
+			float y = hh - EgUiTable_Offset(&t[i].rows_height, r + 1, t[i].row_gap) + t[i].row_gap * 0.5f;
+			EgShapedrawList_AddLine(l, z, &w[i].matrix, -hw, y, hw, y, g[i].thickness, g[i].color);
+		}
+		if (g[i].outer) {
+			EgShapedrawList_AddRectangleOutline(l, z, &w[i].matrix, t[i].total_space.w, t[i].total_space.h, g[i].thickness, g[i].color);
+		}
 	}
 }
 
@@ -402,6 +616,7 @@ void EgUiImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgButtons);
+	ECS_IMPORT(world, EgShapedraw);
 
 	ECS_MODULE(world, EgUi);
 	ecs_set_name_prefix(world, "EgUi");
@@ -412,6 +627,12 @@ void EgUiImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgUiCell);
 	ECS_COMPONENT_DEFINE(world, EgUiButton);
 	ECS_COMPONENT_DEFINE(world, EgUiResizable);
+	ECS_COMPONENT_DEFINE(world, EgUiTableGrid);
+
+	// The table layout writes the cell Rectangle, so every cell needs one.
+	ecs_add_pair(world, ecs_id(EgUiCell), EcsWith, ecs_id(EgShapesRectangle));
+	ECS_COMPONENT_DEFINE(world, EgUiAnchorKind);
+	ECS_COMPONENT_DEFINE(world, EgUiAnchor);
 
 	ecs_set_hooks(world, EgUiTable,
 	{
@@ -451,6 +672,40 @@ void EgUiImport(ecs_world_t *world)
 	{.name = "was_held", .type = ecs_id(ecs_bool_t)},
 	{.name = "offset_x", .type = ecs_id(ecs_f32_t)},
 	{.name = "offset_y", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_enum_init(world,
+	&(ecs_enum_desc_t){
+	.entity    = ecs_id(EgUiAnchorKind),
+	.constants = {
+	{.name = "Middle", .value = EgUiAnchorKindMiddle},
+	{.name = "TopLeft", .value = EgUiAnchorKindTopLeft},
+	{.name = "Top", .value = EgUiAnchorKindTop},
+	{.name = "TopRight", .value = EgUiAnchorKindTopRight},
+	{.name = "Left", .value = EgUiAnchorKindLeft},
+	{.name = "Right", .value = EgUiAnchorKindRight},
+	{.name = "BottomLeft", .value = EgUiAnchorKindBottomLeft},
+	{.name = "Bottom", .value = EgUiAnchorKindBottom},
+	{.name = "BottomRight", .value = EgUiAnchorKindBottomRight},
+	}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = ecs_id(EgUiAnchor),
+	.members = {
+	{.name = "parent", .type = ecs_id(EgUiAnchorKind)},
+	{.name = "pivot", .type = ecs_id(EgUiAnchorKind)},
+	{.name = "x", .type = ecs_id(ecs_f32_t)},
+	{.name = "y", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = ecs_id(EgUiTableGrid),
+	.members = {
+	{.name = "thickness", .type = ecs_id(ecs_f32_t)},
+	{.name = "color", .type = ecs_id(ecs_u32_t)},
+	{.name = "outer", .type = ecs_id(ecs_bool_t)},
 	}});
 
 	// Maps are not reflected; explicit offsets let scripts set the gaps.
@@ -526,7 +781,6 @@ void EgUiImport(ecs_world_t *world)
 	{.first.id = EcsChildOf, .second.name = "$table"},
 	{.id = ecs_id(EgUiTable), .src.name = "$table", .inout = EcsInOut},
 	{.id = ecs_id(EgUiCell), .inout = EcsIn},
-	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	}});
 
 	ecs_system_init(world,
@@ -536,6 +790,7 @@ void EgUiImport(ecs_world_t *world)
 	.callback    = EgUiTable_Finalize,
 	.query.terms = {
 	{.id = ecs_id(EgUiTable), .inout = EcsInOut},
+	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	}});
 
 	ecs_system_init(world,
@@ -547,7 +802,7 @@ void EgUiImport(ecs_world_t *world)
 	{.first.id = EcsChildOf, .second.name = "$table"},
 	{.id = ecs_id(EgUiTable), .src.name = "$table", .inout = EcsIn},
 	{.id = ecs_id(EgUiCell), .inout = EcsIn},
-	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsOut},
 	{.id = ecs_id(Position2), .inout = EcsOut},
 	}});
 
@@ -578,5 +833,39 @@ void EgUiImport(ecs_world_t *world)
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsInOut},
 	{.id = ecs_id(Rotation2), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(Scale2), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
+	{.id = ecs_id(EgUiAnchor), .src.id = EcsSelf, .inout = EcsInOut, .oper = EcsOptional},
+	{.id = ecs_id(EgUiTable), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut, .oper = EcsOptional},
+	{.id = ecs_id(EgUiCell), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
+	}});
+
+	// Declared after EgUiResizable_Update so a drag is applied before Position2 is rebuilt.
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiAnchor_Update"}),
+	.phase       = EcsPreStore,
+	.callback    = EgUiAnchor_Update,
+	.query.terms = {
+	{.id = ecs_id(EgUiAnchor), .inout = EcsIn},
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
+	{.id = ecs_id(Scale2), .inout = EcsIn},
+	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
+	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
+	{.id = ecs_id(EgUiCell), .oper = EcsNot},
+	{.id = ecs_id(EgUiFlow), .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	}});
+
+	// Collected with the other shapes, after layout has run.
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiTableGrid_Draw"}),
+	.phase       = EcsPostUpdate,
+	.callback    = EgUiTableGrid_Draw,
+	.query.terms = {
+	{.id = ecs_id(EgShapedrawList), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
+	{.id = ecs_id(EgUiTable), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgUiTableGrid), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(WorldTransform3), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgShapedrawZ), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	}});
 }

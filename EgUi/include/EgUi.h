@@ -27,8 +27,10 @@ typedef struct {
 } EgUiCell;
 
 typedef struct {
-	ecs_map_t         rows_height; // Key = row index, Value = height which are the maximum gathered from children rectangle height
-	ecs_map_t         cols_width;  // Key = column index, Value = width which are the maximum gathered from children rectangle width
+	ecs_map_t         rows_height; // Resolved row heights this frame, key = row index
+	ecs_map_t         cols_width;  // Resolved column widths this frame, key = column index
+	ecs_map_t         rows_size;   // Explicit row heights set by dragging; other rows share the remaining space
+	ecs_map_t         cols_size;   // Explicit column widths set by dragging; other columns share the remaining space
 	EgShapesRectangle total_space; // The total space occupied by the table
 	float             row_gap;     // Spacing between rows
 	float             col_gap;     // Spacing between columns
@@ -61,7 +63,35 @@ typedef struct {
 	float    offset_y;
 } EgUiResizable;
 
+typedef enum {
+	EgUiAnchorKindMiddle,
+	EgUiAnchorKindTopLeft,
+	EgUiAnchorKindTop,
+	EgUiAnchorKindTopRight,
+	EgUiAnchorKindLeft,
+	EgUiAnchorKindRight,
+	EgUiAnchorKindBottomLeft,
+	EgUiAnchorKindBottom,
+	EgUiAnchorKindBottomRight,
+} EgUiAnchorKind;
+
+typedef struct {
+	EgUiAnchorKind parent; // Point on the parent rectangle
+	EgUiAnchorKind pivot;  // Point on this rectangle placed on the parent point
+	float          x;      // Offset from the parent point, parent space
+	float          y;
+} EgUiAnchor;
+
+typedef struct {
+	float    thickness; // Separator line thickness
+	uint32_t color;     // 0xAARRGGBB
+	bool     outer;     // Also draw the outline of the table
+} EgUiTableGrid;
+
+extern ECS_COMPONENT_DECLARE(EgUiTableGrid);
 extern ECS_COMPONENT_DECLARE(EgUiResizable);
+extern ECS_COMPONENT_DECLARE(EgUiAnchorKind);
+extern ECS_COMPONENT_DECLARE(EgUiAnchor);
 extern ECS_COMPONENT_DECLARE(EgUiFlow);
 extern ECS_COMPONENT_DECLARE(EgUiDirection);
 extern ECS_COMPONENT_DECLARE(EgUiTable);
