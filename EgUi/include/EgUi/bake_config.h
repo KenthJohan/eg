@@ -19,7 +19,6 @@
 
 /* Headers of public dependencies */
 #include <EgShapes.h>
-#include <EgShapedraw.h>
 #include <EgSpatials.h>
 #include <EgPhysics.h>
 #include <EgButtons.h>

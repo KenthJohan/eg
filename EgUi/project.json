@@ -6,7 +6,6 @@
 		"public": true,
 		"use": [
 			"EgShapes",
-			"EgShapedraw",
 			"EgSpatials",
 			"EgPhysics",
 			"EgButtons",
@@ -22,7 +21,6 @@
 		"cflags": [],
 		"lib": [
 			"EgShapes",
-			"EgShapedraw",
 			"EgSpatials",
 			"EgPhysics",
 			"EgButtons",

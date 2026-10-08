@@ -14,15 +14,6 @@ void FlowLayout_teardown(void);
 void FlowLayout_test_children_flow_right_then_wrap_down(void);
 void FlowLayout_test_none_direction_leaves_children_untouched(void);
 
-// Testsuite 'TableLayout'
-void TableLayout_setup(void);
-void TableLayout_teardown(void);
-void TableLayout_test_cells_size_to_largest_child_and_position(void);
-void TableLayout_test_empty_table_has_no_space(void);
-void TableLayout_test_sparse_cells_leave_empty_columns(void);
-void TableLayout_test_relayout_after_child_resize(void);
-void TableLayout_test_nested_descendant_is_not_a_cell(void);
-
 // Testsuite 'MouseHitTesting'
 void MouseHitTesting_setup(void);
 void MouseHitTesting_teardown(void);
@@ -38,29 +29,6 @@ bake_test_case FlowLayout_testcases[] = {
     {
         "test_none_direction_leaves_children_untouched",
         FlowLayout_test_none_direction_leaves_children_untouched
-    }
-};
-
-bake_test_case TableLayout_testcases[] = {
-    {
-        "test_cells_size_to_largest_child_and_position",
-        TableLayout_test_cells_size_to_largest_child_and_position
-    },
-    {
-        "test_empty_table_has_no_space",
-        TableLayout_test_empty_table_has_no_space
-    },
-    {
-        "test_sparse_cells_leave_empty_columns",
-        TableLayout_test_sparse_cells_leave_empty_columns
-    },
-    {
-        "test_relayout_after_child_resize",
-        TableLayout_test_relayout_after_child_resize
-    },
-    {
-        "test_nested_descendant_is_not_a_cell",
-        TableLayout_test_nested_descendant_is_not_a_cell
     }
 };
 
@@ -88,13 +56,6 @@ static bake_test_suite suites[] = {
         FlowLayout_testcases
     },
     {
-        "TableLayout",
-        TableLayout_setup,
-        TableLayout_teardown,
-        5,
-        TableLayout_testcases
-    },
-    {
         "MouseHitTesting",
         MouseHitTesting_setup,
         MouseHitTesting_teardown,
@@ -104,5 +65,5 @@ static bake_test_suite suites[] = {
 };
 
 int main(int argc, char *argv[]) {
-    return bake_test_run("EgUi_test", argc, argv, suites, 3);
+    return bake_test_run("EgUi_test", argc, argv, suites, 2);
 }
