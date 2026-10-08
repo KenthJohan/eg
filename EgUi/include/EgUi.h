@@ -42,6 +42,26 @@ typedef struct {
 	bool held; // Indicates if the button is currently held down
 } EgUiButton;
 
+enum {
+	EG_UI_EDGE_LEFT   = 1,
+	EG_UI_EDGE_RIGHT  = 2,
+	EG_UI_EDGE_BOTTOM = 4,
+	EG_UI_EDGE_TOP    = 8,
+};
+
+typedef struct {
+	uint32_t key;      // Mouse button used to drag
+	float    grab;     // Edge hit width in rectangle-local units
+	float    min_w;    // Minimum width while resizing
+	float    min_h;    // Minimum height while resizing
+	uint8_t  edge;     // Hovered or active edges, EG_UI_EDGE_* bits
+	bool     dragging; // True while an edge is being dragged
+	bool     was_held; // Button state of the previous frame
+	float    offset_x; // Mouse offset from the grabbed edge at press
+	float    offset_y;
+} EgUiResizable;
+
+extern ECS_COMPONENT_DECLARE(EgUiResizable);
 extern ECS_COMPONENT_DECLARE(EgUiFlow);
 extern ECS_COMPONENT_DECLARE(EgUiDirection);
 extern ECS_COMPONENT_DECLARE(EgUiTable);

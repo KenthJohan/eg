@@ -12,6 +12,7 @@ ECS_COMPONENT_DECLARE(EgUiDirection);
 ECS_COMPONENT_DECLARE(EgUiTable);
 ECS_COMPONENT_DECLARE(EgUiCell);
 ECS_COMPONENT_DECLARE(EgUiButton);
+ECS_COMPONENT_DECLARE(EgUiResizable);
 
 static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 {
@@ -20,33 +21,118 @@ static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
 	WorldTransform3 const   *x  = ecs_field_self(it, WorldTransform3, 2);
 	EgUiButton              *b  = ecs_field_self(it, EgUiButton, 3);
 	EgButtonsState          *s  = ecs_field_shared(it, EgButtonsState, 4);
-
 	for (int32_t i = 0; i < it->count; ++i, ++r, ++x, ++b) {
-
 		char const *name = ecs_get_name(it->world, it->entities[i]);
-
-		float dx  = p0->x - x->matrix.c2[0];
-		float dy  = p0->y - x->matrix.c2[1];
-		float det = x->matrix.c0[0] * x->matrix.c1[1] - x->matrix.c1[0] * x->matrix.c0[1];
-
+		float       dx   = p0->x - x->matrix.c2[0];
+		float       dy   = p0->y - x->matrix.c2[1];
+		float       det  = x->matrix.c0[0] * x->matrix.c1[1] - x->matrix.c1[0] * x->matrix.c0[1];
 		if (fabsf(det) < 1e-8f) {
 			continue;
 		}
-
-		float local_x = (dx * x->matrix.c1[1] - dy * x->matrix.c1[0]) / det;
-		float local_y = (dy * x->matrix.c0[0] - dx * x->matrix.c0[1]) / det;
-
-		bool mouse_held = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
-
-		b->hovered = (fabsf(local_x) <= fabsf(r->w) * 0.5f) && (fabsf(local_y) <= fabsf(r->h) * 0.5f);
-
-
-		b->held = (b->held && mouse_held) || (b->hovered && mouse_held);
-		
-
-		printf("Button %s hovered: %d, held: %d\n", name, b->hovered, b->held);
-
+		float local_x    = (dx * x->matrix.c1[1] - dy * x->matrix.c1[0]) / det;
+		float local_y    = (dy * x->matrix.c0[0] - dx * x->matrix.c0[1]) / det;
+		bool  mouse_held = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
+		b->hovered       = (fabsf(local_x) <= fabsf(r->w) * 0.5f) && (fabsf(local_y) <= fabsf(r->h) * 0.5f);
+		b->held          = (b->held && mouse_held) || (b->hovered && mouse_held);
 		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiButton));
+	}
+}
+
+static void EgUiResizable_Update(ecs_iter_t *it)
+{
+	Position2             *mouse = ecs_field_shared(it, Position2, 0);
+	EgShapesRectangle     *r     = ecs_field_self(it, EgShapesRectangle, 1);
+	WorldTransform3 const *x     = ecs_field_self(it, WorldTransform3, 2);
+	EgUiResizable         *z     = ecs_field_self(it, EgUiResizable, 3);
+	EgButtonsState        *s     = ecs_field_shared(it, EgButtonsState, 4);
+	Position2             *pos   = ecs_field_self(it, Position2, 5);
+	Rotation2 const       *rot   = ecs_field_self(it, Rotation2, 6);
+	Scale2 const          *scl   = ecs_field_self(it, Scale2, 7);
+
+	for (int32_t i = 0; i < it->count; ++i) {
+		float dx  = mouse->x - x[i].matrix.c2[0];
+		float dy  = mouse->y - x[i].matrix.c2[1];
+		float det = x[i].matrix.c0[0] * x[i].matrix.c1[1] - x[i].matrix.c1[0] * x[i].matrix.c0[1];
+		if (fabsf(det) < 1e-8f) {
+			continue;
+		}
+		// Rectangle-local mouse position (rotation and scale removed)
+		float lx = (dx * x[i].matrix.c1[1] - dy * x[i].matrix.c1[0]) / det;
+		float ly = (dy * x[i].matrix.c0[0] - dx * x[i].matrix.c0[1]) / det;
+
+		float hw   = r[i].w * 0.5f;
+		float hh   = r[i].h * 0.5f;
+		bool  held = !!(EgButtonsState_get(s, z[i].key) & EG_BUTTONS_STATE_HELD);
+
+		uint8_t prev_edge = z[i].edge;
+		bool    prev_drag = z[i].dragging;
+
+		if (!z[i].dragging) {
+			bool    in_x = fabsf(lx) <= hw + z[i].grab;
+			bool    in_y = fabsf(ly) <= hh + z[i].grab;
+			uint8_t e    = 0;
+			if (in_y && fabsf(lx + hw) <= z[i].grab)
+				e |= EG_UI_EDGE_LEFT;
+			if (in_y && fabsf(lx - hw) <= z[i].grab)
+				e |= EG_UI_EDGE_RIGHT;
+			if (in_x && fabsf(ly + hh) <= z[i].grab)
+				e |= EG_UI_EDGE_BOTTOM;
+			if (in_x && fabsf(ly - hh) <= z[i].grab)
+				e |= EG_UI_EDGE_TOP;
+			z[i].edge = e;
+			// Only a fresh press starts a drag
+			if (held && !z[i].was_held && e) {
+				z[i].dragging = true;
+				z[i].offset_x = (e & EG_UI_EDGE_RIGHT) ? lx - hw : (e & EG_UI_EDGE_LEFT) ? lx + hw
+				                                                                         : 0.0f;
+				z[i].offset_y = (e & EG_UI_EDGE_TOP) ? ly - hh : (e & EG_UI_EDGE_BOTTOM) ? ly + hh
+				                                                                         : 0.0f;
+			}
+		}
+		z[i].was_held = held;
+
+		if (z[i].dragging && !held) {
+			z[i].dragging = false;
+			z[i].edge     = 0;
+		}
+
+		if (z[i].dragging) {
+			uint8_t e  = z[i].edge;
+			float   mx = lx - z[i].offset_x;
+			float   my = ly - z[i].offset_y;
+			float   dw = 0.0f;
+			float   dh = 0.0f;
+			if (e & EG_UI_EDGE_RIGHT)
+				dw = mx - hw;
+			if (e & EG_UI_EDGE_LEFT)
+				dw = -(mx + hw);
+			if (e & EG_UI_EDGE_TOP)
+				dh = my - hh;
+			if (e & EG_UI_EDGE_BOTTOM)
+				dh = -(my + hh);
+
+			dw = fmaxf(dw, z[i].min_w - r[i].w);
+			dh = fmaxf(dh, z[i].min_h - r[i].h);
+
+			// Opposite side stays fixed: size changes by d, center by d/2
+			float sx = (e & EG_UI_EDGE_RIGHT) ? 0.5f : (e & EG_UI_EDGE_LEFT) ? -0.5f
+			                                                                 : 0.0f;
+			float sy = (e & EG_UI_EDGE_TOP) ? 0.5f : (e & EG_UI_EDGE_BOTTOM) ? -0.5f
+			                                                                 : 0.0f;
+			float px = sx * dw * scl[i].x;
+			float py = sy * dh * scl[i].y;
+			float c  = cosf(rot[i].radians);
+			float sn = sinf(rot[i].radians);
+
+			r[i].w += dw;
+			r[i].h += dh;
+			pos[i].x += px * c - py * sn;
+			pos[i].y += px * sn + py * c;
+		}
+
+		if (z[i].edge != prev_edge || z[i].dragging != prev_drag) {
+			ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiResizable));
+		}
 	}
 }
 
@@ -325,6 +411,7 @@ void EgUiImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgUiTable);
 	ECS_COMPONENT_DEFINE(world, EgUiCell);
 	ECS_COMPONENT_DEFINE(world, EgUiButton);
+	ECS_COMPONENT_DEFINE(world, EgUiResizable);
 
 	ecs_set_hooks(world, EgUiTable,
 	{
@@ -349,6 +436,21 @@ void EgUiImport(ecs_world_t *world)
 	{.name = "key", .type = ecs_id(ecs_u32_t)},
 	{.name = "hovered", .type = ecs_id(ecs_bool_t)},
 	{.name = "held", .type = ecs_id(ecs_bool_t)},
+	}});
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = ecs_id(EgUiResizable),
+	.members = {
+	{.name = "key", .type = ecs_id(ecs_u32_t)},
+	{.name = "grab", .type = ecs_id(ecs_f32_t)},
+	{.name = "min_w", .type = ecs_id(ecs_f32_t)},
+	{.name = "min_h", .type = ecs_id(ecs_f32_t)},
+	{.name = "edge", .type = ecs_id(ecs_u8_t)},
+	{.name = "dragging", .type = ecs_id(ecs_bool_t)},
+	{.name = "was_held", .type = ecs_id(ecs_bool_t)},
+	{.name = "offset_x", .type = ecs_id(ecs_f32_t)},
+	{.name = "offset_y", .type = ecs_id(ecs_f32_t)},
 	}});
 
 	// Maps are not reflected; explicit offsets let scripts set the gaps.
@@ -460,5 +562,21 @@ void EgUiImport(ecs_world_t *world)
 	{.id = ecs_id(WorldTransform3), .inout = EcsIn},
 	{.id = ecs_id(EgUiButton), .inout = EcsInOut},
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiResizable_Update"}),
+	.phase       = EcsPreStore,
+	.callback    = EgUiResizable_Update,
+	.query.terms = {
+	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsInOut},
+	{.id = ecs_id(WorldTransform3), .inout = EcsIn},
+	{.id = ecs_id(EgUiResizable), .inout = EcsInOut},
+	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
+	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsInOut},
+	{.id = ecs_id(Rotation2), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(Scale2), .src.id = EcsSelf, .inout = EcsIn},
 	}});
 }
