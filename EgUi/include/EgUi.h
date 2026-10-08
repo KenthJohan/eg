@@ -29,8 +29,6 @@ typedef struct {
 typedef struct {
 	ecs_map_t         rows_height; // Resolved row heights this frame, key = row index
 	ecs_map_t         cols_width;  // Resolved column widths this frame, key = column index
-	ecs_map_t         rows_size;   // Explicit row heights set by dragging; other rows share the remaining space
-	ecs_map_t         cols_size;   // Explicit column widths set by dragging; other columns share the remaining space
 	EgShapesRectangle total_space; // The total space occupied by the table
 	float             row_gap;     // Spacing between rows
 	float             col_gap;     // Spacing between columns
