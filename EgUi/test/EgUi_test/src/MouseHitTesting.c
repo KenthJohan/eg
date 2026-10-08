@@ -1,4 +1,5 @@
 #include <bake_test.h>
+#include <EgButtons.h>
 #include <EgPhysics.h>
 #include <EgShapes.h>
 #include <EgSpatials.h>
@@ -12,6 +13,12 @@ void MouseHitTesting_setup(void)
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgUi);
+	ecs_singleton_set(world, EgButtonsState, {{0}});
+}
+
+static bool is_hovered(ecs_entity_t e)
+{
+	return ecs_get(world, e, EgUiButton)->hovered;
 }
 
 void MouseHitTesting_teardown(void)
@@ -35,6 +42,7 @@ static ecs_entity_t make_rect(ecs_entity_t root, ecs_entity_t mouse, ecs_entity_
 {
 	ecs_entity_t rect = ecs_new_w_pair(world, EcsChildOf, root);
 	ecs_set_pair(world, rect, EgPhysicsOverlapChecking, mouse, {.tag = hover_tag});
+	ecs_set(world, rect, EgUiButton, {0});
 	ecs_set(world, rect, EgShapesRectangle, {.w = w, .h = h});
 	ecs_set(world, rect, WorldTransform3, {
 	.matrix = {
@@ -55,15 +63,15 @@ void MouseHitTesting_test_axis_aligned_hit_and_clear(void)
 	ecs_set(world, mouse, Position2, {12.0f, 21.0f});
 
 	ecs_progress(world, 0.0f);
-	test_assert(ecs_has_id(world, rect, hover_tag));
+	test_assert(is_hovered(rect));
 
 	ecs_set(world, mouse, Position2, {12.01f, 21.0f});
 	ecs_progress(world, 0.0f);
-	test_assert(!ecs_has_id(world, rect, hover_tag));
+	test_assert(!is_hovered(rect));
 
 	ecs_set(world, mouse, Position2, {12.0f, 21.0f});
 	ecs_progress(world, 0.0f);
-	test_assert(ecs_has_id(world, rect, hover_tag));
+	test_assert(is_hovered(rect));
 }
 
 void MouseHitTesting_test_rotated_scaled_hit(void)
@@ -76,11 +84,11 @@ void MouseHitTesting_test_rotated_scaled_hit(void)
 	ecs_set(world, mouse, Position2, {7.0f, 22.0f});
 
 	ecs_progress(world, 0.0f);
-	test_assert(ecs_has_id(world, rect, hover_tag));
+	test_assert(is_hovered(rect));
 
 	ecs_set(world, mouse, Position2, {7.0f, 24.1f});
 	ecs_progress(world, 0.0f);
-	test_assert(!ecs_has_id(world, rect, hover_tag));
+	test_assert(!is_hovered(rect));
 }
 
 void MouseHitTesting_test_overlapping_rectangles_all_hover(void)
@@ -94,6 +102,6 @@ void MouseHitTesting_test_overlapping_rectangles_all_hover(void)
 		1.0f, 0.0f, 0.0f, 1.0f);
 
 	ecs_progress(world, 0.0f);
-	test_assert(ecs_has_id(world, first, hover_tag));
-	test_assert(ecs_has_id(world, second, hover_tag));
+	test_assert(is_hovered(first));
+	test_assert(is_hovered(second));
 }
