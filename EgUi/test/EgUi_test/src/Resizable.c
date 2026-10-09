@@ -33,6 +33,7 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 {
 	ecs_entity_t parent = ecs_new(world);
 	ecs_set(world, parent, EgShapesRectangle, {.w = 100.0f, .h = 100.0f});
+	ecs_add(world, parent, EgUiContainer);
 	ecs_entity_t child = ecs_new_w_pair(world, EcsChildOf, parent);
 	ecs_entity_t hover_tag = ecs_new(world);
 	ecs_set_pair(world, child, EgPhysicsOverlapChecking, mouse, {.tag = hover_tag});

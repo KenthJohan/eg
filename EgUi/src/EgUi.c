@@ -14,6 +14,7 @@ ECS_COMPONENT_DECLARE(EgUiAnchorKind);
 ECS_COMPONENT_DECLARE(EgUiAnchor);
 ECS_COMPONENT_DECLARE(EgUiParentClearance);
 ECS_TAG_DECLARE(EgUiFlowUnplaced);
+ECS_TAG_DECLARE(EgUiContainer);
 
 #define EG_UI_LAYOUT_EPSILON 1e-4f
 
@@ -165,23 +166,20 @@ static void EgUiResizable_ClearDisabled(ecs_iter_t *it)
 		z[i].edge = 0;
 		z[i].dragging = false;
 		z[i].was_held = true;
+		z[i].req_dw = 0.0f;
+		z[i].req_dh = 0.0f;
 		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiResizable));
 	}
 }
 
-static void EgUiResizable_Update(ecs_iter_t *it)
+static void EgUiResizable_Request(ecs_iter_t *it)
 {
-	Position2               *mouse  = ecs_field_shared(it, Position2, 0);
-	EgShapesRectangle       *r      = ecs_field_self(it, EgShapesRectangle, 1);
+	Position2 const         *mouse  = ecs_field_shared(it, Position2, 0);
+	EgShapesRectangle const *r      = ecs_field_self(it, EgShapesRectangle, 1);
 	WorldTransform3 const   *x      = ecs_field_self(it, WorldTransform3, 2);
 	EgUiResizable           *z      = ecs_field_self(it, EgUiResizable, 3);
 	EgButtonsState          *s      = ecs_field_shared(it, EgButtonsState, 4);
-	Position2               *pos    = ecs_field_self(it, Position2, 5);
-	Rotation2 const         *rot    = ecs_field_self(it, Rotation2, 6);
-	Scale2 const            *scl    = ecs_field_self(it, Scale2, 7);
-	EgShapesRectangle const *parent = ecs_field_is_set(it, 8) ? ecs_field_shared(it, EgShapesRectangle, 8) : NULL;
-	EgUiAnchor              *anc    = ecs_field_is_set(it, 9) ? ecs_field_self(it, EgUiAnchor, 9) : NULL;
-	EgUiFlow                *parent_flow = ecs_field_is_set(it, 10) ? ecs_field_shared(it, EgUiFlow, 10) : NULL;
+	EgUiAnchor const        *anc    = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgUiAnchor, 5) : NULL;
 
 	for (int32_t i = 0; i < it->count; ++i) {
 		float dx  = mouse->x - x[i].matrix.c2[0];
@@ -237,6 +235,8 @@ static void EgUiResizable_Update(ecs_iter_t *it)
 			}
 		}
 		z[i].was_held = held;
+		z[i].req_dw   = 0.0f;
+		z[i].req_dh   = 0.0f;
 
 		if (z[i].dragging && !held) {
 			z[i].dragging = false;
@@ -271,57 +271,109 @@ static void EgUiResizable_Update(ecs_iter_t *it)
 			dw = fmaxf(dw, z[i].min_w - r[i].w);
 			dh = fmaxf(dh, z[i].min_h - r[i].h);
 
-			if (parent) {
-				EgUiParentClearance clearance = EgUiParentClearance_Compute(parent, pos[i], &r[i]);
-				float vx = 1.0f;
-				float vy = 1.0f;
-				if (anc) {
-					EgUiAnchorKind_Dir(anc[i].pivot, &vx, &vy);
-				}
-				if (dw > 0.0f) {
-					float available = 0.0f;
-					if (anc && vx == 0.0f) {
-						available = 2.0f * fminf(fmaxf(0.0f, -clearance.left), fmaxf(0.0f, -clearance.right));
-					} else if (e & EG_UI_EDGE_RIGHT) {
-						available = fmaxf(0.0f, -clearance.right);
-					} else if (e & EG_UI_EDGE_LEFT) {
-						available = fmaxf(0.0f, -clearance.left);
-					}
-					dw = fminf(dw, available);
-				}
-				if (dh > 0.0f) {
-					float available = 0.0f;
-					if (anc && vy == 0.0f) {
-						available = 2.0f * fminf(fmaxf(0.0f, -clearance.bottom), fmaxf(0.0f, -clearance.top));
-					} else if (e & EG_UI_EDGE_TOP) {
-						available = fmaxf(0.0f, -clearance.top);
-					} else if (e & EG_UI_EDGE_BOTTOM) {
-						available = fmaxf(0.0f, -clearance.bottom);
-					}
-					dh = fminf(dh, available);
-				}
-			}
-
-			// Opposite side stays fixed: size changes by d, center by d/2
-			float sx = (e & EG_UI_EDGE_RIGHT) ? 0.5f : (e & EG_UI_EDGE_LEFT) ? -0.5f
-			                                                                 : 0.0f;
-			float sy = (e & EG_UI_EDGE_TOP) ? 0.5f : (e & EG_UI_EDGE_BOTTOM) ? -0.5f
-			                                                                 : 0.0f;
-			float px = sx * dw * scl[i].x;
-			float py = sy * dh * scl[i].y;
-			float c  = cosf(rot[i].radians);
-			float sn = sinf(rot[i].radians);
-
-			r[i].w += dw;
-			r[i].h += dh;
-			if (!anc && !parent_flow) {
-				pos[i].x += px * c - py * sn;
-				pos[i].y += px * sn + py * c;
-			}
+			z[i].req_dw = dw;
+			z[i].req_dh = dh;
 		}
 
 		if (z[i].edge != prev_edge || z[i].dragging != prev_drag) {
 			ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiResizable));
+		}
+	}
+}
+
+// Limits the requested growth to the free space left inside the parent.
+static void EgUiResizable_ClampToParent(EgShapesRectangle const *parent, Position2 pos,
+	EgShapesRectangle const *r, EgUiAnchor const *anc, uint8_t e, float *dw, float *dh)
+{
+	EgUiParentClearance clearance = EgUiParentClearance_Compute(parent, pos, r);
+	float vx = 1.0f;
+	float vy = 1.0f;
+	if (anc) {
+		EgUiAnchorKind_Dir(anc->pivot, &vx, &vy);
+	}
+	if (*dw > 0.0f) {
+		float available = 0.0f;
+		if (anc && vx == 0.0f) {
+			available = 2.0f * fminf(fmaxf(0.0f, -clearance.left), fmaxf(0.0f, -clearance.right));
+		} else if (e & EG_UI_EDGE_RIGHT) {
+			available = fmaxf(0.0f, -clearance.right);
+		} else if (e & EG_UI_EDGE_LEFT) {
+			available = fmaxf(0.0f, -clearance.left);
+		}
+		*dw = fminf(*dw, available);
+	}
+	if (*dh > 0.0f) {
+		float available = 0.0f;
+		if (anc && vy == 0.0f) {
+			available = 2.0f * fminf(fmaxf(0.0f, -clearance.bottom), fmaxf(0.0f, -clearance.top));
+		} else if (e & EG_UI_EDGE_TOP) {
+			available = fmaxf(0.0f, -clearance.top);
+		} else if (e & EG_UI_EDGE_BOTTOM) {
+			available = fmaxf(0.0f, -clearance.bottom);
+		}
+		*dh = fminf(*dh, available);
+	}
+}
+
+static void EgUiResizable_ApplyFlow(ecs_iter_t *it)
+{
+	EgUiResizable           *z      = ecs_field_self(it, EgUiResizable, 0);
+	EgShapesRectangle       *r      = ecs_field_self(it, EgShapesRectangle, 1);
+	Position2 const         *pos    = ecs_field_self(it, Position2, 2);
+	EgShapesRectangle const *parent = ecs_field_shared(it, EgShapesRectangle, 3);
+	EgUiAnchor const        *anc    = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgUiAnchor, 5) : NULL;
+
+	for (int32_t i = 0; i < it->count; ++i) {
+		float dw = z[i].req_dw;
+		float dh = z[i].req_dh;
+		z[i].req_dw = 0.0f;
+		z[i].req_dh = 0.0f;
+		if (dw == 0.0f && dh == 0.0f) {
+			continue;
+		}
+		EgUiResizable_ClampToParent(parent, pos[i], &r[i], anc ? &anc[i] : NULL, z[i].edge, &dw, &dh);
+		r[i].w += dw;
+		r[i].h += dh;
+	}
+}
+
+static void EgUiResizable_ApplyContainer(ecs_iter_t *it)
+{
+	EgUiResizable           *z      = ecs_field_self(it, EgUiResizable, 0);
+	EgShapesRectangle       *r      = ecs_field_self(it, EgShapesRectangle, 1);
+	Position2               *pos    = ecs_field_self(it, Position2, 2);
+	Rotation2 const         *rot    = ecs_field_self(it, Rotation2, 3);
+	Scale2 const            *scl    = ecs_field_self(it, Scale2, 4);
+	EgShapesRectangle const *parent = ecs_field_is_set(it, 5) ? ecs_field_shared(it, EgShapesRectangle, 5) : NULL;
+	EgUiAnchor const        *anc    = ecs_field_is_set(it, 7) ? ecs_field_self(it, EgUiAnchor, 7) : NULL;
+
+	for (int32_t i = 0; i < it->count; ++i) {
+		float   dw = z[i].req_dw;
+		float   dh = z[i].req_dh;
+		uint8_t e  = z[i].edge;
+		z[i].req_dw = 0.0f;
+		z[i].req_dh = 0.0f;
+		if (dw == 0.0f && dh == 0.0f) {
+			continue;
+		}
+		if (parent) {
+			EgUiResizable_ClampToParent(parent, pos[i], &r[i], anc ? &anc[i] : NULL, e, &dw, &dh);
+		}
+
+		// Opposite side stays fixed: size changes by d, center by d/2
+		float sx = (e & EG_UI_EDGE_RIGHT) ? 0.5f : (e & EG_UI_EDGE_LEFT) ? -0.5f : 0.0f;
+		float sy = (e & EG_UI_EDGE_TOP) ? 0.5f : (e & EG_UI_EDGE_BOTTOM) ? -0.5f : 0.0f;
+		float px = sx * dw * scl[i].x;
+		float py = sy * dh * scl[i].y;
+		float c  = cosf(rot[i].radians);
+		float sn = sinf(rot[i].radians);
+
+		r[i].w += dw;
+		r[i].h += dh;
+		// An anchor rebuilds the position, so only the size changes
+		if (!anc) {
+			pos[i].x += px * c - py * sn;
+			pos[i].y += px * sn + py * c;
 		}
 	}
 }
@@ -474,6 +526,7 @@ void EgUiImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgUiAnchor);
 	ECS_COMPONENT_DEFINE(world, EgUiParentClearance);
 	ECS_TAG_DEFINE(world, EgUiFlowUnplaced);
+	ECS_TAG_DEFINE(world, EgUiContainer);
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
@@ -497,6 +550,8 @@ void EgUiImport(ecs_world_t *world)
 	{.name = "was_held", .type = ecs_id(ecs_bool_t)},
 	{.name = "offset_x", .type = ecs_id(ecs_f32_t)},
 	{.name = "offset_y", .type = ecs_id(ecs_f32_t)},
+	{.name = "req_dw", .type = ecs_id(ecs_f32_t)},
+	{.name = "req_dh", .type = ecs_id(ecs_f32_t)},
 	}});
 
 	ecs_enum_init(world,
@@ -599,25 +654,52 @@ void EgUiImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "EgUiResizable_Update"}),
+	.entity      = ecs_entity(world, {.name = "EgUiResizable_Request"}),
 	.phase       = EcsPreStore,
-	.callback    = EgUiResizable_Update,
+	.callback    = EgUiResizable_Request,
 	.query.terms = {
 	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(EgShapesRectangle), .inout = EcsInOut},
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	{.id = ecs_id(WorldTransform3), .inout = EcsIn},
 	{.id = ecs_id(EgUiResizable), .inout = EcsInOut},
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
+	{.id = ecs_id(EgUiAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
+	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiResizable_ApplyFlow"}),
+	.phase       = EcsPreStore,
+	.callback    = EgUiResizable_ApplyFlow,
+	.query.terms = {
+	{.id = ecs_id(EgUiResizable), .inout = EcsInOut},
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsInOut},
+	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgUiFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgUiAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
+	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiResizable_ApplyContainer"}),
+	.phase       = EcsPreStore,
+	.callback    = EgUiResizable_ApplyContainer,
+	.query.terms = {
+	{.id = ecs_id(EgUiResizable), .inout = EcsInOut},
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsInOut},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsInOut},
 	{.id = ecs_id(Rotation2), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(Scale2), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(EgUiAnchor), .src.id = EcsSelf, .inout = EcsInOut, .oper = EcsOptional},
-	{.id = ecs_id(EgUiFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
+	{.id = ecs_id(EgUiContainer), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutNone},
+	{.id = ecs_id(EgUiAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
-	// Declared after EgUiResizable_Update so a drag is applied before Position2 is rebuilt.
+	// Declared after the apply systems so a drag is applied before Position2 is rebuilt.
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity      = ecs_entity(world, {.name = "EgUiAnchor_Update"}),

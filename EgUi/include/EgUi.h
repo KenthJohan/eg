@@ -51,6 +51,8 @@ typedef struct {
 	bool     was_held; // Button state of the previous frame
 	float    offset_x; // Mouse offset from the grabbed edge at press
 	float    offset_y;
+	float    req_dw;   // Requested width change this frame, consumed by the apply systems
+	float    req_dh;   // Requested height change this frame, consumed by the apply systems
 } EgUiResizable;
 
 typedef enum {
@@ -80,5 +82,6 @@ extern ECS_COMPONENT_DECLARE(EgUiParentClearance);
 extern ECS_COMPONENT_DECLARE(EgUiDirection);
 extern ECS_COMPONENT_DECLARE(EgUiButton);
 extern ECS_TAG_DECLARE(EgUiFlowUnplaced);
+extern ECS_TAG_DECLARE(EgUiContainer); // Parent that does not position its children
 
 void EgUiImport(ecs_world_t *world);
