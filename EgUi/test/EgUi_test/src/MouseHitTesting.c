@@ -105,3 +105,19 @@ void MouseHitTesting_test_overlapping_rectangles_all_hover(void)
 	test_assert(is_hovered(first));
 	test_assert(is_hovered(second));
 }
+
+void MouseHitTesting_test_disabled_ancestor_clears_hover(void)
+{
+	ecs_entity_t mouse;
+	ecs_entity_t hover_tag;
+	ecs_entity_t root = make_root(&mouse, &hover_tag);
+	ecs_entity_t rect = make_rect(root, mouse, hover_tag, 10.0f, 10.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f, 1.0f);
+
+	ecs_progress(world, 0.0f);
+	test_assert(is_hovered(rect));
+
+	ecs_enable(world, root, false);
+	ecs_progress(world, 0.0f);
+	test_assert(!is_hovered(rect));
+}

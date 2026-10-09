@@ -18,7 +18,10 @@
 			"teardown": true,
 			"testcases": [
 				"test_children_flow_right_then_wrap_down",
-				"test_none_direction_leaves_children_untouched"
+				"test_none_direction_leaves_children_untouched",
+				"test_parent_clearance_is_signed",
+				"test_oversized_child_is_skipped_and_retried",
+				"test_manually_disabled_child_stays_disabled"
 			]
 		}, {
 			"id": "MouseHitTesting",
@@ -27,7 +30,16 @@
 			"testcases": [
 				"test_axis_aligned_hit_and_clear",
 				"test_rotated_scaled_hit",
-				"test_overlapping_rectangles_all_hover"
+				"test_overlapping_rectangles_all_hover",
+				"test_disabled_ancestor_clears_hover"
+			]
+		}, {
+			"id": "Resizable",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+				"test_right_edge_stops_at_parent_boundary",
+				"test_disabled_entity_cancels_drag"
 			]
 		}]
 	},

@@ -268,7 +268,8 @@ void EgShapedrawImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapedrawSolid), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(WorldTransform3), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_id(EgShapedrawZ), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional}}});
+	{.id = ecs_id(EgShapedrawZ), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
+	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot}}});
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -281,6 +282,7 @@ void EgShapedrawImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(WorldTransform3), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapedrawZ), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
+	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
 	ecs_system(world,
@@ -293,5 +295,6 @@ void EgShapedrawImport(ecs_world_t *world)
 	{.id = ecs_id(EgBaseFont), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(WorldTransform3), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapedrawZ), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
+	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 }

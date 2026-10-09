@@ -13,18 +13,25 @@ typedef enum {
 } EgUiDirection;
 
 typedef struct {
-	EgUiDirection direction; // The primary direction of the UI flow
-	EgUiDirection wrap;      // The direction to wrap the UI flow when reaching the end
-	float         cursor_primary;
-	float         cursor_wrap;
-	float         line_wrap_extent;
-	bool          line_has_children;
+	EgUiDirection direction;         // Direction children advance along the primary axis
+	EgUiDirection wrap;              // Direction the flow advances when starting a new line
+	float         cursor_primary;    // Parent-local position along the primary axis
+	float         cursor_wrap;       // Parent-local position along the wrap axis
+	float         line_wrap_extent;  // Largest child size along the wrap axis on this line
+	bool          line_has_children; // Whether the current line already contains a child
 } EgUiFlow;
 
 typedef struct {
-	uint32_t key; // The key code associated with the button
-	bool hovered; // Indicates if the button is currently hovered over
-	bool held; // Indicates if the button is currently held down
+	float left;   // Signed distance from the child's left edge to the parent's left edge
+	float right;  // Signed distance from the parent's right edge to the child's right edge
+	float bottom; // Signed distance from the child's bottom edge to the parent's bottom edge
+	float top;    // Signed distance from the parent's top edge to the child's top edge
+} EgUiParentClearance;
+
+typedef struct {
+	uint32_t key;     // The key code associated with the button
+	bool     hovered; // Indicates if the button is currently hovered over
+	bool     held;    // Indicates if the button is currently held down
 } EgUiButton;
 
 enum {
@@ -69,7 +76,9 @@ extern ECS_COMPONENT_DECLARE(EgUiResizable);
 extern ECS_COMPONENT_DECLARE(EgUiAnchorKind);
 extern ECS_COMPONENT_DECLARE(EgUiAnchor);
 extern ECS_COMPONENT_DECLARE(EgUiFlow);
+extern ECS_COMPONENT_DECLARE(EgUiParentClearance);
 extern ECS_COMPONENT_DECLARE(EgUiDirection);
 extern ECS_COMPONENT_DECLARE(EgUiButton);
+extern ECS_TAG_DECLARE(EgUiFlowUnplaced);
 
 void EgUiImport(ecs_world_t *world);
