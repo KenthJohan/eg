@@ -29,6 +29,7 @@
 			"teardown": true,
 			"testcases": [
 				"test_axis_aligned_hit_and_clear",
+				"test_rectangle_border_inside_macro",
 				"test_rotated_scaled_hit",
 				"test_overlapping_rectangles_all_hover",
 				"test_disabled_ancestor_clears_hover"

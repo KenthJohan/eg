@@ -12,12 +12,12 @@ ECS_COMPONENT_DECLARE(EgUiButtonsButton);
 
 static void EgUiButtonsButton_Update(ecs_iter_t *it)
 {
-	EgIntersectsOverlap const *o = ecs_field_self(it, EgIntersectsOverlap, 0);
-	EgUiButtonsButton         *b = ecs_field_self(it, EgUiButtonsButton, 1);
-	EgButtonsState            *s = ecs_field_shared(it, EgButtonsState, 2);
-	for (int32_t i = 0; i < it->count; ++i, ++o, ++b) {
+	EgIntersectsRectangleBorder const *border = ecs_field_self(it, EgIntersectsRectangleBorder, 0);
+	EgUiButtonsButton                 *b = ecs_field_self(it, EgUiButtonsButton, 1);
+	EgButtonsState                    *s = ecs_field_shared(it, EgButtonsState, 2);
+	for (int32_t i = 0; i < it->count; ++i, ++border, ++b) {
 		bool held = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
-		b->hovered      = o->overlap;
+		b->hovered      = EG_INTERSECTS_RECTANGLE_BORDER_IS_INSIDE(*border);
 		b->held         = (b->held && held) || (b->hovered && held);
 		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiButtonsButton));
 	}
@@ -62,7 +62,7 @@ void EgUiButtonsImport(ecs_world_t *world)
 	.phase       = EcsPreStore,
 	.callback    = EgUiButtonsButton_Update,
 	.query.terms = {
-	{.id = ecs_id(EgIntersectsOverlap), .inout = EcsIn},
+	{.id = ecs_id(EgIntersectsRectangleBorder), .inout = EcsIn},
 	{.id = ecs_id(EgUiButtonsButton), .inout = EcsInOut},
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
