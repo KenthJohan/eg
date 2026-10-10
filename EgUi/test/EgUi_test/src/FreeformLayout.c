@@ -85,7 +85,7 @@ void FreeformLayout_test_resizing_anchored_child_rebuilds_position(void)
 	ecs_entity_t hover_tag = ecs_new(world);
 	ecs_set_pair(world, child, EgPhysicsOverlapChecking, mouse, {.tag = hover_tag});
 	ecs_set(world, child, EgShapesRectangle, {.w = 40.0f, .h = 40.0f});
-	ecs_set(world, child, EgIntersectsRectangleBorder, {.margin = 5.0f});
+	ecs_set(world, child, EgIntersectsRectangleBorder, {0});
 	ecs_set(world, child, Position2, {0.0f, 0.0f});
 	ecs_set(world, child, Rotation2, {0.0f});
 	ecs_set(world, child, Scale2, {1.0f, 1.0f});
@@ -101,7 +101,7 @@ void FreeformLayout_test_resizing_anchored_child_rebuilds_position(void)
 		.x = -10.0f,
 		.y = -10.0f
 	});
-	ecs_set(world, child, EgUiBoundsResizable, {.key = MOUSE_LEFT_KEY, .min_w = 20.0f, .min_h = 20.0f});
+	ecs_set(world, child, EgUiBoundsResizable, {.key = MOUSE_LEFT_KEY, .min_w = 20.0f, .min_h = 20.0f, .margin = 5.0f});
 	ecs_set(world, mouse, Position2, {0.0f, 20.0f});
 
 	ecs_progress(world, 0.0f);

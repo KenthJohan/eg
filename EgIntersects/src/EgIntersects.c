@@ -24,28 +24,13 @@ static void EgIntersectsRectangleBorder_Test(ecs_iter_t *it)
 		float ly = (dy * x[i].matrix.c0[0] - dx * x[i].matrix.c0[1]) / det;
 		float hw = fabsf(r[i].w) * 0.5f;
 		float hh = fabsf(r[i].h) * 0.5f;
-		float m  = b[i].margin;
-
-		//printf("lx: %f, ly: %f, hw: %f, hh: %f, margin: %f\n", lx, ly, hw, hh, m);
-
-		bool    in_x = fabsf(lx) <= hw + m;
-		bool    in_y = fabsf(ly) <= hh + m;
-		uint8_t e    = 0;
-		if (in_y && fabsf(lx + hw) <= m)
-			e |= EG_INTERSECTS_EDGE_LEFT;
-		if (in_y && fabsf(lx - hw) <= m)
-			e |= EG_INTERSECTS_EDGE_RIGHT;
-		if (in_x && fabsf(ly + hh) <= m)
-			e |= EG_INTERSECTS_EDGE_BOTTOM;
-		if (in_x && fabsf(ly - hh) <= m)
-			e |= EG_INTERSECTS_EDGE_TOP;
-		b[i].edges   = e;
 		b[i].local_x = lx;
 		b[i].local_y = ly;
 		b[i].left    = lx + hw;
 		b[i].right   = hw - lx;
 		b[i].bottom  = ly + hh;
 		b[i].top     = hh - ly;
+		b[i].minimum = fminf(fminf(b[i].left, b[i].right), fminf(b[i].bottom, b[i].top));
 	}
 }
 
@@ -64,14 +49,13 @@ void EgIntersectsImport(ecs_world_t *world)
 	&(ecs_struct_desc_t){
 	.entity  = ecs_id(EgIntersectsRectangleBorder),
 	.members = {
-	{.name = "margin", .type = ecs_id(ecs_f32_t)},
-	{.name = "edges", .type = ecs_id(ecs_u8_t)},
 	{.name = "local_x", .type = ecs_id(ecs_f32_t)},
 	{.name = "local_y", .type = ecs_id(ecs_f32_t)},
 	{.name = "left", .type = ecs_id(ecs_f32_t)},
 	{.name = "right", .type = ecs_id(ecs_f32_t)},
 	{.name = "bottom", .type = ecs_id(ecs_f32_t)},
 	{.name = "top", .type = ecs_id(ecs_f32_t)},
+	{.name = "minimum", .type = ecs_id(ecs_f32_t)},
 	}});
 	ecs_system_init(world,
 	&(ecs_system_desc_t){

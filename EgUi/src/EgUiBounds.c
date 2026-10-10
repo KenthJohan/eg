@@ -74,7 +74,16 @@ static void EgUiBoundsResizable_Request(ecs_iter_t *it)
 		bool previous_dragging = z[i].dragging;
 
 		if (!z[i].dragging) {
-			uint8_t edge = border[i].edges;
+			float margin = z[i].margin;
+			uint8_t edge = 0;
+			if (border[i].bottom >= -margin && border[i].top >= -margin && fabsf(border[i].left) <= margin)
+				edge |= EG_UI_EDGE_LEFT;
+			if (border[i].bottom >= -margin && border[i].top >= -margin && fabsf(border[i].right) <= margin)
+				edge |= EG_UI_EDGE_RIGHT;
+			if (border[i].left >= -margin && border[i].right >= -margin && fabsf(border[i].bottom) <= margin)
+				edge |= EG_UI_EDGE_BOTTOM;
+			if (border[i].left >= -margin && border[i].right >= -margin && fabsf(border[i].top) <= margin)
+				edge |= EG_UI_EDGE_TOP;
 			if (anchor) {
 				float pivot_x, pivot_y;
 				EgUiBoundsAnchorKind_Dir(anchor[i].pivot, &pivot_x, &pivot_y);
@@ -232,6 +241,7 @@ void EgUiBoundsImport(ecs_world_t *world)
 	{.name = "key", .type = ecs_id(ecs_u32_t)},
 	{.name = "min_w", .type = ecs_id(ecs_f32_t)},
 	{.name = "min_h", .type = ecs_id(ecs_f32_t)},
+	{.name = "margin", .type = ecs_id(ecs_f32_t)},
 	{.name = "edge", .type = ecs_id(ecs_u8_t)},
 	{.name = "dragging", .type = ecs_id(ecs_bool_t)},
 	{.name = "was_held", .type = ecs_id(ecs_bool_t)},

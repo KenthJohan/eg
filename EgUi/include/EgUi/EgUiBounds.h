@@ -13,6 +13,7 @@ typedef struct {
 	uint32_t key;
 	float    min_w;
 	float    min_h;
+	float    margin;
 	uint8_t  edge;
 	bool     dragging;
 	bool     was_held;

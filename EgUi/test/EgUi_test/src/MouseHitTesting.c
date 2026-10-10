@@ -91,16 +91,19 @@ void MouseHitTesting_test_rectangle_border_inside_macro(void)
 	test_assert(fabsf(border->right - 1.0f) < 1e-4f);
 	test_assert(fabsf(border->bottom - 1.5f) < 1e-4f);
 	test_assert(fabsf(border->top - 0.5f) < 1e-4f);
+	test_assert(fabsf(border->minimum - 0.5f) < 1e-4f);
 	test_assert(EG_INTERSECTS_RECTANGLE_BORDER_IS_INSIDE(*border));
 
 	ecs_set(world, mouse, Position2, {12.0f, 21.0f});
 	ecs_progress(world, 0.0f);
 	border = ecs_get(world, rect, EgIntersectsRectangleBorder);
+	test_assert(fabsf(border->minimum) < 1e-4f);
 	test_assert(EG_INTERSECTS_RECTANGLE_BORDER_IS_INSIDE(*border));
 
 	ecs_set(world, mouse, Position2, {12.01f, 21.0f});
 	ecs_progress(world, 0.0f);
 	border = ecs_get(world, rect, EgIntersectsRectangleBorder);
+	test_assert(fabsf(border->minimum + 0.01f) < 1e-4f);
 	test_assert(!EG_INTERSECTS_RECTANGLE_BORDER_IS_INSIDE(*border));
 }
 
