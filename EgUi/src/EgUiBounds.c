@@ -13,8 +13,7 @@ ECS_COMPONENT_DECLARE(EgUiBoundsResizable);
 
 static void EgUiBoundsAnchorKind_Dir(EgUiFreeformsAnchorKind kind, float *x, float *y)
 {
-	static const float dir[][2] = {
-	{0, 0}, {-1, 1}, {0, 1}, {1, 1}, {-1, 0}, {1, 0}, {-1, -1}, {0, -1}, {1, -1}};
+	static const float dir[][2] = {{0, 0}, {-1, 1}, {0, 1}, {1, 1}, {-1, 0}, {1, 0}, {-1, -1}, {0, -1}, {1, -1}};
 	if ((int)kind < 0 || (int)kind > EgUiFreeformsAnchorKindBottomRight) {
 		kind = EgUiFreeformsAnchorKindMiddle;
 	}
@@ -22,8 +21,7 @@ static void EgUiBoundsAnchorKind_Dir(EgUiFreeformsAnchorKind kind, float *x, flo
 	*y = dir[kind][1];
 }
 
-static EgUiParentClearance EgUiBounds_ParentClearance(EgShapesRectangle const *parent, Position2 center,
-	EgShapesRectangle const *child)
+static EgUiParentClearance EgUiBounds_ParentClearance(EgShapesRectangle const *parent, Position2 center, EgShapesRectangle const *child)
 {
 	float half_parent_w = parent->w * 0.5f;
 	float half_parent_h = parent->h * 0.5f;
@@ -131,8 +129,7 @@ static void EgUiBoundsResizable_Request(ecs_iter_t *it)
 	}
 }
 
-static void EgUiBounds_ClampToParent(EgShapesRectangle const *parent, Position2 pos, EgShapesRectangle const *rect,
-	EgUiFreeformsAnchor const *anchor, uint8_t edge, float *dw, float *dh)
+static void EgUiBounds_ClampToParent(EgShapesRectangle const *parent, Position2 pos, EgShapesRectangle const *rect, EgUiFreeformsAnchor const *anchor, uint8_t edge, float *dw, float *dh)
 {
 	EgUiParentClearance clearance = EgUiBounds_ParentClearance(parent, pos, rect);
 	float pivot_x = 1.0f;
