@@ -34,6 +34,15 @@
 				"test_disabled_ancestor_clears_hover"
 			]
 		}, {
+			"id": "FreeformLayout",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+				"test_anchor_positions_child_from_parent_pivot",
+				"test_flow_parent_does_not_apply_freeform_anchor",
+				"test_resizing_anchored_child_rebuilds_position"
+			]
+		}, {
 			"id": "Resizable",
 			"setup": true,
 			"teardown": true,

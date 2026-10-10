@@ -25,6 +25,13 @@ void MouseHitTesting_test_rotated_scaled_hit(void);
 void MouseHitTesting_test_overlapping_rectangles_all_hover(void);
 void MouseHitTesting_test_disabled_ancestor_clears_hover(void);
 
+// Testsuite 'FreeformLayout'
+void FreeformLayout_setup(void);
+void FreeformLayout_teardown(void);
+void FreeformLayout_test_anchor_positions_child_from_parent_pivot(void);
+void FreeformLayout_test_flow_parent_does_not_apply_freeform_anchor(void);
+void FreeformLayout_test_resizing_anchored_child_rebuilds_position(void);
+
 // Testsuite 'Resizable'
 void Resizable_setup(void);
 void Resizable_teardown(void);
@@ -73,6 +80,21 @@ bake_test_case MouseHitTesting_testcases[] = {
     }
 };
 
+bake_test_case FreeformLayout_testcases[] = {
+    {
+        "test_anchor_positions_child_from_parent_pivot",
+        FreeformLayout_test_anchor_positions_child_from_parent_pivot
+    },
+    {
+        "test_flow_parent_does_not_apply_freeform_anchor",
+        FreeformLayout_test_flow_parent_does_not_apply_freeform_anchor
+    },
+    {
+        "test_resizing_anchored_child_rebuilds_position",
+        FreeformLayout_test_resizing_anchored_child_rebuilds_position
+    }
+};
+
 bake_test_case Resizable_testcases[] = {
     {
         "test_right_edge_stops_at_parent_boundary",
@@ -100,6 +122,13 @@ static bake_test_suite suites[] = {
         MouseHitTesting_testcases
     },
     {
+        "FreeformLayout",
+        FreeformLayout_setup,
+        FreeformLayout_teardown,
+        3,
+        FreeformLayout_testcases
+    },
+    {
         "Resizable",
         Resizable_setup,
         Resizable_teardown,
@@ -109,5 +138,5 @@ static bake_test_suite suites[] = {
 };
 
 int main(int argc, char *argv[]) {
-    return bake_test_run("EgUi_test", argc, argv, suites, 3);
+    return bake_test_run("EgUi_test", argc, argv, suites, 4);
 }

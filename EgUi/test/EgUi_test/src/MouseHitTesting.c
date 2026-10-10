@@ -18,7 +18,7 @@ void MouseHitTesting_setup(void)
 
 static bool is_hovered(ecs_entity_t e)
 {
-	return ecs_get(world, e, EgUiButton)->hovered;
+	return ecs_get(world, e, EgUiButtonsButton)->hovered;
 }
 
 void MouseHitTesting_teardown(void)
@@ -42,7 +42,7 @@ static ecs_entity_t make_rect(ecs_entity_t root, ecs_entity_t mouse, ecs_entity_
 {
 	ecs_entity_t rect = ecs_new_w_pair(world, EcsChildOf, root);
 	ecs_set_pair(world, rect, EgPhysicsOverlapChecking, mouse, {.tag = hover_tag});
-	ecs_set(world, rect, EgUiButton, {0});
+	ecs_set(world, rect, EgUiButtonsButton, {0});
 	ecs_set(world, rect, EgShapesRectangle, {.w = w, .h = h});
 	ecs_set(world, rect, WorldTransform3, {
 	.matrix = {

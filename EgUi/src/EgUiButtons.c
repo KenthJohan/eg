@@ -13,10 +13,9 @@ ECS_COMPONENT_DECLARE(EgUiButtonsButton);
 static void EgUiButtonsButton_Update(ecs_iter_t *it)
 {
 	EgIntersectsOverlap const *o = ecs_field_self(it, EgIntersectsOverlap, 0);
-	WorldTransform3 const     *x = ecs_field_self(it, WorldTransform3, 2);
-	EgUiButtonsButton         *b = ecs_field_self(it, EgUiButtonsButton, 3);
-	EgButtonsState            *s = ecs_field_shared(it, EgButtonsState, 4);
-	for (int32_t i = 0; i < it->count; ++i, ++o, ++x, ++b) {
+	EgUiButtonsButton         *b = ecs_field_self(it, EgUiButtonsButton, 1);
+	EgButtonsState            *s = ecs_field_shared(it, EgButtonsState, 2);
+	for (int32_t i = 0; i < it->count; ++i, ++o, ++b) {
 		bool held = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
 		b->hovered      = o->overlap;
 		b->held         = (b->held && held) || (b->hovered && held);

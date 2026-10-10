@@ -1,5 +1,6 @@
 #include <bake_test.h>
 #include <EgButtons.h>
+#include <EgIntersects.h>
 #include <EgPhysics.h>
 #include <EgShapes.h>
 #include <EgSpatials.h>
@@ -33,11 +34,12 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 {
 	ecs_entity_t parent = ecs_new(world);
 	ecs_set(world, parent, EgShapesRectangle, {.w = 100.0f, .h = 100.0f});
-	ecs_add(world, parent, EgUiContainer);
+	ecs_add(world, parent, EgUiFreeformsLayout);
 	ecs_entity_t child = ecs_new_w_pair(world, EcsChildOf, parent);
 	ecs_entity_t hover_tag = ecs_new(world);
 	ecs_set_pair(world, child, EgPhysicsOverlapChecking, mouse, {.tag = hover_tag});
 	ecs_set(world, child, EgShapesRectangle, {.w = 80.0f, .h = 40.0f});
+	ecs_set(world, child, EgIntersectsRectangleBorder, {.margin = 5.0f});
 	ecs_set(world, child, Position2, {0.0f, 0.0f});
 	ecs_set(world, child, Rotation2, {0.0f});
 	ecs_set(world, child, Scale2, {1.0f, 1.0f});
@@ -47,7 +49,7 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 			{0.0f, 1.0f, 0.0f},
 			{0.0f, 0.0f, 1.0f}
 		}});
-	ecs_set(world, child, EgUiResizable, {.key = MOUSE_LEFT_KEY, .grab = 5.0f, .min_w = 20.0f, .min_h = 10.0f});
+	ecs_set(world, child, EgUiBoundsResizable, {.key = MOUSE_LEFT_KEY, .min_w = 20.0f, .min_h = 10.0f});
 
 	ecs_progress(world, 0.0f);
 	ecs_set(world, mouse, Position2, {60.0f, 0.0f});
@@ -62,7 +64,7 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 void Resizable_test_disabled_entity_cancels_drag(void)
 {
 	ecs_entity_t child = ecs_new(world);
-	ecs_set(world, child, EgUiResizable, {
+		ecs_set(world, child, EgUiBoundsResizable, {
 		.key = MOUSE_LEFT_KEY,
 		.edge = EG_UI_EDGE_RIGHT,
 		.dragging = true,
@@ -72,7 +74,7 @@ void Resizable_test_disabled_entity_cancels_drag(void)
 
 	ecs_progress(world, 0.0f);
 
-	const EgUiResizable *resizable = ecs_get(world, child, EgUiResizable);
+	const EgUiBoundsResizable *resizable = ecs_get(world, child, EgUiBoundsResizable);
 	test_assert(!resizable->dragging);
 	test_assert(resizable->edge == 0);
 }

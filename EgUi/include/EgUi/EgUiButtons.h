@@ -8,4 +8,6 @@ typedef struct {
 	bool     held;    // Indicates if the button is currently held down
 } EgUiButtonsButton;
 
+extern ECS_COMPONENT_DECLARE(EgUiButtonsButton);
+
 void EgUiButtonsImport(ecs_world_t *world);
