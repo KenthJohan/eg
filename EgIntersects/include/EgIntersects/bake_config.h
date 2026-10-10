@@ -21,6 +21,7 @@
 #include <flecs.h>
 #include <EgSpatials.h>
 #include <EgShapes.h>
+#include <EgPhysics.h>
 #include <ecsx.h>
 
 /* Convenience macro for exporting symbols */

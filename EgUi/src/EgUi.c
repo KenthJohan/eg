@@ -146,21 +146,16 @@ static void EgUiResizable_Request(ecs_iter_t *it)
 {
 	Position2 const         *mouse  = ecs_field_shared(it, Position2, 0);
 	EgShapesRectangle const *r      = ecs_field_self(it, EgShapesRectangle, 1);
-	WorldTransform3 const   *x      = ecs_field_self(it, WorldTransform3, 2);
 	EgUiResizable           *z      = ecs_field_self(it, EgUiResizable, 3);
 	EgButtonsState          *s      = ecs_field_shared(it, EgButtonsState, 4);
 	EgUiAnchor const        *anc    = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgUiAnchor, 5) : NULL;
+	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 7);
 
 	for (int32_t i = 0; i < it->count; ++i) {
-		float dx  = mouse->x - x[i].matrix.c2[0];
-		float dy  = mouse->y - x[i].matrix.c2[1];
-		float det = x[i].matrix.c0[0] * x[i].matrix.c1[1] - x[i].matrix.c1[0] * x[i].matrix.c0[1];
-		if (fabsf(det) < 1e-8f) {
-			continue;
-		}
-		// Rectangle-local mouse position (rotation and scale removed)
-		float lx = (dx * x[i].matrix.c1[1] - dy * x[i].matrix.c1[0]) / det;
-		float ly = (dy * x[i].matrix.c0[0] - dx * x[i].matrix.c0[1]) / det;
+		// The border system reads the grab width on the next frame
+		border[i].grab = z[i].grab;
+		float lx = border[i].local_x;
+		float ly = border[i].local_y;
 
 		float hw   = r[i].w * 0.5f;
 		float hh   = r[i].h * 0.5f;
@@ -170,18 +165,7 @@ static void EgUiResizable_Request(ecs_iter_t *it)
 		bool    prev_drag = z[i].dragging;
 
 		if (!z[i].dragging) {
-			bool    in_x = fabsf(lx) <= hw + z[i].grab;
-			bool    in_y = fabsf(ly) <= hh + z[i].grab;
-			uint8_t e    = 0;
-			if (in_y && fabsf(lx + hw) <= z[i].grab)
-				e |= EG_UI_EDGE_LEFT;
-			if (in_y && fabsf(lx - hw) <= z[i].grab)
-				e |= EG_UI_EDGE_RIGHT;
-			if (in_x && fabsf(ly + hh) <= z[i].grab)
-				e |= EG_UI_EDGE_BOTTOM;
-			if (in_x && fabsf(ly - hh) <= z[i].grab)
-				e |= EG_UI_EDGE_TOP;
-			// The side pinned by the anchor pivot is not draggable, otherwise the inset would change
+			uint8_t e = border[i].edges;			// The side pinned by the anchor pivot is not draggable, otherwise the inset would change
 			if (anc) {
 				float vx, vy;
 				EgUiAnchorKind_Dir(anc[i].pivot, &vx, &vy);
@@ -487,6 +471,7 @@ void EgUiImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgUiFlow);
 	ECS_COMPONENT_DEFINE(world, EgUiDirection);
 	ECS_COMPONENT_DEFINE(world, EgUiResizable);
+	ecs_add_pair(world, ecs_id(EgUiResizable), EcsWith, ecs_id(EgIntersectsRectangleBorder));
 
 	ECS_COMPONENT_DEFINE(world, EgUiAnchorKind);
 	ECS_COMPONENT_DEFINE(world, EgUiAnchor);
@@ -611,6 +596,7 @@ void EgUiImport(ecs_world_t *world)
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
 	{.id = ecs_id(EgUiAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	{.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsInOut},
 	}});
 
 	ecs_system_init(world,
