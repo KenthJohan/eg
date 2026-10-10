@@ -5,23 +5,7 @@
 #include <EgShapes.h>
 
 #include "EgUi/EgUiButtons.h"
-
-typedef enum {
-	EgUiDirectionNone,
-	EgUiDirectionRight,
-	EgUiDirectionLeft,
-	EgUiDirectionUp,
-	EgUiDirectionDown,
-} EgUiDirection;
-
-typedef struct {
-	EgUiDirection direction;         // Direction children advance along the primary axis
-	EgUiDirection wrap;              // Direction the flow advances when starting a new line
-	float         cursor_primary;    // Parent-local position along the primary axis
-	float         cursor_wrap;       // Parent-local position along the wrap axis
-	float         line_wrap_extent;  // Largest child size along the wrap axis on this line
-	bool          line_has_children; // Whether the current line already contains a child
-} EgUiFlow;
+#include "EgUi/EgUiFlows.h"
 
 typedef struct {
 	float left;   // Signed distance from the child's left edge to the parent's left edge
@@ -72,11 +56,8 @@ typedef struct {
 extern ECS_COMPONENT_DECLARE(EgUiResizable);
 extern ECS_COMPONENT_DECLARE(EgUiAnchorKind);
 extern ECS_COMPONENT_DECLARE(EgUiAnchor);
-extern ECS_COMPONENT_DECLARE(EgUiFlow);
 extern ECS_COMPONENT_DECLARE(EgUiParentClearance);
-extern ECS_COMPONENT_DECLARE(EgUiDirection);
 extern ECS_COMPONENT_DECLARE(EgUiButton);
-extern ECS_TAG_DECLARE(EgUiFlowUnplaced);
 extern ECS_TAG_DECLARE(EgUiContainer); // Parent that does not position its children
 
 void EgUiImport(ecs_world_t *world);

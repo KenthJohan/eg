@@ -7,13 +7,10 @@
 #include <ecsx.h>
 #include <math.h>
 
-ECS_COMPONENT_DECLARE(EgUiFlow);
-ECS_COMPONENT_DECLARE(EgUiDirection);
 ECS_COMPONENT_DECLARE(EgUiResizable);
 ECS_COMPONENT_DECLARE(EgUiAnchorKind);
 ECS_COMPONENT_DECLARE(EgUiAnchor);
 ECS_COMPONENT_DECLARE(EgUiParentClearance);
-ECS_TAG_DECLARE(EgUiFlowUnplaced);
 ECS_TAG_DECLARE(EgUiContainer);
 
 #define EG_UI_LAYOUT_EPSILON 1e-4f
@@ -37,37 +34,6 @@ static bool EgUiParentClearance_Fits(EgUiParentClearance clearance)
 {
 	return clearance.left <= EG_UI_LAYOUT_EPSILON && clearance.right <= EG_UI_LAYOUT_EPSILON &&
 		clearance.bottom <= EG_UI_LAYOUT_EPSILON && clearance.top <= EG_UI_LAYOUT_EPSILON;
-}
-
-static bool EgUiFlow_PrimaryOverflows(EgUiParentClearance clearance, int axis, float sign)
-{
-	if (axis == 0) {
-		return sign > 0.0f ? clearance.right > EG_UI_LAYOUT_EPSILON
-					   : clearance.left > EG_UI_LAYOUT_EPSILON;
-	}
-	return sign > 0.0f ? clearance.top > EG_UI_LAYOUT_EPSILON
-				   : clearance.bottom > EG_UI_LAYOUT_EPSILON;
-}
-
-static Position2 EgUiFlow_GetPosition(int primary_axis, float primary_sign, int wrap_axis,
-	float wrap_sign, bool can_wrap, float cursor_primary, float cursor_wrap,
-	EgShapesRectangle const *child)
-{
-	float size[2] = {child->w, child->h};
-	Position2 pos = {0.0f, 0.0f};
-	if (primary_axis == 0) {
-		pos.x = cursor_primary + primary_sign * size[0] * 0.5f;
-	} else {
-		pos.y = cursor_primary + primary_sign * size[1] * 0.5f;
-	}
-	if (can_wrap) {
-		if (wrap_axis == 0) {
-			pos.x = cursor_wrap + wrap_sign * size[0] * 0.5f;
-		} else {
-			pos.y = cursor_wrap + wrap_sign * size[1] * 0.5f;
-		}
-	}
-	return pos;
 }
 
 // Unit direction of an anchor kind, +y is up.
@@ -329,130 +295,6 @@ static void EgUiResizable_ApplyContainer(ecs_iter_t *it)
 	}
 }
 
-static bool EgUiFlow_GetAxis(EgUiDirection direction, int *axis, float *sign)
-{
-	switch (direction) {
-	case EgUiDirectionRight:
-		*axis = 0;
-		*sign = 1.0f;
-		return true;
-	case EgUiDirectionLeft:
-		*axis = 0;
-		*sign = -1.0f;
-		return true;
-	case EgUiDirectionUp:
-		*axis = 1;
-		*sign = 1.0f;
-		return true;
-	case EgUiDirectionDown:
-		*axis = 1;
-		*sign = -1.0f;
-		return true;
-	default:
-		return false;
-	}
-}
-
-static void EgUiFlow_Reset(ecs_iter_t *it)
-{
-	EgUiFlow          *flow   = ecs_field_self(it, EgUiFlow, 0);
-	EgShapesRectangle *bounds = ecs_field_self(it, EgShapesRectangle, 1);
-	for (int i = 0; i < it->count; ++i) {
-		int   primary_axis = 0;
-		float primary_sign = 0.0f;
-		int   wrap_axis    = 0;
-		float wrap_sign    = 0.0f;
-		if (!EgUiFlow_GetAxis(flow[i].direction, &primary_axis, &primary_sign)) {
-			flow[i].cursor_primary    = 0.0f;
-			flow[i].cursor_wrap       = 0.0f;
-			flow[i].line_wrap_extent  = 0.0f;
-			flow[i].line_has_children = false;
-			continue;
-		}
-		bool  can_wrap            = EgUiFlow_GetAxis(flow[i].wrap, &wrap_axis, &wrap_sign) && wrap_axis != primary_axis;
-		float half_width          = bounds[i].w * 0.5f;
-		float half_height         = bounds[i].h * 0.5f;
-		float primary_limit       = primary_axis == 0 ? half_width : half_height;
-		float wrap_limit          = wrap_axis == 0 ? half_width : half_height;
-		flow[i].cursor_primary    = primary_sign > 0.0f ? -primary_limit : primary_limit;
-		flow[i].cursor_wrap       = can_wrap ? (wrap_sign > 0.0f ? -wrap_limit : wrap_limit) : 0.0f;
-		flow[i].line_wrap_extent  = 0.0f;
-		flow[i].line_has_children = false;
-	}
-}
-
-static void EgUiFlow_Update(ecs_iter_t *it)
-{
-	EgUiFlow          *flow            = ecs_field_shared(it, EgUiFlow, 0);
-	EgShapesRectangle *parent_rect     = ecs_field_shared(it, EgShapesRectangle, 1);
-	Position2         *child_positions = ecs_field_self(it, Position2, 2);
-	EgShapesRectangle *child_rects     = ecs_field_self(it, EgShapesRectangle, 3);
-
-	int   primary_axis;
-	float primary_sign;
-	int   wrap_axis = 0;
-	float wrap_sign = 0.0f;
-	if (!EgUiFlow_GetAxis(flow->direction, &primary_axis, &primary_sign)) {
-		for (int i = 0; i < it->count; ++i) {
-			if (ecs_has_id(it->world, it->entities[i], ecs_id(EgUiFlowUnplaced))) {
-				ecs_remove_id(it->world, it->entities[i], ecs_id(EgUiFlowUnplaced));
-				ecs_enable(it->world, it->entities[i], true);
-			}
-		}
-		return;
-	}
-	bool  can_wrap      = EgUiFlow_GetAxis(flow->wrap, &wrap_axis, &wrap_sign) && wrap_axis != primary_axis;
-	float primary_limit = (primary_axis == 0 ? parent_rect->w : parent_rect->h) * 0.5f;
-
-	for (int i = 0; i < it->count; ++i) {
-		bool flow_unplaced = ecs_has_id(it->world, it->entities[i], ecs_id(EgUiFlowUnplaced));
-		if (ecs_has_id(it->world, it->entities[i], EcsDisabled) && !flow_unplaced) {
-			continue;
-		}
-
-		float child_size[2]   = {child_rects[i].w, child_rects[i].h};
-		float primary_size    = child_size[primary_axis];
-		float candidate_primary = flow->cursor_primary;
-		float candidate_wrap    = flow->cursor_wrap;
-		float candidate_extent  = flow->line_wrap_extent;
-		bool  candidate_has_children = flow->line_has_children;
-		Position2 candidate_pos = EgUiFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
-			wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
-		EgUiParentClearance clearance = EgUiParentClearance_Compute(parent_rect, candidate_pos, &child_rects[i]);
-		if (can_wrap && candidate_has_children && EgUiFlow_PrimaryOverflows(clearance, primary_axis, primary_sign)) {
-			candidate_wrap += wrap_sign * candidate_extent;
-			candidate_primary = primary_sign > 0.0f ? -primary_limit : primary_limit;
-			candidate_extent = 0.0f;
-			candidate_has_children = false;
-			candidate_pos = EgUiFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
-				wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
-			clearance = EgUiParentClearance_Compute(parent_rect, candidate_pos, &child_rects[i]);
-		}
-
-		if (!EgUiParentClearance_Fits(clearance)) {
-			if (!flow_unplaced) {
-				ecs_add_id(it->world, it->entities[i], ecs_id(EgUiFlowUnplaced));
-				ecs_enable(it->world, it->entities[i], false);
-			}
-			continue;
-		}
-
-		if (flow_unplaced) {
-			ecs_remove_id(it->world, it->entities[i], ecs_id(EgUiFlowUnplaced));
-			ecs_enable(it->world, it->entities[i], true);
-		}
-		child_positions[i] = candidate_pos;
-		candidate_primary += primary_sign * primary_size;
-		if (can_wrap && child_size[wrap_axis] > candidate_extent) {
-			candidate_extent = child_size[wrap_axis];
-		}
-		flow->cursor_primary = candidate_primary;
-		flow->cursor_wrap = candidate_wrap;
-		flow->line_wrap_extent = candidate_extent;
-		flow->line_has_children = true;
-	}
-}
-
 void EgUiImport(ecs_world_t *world)
 {
 	ECS_IMPORT(world, EgPhysics);
@@ -461,18 +303,16 @@ void EgUiImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgButtons);
 	ECS_IMPORT(world, EgIntersects);
 	ECS_IMPORT(world, EgUiButtons);
+	ECS_IMPORT(world, EgUiFlows);
 
 	ECS_MODULE(world, EgUi);
 	ecs_set_name_prefix(world, "EgUi");
 
-	ECS_COMPONENT_DEFINE(world, EgUiFlow);
-	ECS_COMPONENT_DEFINE(world, EgUiDirection);
 	ECS_COMPONENT_DEFINE(world, EgUiResizable);
 
 	ECS_COMPONENT_DEFINE(world, EgUiAnchorKind);
 	ECS_COMPONENT_DEFINE(world, EgUiAnchor);
 	ECS_COMPONENT_DEFINE(world, EgUiParentClearance);
-	ECS_TAG_DEFINE(world, EgUiFlowUnplaced);
 	ECS_TAG_DEFINE(world, EgUiContainer);
 
 
@@ -528,56 +368,6 @@ void EgUiImport(ecs_world_t *world)
 	{.name = "top", .type = ecs_id(ecs_f32_t)},
 	}});
 
-	ecs_enum_init(world,
-	&(ecs_enum_desc_t){
-	.entity    = ecs_id(EgUiDirection),
-	.constants = {
-	{.name = "None", .value = EgUiDirectionNone},
-	{.name = "Right", .value = EgUiDirectionRight},
-	{.name = "Left", .value = EgUiDirectionLeft},
-	{.name = "Up", .value = EgUiDirectionUp},
-	{.name = "Down", .value = EgUiDirectionDown},
-	}});
-
-	ecs_struct_init(world,
-	&(ecs_struct_desc_t){
-	.entity  = ecs_id(EgUiFlow),
-	.members = {
-	{.name = "direction", .type = ecs_id(EgUiDirection)},
-	{.name = "wrap", .type = ecs_id(EgUiDirection)},
-	{.name = "cursor_primary", .type = ecs_id(ecs_f32_t)},
-	{.name = "cursor_wrap", .type = ecs_id(ecs_f32_t)},
-	{.name = "line_wrap_extent", .type = ecs_id(ecs_f32_t)},
-	{.name = "line_has_children", .type = ecs_id(ecs_bool_t)},
-	}});
-
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "EgUiFlow_Reset"}),
-	.phase       = EcsOnUpdate,
-	.callback    = EgUiFlow_Reset,
-	.query.terms = {
-	{.id = ecs_id(EgUiFlow), .inout = EcsInOut},
-	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
-	}});
-
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "EgUiFlow_Update"}),
-	.phase       = EcsOnUpdate,
-	.callback    = EgUiFlow_Update,
-	.query.terms = {
-	{.id = ecs_id(EgUiFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
-	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(Position2), .inout = EcsOut},
-	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
-	{.id = ecs_id(EgUiFlowUnplaced), .oper = EcsOptional},
-	{.id = EcsDisabled, .oper = EcsOptional},
-	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
-	}});
-
-
-
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
 	.entity      = ecs_entity(world, {.name = "EgUiResizable_Request"}),
@@ -602,7 +392,7 @@ void EgUiImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsInOut},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(EgUiFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgUiFlowsFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgUiAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
@@ -636,7 +426,7 @@ void EgUiImport(ecs_world_t *world)
 	{.id = ecs_id(Scale2), .inout = EcsIn},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(EgUiFlow), .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	{.id = ecs_id(EgUiFlowsFlow), .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
 	ecs_system_init(world,
