@@ -14,7 +14,7 @@ enum {
 };
 
 typedef struct {
-	float   grab;    // Input: edge hit width in rectangle-local units
+	float   margin;  // Input: edge hit width in rectangle-local units
 	uint8_t edges;   // Output: overlapped border sides, EG_INTERSECTS_EDGE_* bits
 	float   local_x; // Output: point in rectangle-local space (rotation and scale removed)
 	float   local_y;

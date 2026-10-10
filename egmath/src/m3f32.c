@@ -53,6 +53,13 @@ void m3f32_tmulv(m3f32 const *a, float const x[3], float y[3])
 	y[2]    = temp[2];
 }
 
+float m3f32_det(m3f32 const *m)
+{
+	return m->c0[0] * (m->c1[1] * m->c2[2] - m->c1[2] * m->c2[1])
+		 - m->c0[1] * (m->c1[0] * m->c2[2] - m->c1[2] * m->c2[0])
+		 + m->c0[2] * (m->c1[0] * m->c2[1] - m->c1[1] * m->c2[0]);
+}
+
 void m3f32_transpose(m3f32 *x)
 {
 	SWAP(float, x->c0[1], x->c1[0]);

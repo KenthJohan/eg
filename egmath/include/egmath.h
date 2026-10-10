@@ -98,6 +98,7 @@ void m4f32_trs_inverse(float const t[3], float const q[4], float const s[3], m4f
 void m3f32_mulv(m3f32 const *a, float const x[3], float y[3]);
 void m3f32_tmulv(m3f32 const *a, float const x[3], float y[3]);
 void m3f32_mul(m3f32 *y, m3f32 const *a, m3f32 const *b);
+float m3f32_det(m3f32 const *m);
 void m3f32_transpose(m3f32 *x);
 void m3f32_rs_inverse(float const q[4], float const s[3], m3f32 *r);
 void m3f32_rs_inverse_transposed(float const q[4], float const s[3], m3f32 *r);

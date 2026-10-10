@@ -18,7 +18,7 @@ static void EgIntersectsOverlap_Test(ecs_iter_t *it)
 		char const *name = ecs_get_name(it->world, it->entities[i]);
 		float       dx   = p0->x - x->matrix.c2[0];
 		float       dy   = p0->y - x->matrix.c2[1];
-		float       det  = x->matrix.c0[0] * x->matrix.c1[1] - x->matrix.c1[0] * x->matrix.c0[1];
+		float       det  = m3f32_det(&x->matrix);
 		if (fabsf(det) < 1e-8f) {
 			continue;
 		}
@@ -37,7 +37,7 @@ static void EgIntersectsRectangleBorder_Test(ecs_iter_t *it)
 	for (int32_t i = 0; i < it->count; ++i) {
 		float dx  = p0->x - x[i].matrix.c2[0];
 		float dy  = p0->y - x[i].matrix.c2[1];
-		float det = x[i].matrix.c0[0] * x[i].matrix.c1[1] - x[i].matrix.c1[0] * x[i].matrix.c0[1];
+		float det = m3f32_det(&x[i].matrix);
 		if (fabsf(det) < 1e-8f) {
 			continue;
 		}
@@ -45,18 +45,20 @@ static void EgIntersectsRectangleBorder_Test(ecs_iter_t *it)
 		float ly = (dy * x[i].matrix.c0[0] - dx * x[i].matrix.c0[1]) / det;
 		float hw = r[i].w * 0.5f;
 		float hh = r[i].h * 0.5f;
-		float g  = b[i].grab;
+		float m  = b[i].margin;
 
-		bool    in_x = fabsf(lx) <= hw + g;
-		bool    in_y = fabsf(ly) <= hh + g;
+		//printf("lx: %f, ly: %f, hw: %f, hh: %f, margin: %f\n", lx, ly, hw, hh, m);
+
+		bool    in_x = fabsf(lx) <= hw + m;
+		bool    in_y = fabsf(ly) <= hh + m;
 		uint8_t e    = 0;
-		if (in_y && fabsf(lx + hw) <= g)
+		if (in_y && fabsf(lx + hw) <= m)
 			e |= EG_INTERSECTS_EDGE_LEFT;
-		if (in_y && fabsf(lx - hw) <= g)
+		if (in_y && fabsf(lx - hw) <= m)
 			e |= EG_INTERSECTS_EDGE_RIGHT;
-		if (in_x && fabsf(ly + hh) <= g)
+		if (in_x && fabsf(ly + hh) <= m)
 			e |= EG_INTERSECTS_EDGE_BOTTOM;
-		if (in_x && fabsf(ly - hh) <= g)
+		if (in_x && fabsf(ly - hh) <= m)
 			e |= EG_INTERSECTS_EDGE_TOP;
 		b[i].edges   = e;
 		b[i].local_x = lx;
@@ -80,7 +82,7 @@ void EgIntersectsImport(ecs_world_t *world)
 	&(ecs_struct_desc_t){
 	.entity  = ecs_id(EgIntersectsRectangleBorder),
 	.members = {
-	{.name = "grab", .type = ecs_id(ecs_f32_t)},
+	{.name = "margin", .type = ecs_id(ecs_f32_t)},
 	{.name = "edges", .type = ecs_id(ecs_u8_t)},
 	{.name = "local_x", .type = ecs_id(ecs_f32_t)},
 	{.name = "local_y", .type = ecs_id(ecs_f32_t)},

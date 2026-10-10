@@ -152,8 +152,8 @@ static void EgUiResizable_Request(ecs_iter_t *it)
 	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 7);
 
 	for (int32_t i = 0; i < it->count; ++i) {
-		// The border system reads the grab width on the next frame
-		border[i].grab = z[i].grab;
+		// The border system reads the margin on the next frame
+		border[i].margin = z[i].grab;
 		float lx = border[i].local_x;
 		float ly = border[i].local_y;
 

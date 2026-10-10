@@ -43,3 +43,14 @@ void Matrix_add_m3m3(void)
 
 	ASSERT_M3_EQ(result, expected);
 }
+
+void Matrix_det_m3(void)
+{
+	m3f32 m = {
+	.c0 = {2.0f, 0.0f, 1.0f},
+	.c1 = {0.0f, 3.0f, 2.0f},
+	.c2 = {4.0f, 5.0f, 1.0f}};
+
+	float det = m3f32_det(&m);
+	ASSERT_FLOAT_EQ(det, 2.0f * (3.0f * 1.0f - 2.0f * 5.0f) - 0.0f + 1.0f * (0.0f * 5.0f - 3.0f * 4.0f));
+}

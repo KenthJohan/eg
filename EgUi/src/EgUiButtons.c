@@ -17,9 +17,9 @@ static void EgUiButtonsButton_Update(ecs_iter_t *it)
 	EgUiButtonsButton         *b = ecs_field_self(it, EgUiButtonsButton, 3);
 	EgButtonsState            *s = ecs_field_shared(it, EgButtonsState, 4);
 	for (int32_t i = 0; i < it->count; ++i, ++o, ++x, ++b) {
-		bool mouse_held = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
+		bool held = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
 		b->hovered      = o->overlap;
-		b->held         = (b->held && mouse_held) || (b->hovered && mouse_held);
+		b->held         = (b->held && held) || (b->hovered && held);
 		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiButtonsButton));
 	}
 }
