@@ -4,6 +4,8 @@
 #include <EgSpatials.h>
 #include <EgShapes.h>
 
+#include "EgUi/EgUiButtons.h"
+
 typedef enum {
 	EgUiDirectionNone,
 	EgUiDirectionRight,
@@ -28,11 +30,7 @@ typedef struct {
 	float top;    // Signed distance from the parent's top edge to the child's top edge
 } EgUiParentClearance;
 
-typedef struct {
-	uint32_t key;     // The key code associated with the button
-	bool     hovered; // Indicates if the button is currently hovered over
-	bool     held;    // Indicates if the button is currently held down
-} EgUiButton;
+
 
 enum {
 	EG_UI_EDGE_LEFT   = 1,

@@ -3,12 +3,12 @@
 #include <EgShapes.h>
 #include <EgPhysics.h>
 #include <EgButtons.h>
+#include <EgIntersects.h>
 #include <ecsx.h>
 #include <math.h>
 
 ECS_COMPONENT_DECLARE(EgUiFlow);
 ECS_COMPONENT_DECLARE(EgUiDirection);
-ECS_COMPONENT_DECLARE(EgUiButton);
 ECS_COMPONENT_DECLARE(EgUiResizable);
 ECS_COMPONENT_DECLARE(EgUiAnchorKind);
 ECS_COMPONENT_DECLARE(EgUiAnchor);
@@ -112,39 +112,9 @@ static void EgUiParentClearance_Update(ecs_iter_t *it)
 	}
 }
 
-static void EgUiMouseHitTesting_Update(ecs_iter_t *it)
-{
-	Position2               *p0 = ecs_field_shared(it, Position2, 0);
-	EgShapesRectangle const *r  = ecs_field_self(it, EgShapesRectangle, 1);
-	WorldTransform3 const   *x  = ecs_field_self(it, WorldTransform3, 2);
-	EgUiButton              *b  = ecs_field_self(it, EgUiButton, 3);
-	EgButtonsState          *s  = ecs_field_shared(it, EgButtonsState, 4);
-	for (int32_t i = 0; i < it->count; ++i, ++r, ++x, ++b) {
-		char const *name = ecs_get_name(it->world, it->entities[i]);
-		float       dx   = p0->x - x->matrix.c2[0];
-		float       dy   = p0->y - x->matrix.c2[1];
-		float       det  = x->matrix.c0[0] * x->matrix.c1[1] - x->matrix.c1[0] * x->matrix.c0[1];
-		if (fabsf(det) < 1e-8f) {
-			continue;
-		}
-		float local_x    = (dx * x->matrix.c1[1] - dy * x->matrix.c1[0]) / det;
-		float local_y    = (dy * x->matrix.c0[0] - dx * x->matrix.c0[1]) / det;
-		bool  mouse_held = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
-		b->hovered       = (fabsf(local_x) <= fabsf(r->w) * 0.5f) && (fabsf(local_y) <= fabsf(r->h) * 0.5f);
-		b->held          = (b->held && mouse_held) || (b->hovered && mouse_held);
-		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiButton));
-	}
-}
 
-static void EgUiMouseHitTesting_ClearDisabled(ecs_iter_t *it)
-{
-	EgUiButton *b = ecs_field_self(it, EgUiButton, 0);
-	for (int32_t i = 0; i < it->count; ++i) {
-		b[i].hovered = false;
-		b[i].held = false;
-		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiButton));
-	}
-}
+
+
 
 static bool EgUiEntity_IsDisabledInHierarchy(ecs_world_t *world, ecs_entity_t entity)
 {
@@ -436,7 +406,6 @@ static void EgUiFlow_Update(ecs_iter_t *it)
 	EgShapesRectangle *parent_rect     = ecs_field_shared(it, EgShapesRectangle, 1);
 	Position2         *child_positions = ecs_field_self(it, Position2, 2);
 	EgShapesRectangle *child_rects     = ecs_field_self(it, EgShapesRectangle, 3);
-	EgUiButton        *buttons         = ecs_field_is_set(it, 6) ? ecs_field_self(it, EgUiButton, 6) : NULL;
 
 	int   primary_axis;
 	float primary_sign;
@@ -484,10 +453,6 @@ static void EgUiFlow_Update(ecs_iter_t *it)
 				ecs_add_id(it->world, it->entities[i], ecs_id(EgUiFlowUnplaced));
 				ecs_enable(it->world, it->entities[i], false);
 			}
-			if (buttons) {
-				buttons[i].hovered = false;
-				buttons[i].held = false;
-			}
 			continue;
 		}
 
@@ -513,13 +478,14 @@ void EgUiImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgButtons);
+	ECS_IMPORT(world, EgIntersects);
+	ECS_IMPORT(world, EgUiButtons);
 
 	ECS_MODULE(world, EgUi);
 	ecs_set_name_prefix(world, "EgUi");
 
 	ECS_COMPONENT_DEFINE(world, EgUiFlow);
 	ECS_COMPONENT_DEFINE(world, EgUiDirection);
-	ECS_COMPONENT_DEFINE(world, EgUiButton);
 	ECS_COMPONENT_DEFINE(world, EgUiResizable);
 
 	ECS_COMPONENT_DEFINE(world, EgUiAnchorKind);
@@ -528,14 +494,7 @@ void EgUiImport(ecs_world_t *world)
 	ECS_TAG_DEFINE(world, EgUiFlowUnplaced);
 	ECS_TAG_DEFINE(world, EgUiContainer);
 
-	ecs_struct_init(world,
-	&(ecs_struct_desc_t){
-	.entity  = ecs_id(EgUiButton),
-	.members = {
-	{.name = "key", .type = ecs_id(ecs_u32_t)},
-	{.name = "hovered", .type = ecs_id(ecs_bool_t)},
-	{.name = "held", .type = ecs_id(ecs_bool_t)},
-	}});
+
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
@@ -634,23 +593,10 @@ void EgUiImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	{.id = ecs_id(EgUiFlowUnplaced), .oper = EcsOptional},
 	{.id = EcsDisabled, .oper = EcsOptional},
-	{.id = ecs_id(EgUiButton), .oper = EcsOptional},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "EgUiMouseHitTesting_Update"}),
-	.phase       = EcsPreStore,
-	.callback    = EgUiMouseHitTesting_Update,
-	.query.terms = {
-	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
-	{.id = ecs_id(WorldTransform3), .inout = EcsIn},
-	{.id = ecs_id(EgUiButton), .inout = EcsInOut},
-	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
-	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
-	}});
+
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
@@ -727,15 +673,7 @@ void EgUiImport(ecs_world_t *world)
 	{.id = EcsDisabled, .oper = EcsOptional},
 	}});
 
-	ecs_system_init(world,
-	&(ecs_system_desc_t){
-	.entity      = ecs_entity(world, {.name = "EgUiMouseHitTesting_ClearDisabled"}),
-	.phase       = EcsPreStore,
-	.callback    = EgUiMouseHitTesting_ClearDisabled,
-	.query.terms = {
-	{.id = ecs_id(EgUiButton), .inout = EcsInOut},
-	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp},
-	}});
+
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){

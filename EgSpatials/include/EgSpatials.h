@@ -130,6 +130,7 @@ extern ECS_COMPONENT_DECLARE(WorldTransform4);
 extern ECS_COMPONENT_DECLARE(WorldTransform3);
 extern ECS_COMPONENT_DECLARE(Sinewave);
 extern ECS_COMPONENT_DECLARE(Color3);
+extern ECS_COMPONENT_DECLARE(Overlap);
 
 extern ECS_TAG_DECLARE(RotateOrder1);
 extern ECS_TAG_DECLARE(RotateOrder2);

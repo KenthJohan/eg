@@ -14,31 +14,28 @@
  * dependencies will automatically show up in this file. Include bake_config.h
  * in your main project file. Do not edit! */
 
-#ifndef EGUI_BAKE_CONFIG_H
-#define EGUI_BAKE_CONFIG_H
+#ifndef EGINTERSECTS_BAKE_CONFIG_H
+#define EGINTERSECTS_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-#include <EgShapes.h>
-#include <EgSpatials.h>
-#include <EgPhysics.h>
-#include <EgButtons.h>
-#include <EgIntersects.h>
-#include <ecsx.h>
 #include <flecs.h>
+#include <EgSpatials.h>
+#include <EgShapes.h>
+#include <ecsx.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef egui_STATIC
-#if defined(egui_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
-  #define EGUI_API __declspec(dllexport)
-#elif defined(egui_EXPORTS)
-  #define EGUI_API __attribute__((__visibility__("default")))
+#ifndef egintersects_STATIC
+#if defined(egintersects_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+  #define EGINTERSECTS_API __declspec(dllexport)
+#elif defined(egintersects_EXPORTS)
+  #define EGINTERSECTS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
-  #define EGUI_API __declspec(dllimport)
+  #define EGINTERSECTS_API __declspec(dllimport)
 #else
-  #define EGUI_API
+  #define EGINTERSECTS_API
 #endif
 #else
-  #define EGUI_API
+  #define EGINTERSECTS_API
 #endif
 
 #endif
