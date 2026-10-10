@@ -30,8 +30,6 @@ typedef struct {
 	float top;    // Signed distance from the parent's top edge to the child's top edge
 } EgUiParentClearance;
 
-
-
 enum {
 	EG_UI_EDGE_LEFT   = 1,
 	EG_UI_EDGE_RIGHT  = 2,
@@ -41,7 +39,6 @@ enum {
 
 typedef struct {
 	uint32_t key;      // Mouse button used to drag
-	float    grab;     // Edge hit width in rectangle-local units
 	float    min_w;    // Minimum width while resizing
 	float    min_h;    // Minimum height while resizing
 	uint8_t  edge;     // Hovered or active edges, EG_UI_EDGE_* bits
@@ -49,8 +46,8 @@ typedef struct {
 	bool     was_held; // Button state of the previous frame
 	float    offset_x; // Mouse offset from the grabbed edge at press
 	float    offset_y;
-	float    req_dw;   // Requested width change this frame, consumed by the apply systems
-	float    req_dh;   // Requested height change this frame, consumed by the apply systems
+	float    req_dw; // Requested width change this frame, consumed by the apply systems
+	float    req_dh; // Requested height change this frame, consumed by the apply systems
 } EgUiResizable;
 
 typedef enum {

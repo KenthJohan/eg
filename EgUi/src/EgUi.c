@@ -144,16 +144,13 @@ static void EgUiResizable_ClearDisabled(ecs_iter_t *it)
 
 static void EgUiResizable_Request(ecs_iter_t *it)
 {
-	Position2 const         *mouse  = ecs_field_shared(it, Position2, 0);
-	EgShapesRectangle const *r      = ecs_field_self(it, EgShapesRectangle, 1);
-	EgUiResizable           *z      = ecs_field_self(it, EgUiResizable, 3);
-	EgButtonsState          *s      = ecs_field_shared(it, EgButtonsState, 4);
-	EgUiAnchor const        *anc    = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgUiAnchor, 5) : NULL;
-	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 7);
+	EgShapesRectangle const *r      = ecs_field_self(it, EgShapesRectangle, 0);
+	EgUiResizable           *z      = ecs_field_self(it, EgUiResizable, 1);
+	EgButtonsState          *s      = ecs_field_shared(it, EgButtonsState, 2);
+	EgUiAnchor const        *anc    = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgUiAnchor, 3) : NULL;
+	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 4);
 
 	for (int32_t i = 0; i < it->count; ++i) {
-		// The border system reads the margin on the next frame
-		border[i].margin = z[i].grab;
 		float lx = border[i].local_x;
 		float ly = border[i].local_y;
 
@@ -471,7 +468,6 @@ void EgUiImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgUiFlow);
 	ECS_COMPONENT_DEFINE(world, EgUiDirection);
 	ECS_COMPONENT_DEFINE(world, EgUiResizable);
-	ecs_add_pair(world, ecs_id(EgUiResizable), EcsWith, ecs_id(EgIntersectsRectangleBorder));
 
 	ECS_COMPONENT_DEFINE(world, EgUiAnchorKind);
 	ECS_COMPONENT_DEFINE(world, EgUiAnchor);
@@ -486,7 +482,6 @@ void EgUiImport(ecs_world_t *world)
 	.entity  = ecs_id(EgUiResizable),
 	.members = {
 	{.name = "key", .type = ecs_id(ecs_u32_t)},
-	{.name = "grab", .type = ecs_id(ecs_f32_t)},
 	{.name = "min_w", .type = ecs_id(ecs_f32_t)},
 	{.name = "min_h", .type = ecs_id(ecs_f32_t)},
 	{.name = "edge", .type = ecs_id(ecs_u8_t)},
@@ -589,14 +584,12 @@ void EgUiImport(ecs_world_t *world)
 	.phase       = EcsPreStore,
 	.callback    = EgUiResizable_Request,
 	.query.terms = {
-	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
-	{.id = ecs_id(WorldTransform3), .inout = EcsIn},
 	{.id = ecs_id(EgUiResizable), .inout = EcsInOut},
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
 	{.id = ecs_id(EgUiAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
-	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	{.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsInOut},
+	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
 	ecs_system_init(world,
