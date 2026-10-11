@@ -3,8 +3,6 @@
 #include <flecs.h>
 
 typedef struct {
-	float   local_x; // Output: point in rectangle-local space (rotation and scale removed)
-	float   local_y;
 	float   left;    // Output: signed distance from the point to the rectangle's left edge
 	float   right;   // Output: signed distance from the point to the rectangle's right edge
 	float   bottom;  // Output: signed distance from the point to the rectangle's bottom edge

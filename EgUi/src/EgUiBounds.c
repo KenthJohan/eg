@@ -61,7 +61,7 @@ static void EgUiBoundsResizable_Drag(ecs_iter_t *it)
 	EgShapesRectangle const     *rect   = ecs_field_self(it, EgShapesRectangle, 0);
 	EgUiBoundsResizable         *z      = ecs_field_self(it, EgUiBoundsResizable, 1);
 	EgUiButtonsBorder const     *bb     = ecs_field_self(it, EgUiButtonsBorder, 2);
-	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 3);
+	EgUiLocalMousePosition const *local = ecs_field_self(it, EgUiLocalMousePosition, 3);
 
 	for (int32_t i = 0; i < it->count; ++i) {
 		uint8_t edge = z[i].edge;
@@ -69,8 +69,8 @@ static void EgUiBoundsResizable_Drag(ecs_iter_t *it)
 			edge = 0;
 		} else if (!edge) {
 			edge          = bb[i].held;
-			float local_x = border[i].local_x;
-			float local_y = border[i].local_y;
+			float local_x = local[i].x;
+			float local_y = local[i].y;
 			float half_w  = rect[i].w * 0.5f;
 			float half_h  = rect[i].h * 0.5f;
 			z[i].offset_x = (edge & EG_UI_EDGE_RIGHT) ? local_x - half_w :
@@ -91,7 +91,7 @@ static void EgUiBoundsResizable_Request(ecs_iter_t *it)
 {
 	EgShapesRectangle const     *rect   = ecs_field_self(it, EgShapesRectangle, 0);
 	EgUiBoundsResizable const   *z      = ecs_field_self(it, EgUiBoundsResizable, 1);
-	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 2);
+	EgUiLocalMousePosition const *local = ecs_field_self(it, EgUiLocalMousePosition, 2);
 	EgUiBoundsEdgeRequest       *req    = ecs_field_self(it, EgUiBoundsEdgeRequest, 3);
 
 	for (int32_t i = 0; i < it->count; ++i) {
@@ -101,8 +101,8 @@ static void EgUiBoundsResizable_Request(ecs_iter_t *it)
 			continue;
 		float   half_w  = rect[i].w * 0.5f;
 		float   half_h  = rect[i].h * 0.5f;
-		float   mouse_x = border[i].local_x - z[i].offset_x;
-		float   mouse_y = border[i].local_y - z[i].offset_y;
+		float   mouse_x = local[i].x - z[i].offset_x;
+		float   mouse_y = local[i].y - z[i].offset_y;
 		if (edge & EG_UI_EDGE_RIGHT)
 			req[i].right = mouse_x - half_w;
 		if (edge & EG_UI_EDGE_LEFT)
@@ -242,6 +242,7 @@ void EgUiBoundsImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgPhysics);
 	ECS_IMPORT(world, EgButtons);
 	ECS_IMPORT(world, EgIntersects);
+	ECS_IMPORT(world, EgUiLocalMouse);
 	ECS_IMPORT(world, EgUiButtons);
 	ECS_IMPORT(world, EgUiFlows);
 	ECS_IMPORT(world, EgUiFreeforms);
@@ -282,7 +283,7 @@ void EgUiBoundsImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	{.id = ecs_id(EgUiBoundsResizable), .inout = EcsInOut},
 	{.id = ecs_id(EgUiButtonsBorder), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
@@ -294,7 +295,7 @@ void EgUiBoundsImport(ecs_world_t *world)
 	.query.terms = {
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	{.id = ecs_id(EgUiBoundsResizable), .inout = EcsIn},
-	{.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgUiBoundsEdgeRequest), .inout = EcsOut},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});

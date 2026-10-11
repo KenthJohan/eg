@@ -4,6 +4,7 @@
 #include <EgSpatials.h>
 #include <EgShapes.h>
 
+#include "EgUi/EgUiLocalMouse.h"
 #include "EgUi/EgUiButtons.h"
 #include "EgUi/EgUiFlows.h"
 #include "EgUi/EgUiBounds.h"
