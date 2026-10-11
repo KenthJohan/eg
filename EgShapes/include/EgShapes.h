@@ -47,7 +47,6 @@ typedef struct {
 	float h;
 } EgShapesTriangle;
 
-
 extern ECS_COMPONENT_DECLARE(EgShapesBox);
 extern ECS_COMPONENT_DECLARE(EgShapesTorus);
 extern ECS_COMPONENT_DECLARE(EgShapesCylinder);

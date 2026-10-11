@@ -17,5 +17,4 @@ typedef struct {
 	float top;    // Signed distance from the parent's top edge to the child's top edge
 } EgUiParentClearance;
 
-
 void EgUiImport(ecs_world_t *world);

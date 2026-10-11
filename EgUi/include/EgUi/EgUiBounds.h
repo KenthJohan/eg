@@ -5,11 +5,11 @@
 #include "EgUi/EgUiButtons.h"
 
 typedef struct {
-	float    min_w;
-	float    min_h;
-	uint8_t  edge; // Edges grabbed at drag start; zero when not dragging
-	float    offset_x;
-	float    offset_y;
+	float   min_w;
+	float   min_h;
+	uint8_t edge; // Edges grabbed at drag start; zero when not dragging
+	float   offset_x;
+	float   offset_y;
 } EgUiBoundsResizable;
 
 // Requested outward growth per edge (negative shrinks); consumers decide whether and how much to honor.

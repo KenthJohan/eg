@@ -7,11 +7,11 @@
 
 #include "stb_truetype.h"
 
-#define EG_PI              3.14159265358979323846f
-#define FONT_FIRST_CHAR    32
-#define FONT_CHAR_COUNT    96
-#define FONT_BAKE_SIZE     32.0f
-#define FONT_LINE_HEIGHT   (FONT_BAKE_SIZE * 1.2f)
+#define EG_PI            3.14159265358979323846f
+#define FONT_FIRST_CHAR  32
+#define FONT_CHAR_COUNT  96
+#define FONT_BAKE_SIZE   32.0f
+#define FONT_LINE_HEIGHT (FONT_BAKE_SIZE * 1.2f)
 
 typedef struct {
 	EgShapedrawLayer *layer;
@@ -113,18 +113,18 @@ static void sAppendVertex(EgShapedrawLayer *l, float x, float y, const m3f32 *tr
 		l->capacity = cap;
 	}
 
-	EgShapedrawVertex *dst = &l->data[l->count++];
+	EgShapedrawVertex *dst         = &l->data[l->count++];
 	float              position[3] = {x, y, 1.0f};
 	float              transformed[3];
 	m3f32_mulv(transform, position, transformed);
-	dst->position[0]       = transformed[0];
-	dst->position[1]       = transformed[1];
-	dst->uv[0]             = u;
-	dst->uv[1]             = v;
-	dst->rgba[0]           = r;
-	dst->rgba[1]           = g;
-	dst->rgba[2]           = b;
-	dst->rgba[3]           = a;
+	dst->position[0] = transformed[0];
+	dst->position[1] = transformed[1];
+	dst->uv[0]       = u;
+	dst->uv[1]       = v;
+	dst->rgba[0]     = r;
+	dst->rgba[1]     = g;
+	dst->rgba[2]     = b;
+	dst->rgba[3]     = a;
 }
 
 static void sAddQuad(EgShapedrawLayer *l, float x0, float y0, float x1, float y1, const m3f32 *transform, float u0, float v0, float u1, float v1, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
@@ -240,7 +240,7 @@ void EgShapedrawList_AddText(EgShapedrawList *list, int32_t z, const m3f32 *tran
 		return;
 	}
 
-	sBatch_t batch;
+	sBatch_t    batch;
 	const m3f32 identity = M3_IDENTITY;
 	if (!sBeginBatch(&batch, list, z, &identity, color)) {
 		return;

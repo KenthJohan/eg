@@ -1,7 +1,6 @@
 #pragma once
 #include <flecs.h>
 
-
 typedef struct
 {
 	char *value;
@@ -14,10 +13,9 @@ typedef struct
 
 typedef struct
 {
-	float font_size;
+	float    font_size;
 	uint32_t color;
 } EgBaseFont;
-
 
 extern ECS_COMPONENT_DECLARE(EgBaseText);
 extern ECS_COMPONENT_DECLARE(EgBaseFont);

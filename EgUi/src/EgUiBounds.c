@@ -50,17 +50,17 @@ static void EgUiBoundsResizable_ClearDisabled(ecs_iter_t *it)
 		}
 		if (!disabled)
 			continue;
-		z[i].edge     = 0;
-		req[i]        = (EgUiBoundsEdgeRequest){0};
+		z[i].edge = 0;
+		req[i]    = (EgUiBoundsEdgeRequest){0};
 		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiBoundsResizable));
 	}
 }
 
 static void EgUiBoundsResizable_Drag(ecs_iter_t *it)
 {
-	EgShapesRectangle const     *rect   = ecs_field_self(it, EgShapesRectangle, 0);
-	EgUiBoundsResizable         *z      = ecs_field_self(it, EgUiBoundsResizable, 1);
-	EgUiButtonsBorder const     *bb     = ecs_field_self(it, EgUiButtonsBorder, 2);
+	EgShapesRectangle const      *rect  = ecs_field_self(it, EgShapesRectangle, 0);
+	EgUiBoundsResizable          *z     = ecs_field_self(it, EgUiBoundsResizable, 1);
+	EgUiButtonsBorder const      *bb    = ecs_field_self(it, EgUiButtonsBorder, 2);
 	EgUiLocalMousePosition const *local = ecs_field_self(it, EgUiLocalMousePosition, 3);
 
 	for (int32_t i = 0; i < it->count; ++i) {
@@ -89,20 +89,20 @@ static void EgUiBoundsResizable_Drag(ecs_iter_t *it)
 
 static void EgUiBoundsResizable_Request(ecs_iter_t *it)
 {
-	EgShapesRectangle const     *rect   = ecs_field_self(it, EgShapesRectangle, 0);
-	EgUiBoundsResizable const   *z      = ecs_field_self(it, EgUiBoundsResizable, 1);
+	EgShapesRectangle const      *rect  = ecs_field_self(it, EgShapesRectangle, 0);
+	EgUiBoundsResizable const    *z     = ecs_field_self(it, EgUiBoundsResizable, 1);
 	EgUiLocalMousePosition const *local = ecs_field_self(it, EgUiLocalMousePosition, 2);
-	EgUiBoundsEdgeRequest       *req    = ecs_field_self(it, EgUiBoundsEdgeRequest, 3);
+	EgUiBoundsEdgeRequest        *req   = ecs_field_self(it, EgUiBoundsEdgeRequest, 3);
 
 	for (int32_t i = 0; i < it->count; ++i) {
-		req[i] = (EgUiBoundsEdgeRequest){0};
+		req[i]       = (EgUiBoundsEdgeRequest){0};
 		uint8_t edge = z[i].edge;
 		if (!edge)
 			continue;
-		float   half_w  = rect[i].w * 0.5f;
-		float   half_h  = rect[i].h * 0.5f;
-		float   mouse_x = local[i].x - z[i].offset_x;
-		float   mouse_y = local[i].y - z[i].offset_y;
+		float half_w  = rect[i].w * 0.5f;
+		float half_h  = rect[i].h * 0.5f;
+		float mouse_x = local[i].x - z[i].offset_x;
+		float mouse_y = local[i].y - z[i].offset_y;
 		if (edge & EG_UI_EDGE_RIGHT)
 			req[i].right = mouse_x - half_w;
 		if (edge & EG_UI_EDGE_LEFT)

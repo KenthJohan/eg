@@ -55,9 +55,7 @@ void m3f32_tmulv(m3f32 const *a, float const x[3], float y[3])
 
 float m3f32_det(m3f32 const *m)
 {
-	return m->c0[0] * (m->c1[1] * m->c2[2] - m->c1[2] * m->c2[1])
-		 - m->c0[1] * (m->c1[0] * m->c2[2] - m->c1[2] * m->c2[0])
-		 + m->c0[2] * (m->c1[0] * m->c2[1] - m->c1[1] * m->c2[0]);
+	return m->c0[0] * (m->c1[1] * m->c2[2] - m->c1[2] * m->c2[1]) - m->c0[1] * (m->c1[0] * m->c2[2] - m->c1[2] * m->c2[0]) + m->c0[2] * (m->c1[0] * m->c2[1] - m->c1[1] * m->c2[0]);
 }
 
 void m3f32_transpose(m3f32 *x)
@@ -149,8 +147,8 @@ void m3f32_rs_inverse_transposed(float const q[4], float const s[3], m3f32 *r)
 // Construct a 3x3 transformation matrix from translation(t), rotation(q), and scale(s) (2D version)
 void m3f32_trs(float const t[2], float const q[2], float const s[2], m3f32 *r)
 {
-	float z = q[0];
-	float w = q[1];
+	float z  = q[0];
+	float w  = q[1];
 	float sx = s[0];
 	float sy = s[1];
 	float zz = z * z;

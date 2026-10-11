@@ -5,8 +5,6 @@
 #include <EgIntersects.h>
 #include <ecsx.h>
 
-
-
 void EgUiImport(ecs_world_t *world)
 {
 	ECS_IMPORT(world, EgPhysics);

@@ -99,7 +99,7 @@ void Transform_test_three_level_scene_graph_composes_scale(void)
 void Transform_test_two_dimensional_cascade_composes_rotation_and_scale(void)
 {
 	const ecs_entity_t parent = ecs_new(world);
-	const ecs_entity_t child = ecs_new_w_pair(world, EcsChildOf, parent);
+	const ecs_entity_t child  = ecs_new_w_pair(world, EcsChildOf, parent);
 
 	ecs_set(world, parent, Position2, {10.0f, 20.0f});
 	ecs_set(world, parent, Rotation2, {1.57079632679f});
@@ -115,8 +115,8 @@ void Transform_test_two_dimensional_cascade_composes_rotation_and_scale(void)
 
 	ecs_progress(world, 0.0f);
 
-	const Position2World *child_position = ecs_get(world, child, Position2World);
-	const Matrix3 *child_transform = ecs_get(world, child, Matrix3);
+	const Position2World *child_position  = ecs_get(world, child, Position2World);
+	const Matrix3        *child_transform = ecs_get(world, child, Matrix3);
 	test_assert(child_position != NULL);
 	test_assert(child_transform != NULL);
 	test_assert(fabsf(child_position->x - 10.0f) < EPSILON);

@@ -11,42 +11,40 @@ ECS_TAG_DECLARE(EgUiFlowsFlowUnplaced);
 #define EG_UI_FLOWS_LAYOUT_EPSILON 1e-4f
 
 static EgUiParentClearance EgUiFlows_ParentClearanceCompute(EgShapesRectangle const *parent,
-	Position2 center, EgShapesRectangle const *child)
+Position2 center, EgShapesRectangle const *child)
 {
 	float half_parent_w = parent->w * 0.5f;
 	float half_parent_h = parent->h * 0.5f;
-	float half_child_w = child->w * 0.5f;
-	float half_child_h = child->h * 0.5f;
+	float half_child_w  = child->w * 0.5f;
+	float half_child_h  = child->h * 0.5f;
 	return (EgUiParentClearance){
-		.left = -half_parent_w - (center.x - half_child_w),
-		.right = center.x + half_child_w - half_parent_w,
-		.bottom = -half_parent_h - (center.y - half_child_h),
-		.top = center.y + half_child_h - half_parent_h,
+	.left   = -half_parent_w - (center.x - half_child_w),
+	.right  = center.x + half_child_w - half_parent_w,
+	.bottom = -half_parent_h - (center.y - half_child_h),
+	.top    = center.y + half_child_h - half_parent_h,
 	};
 }
 
 static bool EgUiFlows_ParentClearanceFits(EgUiParentClearance clearance)
 {
 	return clearance.left <= EG_UI_FLOWS_LAYOUT_EPSILON && clearance.right <= EG_UI_FLOWS_LAYOUT_EPSILON &&
-		clearance.bottom <= EG_UI_FLOWS_LAYOUT_EPSILON && clearance.top <= EG_UI_FLOWS_LAYOUT_EPSILON;
+	       clearance.bottom <= EG_UI_FLOWS_LAYOUT_EPSILON && clearance.top <= EG_UI_FLOWS_LAYOUT_EPSILON;
 }
 
 static bool EgUiFlowsFlow_PrimaryOverflows(EgUiParentClearance clearance, int axis, float sign)
 {
 	if (axis == 0) {
-		return sign > 0.0f ? clearance.right > EG_UI_FLOWS_LAYOUT_EPSILON
-					   : clearance.left > EG_UI_FLOWS_LAYOUT_EPSILON;
+		return sign > 0.0f ? clearance.right > EG_UI_FLOWS_LAYOUT_EPSILON : clearance.left > EG_UI_FLOWS_LAYOUT_EPSILON;
 	}
-	return sign > 0.0f ? clearance.top > EG_UI_FLOWS_LAYOUT_EPSILON
-				   : clearance.bottom > EG_UI_FLOWS_LAYOUT_EPSILON;
+	return sign > 0.0f ? clearance.top > EG_UI_FLOWS_LAYOUT_EPSILON : clearance.bottom > EG_UI_FLOWS_LAYOUT_EPSILON;
 }
 
 static Position2 EgUiFlowsFlow_GetPosition(int primary_axis, float primary_sign, int wrap_axis,
-	float wrap_sign, bool can_wrap, float cursor_primary, float cursor_wrap,
-	EgShapesRectangle const *child)
+float wrap_sign, bool can_wrap, float cursor_primary, float cursor_wrap,
+EgShapesRectangle const *child)
 {
-	float size[2] = {child->w, child->h};
-	Position2 pos = {0.0f, 0.0f};
+	float     size[2] = {child->w, child->h};
+	Position2 pos     = {0.0f, 0.0f};
 	if (primary_axis == 0) {
 		pos.x = cursor_primary + primary_sign * size[0] * 0.5f;
 	} else {
@@ -116,10 +114,10 @@ static void EgUiFlowsFlow_Reset(ecs_iter_t *it)
 
 static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 {
-	EgUiFlowsFlow      *flow            = ecs_field_shared(it, EgUiFlowsFlow, 0);
-	EgShapesRectangle  *parent_rect     = ecs_field_shared(it, EgShapesRectangle, 1);
-	Position2          *child_positions = ecs_field_self(it, Position2, 2);
-	EgShapesRectangle  *child_rects     = ecs_field_self(it, EgShapesRectangle, 3);
+	EgUiFlowsFlow     *flow            = ecs_field_shared(it, EgUiFlowsFlow, 0);
+	EgShapesRectangle *parent_rect     = ecs_field_shared(it, EgShapesRectangle, 1);
+	Position2         *child_positions = ecs_field_self(it, Position2, 2);
+	EgShapesRectangle *child_rects     = ecs_field_self(it, EgShapesRectangle, 3);
 
 	int   primary_axis;
 	float primary_sign;
@@ -143,25 +141,25 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 			continue;
 		}
 
-		float child_size[2] = {child_rects[i].w, child_rects[i].h};
-		float primary_size = child_size[primary_axis];
-		float candidate_primary = flow->cursor_primary;
-		float candidate_wrap = flow->cursor_wrap;
-		float candidate_extent = flow->line_wrap_extent;
-		bool candidate_has_children = flow->line_has_children;
-		Position2 candidate_pos = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
-			wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
-		EgUiParentClearance clearance = EgUiFlows_ParentClearanceCompute(parent_rect,
-			candidate_pos, &child_rects[i]);
+		float               child_size[2]          = {child_rects[i].w, child_rects[i].h};
+		float               primary_size           = child_size[primary_axis];
+		float               candidate_primary      = flow->cursor_primary;
+		float               candidate_wrap         = flow->cursor_wrap;
+		float               candidate_extent       = flow->line_wrap_extent;
+		bool                candidate_has_children = flow->line_has_children;
+		Position2           candidate_pos          = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
+		                   wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
+		EgUiParentClearance clearance              = EgUiFlows_ParentClearanceCompute(parent_rect,
+		             candidate_pos, &child_rects[i]);
 		if (can_wrap && candidate_has_children &&
-			EgUiFlowsFlow_PrimaryOverflows(clearance, primary_axis, primary_sign)) {
+		    EgUiFlowsFlow_PrimaryOverflows(clearance, primary_axis, primary_sign)) {
 			candidate_wrap += wrap_sign * candidate_extent;
-			candidate_primary = primary_sign > 0.0f ? -primary_limit : primary_limit;
-			candidate_extent = 0.0f;
+			candidate_primary      = primary_sign > 0.0f ? -primary_limit : primary_limit;
+			candidate_extent       = 0.0f;
 			candidate_has_children = false;
-			candidate_pos = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
-				wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
-			clearance = EgUiFlows_ParentClearanceCompute(parent_rect, candidate_pos, &child_rects[i]);
+			candidate_pos          = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
+			         wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
+			clearance              = EgUiFlows_ParentClearanceCompute(parent_rect, candidate_pos, &child_rects[i]);
 		}
 
 		if (!EgUiFlows_ParentClearanceFits(clearance)) {
@@ -181,9 +179,9 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 		if (can_wrap && child_size[wrap_axis] > candidate_extent) {
 			candidate_extent = child_size[wrap_axis];
 		}
-		flow->cursor_primary = candidate_primary;
-		flow->cursor_wrap = candidate_wrap;
-		flow->line_wrap_extent = candidate_extent;
+		flow->cursor_primary    = candidate_primary;
+		flow->cursor_wrap       = candidate_wrap;
+		flow->line_wrap_extent  = candidate_extent;
 		flow->line_has_children = true;
 	}
 }

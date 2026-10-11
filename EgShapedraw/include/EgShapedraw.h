@@ -40,9 +40,8 @@ typedef struct {
 	float y;
 } EgShapedrawVec2;
 
-
 typedef struct {
-	float thickness;
+	float    thickness;
 	uint32_t color;
 } EgShapedrawBorder;
 

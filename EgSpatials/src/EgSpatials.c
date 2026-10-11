@@ -277,11 +277,11 @@ void EgSpatialsImport(ecs_world_t *world)
 	{.name       = "trs",
 	.return_type = ecs_id(WorldTransform3),
 	.params      = {
-	{.name = "tx", .type = ecs_id(ecs_f32_t)},
-	{.name = "ty", .type = ecs_id(ecs_f32_t)},
-	{.name = "angle", .type = ecs_id(ecs_f32_t)},
-	{.name = "sx", .type = ecs_id(ecs_f32_t)},
-	{.name = "sy", .type = ecs_id(ecs_f32_t)},
-	},
+    {.name = "tx", .type = ecs_id(ecs_f32_t)},
+    {.name = "ty", .type = ecs_id(ecs_f32_t)},
+    {.name = "angle", .type = ecs_id(ecs_f32_t)},
+    {.name = "sx", .type = ecs_id(ecs_f32_t)},
+    {.name = "sy", .type = ecs_id(ecs_f32_t)},
+    },
 	.callback = WorldTransform3_trs});
 }

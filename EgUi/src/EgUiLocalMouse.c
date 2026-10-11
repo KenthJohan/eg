@@ -34,8 +34,8 @@ static void EgUiRectangleBorder_Update(ecs_iter_t *it)
 	EgUiLocalMousePosition const *l = ecs_field_self(it, EgUiLocalMousePosition, 1);
 	EgIntersectsRectangleBorder  *b = ecs_field_self(it, EgIntersectsRectangleBorder, 2);
 	for (int32_t i = 0; i < it->count; ++i) {
-		float hw = fabsf(r[i].w) * 0.5f;
-		float hh = fabsf(r[i].h) * 0.5f;
+		float hw     = fabsf(r[i].w) * 0.5f;
+		float hh     = fabsf(r[i].h) * 0.5f;
 		b[i].left    = l[i].x + hw;
 		b[i].right   = hw - l[i].x;
 		b[i].bottom  = l[i].y + hh;

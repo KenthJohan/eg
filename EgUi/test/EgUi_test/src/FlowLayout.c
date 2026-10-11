@@ -97,7 +97,7 @@ void FlowLayout_test_oversized_child_is_skipped_and_retried(void)
 	ecs_entity_t parent = ecs_new(world);
 	ecs_set(world, parent, EgShapesRectangle, {.w = 100, .h = 100});
 	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirectionRight, .wrap = EgUiDirectionDown});
-	ecs_entity_t first = make_child(parent, 40, 40);
+	ecs_entity_t first     = make_child(parent, 40, 40);
 	ecs_entity_t oversized = make_child(parent, 120, 40);
 	ecs_set(world, oversized, EgUiParentClearance, {0});
 	ecs_entity_t last = make_child(parent, 40, 40);
@@ -122,7 +122,7 @@ void FlowLayout_test_manually_disabled_child_stays_disabled(void)
 {
 	ecs_entity_t parent = ecs_new(world);
 	ecs_set(world, parent, EgShapesRectangle, {.w = 100, .h = 100});
-		ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirectionRight, .wrap = EgUiDirectionDown});
+	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirectionRight, .wrap = EgUiDirectionDown});
 	ecs_entity_t disabled = make_child(parent, 40, 40);
 	ecs_enable(world, disabled, false);
 	ecs_entity_t visible = make_child(parent, 40, 40);

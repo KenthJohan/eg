@@ -30,7 +30,7 @@ void MouseHitTesting_teardown(void)
 
 static ecs_entity_t make_root(ecs_entity_t *mouse, ecs_entity_t *hover_tag)
 {
-	*mouse = ecs_new(world);
+	*mouse     = ecs_new(world);
 	*hover_tag = ecs_new(world);
 	ecs_set(world, *mouse, Position2, {0.0f, 0.0f});
 
@@ -38,20 +38,15 @@ static ecs_entity_t make_root(ecs_entity_t *mouse, ecs_entity_t *hover_tag)
 }
 
 static ecs_entity_t make_rect(ecs_entity_t root, ecs_entity_t mouse, ecs_entity_t hover_tag,
-	float w, float h, float center_x, float center_y, float basis_xx, float basis_yx,
-	float basis_xy, float basis_yy)
+float w, float h, float center_x, float center_y, float basis_xx, float basis_yx,
+float basis_xy, float basis_yy)
 {
 	ecs_entity_t rect = ecs_new_w_pair(world, EcsChildOf, root);
 	ecs_set_pair(world, rect, EgPhysicsOverlapChecking, mouse, {.tag = hover_tag});
 	ecs_set(world, rect, EgUiButtonsButton, {0});
 	ecs_set(world, rect, EgIntersectsRectangleBorder, {0});
 	ecs_set(world, rect, EgShapesRectangle, {.w = w, .h = h});
-	ecs_set(world, rect, WorldTransform3, {
-	.matrix = {
-	{basis_xx, basis_xy, 0.0f},
-	{basis_yx, basis_yy, 0.0f},
-	{center_x, center_y, 1.0f}
-	}});
+	ecs_set(world, rect, WorldTransform3, {.matrix = {{basis_xx, basis_xy, 0.0f}, {basis_yx, basis_yy, 0.0f}, {center_x, center_y, 1.0f}}});
 	return rect;
 }
 
@@ -61,7 +56,7 @@ void MouseHitTesting_test_axis_aligned_hit_and_clear(void)
 	ecs_entity_t hover_tag;
 	ecs_entity_t root = make_root(&mouse, &hover_tag);
 	ecs_entity_t rect = make_rect(root, mouse, hover_tag, 4.0f, 2.0f, 10.0f, 20.0f,
-		1.0f, 0.0f, 0.0f, 1.0f);
+	1.0f, 0.0f, 0.0f, 1.0f);
 	ecs_set(world, mouse, Position2, {12.0f, 21.0f});
 
 	ecs_progress(world, 0.0f);
@@ -82,7 +77,7 @@ void MouseHitTesting_test_rectangle_border_inside_macro(void)
 	ecs_entity_t hover_tag;
 	ecs_entity_t root = make_root(&mouse, &hover_tag);
 	ecs_entity_t rect = make_rect(root, mouse, hover_tag, 4.0f, 2.0f, 10.0f, 20.0f,
-		1.0f, 0.0f, 0.0f, 1.0f);
+	1.0f, 0.0f, 0.0f, 1.0f);
 	ecs_set(world, mouse, Position2, {11.0f, 20.5f});
 
 	ecs_progress(world, 0.0f);
@@ -113,7 +108,7 @@ void MouseHitTesting_test_rotated_scaled_hit(void)
 	ecs_entity_t hover_tag;
 	ecs_entity_t root = make_root(&mouse, &hover_tag);
 	ecs_entity_t rect = make_rect(root, mouse, hover_tag, 4.0f, 2.0f, 10.0f, 20.0f,
-		0.0f, -3.0f, 2.0f, 0.0f);
+	0.0f, -3.0f, 2.0f, 0.0f);
 	ecs_set(world, mouse, Position2, {7.0f, 22.0f});
 
 	ecs_progress(world, 0.0f);
@@ -128,11 +123,11 @@ void MouseHitTesting_test_overlapping_rectangles_all_hover(void)
 {
 	ecs_entity_t mouse;
 	ecs_entity_t hover_tag;
-	ecs_entity_t root = make_root(&mouse, &hover_tag);
-	ecs_entity_t first = make_rect(root, mouse, hover_tag, 10.0f, 10.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f, 1.0f);
+	ecs_entity_t root   = make_root(&mouse, &hover_tag);
+	ecs_entity_t first  = make_rect(root, mouse, hover_tag, 10.0f, 10.0f, 0.0f, 0.0f,
+	 1.0f, 0.0f, 0.0f, 1.0f);
 	ecs_entity_t second = make_rect(root, mouse, hover_tag, 4.0f, 4.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f, 1.0f);
+	1.0f, 0.0f, 0.0f, 1.0f);
 
 	ecs_progress(world, 0.0f);
 	test_assert(is_hovered(first));
@@ -145,7 +140,7 @@ void MouseHitTesting_test_disabled_ancestor_clears_hover(void)
 	ecs_entity_t hover_tag;
 	ecs_entity_t root = make_root(&mouse, &hover_tag);
 	ecs_entity_t rect = make_rect(root, mouse, hover_tag, 10.0f, 10.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f, 1.0f);
+	1.0f, 0.0f, 0.0f, 1.0f);
 
 	ecs_progress(world, 0.0f);
 	test_assert(is_hovered(rect));
