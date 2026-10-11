@@ -8,12 +8,12 @@ Reference example: [examples/parentmatch/src/main.c](examples/parentmatch/src/ma
 {.id = ecs_id(Comp), .trav = EcsChildOf, .src.id = EcsUp}
 ```
 
-`EcsUp` with `.trav = EcsChildOf` walks the whole parent chain and matches the nearest ancestor that has `Comp`. It is not limited to the direct parent. The matched component is read with `ecs_field_shared(...)`.
+`EcsUp` with `.trav = EcsChildOf` walks the whole parent chain and matches the nearest ancestor that has `Comp`. It is not limited to the direct parent. Read the matched component with `ecs_field_shared(...)`.
 
 Use it when the data is inherited down the tree:
 
-- The value is a property of a whole subtree (for example a parent `EgShapesRectangle` used as bounds, or `EcsDisabled` on any ancestor disabling all descendants).
-- It does not matter how deeply the entity is nested.
+- The value is a property of a whole subtree.
+- Nesting depth does not matter.
 - Intermediate entities are plain containers.
 
 ## One level (direct parent only)
@@ -28,18 +28,18 @@ Use a variable as the source of `Comp` and tie it to the entity with `(ChildOf, 
 Rules:
 
 - Both terms must use the same variable name.
-- Put the `(ChildOf, $parent)` term anywhere in the query. It does not change the `ecs_field` indices of other terms except by adding one index. Append it last to keep existing indices.
+- The `(ChildOf, $parent)` term adds one term. Append it last so existing `ecs_field` indices do not shift.
 - Use `.inout = EcsInOutNone` on the `ChildOf` term because it has no data.
-- The component on `$parent` is still read with `ecs_field_shared(...)` (it is not `self`).
+- Read the component on `$parent` with `ecs_field_shared(...)`, not `self`.
 
-Use it when the component describes how the *direct* children are laid out or controlled, and a nested descendant must not be affected:
+Use it when the component describes how the *direct* children are handled, and deeper descendants must not be affected:
 
-- Layout owners such as `EgUiFlowsFlow` and `EgUiFreeformsLayout`. A child of a Flow is positioned by that Flow, not by a Layout further up.
-- Two systems that handle the same child differently depending on its parent type. With `EcsUp` both can match the same entity (an ancestor Layout plus a parent Flow) and apply the change twice.
+- The parent component is a controller or owner of its immediate children.
+- Different systems handle the same child differently depending on the type of its parent.
 
-## Pitfall that motivated this
+## Pitfall
 
-`EgUiBoundsResizable_ApplyFlow` and `EgUiBoundsResizable_ApplyFreeforms` both matched Flow children because `root2d` has a `Layout` ancestor and `EcsUp` finds it. The resize was applied twice per frame, so a held edge vibrated between two sizes. Matching the layout component on the direct parent only fixes this.
+If two systems each look for a different parent component with `EcsUp`, one entity can match both through different ancestors, and both systems then act on it. Symptoms are duplicated updates, doubled deltas, or values that oscillate between frames. Matching the controlling component on the direct parent only avoids this.
 
 ## Choosing
 
