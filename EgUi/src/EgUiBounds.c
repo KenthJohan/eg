@@ -10,6 +10,7 @@
 #include "EgUi/EgUiFreeforms.h"
 
 ECS_COMPONENT_DECLARE(EgUiBoundsResizable);
+ECS_COMPONENT_DECLARE(EgUiBoundsEdgeRequest);
 
 static void EgUiBoundsAnchorKind_Dir(EgUiFreeformsAnchorKind kind, float *x, float *y)
 {
@@ -37,7 +38,8 @@ static EgUiParentClearance EgUiBounds_ParentClearance(EgShapesRectangle const *p
 
 static void EgUiBoundsResizable_ClearDisabled(ecs_iter_t *it)
 {
-	EgUiBoundsResizable *z = ecs_field_self(it, EgUiBoundsResizable, 0);
+	EgUiBoundsResizable   *z = ecs_field_self(it, EgUiBoundsResizable, 0);
+	EgUiBoundsEdgeRequest *req = ecs_field_self(it, EgUiBoundsEdgeRequest, 1);
 	for (int32_t i = 0; i < it->count; ++i) {
 		bool disabled = false;
 		for (ecs_entity_t current = it->entities[i]; current; current = ecs_get_parent(it->world, current)) {
@@ -50,92 +52,117 @@ static void EgUiBoundsResizable_ClearDisabled(ecs_iter_t *it)
 		z[i].edge = 0;
 		z[i].dragging = false;
 		z[i].was_held = true;
-		z[i].req_dw = 0.0f;
-		z[i].req_dh = 0.0f;
+		req[i] = (EgUiBoundsEdgeRequest){0};
 		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiBoundsResizable));
 	}
 }
 
-static void EgUiBoundsResizable_Request(ecs_iter_t *it)
+static void EgUiBoundsResizable_Hover(ecs_iter_t *it)
+{
+	EgUiBoundsResizable         *z = ecs_field_self(it, EgUiBoundsResizable, 0);
+	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 1);
+
+	for (int32_t i = 0; i < it->count; ++i) {
+		if (z[i].dragging) continue;
+		float margin = z[i].margin;
+		uint8_t edge = 0;
+		if (border[i].bottom >= -margin && border[i].top >= -margin && fabsf(border[i].left) <= margin)
+			edge |= EG_UI_EDGE_LEFT;
+		if (border[i].bottom >= -margin && border[i].top >= -margin && fabsf(border[i].right) <= margin)
+			edge |= EG_UI_EDGE_RIGHT;
+		if (border[i].left >= -margin && border[i].right >= -margin && fabsf(border[i].bottom) <= margin)
+			edge |= EG_UI_EDGE_BOTTOM;
+		if (border[i].left >= -margin && border[i].right >= -margin && fabsf(border[i].top) <= margin)
+			edge |= EG_UI_EDGE_TOP;
+		if (edge != z[i].edge) {
+			z[i].edge = edge;
+			ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiBoundsResizable));
+		}
+	}
+}
+
+static void EgUiBoundsResizable_Drag(ecs_iter_t *it)
 {
 	EgShapesRectangle const     *rect = ecs_field_self(it, EgShapesRectangle, 0);
 	EgUiBoundsResizable         *z = ecs_field_self(it, EgUiBoundsResizable, 1);
 	EgButtonsState              *state = ecs_field_shared(it, EgButtonsState, 2);
-	EgUiFreeformsAnchor const   *anchor = ecs_field_is_set(it, 3) ? ecs_field_self(it, EgUiFreeformsAnchor, 3) : NULL;
-	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 4);
+	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 3);
 
 	for (int32_t i = 0; i < it->count; ++i) {
 		float local_x = border[i].local_x;
 		float local_y = border[i].local_y;
 		float half_w = rect[i].w * 0.5f;
 		float half_h = rect[i].h * 0.5f;
+		uint8_t edge = z[i].edge;
 		bool held = !!(EgButtonsState_get(state, z[i].key) & EG_BUTTONS_STATE_HELD);
-		uint8_t previous_edge = z[i].edge;
 		bool previous_dragging = z[i].dragging;
 
-		if (!z[i].dragging) {
-			float margin = z[i].margin;
-			uint8_t edge = 0;
-			if (border[i].bottom >= -margin && border[i].top >= -margin && fabsf(border[i].left) <= margin)
-				edge |= EG_UI_EDGE_LEFT;
-			if (border[i].bottom >= -margin && border[i].top >= -margin && fabsf(border[i].right) <= margin)
-				edge |= EG_UI_EDGE_RIGHT;
-			if (border[i].left >= -margin && border[i].right >= -margin && fabsf(border[i].bottom) <= margin)
-				edge |= EG_UI_EDGE_BOTTOM;
-			if (border[i].left >= -margin && border[i].right >= -margin && fabsf(border[i].top) <= margin)
-				edge |= EG_UI_EDGE_TOP;
-			if (anchor) {
-				float pivot_x, pivot_y;
-				EgUiBoundsAnchorKind_Dir(anchor[i].pivot, &pivot_x, &pivot_y);
-				if (pivot_x > 0.0f) edge &= (uint8_t)~EG_UI_EDGE_RIGHT;
-				if (pivot_x < 0.0f) edge &= (uint8_t)~EG_UI_EDGE_LEFT;
-				if (pivot_y > 0.0f) edge &= (uint8_t)~EG_UI_EDGE_TOP;
-				if (pivot_y < 0.0f) edge &= (uint8_t)~EG_UI_EDGE_BOTTOM;
-			}
-			z[i].edge = edge;
-			if (held && !z[i].was_held && edge) {
-				z[i].dragging = true;
-				z[i].offset_x = (edge & EG_UI_EDGE_RIGHT) ? local_x - half_w :
-					(edge & EG_UI_EDGE_LEFT) ? local_x + half_w : 0.0f;
-				z[i].offset_y = (edge & EG_UI_EDGE_TOP) ? local_y - half_h :
-					(edge & EG_UI_EDGE_BOTTOM) ? local_y + half_h : 0.0f;
-			}
+		if (!z[i].dragging && held && !z[i].was_held && edge) {
+			z[i].dragging = true;
+			z[i].offset_x = (edge & EG_UI_EDGE_RIGHT) ? local_x - half_w :
+				(edge & EG_UI_EDGE_LEFT) ? local_x + half_w : 0.0f;
+			z[i].offset_y = (edge & EG_UI_EDGE_TOP) ? local_y - half_h :
+				(edge & EG_UI_EDGE_BOTTOM) ? local_y + half_h : 0.0f;
 		}
 		z[i].was_held = held;
-		z[i].req_dw = 0.0f;
-		z[i].req_dh = 0.0f;
 
 		if (z[i].dragging && !held) {
 			z[i].dragging = false;
 			z[i].edge = 0;
 		}
 
-		if (z[i].dragging) {
-			uint8_t edge = z[i].edge;
-			float mouse_x = local_x - z[i].offset_x;
-			float mouse_y = local_y - z[i].offset_y;
-			float dw = 0.0f;
-			float dh = 0.0f;
-			if (edge & EG_UI_EDGE_RIGHT) dw = mouse_x - half_w;
-			if (edge & EG_UI_EDGE_LEFT) dw = -(mouse_x + half_w);
-			if (edge & EG_UI_EDGE_TOP) dh = mouse_y - half_h;
-			if (edge & EG_UI_EDGE_BOTTOM) dh = -(mouse_y + half_h);
-			if (anchor) {
-				float pivot_x, pivot_y;
-				EgUiBoundsAnchorKind_Dir(anchor[i].pivot, &pivot_x, &pivot_y);
-				if (pivot_x == 0.0f) dw *= 2.0f;
-				if (pivot_y == 0.0f) dh *= 2.0f;
-			}
-			dw = fmaxf(dw, z[i].min_w - rect[i].w);
-			dh = fmaxf(dh, z[i].min_h - rect[i].h);
-			z[i].req_dw = dw;
-			z[i].req_dh = dh;
-		}
-
-		if (z[i].edge != previous_edge || z[i].dragging != previous_dragging) {
+		if (z[i].dragging != previous_dragging) {
 			ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiBoundsResizable));
 		}
 	}
+}
+
+static void EgUiBoundsResizable_Request(ecs_iter_t *it)
+{
+	EgShapesRectangle const     *rect = ecs_field_self(it, EgShapesRectangle, 0);
+	EgUiBoundsResizable const   *z = ecs_field_self(it, EgUiBoundsResizable, 1);
+	EgIntersectsRectangleBorder *border = ecs_field_self(it, EgIntersectsRectangleBorder, 2);
+	EgUiBoundsEdgeRequest       *req = ecs_field_self(it, EgUiBoundsEdgeRequest, 3);
+
+	for (int32_t i = 0; i < it->count; ++i) {
+		req[i] = (EgUiBoundsEdgeRequest){0};
+		if (!z[i].dragging) continue;
+		uint8_t edge = z[i].edge;
+		float half_w = rect[i].w * 0.5f;
+		float half_h = rect[i].h * 0.5f;
+		float mouse_x = border[i].local_x - z[i].offset_x;
+		float mouse_y = border[i].local_y - z[i].offset_y;
+		if (edge & EG_UI_EDGE_RIGHT) req[i].right = mouse_x - half_w;
+		if (edge & EG_UI_EDGE_LEFT) req[i].left = -(mouse_x + half_w);
+		if (edge & EG_UI_EDGE_TOP) req[i].top = mouse_y - half_h;
+		if (edge & EG_UI_EDGE_BOTTOM) req[i].bottom = -(mouse_y + half_h);
+	}
+}
+
+static void EgUiBounds_ResolveRequest(EgUiBoundsResizable const *z, EgShapesRectangle const *rect, EgUiFreeformsAnchor const *anchor, EgUiBoundsEdgeRequest const *req, uint8_t *edge, float *dw, float *dh)
+{
+	float l = req->left;
+	float r = req->right;
+	float b = req->bottom;
+	float t = req->top;
+	float scale_w = 1.0f;
+	float scale_h = 1.0f;
+	if (anchor) {
+		float pivot_x, pivot_y;
+		EgUiBoundsAnchorKind_Dir(anchor->pivot, &pivot_x, &pivot_y);
+		if (pivot_x > 0.0f) r = 0.0f;
+		if (pivot_x < 0.0f) l = 0.0f;
+		if (pivot_y > 0.0f) t = 0.0f;
+		if (pivot_y < 0.0f) b = 0.0f;
+		if (pivot_x == 0.0f) scale_w = 2.0f;
+		if (pivot_y == 0.0f) scale_h = 2.0f;
+	}
+	*edge = (uint8_t)((l != 0.0f ? EG_UI_EDGE_LEFT : 0) | (r != 0.0f ? EG_UI_EDGE_RIGHT : 0) |
+		(b != 0.0f ? EG_UI_EDGE_BOTTOM : 0) | (t != 0.0f ? EG_UI_EDGE_TOP : 0));
+	*dw = 0.0f;
+	*dh = 0.0f;
+	if (*edge & (EG_UI_EDGE_LEFT | EG_UI_EDGE_RIGHT)) *dw = fmaxf((l + r) * scale_w, z->min_w - rect->w);
+	if (*edge & (EG_UI_EDGE_BOTTOM | EG_UI_EDGE_TOP)) *dh = fmaxf((b + t) * scale_h, z->min_h - rect->h);
 }
 
 static void EgUiBounds_ClampToParent(EgShapesRectangle const *parent, Position2 pos, EgShapesRectangle const *rect, EgUiFreeformsAnchor const *anchor, uint8_t edge, float *dw, float *dh)
@@ -170,18 +197,18 @@ static void EgUiBounds_ClampToParent(EgShapesRectangle const *parent, Position2 
 
 static void EgUiBoundsResizable_ApplyFlow(ecs_iter_t *it)
 {
-	EgUiBoundsResizable       *z = ecs_field_self(it, EgUiBoundsResizable, 0);
+	EgUiBoundsResizable const *z = ecs_field_self(it, EgUiBoundsResizable, 0);
 	EgShapesRectangle         *rect = ecs_field_self(it, EgShapesRectangle, 1);
 	Position2 const           *pos = ecs_field_self(it, Position2, 2);
 	EgShapesRectangle const   *parent = ecs_field_shared(it, EgShapesRectangle, 3);
 	EgUiFreeformsAnchor const *anchor = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgUiFreeformsAnchor, 5) : NULL;
+	EgUiBoundsEdgeRequest const *req = ecs_field_self(it, EgUiBoundsEdgeRequest, 6);
 	for (int32_t i = 0; i < it->count; ++i) {
-		float dw = z[i].req_dw;
-		float dh = z[i].req_dh;
-		z[i].req_dw = 0.0f;
-		z[i].req_dh = 0.0f;
+		uint8_t edge;
+		float dw, dh;
+		EgUiBounds_ResolveRequest(&z[i], &rect[i], anchor ? &anchor[i] : NULL, &req[i], &edge, &dw, &dh);
 		if (dw == 0.0f && dh == 0.0f) continue;
-		EgUiBounds_ClampToParent(parent, pos[i], &rect[i], anchor ? &anchor[i] : NULL, z[i].edge, &dw, &dh);
+		EgUiBounds_ClampToParent(parent, pos[i], &rect[i], anchor ? &anchor[i] : NULL, edge, &dw, &dh);
 		rect[i].w += dw;
 		rect[i].h += dh;
 	}
@@ -189,19 +216,18 @@ static void EgUiBoundsResizable_ApplyFlow(ecs_iter_t *it)
 
 static void EgUiBoundsResizable_ApplyFreeforms(ecs_iter_t *it)
 {
-	EgUiBoundsResizable       *z = ecs_field_self(it, EgUiBoundsResizable, 0);
+	EgUiBoundsResizable const *z = ecs_field_self(it, EgUiBoundsResizable, 0);
 	EgShapesRectangle         *rect = ecs_field_self(it, EgShapesRectangle, 1);
 	Position2                 *pos = ecs_field_self(it, Position2, 2);
 	Rotation2 const           *rot = ecs_field_self(it, Rotation2, 3);
 	Scale2 const              *scale = ecs_field_self(it, Scale2, 4);
 	EgShapesRectangle const   *parent = ecs_field_is_set(it, 5) ? ecs_field_shared(it, EgShapesRectangle, 5) : NULL;
-	EgUiFreeformsAnchor const *anchor = ecs_field_is_set(it, 7) ? ecs_field_self(it, EgUiFreeformsAnchor, 7) : NULL;
+	EgUiFreeformsAnchor const *anchor = ecs_field_is_set(it, 7) ? ecs_field_self(it, EgUiFreeformsAnchor, 6) : NULL;
+	EgUiBoundsEdgeRequest const *req = ecs_field_self(it, EgUiBoundsEdgeRequest, 7);
 	for (int32_t i = 0; i < it->count; ++i) {
-		float dw = z[i].req_dw;
-		float dh = z[i].req_dh;
-		uint8_t edge = z[i].edge;
-		z[i].req_dw = 0.0f;
-		z[i].req_dh = 0.0f;
+		uint8_t edge;
+		float dw, dh;
+		EgUiBounds_ResolveRequest(&z[i], &rect[i], anchor ? &anchor[i] : NULL, &req[i], &edge, &dw, &dh);
 		if (dw == 0.0f && dh == 0.0f) continue;
 		if (parent) EgUiBounds_ClampToParent(parent, pos[i], &rect[i], anchor ? &anchor[i] : NULL, edge, &dw, &dh);
 
@@ -233,6 +259,18 @@ void EgUiBoundsImport(ecs_world_t *world)
 	ECS_MODULE(world, EgUiBounds);
 	ecs_set_name_prefix(world, "EgUiBounds");
 	ECS_COMPONENT_DEFINE(world, EgUiBoundsResizable);
+	ECS_COMPONENT_DEFINE(world, EgUiBoundsEdgeRequest);
+	ecs_add_pair(world, ecs_id(EgUiBoundsResizable), EcsWith, ecs_id(EgUiBoundsEdgeRequest));
+
+	ecs_struct_init(world,
+	&(ecs_struct_desc_t){
+	.entity  = ecs_id(EgUiBoundsEdgeRequest),
+	.members = {
+	{.name = "left", .type = ecs_id(ecs_f32_t)},
+	{.name = "right", .type = ecs_id(ecs_f32_t)},
+	{.name = "bottom", .type = ecs_id(ecs_f32_t)},
+	{.name = "top", .type = ecs_id(ecs_f32_t)},
+	}});
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
@@ -247,8 +285,30 @@ void EgUiBoundsImport(ecs_world_t *world)
 	{.name = "was_held", .type = ecs_id(ecs_bool_t)},
 	{.name = "offset_x", .type = ecs_id(ecs_f32_t)},
 	{.name = "offset_y", .type = ecs_id(ecs_f32_t)},
-	{.name = "req_dw", .type = ecs_id(ecs_f32_t)},
-	{.name = "req_dh", .type = ecs_id(ecs_f32_t)},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiBoundsResizable_Hover"}),
+	.phase       = EcsPreStore,
+	.callback    = EgUiBoundsResizable_Hover,
+	.query.terms = {
+	{.id = ecs_id(EgUiBoundsResizable), .inout = EcsInOut},
+	{.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgUiBoundsResizable_Drag"}),
+	.phase       = EcsPreStore,
+	.callback    = EgUiBoundsResizable_Drag,
+	.query.terms = {
+	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
+	{.id = ecs_id(EgUiBoundsResizable), .inout = EcsInOut},
+	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
+	{.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
 	ecs_system_init(world,
@@ -258,10 +318,9 @@ void EgUiBoundsImport(ecs_world_t *world)
 	.callback    = EgUiBoundsResizable_Request,
 	.query.terms = {
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
-	{.id = ecs_id(EgUiBoundsResizable), .inout = EcsInOut},
-	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
-	{.id = ecs_id(EgUiFreeformsAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsInOut},
+	{.id = ecs_id(EgUiBoundsResizable), .inout = EcsIn},
+	{.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgUiBoundsEdgeRequest), .inout = EcsOut},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
@@ -277,6 +336,7 @@ void EgUiBoundsImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgUiFlowsFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgUiFreeformsAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
+	{.id = ecs_id(EgUiBoundsEdgeRequest), .inout = EcsIn},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
@@ -292,8 +352,9 @@ void EgUiBoundsImport(ecs_world_t *world)
 	{.id = ecs_id(Rotation2), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(Scale2), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(EgUiFreeformsLayout), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutNone},
 	{.id = ecs_id(EgUiFreeformsAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
+	{.id = ecs_id(EgUiBoundsEdgeRequest), .inout = EcsIn},
+	{.id = ecs_id(EgUiFreeformsLayout), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutNone},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 
@@ -304,6 +365,7 @@ void EgUiBoundsImport(ecs_world_t *world)
 	.callback    = EgUiBoundsResizable_ClearDisabled,
 	.query.terms = {
 	{.id = ecs_id(EgUiBoundsResizable), .inout = EcsInOut},
+	{.id = ecs_id(EgUiBoundsEdgeRequest), .inout = EcsInOut},
 	{.id = EcsDisabled, .oper = EcsOptional},
 	}});
 }

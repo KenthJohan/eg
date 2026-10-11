@@ -19,10 +19,17 @@ typedef struct {
 	bool     was_held;
 	float    offset_x;
 	float    offset_y;
-	float    req_dw;
-	float    req_dh;
 } EgUiBoundsResizable;
 
+// Requested outward growth per edge (negative shrinks); consumers decide whether and how much to honor.
+typedef struct {
+	float left;
+	float right;
+	float bottom;
+	float top;
+} EgUiBoundsEdgeRequest;
+
 extern ECS_COMPONENT_DECLARE(EgUiBoundsResizable);
+extern ECS_COMPONENT_DECLARE(EgUiBoundsEdgeRequest);
 
 void EgUiBoundsImport(ecs_world_t *world);
