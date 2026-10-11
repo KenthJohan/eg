@@ -310,10 +310,11 @@ void EgUiBoundsImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsInOut},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(EgUiFlowsFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgUiFlowsFlow), .src = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsIn},
 	{.id = ecs_id(EgUiFreeformsAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	{.id = ecs_id(EgUiBoundsEdgeRequest), .inout = EcsIn},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	{.first.id = EcsChildOf, .second = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOutNone},
 	}});
 
 	ecs_system_init(world,
@@ -330,8 +331,9 @@ void EgUiBoundsImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
 	{.id = ecs_id(EgUiFreeformsAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	{.id = ecs_id(EgUiBoundsEdgeRequest), .inout = EcsIn},
-	{.id = ecs_id(EgUiFreeformsLayout), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutNone},
+	{.id = ecs_id(EgUiFreeformsLayout), .src = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOutNone},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	{.first.id = EcsChildOf, .second = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOutNone},
 	}});
 
 	ecs_system_init(world,
