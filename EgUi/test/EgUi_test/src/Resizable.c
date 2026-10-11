@@ -49,7 +49,8 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 			{0.0f, 1.0f, 0.0f},
 			{0.0f, 0.0f, 1.0f}
 		}});
-	ecs_set(world, child, EgUiBoundsResizable, {.key = MOUSE_LEFT_KEY, .min_w = 20.0f, .min_h = 10.0f, .margin = 5.0f});
+	ecs_set(world, child, EgUiButtonsBorder, {.key = MOUSE_LEFT_KEY, .margin = 5.0f});
+	ecs_set(world, child, EgUiBoundsResizable, {.min_w = 20.0f, .min_h = 10.0f});
 
 	ecs_progress(world, 0.0f);
 	ecs_set(world, mouse, Position2, {60.0f, 0.0f});
@@ -64,17 +65,11 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 void Resizable_test_disabled_entity_cancels_drag(void)
 {
 	ecs_entity_t child = ecs_new(world);
-		ecs_set(world, child, EgUiBoundsResizable, {
-		.key = MOUSE_LEFT_KEY,
-		.edge = EG_UI_EDGE_RIGHT,
-		.dragging = true,
-		.was_held = true
-	});
+	ecs_set(world, child, EgUiBoundsResizable, {.edge = EG_UI_EDGE_RIGHT});
 	ecs_enable(world, child, false);
 
 	ecs_progress(world, 0.0f);
 
 	const EgUiBoundsResizable *resizable = ecs_get(world, child, EgUiBoundsResizable);
-	test_assert(!resizable->dragging);
 	test_assert(resizable->edge == 0);
 }

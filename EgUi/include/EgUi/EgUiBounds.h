@@ -2,21 +2,12 @@
 
 #include <flecs.h>
 
-enum {
-	EG_UI_EDGE_LEFT   = 1,
-	EG_UI_EDGE_RIGHT  = 2,
-	EG_UI_EDGE_BOTTOM = 4,
-	EG_UI_EDGE_TOP    = 8,
-};
+#include "EgUi/EgUiButtons.h"
 
 typedef struct {
-	uint32_t key;
 	float    min_w;
 	float    min_h;
-	float    margin;
-	uint8_t  edge;
-	bool     dragging;
-	bool     was_held;
+	uint8_t  edge; // Edges grabbed at drag start; zero when not dragging
 	float    offset_x;
 	float    offset_y;
 } EgUiBoundsResizable;

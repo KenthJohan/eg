@@ -101,7 +101,8 @@ void FreeformLayout_test_resizing_anchored_child_rebuilds_position(void)
 		.x = -10.0f,
 		.y = -10.0f
 	});
-	ecs_set(world, child, EgUiBoundsResizable, {.key = MOUSE_LEFT_KEY, .min_w = 20.0f, .min_h = 20.0f, .margin = 5.0f});
+	ecs_set(world, child, EgUiButtonsBorder, {.key = MOUSE_LEFT_KEY, .margin = 5.0f});
+	ecs_set(world, child, EgUiBoundsResizable, {.min_w = 20.0f, .min_h = 20.0f});
 	ecs_set(world, mouse, Position2, {0.0f, 20.0f});
 
 	ecs_progress(world, 0.0f);
