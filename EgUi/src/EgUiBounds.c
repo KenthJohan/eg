@@ -65,10 +65,10 @@ static void EgUiBoundsResizable_Drag(ecs_iter_t *it)
 
 	for (int32_t i = 0; i < it->count; ++i) {
 		uint8_t edge = z[i].edge;
-		if (!bb[i].held) {
+		if (!bb[i].grab) {
 			edge = 0;
 		} else if (!edge) {
-			edge          = bb[i].held;
+			edge          = bb[i].grab;
 			float local_x = local[i].x;
 			float local_y = local[i].y;
 			float half_w  = rect[i].w * 0.5f;

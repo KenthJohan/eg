@@ -54,14 +54,21 @@ static void EgUiButtonsBorder_Update(ecs_iter_t *it)
 	EgUiButtonsBorder                 *b = ecs_field_self(it, EgUiButtonsBorder, 1);
 	EgButtonsState                    *s = ecs_field_shared(it, EgButtonsState, 2);
 	for (int32_t i = 0; i < it->count; ++i, ++r, ++b) {
-		ecs_entity_t e        = it->entities[i];
-		bool         key_held = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
-		uint8_t      hovered  = EgUiButtonsBorder_Hovered(r, b->margin);
-		uint8_t      held     = !key_held ? 0 : b->held ? b->held :
-		                                                  hovered;
-		if (hovered != b->hovered || held != b->held) {
-			b->hovered = hovered;
-			b->held    = held;
+		ecs_entity_t e       = it->entities[i];
+		bool         pressed = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_PRESSED);
+		bool         held    = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
+		uint8_t      hover = EgUiButtonsBorder_Hovered(r, b->margin);
+		uint8_t      grab    = b->grab;
+
+		if (!held) {
+			grab = 0;
+		} else if (pressed && hover) {
+			grab = hover;
+		}
+
+		if ((hover != b->hover) || (grab != b->grab)) {
+			b->hover = hover;
+			b->grab  = grab;
 			ecs_modified_id(it->world, e, ecs_id(EgUiButtonsBorder));
 		}
 	}
@@ -71,8 +78,8 @@ static void EgUiButtonsBorder_ClearDisabled(ecs_iter_t *it)
 {
 	EgUiButtonsBorder *b = ecs_field_self(it, EgUiButtonsBorder, 0);
 	for (int32_t i = 0; i < it->count; ++i, ++b) {
-		b->hovered = 0;
-		b->held    = 0;
+		b->hover = 0;
+		b->grab  = 0;
 		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiButtonsBorder));
 	}
 }
@@ -107,8 +114,8 @@ void EgUiButtonsImport(ecs_world_t *world)
 	.members = {
 	{.name = "key", .type = ecs_id(ecs_u32_t)},
 	{.name = "margin", .type = ecs_id(ecs_f32_t)},
-	{.name = "hovered", .type = ecs_id(ecs_u8_t)},
-	{.name = "held", .type = ecs_id(ecs_u8_t)},
+	{.name = "hover", .type = ecs_id(ecs_u8_t)},
+	{.name = "grab", .type = ecs_id(ecs_u8_t)},
 	}});
 
 	ecs_system_init(world,

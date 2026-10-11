@@ -16,10 +16,10 @@ typedef struct {
 } EgUiButtonsButton;
 
 typedef struct {
-	uint32_t key;     // The key code that grabs a border
-	float    margin;  // Border hit thickness around each edge
-	uint8_t  hovered; // EG_UI_EDGE_* mask of borders under the pointer
-	uint8_t  held;    // EG_UI_EDGE_* mask of borders grabbed while the key is held
+	uint32_t key;    // The key code that grabs a border
+	float    margin; // Border hit thickness around each edge
+	uint8_t  hover;  // EG_UI_EDGE_* mask of borders under the pointer
+	uint8_t  grab;   // EG_UI_EDGE_* mask of borders grabbed while the key is held
 } EgUiButtonsBorder;
 
 extern ECS_COMPONENT_DECLARE(EgUiButtonsButton);

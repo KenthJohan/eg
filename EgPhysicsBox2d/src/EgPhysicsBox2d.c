@@ -161,52 +161,6 @@ bool QueryCallback(b2ShapeId shapeId, void *context)
 	return true;
 }
 
-static void System_Overlap_Checking_Clear(ecs_iter_t *it)
-{
-	b2BodyId                 *b = ecs_field_self(it, b2BodyId, 0);
-	EgPhysicsOverlapChecking *c = ecs_field_shared(it, EgPhysicsOverlapChecking, 1);
-	b2WorldId                *w = ecs_field_shared(it, b2WorldId, 2);
-
-	(void)b;
-	(void)w;
-	for (int i = 0; i < it->count; ++i) {
-		if (!ecs_is_valid(it->world, c->tag)) {
-			ecs_warn("tag entity %jX is not valid", c->tag);
-			continue; // Skip if the tag entity is not valid
-		}
-		ecs_remove_id(it->world, it->entities[i], c->tag);
-	}
-}
-
-static void System_Overlap_Checking_Update(ecs_iter_t *it)
-{
-	b2WorldId                *w = ecs_field_self(it, b2WorldId, 0);
-	EgPhysicsOverlapChecking *c = ecs_field_self(it, EgPhysicsOverlapChecking, 1);
-	Position2                *p = ecs_field_shared(it, Position2, 2);
-	for (int i = 0; i < it->count; ++i, ++w) {
-		b2Vec2       d            = {0.001f, 0.001f};
-		b2AABB       box          = {b2Neg(d), d};
-		QueryContext queryContext = {{p->x, p->y}, b2_nullBodyId};
-		b2World_OverlapAABB(w[0], queryContext.point, box, b2DefaultQueryFilter(), QueryCallback, &queryContext);
-		if (!B2_IS_NON_NULL(queryContext.bodyId)) {
-			continue; // No overlap found, continue to next entity
-		}
-		// printf("Overlap found at position (%.3f, %.3f) with body ID %d\n", queryContext.point.x, queryContext.point.y, queryContext.bodyId.index1);
-		if (!ecs_is_valid(it->world, c->tag)) {
-			ecs_warn("tag entity %jX is not valid", c->tag);
-			continue; // Skip if the tag entity is not valid
-		}
-
-		ecs_entity_t body_entity = (ecs_entity_t)(uintptr_t)b2Body_GetUserData(queryContext.bodyId);
-		if (!ecs_is_valid(it->world, body_entity)) {
-			ecs_warn("Entity %jX is not valid", body_entity);
-			continue; // Skip invalid entities
-		}
-		// printf("name %s\n", ecs_get_name(it->world, body_entity));
-		ecs_add_id(it->world, body_entity, c->tag);
-	}
-}
-
 static void System_Get_Transform(ecs_iter_t *it)
 {
 	b2BodyId        *b  = ecs_field_self(it, b2BodyId, 0);
@@ -330,26 +284,6 @@ void EgPhysicsBox2dImport(ecs_world_t *world)
 	.query.terms = {
 	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(Position2), .trav = EgPhysicsTargetTransform, .src.id = EcsUp, .inout = EcsIn},
-	}});
-
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "System_Overlap_Checking_Clear"}),
-	.phase       = EcsOnUpdate,
-	.callback    = System_Overlap_Checking_Clear,
-	.query.terms = {
-	{.id = ecs_id(b2BodyId), .src.id = EcsSelf, .inout = EcsIn},
-	{.id = ecs_pair(ecs_id(EgPhysicsOverlapChecking), EcsWildcard), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(b2WorldId), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	}});
-
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "System_Overlap_Checking_Update"}),
-	.phase       = EcsOnUpdate,
-	.callback    = System_Overlap_Checking_Update,
-	.query.terms = {
-	{.id = ecs_id(b2WorldId), .inout = EcsIn},
-	{.id = ecs_pair(ecs_id(EgPhysicsOverlapChecking), EcsWildcard), .inout = EcsIn},
-	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
 	}});
 
 	ecs_system(world,
