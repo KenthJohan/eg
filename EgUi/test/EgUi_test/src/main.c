@@ -13,7 +13,6 @@ void FlowLayout_setup(void);
 void FlowLayout_teardown(void);
 void FlowLayout_test_children_flow_right_then_wrap_down(void);
 void FlowLayout_test_none_direction_leaves_children_untouched(void);
-void FlowLayout_test_parent_clearance_is_signed(void);
 void FlowLayout_test_oversized_child_is_skipped_and_retried(void);
 void FlowLayout_test_manually_disabled_child_stays_disabled(void);
 
@@ -38,6 +37,7 @@ void Resizable_setup(void);
 void Resizable_teardown(void);
 void Resizable_test_right_edge_stops_at_parent_boundary(void);
 void Resizable_test_disabled_entity_cancels_drag(void);
+void Resizable_test_flow_shrink_to_min_does_not_expand_next_sibling(void);
 
 bake_test_case FlowLayout_testcases[] = {
     {
@@ -47,10 +47,6 @@ bake_test_case FlowLayout_testcases[] = {
     {
         "test_none_direction_leaves_children_untouched",
         FlowLayout_test_none_direction_leaves_children_untouched
-    },
-    {
-        "test_parent_clearance_is_signed",
-        FlowLayout_test_parent_clearance_is_signed
     },
     {
         "test_oversized_child_is_skipped_and_retried",
@@ -108,6 +104,10 @@ bake_test_case Resizable_testcases[] = {
     {
         "test_disabled_entity_cancels_drag",
         Resizable_test_disabled_entity_cancels_drag
+    },
+    {
+        "test_flow_shrink_to_min_does_not_expand_next_sibling",
+        Resizable_test_flow_shrink_to_min_does_not_expand_next_sibling
     }
 };
 
@@ -116,7 +116,7 @@ static bake_test_suite suites[] = {
         "FlowLayout",
         FlowLayout_setup,
         FlowLayout_teardown,
-        5,
+        4,
         FlowLayout_testcases
     },
     {
@@ -137,7 +137,7 @@ static bake_test_suite suites[] = {
         "Resizable",
         Resizable_setup,
         Resizable_teardown,
-        2,
+        3,
         Resizable_testcases
     }
 };

@@ -66,3 +66,60 @@ void Resizable_test_disabled_entity_cancels_drag(void)
 	const EgUiBoundsResizable *resizable = ecs_get(world, child, EgUiBoundsResizable);
 	test_assert(resizable->edge == 0);
 }
+
+static ecs_entity_t make_flow_resizable(ecs_entity_t parent, float w, float h)
+{
+	ecs_entity_t e = ecs_new_w_pair(world, EcsChildOf, parent);
+	ecs_add_pair(world, e, EgUiMouse, mouse);
+	ecs_set(world, e, EgShapesRectangle, {.w = w, .h = h});
+	ecs_set(world, e, EgIntersectsRectangleBorder, {0});
+	ecs_set(world, e, Position2, {0.0f, 0.0f});
+	ecs_set(world, e, Rotation2, {0.0f});
+	ecs_set(world, e, Scale2, {1.0f, 1.0f});
+	ecs_set(world, e, WorldTransform3, {.matrix = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}});
+	ecs_set(world, e, EgUiButtonsBorder, {.key = MOUSE_LEFT_KEY, .margin = 5.0f});
+	ecs_set(world, e, EgUiBoundsResizable, {.min_w = 20.0f, .min_h = 10.0f});
+	return e;
+}
+
+// Stand-in for the script-driven world transform: parent sits at the origin
+static void sync_world_transform(ecs_entity_t e)
+{
+	const Position2 *p = ecs_get(world, e, Position2);
+	WorldTransform3 wt = {.matrix = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {p->x, p->y, 1.0f}}};
+	ecs_set_id(world, e, ecs_id(WorldTransform3), sizeof(wt), &wt);
+}
+
+void Resizable_test_flow_shrink_to_min_does_not_expand_next_sibling(void)
+{
+	ecs_entity_t parent = ecs_new(world);
+	ecs_set(world, parent, EgShapesRectangle, {.w = 200.0f, .h = 100.0f});
+	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirectionRight, .wrap = EgUiDirectionDown});
+	ecs_set(world, parent, Position2, {0.0f, 0.0f});
+	ecs_set(world, parent, Rotation2, {0.0f});
+	ecs_set(world, parent, Scale2, {1.0f, 1.0f});
+	ecs_set(world, parent, WorldTransform3, {.matrix = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}});
+	ecs_entity_t a = make_flow_resizable(parent, 40.0f, 40.0f);
+	ecs_entity_t b = make_flow_resizable(parent, 60.0f, 30.0f);
+
+	// A spans x -100..-60 in the flow; grab its right edge, then drag left past A's minimum width.
+	ecs_progress(world, 0.0f);
+	sync_world_transform(a);
+	sync_world_transform(b);
+	ecs_set(world, mouse, Position2, {-60.0f, 30.0f});
+	ecs_singleton_set(world, EgButtonsState, {.mouse = {[1] = EG_BUTTONS_STATE_HELD | EG_BUTTONS_STATE_PRESSED}});
+	ecs_progress(world, 0.0f);
+	ecs_progress(world, 0.0f);
+	ecs_singleton_set(world, EgButtonsState, {.mouse = {[1] = EG_BUTTONS_STATE_HELD}});
+	for (int i = 0; i < 12; ++i) {
+		ecs_set(world, mouse, Position2, {-60.0f - 5.0f * (float)(i + 1), 30.0f});
+		sync_world_transform(a);
+		sync_world_transform(b);
+		ecs_progress(world, 0.0f);
+	}
+
+	const EgShapesRectangle *ra = ecs_get(world, a, EgShapesRectangle);
+	const EgShapesRectangle *rb = ecs_get(world, b, EgShapesRectangle);
+	test_assert(fabsf(ra->w - 20.0f) < EPSILON);
+	test_assert(fabsf(rb->w - 60.0f) < EPSILON);
+}

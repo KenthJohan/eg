@@ -186,10 +186,24 @@ static void EgUiBoundsResizable_ApplyFlow(ecs_iter_t *it)
 	EgShapesRectangle const     *parent = ecs_field_shared(it, EgShapesRectangle, 3);
 	EgUiFreeformsAnchor const   *anchor = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgUiFreeformsAnchor, 5) : NULL;
 	EgUiBoundsEdgeRequest const *req    = ecs_field_self(it, EgUiBoundsEdgeRequest, 6);
+	EgUiFlowsFlow const *flow = ecs_field(it, EgUiFlowsFlow, 4);
 	for (int32_t i = 0; i < it->count; ++i) {
 		uint8_t edge;
 		float   dw, dh;
-		EgUiBounds_ResolveRequest(&z[i], &rect[i], anchor ? &anchor[i] : NULL, &req[i], &edge, &dw, &dh);
+		// Edges facing the flow origin touch the previous sibling; a grab there is shared with it
+		// and would grow this child while the sibling is being shrunk.
+		EgUiBoundsEdgeRequest flow_req = req[i];
+		EgUiDirection         dirs[2]  = {flow->direction, flow->wrap};
+		for (int d = 0; d < 2; ++d) {
+			switch (dirs[d]) {
+			case EgUiDirectionRight: flow_req.left = 0.0f; break;
+			case EgUiDirectionLeft: flow_req.right = 0.0f; break;
+			case EgUiDirectionUp: flow_req.bottom = 0.0f; break;
+			case EgUiDirectionDown: flow_req.top = 0.0f; break;
+			default: break;
+			}
+		}
+		EgUiBounds_ResolveRequest(&z[i], &rect[i], anchor ? &anchor[i] : NULL, &flow_req, &edge, &dw, &dh);
 		if (dw == 0.0f && dh == 0.0f)
 			continue;
 		EgUiBounds_ClampToParent(parent, pos[i], &rect[i], anchor ? &anchor[i] : NULL, edge, &dw, &dh);
