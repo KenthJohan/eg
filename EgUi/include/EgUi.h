@@ -9,6 +9,7 @@
 #include "EgUi/EgUiFlows.h"
 #include "EgUi/EgUiBounds.h"
 #include "EgUi/EgUiFreeforms.h"
+#include "EgUi/EgUiScriptEvents.h"
 
 typedef struct {
 	float left;   // Signed distance from the child's left edge to the parent's left edge

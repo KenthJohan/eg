@@ -17,6 +17,7 @@ void EgUiImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgUiFlows);
 	ECS_IMPORT(world, EgUiFreeforms);
 	ECS_IMPORT(world, EgUiBounds);
+	ECS_IMPORT(world, EgUiScriptEvents);
 
 	ECS_MODULE(world, EgUi);
 	ecs_set_name_prefix(world, "EgUi");
