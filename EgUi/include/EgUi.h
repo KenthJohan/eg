@@ -11,6 +11,9 @@
 #include "EgUi/EgUiFreeforms.h"
 #include "EgUi/EgUiScriptEvents.h"
 
+// Relationship to the entity that provides the shared mouse Position2.
+extern ECS_TAG_DECLARE(EgUiMouse);
+
 typedef struct {
 	float left;   // Signed distance from the child's left edge to the parent's left edge
 	float right;  // Signed distance from the parent's right edge to the child's right edge

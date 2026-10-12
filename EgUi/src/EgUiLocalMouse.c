@@ -1,6 +1,6 @@
 #include "EgUi/EgUiLocalMouse.h"
+#include <EgUi.h>
 
-#include <EgPhysics.h>
 #include <EgSpatials.h>
 #include <EgShapes.h>
 #include <EgIntersects.h>
@@ -46,7 +46,6 @@ static void EgUiRectangleBorder_Update(ecs_iter_t *it)
 
 void EgUiLocalMouseImport(ecs_world_t *world)
 {
-	ECS_IMPORT(world, EgPhysics);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgIntersects);
@@ -71,7 +70,7 @@ void EgUiLocalMouseImport(ecs_world_t *world)
 	.phase       = EcsPreStore,
 	.callback    = EgUiLocalMousePosition_Update,
 	.query.terms = {
-	{.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(Position2), .trav = EgUiMouse, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(WorldTransform3), .inout = EcsIn},
 	{.id = ecs_id(EgUiLocalMousePosition), .inout = EcsInOut},
 	}});

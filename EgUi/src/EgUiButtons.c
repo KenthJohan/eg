@@ -1,7 +1,6 @@
 #include "EgUi/EgUiButtons.h"
 
 #include <EgShapes.h>
-#include <EgPhysics.h>
 #include <EgButtons.h>
 #include <EgIntersects.h>
 #include <EgSpatials.h>
@@ -86,7 +85,6 @@ static void EgUiButtonsBorder_ClearDisabled(ecs_iter_t *it)
 
 void EgUiButtonsImport(ecs_world_t *world)
 {
-	ECS_IMPORT(world, EgPhysics);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgButtons);

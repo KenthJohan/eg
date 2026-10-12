@@ -1,9 +1,9 @@
 #include "EgUi/EgUiScriptEvents.h"
 #include "EgUi/EgUiLocalMouse.h"
+#include <EgUi.h>
 
 #include <EgButtons.h>
 #include <EgIntersects.h>
-#include <EgPhysics.h>
 #include <EgSpatials.h>
 #include <ecsx.h>
 
@@ -105,7 +105,6 @@ static void EgUiScriptEventsContext_Free(void *ptr)
 
 void EgUiScriptEventsImport(ecs_world_t *world)
 {
-	ECS_IMPORT(world, EgPhysics);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgButtons);
 	ECS_IMPORT(world, EgIntersects);
@@ -123,7 +122,7 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 	 {.id = EgUiScriptEventsTarget},
 	 {.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsIn},
 	 {.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
-	 {.id = ecs_id(Position2), .trav = ecs_id(EgPhysicsOverlapChecking), .src.id = EcsUp, .inout = EcsIn},
+	 {.id = ecs_id(Position2), .trav = EgUiMouse, .src.id = EcsUp, .inout = EcsIn},
 	 {.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	 }});
 

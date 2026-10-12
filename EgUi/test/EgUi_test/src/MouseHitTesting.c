@@ -1,7 +1,6 @@
 #include <bake_test.h>
 #include <EgButtons.h>
 #include <EgIntersects.h>
-#include <EgPhysics.h>
 #include <EgShapes.h>
 #include <EgSpatials.h>
 #include <EgUi.h>
@@ -28,21 +27,20 @@ void MouseHitTesting_teardown(void)
 	world = NULL;
 }
 
-static ecs_entity_t make_root(ecs_entity_t *mouse, ecs_entity_t *hover_tag)
+static ecs_entity_t make_root(ecs_entity_t *mouse)
 {
-	*mouse     = ecs_new(world);
-	*hover_tag = ecs_new(world);
+	*mouse = ecs_new(world);
 	ecs_set(world, *mouse, Position2, {0.0f, 0.0f});
 
 	return ecs_new(world);
 }
 
-static ecs_entity_t make_rect(ecs_entity_t root, ecs_entity_t mouse, ecs_entity_t hover_tag,
+static ecs_entity_t make_rect(ecs_entity_t root, ecs_entity_t mouse,
 float w, float h, float center_x, float center_y, float basis_xx, float basis_yx,
 float basis_xy, float basis_yy)
 {
 	ecs_entity_t rect = ecs_new_w_pair(world, EcsChildOf, root);
-	ecs_set_pair(world, rect, EgPhysicsOverlapChecking, mouse, {.tag = hover_tag});
+	ecs_add_pair(world, rect, EgUiMouse, mouse);
 	ecs_set(world, rect, EgUiButtonsButton, {0});
 	ecs_set(world, rect, EgIntersectsRectangleBorder, {0});
 	ecs_set(world, rect, EgShapesRectangle, {.w = w, .h = h});
@@ -53,9 +51,8 @@ float basis_xy, float basis_yy)
 void MouseHitTesting_test_axis_aligned_hit_and_clear(void)
 {
 	ecs_entity_t mouse;
-	ecs_entity_t hover_tag;
-	ecs_entity_t root = make_root(&mouse, &hover_tag);
-	ecs_entity_t rect = make_rect(root, mouse, hover_tag, 4.0f, 2.0f, 10.0f, 20.0f,
+	ecs_entity_t root = make_root(&mouse);
+	ecs_entity_t rect = make_rect(root, mouse, 4.0f, 2.0f, 10.0f, 20.0f,
 	1.0f, 0.0f, 0.0f, 1.0f);
 	ecs_set(world, mouse, Position2, {12.0f, 21.0f});
 
@@ -74,9 +71,8 @@ void MouseHitTesting_test_axis_aligned_hit_and_clear(void)
 void MouseHitTesting_test_rectangle_border_inside_macro(void)
 {
 	ecs_entity_t mouse;
-	ecs_entity_t hover_tag;
-	ecs_entity_t root = make_root(&mouse, &hover_tag);
-	ecs_entity_t rect = make_rect(root, mouse, hover_tag, 4.0f, 2.0f, 10.0f, 20.0f,
+	ecs_entity_t root = make_root(&mouse);
+	ecs_entity_t rect = make_rect(root, mouse, 4.0f, 2.0f, 10.0f, 20.0f,
 	1.0f, 0.0f, 0.0f, 1.0f);
 	ecs_set(world, mouse, Position2, {11.0f, 20.5f});
 
@@ -105,9 +101,8 @@ void MouseHitTesting_test_rectangle_border_inside_macro(void)
 void MouseHitTesting_test_rotated_scaled_hit(void)
 {
 	ecs_entity_t mouse;
-	ecs_entity_t hover_tag;
-	ecs_entity_t root = make_root(&mouse, &hover_tag);
-	ecs_entity_t rect = make_rect(root, mouse, hover_tag, 4.0f, 2.0f, 10.0f, 20.0f,
+	ecs_entity_t root = make_root(&mouse);
+	ecs_entity_t rect = make_rect(root, mouse, 4.0f, 2.0f, 10.0f, 20.0f,
 	0.0f, -3.0f, 2.0f, 0.0f);
 	ecs_set(world, mouse, Position2, {7.0f, 22.0f});
 
@@ -122,11 +117,10 @@ void MouseHitTesting_test_rotated_scaled_hit(void)
 void MouseHitTesting_test_overlapping_rectangles_all_hover(void)
 {
 	ecs_entity_t mouse;
-	ecs_entity_t hover_tag;
-	ecs_entity_t root   = make_root(&mouse, &hover_tag);
-	ecs_entity_t first  = make_rect(root, mouse, hover_tag, 10.0f, 10.0f, 0.0f, 0.0f,
+	ecs_entity_t root   = make_root(&mouse);
+	ecs_entity_t first  = make_rect(root, mouse, 10.0f, 10.0f, 0.0f, 0.0f,
 	 1.0f, 0.0f, 0.0f, 1.0f);
-	ecs_entity_t second = make_rect(root, mouse, hover_tag, 4.0f, 4.0f, 0.0f, 0.0f,
+	ecs_entity_t second = make_rect(root, mouse, 4.0f, 4.0f, 0.0f, 0.0f,
 	1.0f, 0.0f, 0.0f, 1.0f);
 
 	ecs_progress(world, 0.0f);
@@ -137,9 +131,8 @@ void MouseHitTesting_test_overlapping_rectangles_all_hover(void)
 void MouseHitTesting_test_disabled_ancestor_clears_hover(void)
 {
 	ecs_entity_t mouse;
-	ecs_entity_t hover_tag;
-	ecs_entity_t root = make_root(&mouse, &hover_tag);
-	ecs_entity_t rect = make_rect(root, mouse, hover_tag, 10.0f, 10.0f, 0.0f, 0.0f,
+	ecs_entity_t root = make_root(&mouse);
+	ecs_entity_t rect = make_rect(root, mouse, 10.0f, 10.0f, 0.0f, 0.0f,
 	1.0f, 0.0f, 0.0f, 1.0f);
 
 	ecs_progress(world, 0.0f);

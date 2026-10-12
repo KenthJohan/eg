@@ -7,7 +7,6 @@
 		"use": [
 			"EgShapes",
 			"EgSpatials",
-			"EgPhysics",
 			"EgButtons",
 			"EgIntersects",
 			"ecsx",
@@ -23,7 +22,6 @@
 		"lib": [
 			"EgShapes",
 			"EgSpatials",
-			"EgPhysics",
 			"EgButtons",
 			"EgIntersects",
 			"ecsx",

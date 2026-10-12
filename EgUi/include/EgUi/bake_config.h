@@ -20,7 +20,6 @@
 /* Headers of public dependencies */
 #include <EgShapes.h>
 #include <EgSpatials.h>
-#include <EgPhysics.h>
 #include <EgButtons.h>
 #include <EgIntersects.h>
 #include <ecsx.h>

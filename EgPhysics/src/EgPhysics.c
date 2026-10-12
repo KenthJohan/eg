@@ -6,7 +6,6 @@ ECS_COMPONENT_DECLARE(EgPhysicsBodyDef);
 ECS_COMPONENT_DECLARE(EgPhysicsShapesDef);
 ECS_COMPONENT_DECLARE(EgPhysicsJointDef);
 ECS_COMPONENT_DECLARE(EgPhysicsJointApplyRule);
-ECS_COMPONENT_DECLARE(EgPhysicsOverlapChecking);
 ECS_TAG_DECLARE(EgPhysicsTargetTransform);
 
 void MyMonitor(ecs_iter_t *it)
@@ -64,8 +63,6 @@ void EgPhysicsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgPhysicsJointDef);
 	ECS_TAG_DEFINE(world, EgPhysicsTargetTransform);
 	ecs_add_id(world, EgPhysicsTargetTransform, EcsTraversable);
-	ECS_COMPONENT_DEFINE(world, EgPhysicsOverlapChecking);
-	ecs_add_id(world, ecs_id(EgPhysicsOverlapChecking), EcsTraversable);
 	ECS_COMPONENT_DEFINE(world, EgPhysicsJointApplyRule);
 
 	ecs_struct_init(world,
@@ -105,13 +102,6 @@ void EgPhysicsImport(ecs_world_t *world)
 	.members = {
 	{.name = "body_a", .type = ecs_id(ecs_entity_t)},
 	{.name = "body_b_filter", .type = ecs_id(ecs_entity_t)},
-	}});
-
-	ecs_struct_init(world,
-	&(ecs_struct_desc_t){
-	.entity  = ecs_id(EgPhysicsOverlapChecking),
-	.members = {
-	{.name = "tag", .type = ecs_id(ecs_entity_t)},
 	}});
 
 	ecs_observer(world,
