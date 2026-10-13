@@ -42,12 +42,6 @@ static void CameraUpdate(ecs_iter_t *it)
 			camera_pos[2] = -pos->z;
 		}
 
-		if (r->h > 1.0f && denom > 0.0f && pos->z > 0.0f) {
-			cam->pixelScale = (2.0f * pos->z * tanf(fov_rad * 0.5f)) / r->h;
-		} else {
-			cam->pixelScale = 1.0f;
-		}
-
 		float aspect = r->w / r->h;
 		m4f32_perspective1(&cam->projection, cam->fov * rad2deg, aspect, 0.01f, 10000.0f);
 
@@ -64,6 +58,14 @@ static void CameraUpdate(ecs_iter_t *it)
 		// Apply translation (t), rotation (r), projection - which creates the view-projection-matrix (vp).
 		// The view-projection-matrix can then be later used in shaders.
 		m4f32_mul(&cam->view, &rot, &offset);
+
+		// View-space distance to the world origin (z=0 plane), valid for any camera position or rotation.
+		float depth = fabsf(cam->view.c3[2]);
+		if (r->h > 1.0f && denom > 0.0f && depth > 1e-4f) {
+			cam->pixelScale = (depth * denom) / r->h;
+		} else {
+			cam->pixelScale = 1.0f;
+		}
 		m4f32_mul(&cam->vp, &cam->projection, &cam->view);
 	}
 }
