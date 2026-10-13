@@ -73,7 +73,7 @@ void EgShapedrawList_SetPixelScale(EgShapedrawList *list, float pixelScale);
 // Colors are 0xAARRGGBB with alpha 0 meaning opaque.
 void EgShapedrawList_AddTriangle(EgShapedrawList *list, int32_t z, const m3f32 *transform, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t color);
 
-void EgShapedrawList_AddText(EgShapedrawList *list, int32_t z, const m3f32 *transform, float fontSize, uint32_t color, const char *string);
+void EgShapedrawList_AddText(EgShapedrawList *list, int32_t z, const m3f32 *transform, float fontSize, uint32_t color, const char *string); // fontSize in pixels
 
 void EgShapedrawList_AddLine(EgShapedrawList *list, int32_t z, const m3f32 *transform, float x1, float y1, float x2, float y2, float thickness, uint32_t color);
 

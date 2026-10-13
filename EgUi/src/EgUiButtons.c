@@ -2,6 +2,7 @@
 
 #include <EgShapes.h>
 #include <EgButtons.h>
+#include <EgUi/EgUiLocalMouse.h>
 #include <EgIntersects.h>
 #include <EgSpatials.h>
 #include <ecsx.h>
@@ -33,16 +34,16 @@ static void EgUiButtonsButton_ClearDisabled(ecs_iter_t *it)
 	}
 }
 
-static uint8_t EgUiButtonsBorder_Hovered(EgIntersectsRectangleBorder const *border, float margin)
+static uint8_t EgUiButtonsBorder_Hovered(EgIntersectsRectangleBorder const *border, float mx, float my)
 {
 	uint8_t edge = 0;
-	if (border->bottom >= -margin && border->top >= -margin && fabsf(border->left) <= margin)
+	if (border->bottom >= -my && border->top >= -my && fabsf(border->left) <= mx)
 		edge |= EG_UI_EDGE_LEFT;
-	if (border->bottom >= -margin && border->top >= -margin && fabsf(border->right) <= margin)
+	if (border->bottom >= -my && border->top >= -my && fabsf(border->right) <= mx)
 		edge |= EG_UI_EDGE_RIGHT;
-	if (border->left >= -margin && border->right >= -margin && fabsf(border->bottom) <= margin)
+	if (border->left >= -mx && border->right >= -mx && fabsf(border->bottom) <= my)
 		edge |= EG_UI_EDGE_BOTTOM;
-	if (border->left >= -margin && border->right >= -margin && fabsf(border->top) <= margin)
+	if (border->left >= -mx && border->right >= -mx && fabsf(border->top) <= my)
 		edge |= EG_UI_EDGE_TOP;
 	return edge;
 }
@@ -52,11 +53,12 @@ static void EgUiButtonsBorder_Update(ecs_iter_t *it)
 	EgIntersectsRectangleBorder const *r = ecs_field_self(it, EgIntersectsRectangleBorder, 0);
 	EgUiButtonsBorder                 *b = ecs_field_self(it, EgUiButtonsBorder, 1);
 	EgButtonsState                    *s = ecs_field_shared(it, EgButtonsState, 2);
-	for (int32_t i = 0; i < it->count; ++i, ++r, ++b) {
+	EgUiLocalMousePosition const      *l = ecs_field_self(it, EgUiLocalMousePosition, 5);
+	for (int32_t i = 0; i < it->count; ++i, ++r, ++b, ++l) {
 		ecs_entity_t e       = it->entities[i];
 		bool         pressed = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_PRESSED);
 		bool         held    = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
-		uint8_t      hover = EgUiButtonsBorder_Hovered(r, b->margin);
+		uint8_t      hover = EgUiButtonsBorder_Hovered(r, b->margin * l->pixel_x, b->margin * l->pixel_y);
 		uint8_t      grab    = b->grab;
 
 		if (!held) {
@@ -127,6 +129,7 @@ void EgUiButtonsImport(ecs_world_t *world)
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	{.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
 	}});
 
 	ecs_system_init(world,

@@ -14,7 +14,7 @@ typedef struct
 
 typedef struct
 {
-	ecs_i32_t dummy;
+	float pixelScale; // Output: world units per pixel of the camera, copied from EgCamerasState
 } EgCamerasUnproject;
 
 extern ECS_COMPONENT_DECLARE(EgCamerasState);

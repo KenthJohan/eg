@@ -70,13 +70,13 @@ static void CameraUpdate(ecs_iter_t *it)
 
 static void UnprojectUpdate(ecs_iter_t *it)
 {
-	EgCamerasUnproject   *unproj = ecs_field_self(it, EgCamerasUnproject, 0); // Currently not used, but could be used for future extensions
+	EgCamerasUnproject   *unproj = ecs_field_self(it, EgCamerasUnproject, 0); // Receives the camera pixel scale
 	Position2            *out    = ecs_field_self(it, Position2, 1);          // Outputs unprojected position in world space (XY plane)
 	EgCamerasState const *cam    = ecs_field_shared(it, EgCamerasState, 2);   // Camera state (view, projection, vp)
 	Position2 const      *p      = ecs_field_shared(it, Position2, 3);        // NDC Position
 
-	(void)unproj; // Unused parameter
-	for (int i = 0; i < it->count; ++i, ++out) {
+	for (int i = 0; i < it->count; ++i, ++out, ++unproj) {
+		unproj->pixelScale = cam->pixelScale;
 		float xy[2];
 		int   success = m4f32_camera_unproject_xy(&cam->vp, p->x, p->y, xy);
 		if (success) {
@@ -101,6 +101,7 @@ void EgCamerasImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, EgCamerasState);
 	ECS_COMPONENT_DEFINE(world, EgCamerasUnproject);
+	ecs_struct(world, {.entity = ecs_id(EgCamerasUnproject), .members = {{.name = "pixelScale", .type = ecs_id(ecs_f32_t)}}});
 
 	ecs_set_hooks(world, EgCamerasState, {.ctor = ecs_ctor(EgCamerasState)});
 
@@ -131,7 +132,7 @@ void EgCamerasImport(ecs_world_t *world)
 	.phase       = EcsOnUpdate,
 	.callback    = UnprojectUpdate,
 	.query.terms = {
-	{.id = ecs_id(EgCamerasUnproject), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgCamerasUnproject), .src.id = EcsSelf, .inout = EcsInOut},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
 	{.id = ecs_id(EgCamerasState), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_pair(ecs_id(Position2), Normalized), .trav = EcsDependsOn, .src.id = EcsUp, .inout = EcsIn},

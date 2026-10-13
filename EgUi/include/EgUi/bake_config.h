@@ -22,6 +22,7 @@
 #include <EgSpatials.h>
 #include <EgButtons.h>
 #include <EgIntersects.h>
+#include <EgCameras.h>
 #include <ecsx.h>
 #include <flecs.h>
 

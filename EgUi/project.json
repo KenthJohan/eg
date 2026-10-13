@@ -9,6 +9,7 @@
 			"EgSpatials",
 			"EgButtons",
 			"EgIntersects",
+			"EgCameras",
 			"ecsx",
 			"flecs"
 		]
@@ -24,6 +25,7 @@
 			"EgSpatials",
 			"EgButtons",
 			"EgIntersects",
+			"EgCameras",
 			"ecsx",
 			"flecs",
 			"m"

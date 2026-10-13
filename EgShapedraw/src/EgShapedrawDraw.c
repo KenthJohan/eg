@@ -235,14 +235,15 @@ void EgShapedrawList_AddText(EgShapedrawList *list, int32_t z, const m3f32 *tran
 		return;
 	}
 
-	float scale = fontSize / FONT_BAKE_SIZE;
-	if (scale <= 0.0f) {
-		return;
-	}
-
 	sBatch_t    batch;
 	const m3f32 identity = M3_IDENTITY;
 	if (!sBeginBatch(&batch, list, z, &identity, color)) {
+		return;
+	}
+
+	// fontSize is in pixels.
+	float scale = fontSize * batch.pixelScale / FONT_BAKE_SIZE;
+	if (scale <= 0.0f) {
 		return;
 	}
 

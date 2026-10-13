@@ -17,7 +17,7 @@ typedef struct {
 
 typedef struct {
 	uint32_t key;    // The key code that grabs a border
-	float    margin; // Border hit thickness around each edge
+	float    margin; // Border hit thickness around each edge in screen pixels
 	uint8_t  hover;  // EG_UI_EDGE_* mask of borders under the pointer
 	uint8_t  grab;   // EG_UI_EDGE_* mask of borders grabbed while the key is held
 } EgUiButtonsBorder;
