@@ -45,18 +45,10 @@ typedef struct
 	ecs_entity_t toggle;
 } EgButtonsActionToggleEntity;
 
-typedef struct
-{
-	ecs_id_t     term;
-	ecs_entity_t tag;
-	bool         add;
-} EgButtonsEngageRule;
-
 extern ECS_COMPONENT_DECLARE(EgButtonsDevice);
 extern ECS_COMPONENT_DECLARE(EgButtonsState);
 extern ECS_COMPONENT_DECLARE(EgButtonsBinding);
 extern ECS_COMPONENT_DECLARE(EgButtonsIncrementer);
 extern ECS_COMPONENT_DECLARE(EgButtonsActionToggleEntity);
-extern ECS_COMPONENT_DECLARE(EgButtonsEngageRule);
 
 void EgButtonsImport(ecs_world_t *world);

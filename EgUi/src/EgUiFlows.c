@@ -123,6 +123,7 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 	float primary_sign;
 	int   wrap_axis = 0;
 	float wrap_sign = 0.0f;
+	
 	if (!EgUiFlowsFlow_GetAxis(flow->direction, &primary_axis, &primary_sign)) {
 		for (int i = 0; i < it->count; ++i) {
 			if (ecs_has_id(it->world, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced))) {
@@ -137,6 +138,7 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 
 	for (int i = 0; i < it->count; ++i) {
 		bool flow_unplaced = ecs_has_id(it->world, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced));
+
 		if (ecs_has_id(it->world, it->entities[i], EcsDisabled) && !flow_unplaced) {
 			continue;
 		}
@@ -147,18 +149,16 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 		float               candidate_wrap         = flow->cursor_wrap;
 		float               candidate_extent       = flow->line_wrap_extent;
 		bool                candidate_has_children = flow->line_has_children;
-		Position2           candidate_pos          = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
-		                   wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
-		EgUiParentClearance clearance              = EgUiFlows_ParentClearanceCompute(parent_rect,
-		             candidate_pos, &child_rects[i]);
-		if (can_wrap && candidate_has_children &&
-		    EgUiFlowsFlow_PrimaryOverflows(clearance, primary_axis, primary_sign)) {
+		Position2           candidate_pos          = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis, wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
+		EgUiParentClearance clearance              = EgUiFlows_ParentClearanceCompute(parent_rect, candidate_pos, &child_rects[i]);
+
+		if (can_wrap && candidate_has_children && EgUiFlowsFlow_PrimaryOverflows(clearance, primary_axis, primary_sign)) {
 			candidate_wrap += wrap_sign * candidate_extent;
 			candidate_primary      = primary_sign > 0.0f ? -primary_limit : primary_limit;
 			candidate_extent       = 0.0f;
 			candidate_has_children = false;
 			candidate_pos          = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
-			         wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
+			wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[i]);
 			clearance              = EgUiFlows_ParentClearanceCompute(parent_rect, candidate_pos, &child_rects[i]);
 		}
 
@@ -174,11 +174,14 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 			ecs_remove_id(it->world, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced));
 			ecs_enable(it->world, it->entities[i], true);
 		}
+
 		child_positions[i] = candidate_pos;
 		candidate_primary += primary_sign * primary_size;
+
 		if (can_wrap && child_size[wrap_axis] > candidate_extent) {
 			candidate_extent = child_size[wrap_axis];
 		}
+
 		flow->cursor_primary    = candidate_primary;
 		flow->cursor_wrap       = candidate_wrap;
 		flow->line_wrap_extent  = candidate_extent;
