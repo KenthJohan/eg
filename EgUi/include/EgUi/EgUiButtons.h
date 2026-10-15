@@ -20,9 +20,9 @@ typedef struct {
 	float    margin; // Border hit thickness around each edge in screen pixels
 	uint8_t  hover;  // EG_UI_EDGE_* mask of borders under the pointer
 	uint8_t  grab;   // EG_UI_EDGE_* mask of borders grabbed while the key is held
-} EgUiButtonsBorder;
+} EgUiButtonsBorderButton;
 
 extern ECS_COMPONENT_DECLARE(EgUiButtonsButton);
-extern ECS_COMPONENT_DECLARE(EgUiButtonsBorder);
+extern ECS_COMPONENT_DECLARE(EgUiButtonsBorderButton);
 
 void EgUiButtonsImport(ecs_world_t *world);

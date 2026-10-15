@@ -57,10 +57,10 @@ static void EgUiBoundsResizable_ClearDisabled(ecs_iter_t *it)
 
 static void EgUiBoundsResizable_Drag(ecs_iter_t *it)
 {
-	EgShapesRectangle const      *rect  = ecs_field_self(it, EgShapesRectangle, 0);
-	EgUiBoundsResizable          *z     = ecs_field_self(it, EgUiBoundsResizable, 1);
-	EgUiButtonsBorder const      *bb    = ecs_field_self(it, EgUiButtonsBorder, 2);
-	EgUiLocalMousePosition const *local = ecs_field_self(it, EgUiLocalMousePosition, 3);
+	EgShapesRectangle const       *rect  = ecs_field_self(it, EgShapesRectangle, 0);
+	EgUiBoundsResizable           *z     = ecs_field_self(it, EgUiBoundsResizable, 1);
+	EgUiButtonsBorderButton const *bb    = ecs_field_self(it, EgUiButtonsBorderButton, 2);
+	EgUiLocalMousePosition const  *local = ecs_field_self(it, EgUiLocalMousePosition, 3);
 
 	for (int32_t i = 0; i < it->count; ++i) {
 		uint8_t edge = z[i].edge;
@@ -186,7 +186,7 @@ static void EgUiBoundsResizable_ApplyFlow(ecs_iter_t *it)
 	EgShapesRectangle const     *parent = ecs_field_shared(it, EgShapesRectangle, 3);
 	EgUiFreeformsAnchor const   *anchor = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgUiFreeformsAnchor, 5) : NULL;
 	EgUiBoundsEdgeRequest const *req    = ecs_field_self(it, EgUiBoundsEdgeRequest, 6);
-	EgUiFlowsFlow const *flow = ecs_field(it, EgUiFlowsFlow, 4);
+	EgUiFlowsFlow const         *flow   = ecs_field(it, EgUiFlowsFlow, 4);
 	for (int32_t i = 0; i < it->count; ++i) {
 		uint8_t edge;
 		float   dw, dh;
@@ -196,11 +196,20 @@ static void EgUiBoundsResizable_ApplyFlow(ecs_iter_t *it)
 		EgUiDirection         dirs[2]  = {flow->direction, flow->wrap};
 		for (int d = 0; d < 2; ++d) {
 			switch (dirs[d]) {
-			case EgUiDirectionRight: flow_req.left = 0.0f; break;
-			case EgUiDirectionLeft: flow_req.right = 0.0f; break;
-			case EgUiDirectionUp: flow_req.bottom = 0.0f; break;
-			case EgUiDirectionDown: flow_req.top = 0.0f; break;
-			default: break;
+			case EgUiDirectionRight:
+				flow_req.left = 0.0f;
+				break;
+			case EgUiDirectionLeft:
+				flow_req.right = 0.0f;
+				break;
+			case EgUiDirectionUp:
+				flow_req.bottom = 0.0f;
+				break;
+			case EgUiDirectionDown:
+				flow_req.top = 0.0f;
+				break;
+			default:
+				break;
 			}
 		}
 		EgUiBounds_ResolveRequest(&z[i], &rect[i], anchor ? &anchor[i] : NULL, &flow_req, &edge, &dw, &dh);
@@ -294,7 +303,7 @@ void EgUiBoundsImport(ecs_world_t *world)
 	.query.terms = {
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	{.id = ecs_id(EgUiBoundsResizable), .inout = EcsInOut},
-	{.id = ecs_id(EgUiButtonsBorder), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = ecs_id(EgUiButtonsBorderButton), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
