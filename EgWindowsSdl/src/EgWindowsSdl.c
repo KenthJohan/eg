@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <SDL3/SDL_error.h>
+#include <SDL3/SDL_hints.h>
+#include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_gpu.h>
 #include <SDL3/SDL_mouse.h>
@@ -257,6 +260,12 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	ecs_log(-1, "EgDisplaysSdl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
 	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
 	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
+
+	// libdecor's GTK plugin aborts on GNOME versions that removed the xsettings 'antialiasing' key
+	SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_ALLOW_LIBDECOR, "0");
+	if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+		ecs_err("SDL_InitSubSystem(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
+	}
 
 	ecs_map_init(&static_window_map, NULL);
 

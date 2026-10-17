@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_video.h>
@@ -126,7 +127,11 @@ void EgDisplaysSdlImport(ecs_world_t *world)
 	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
 	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
 
-	SDL_InitSubSystem(SDL_INIT_VIDEO);
+	// libdecor's GTK plugin aborts on GNOME versions that removed the xsettings 'antialiasing' key
+	SDL_SetHint(SDL_HINT_VIDEO_WAYLAND_ALLOW_LIBDECOR, "0");
+	if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+		ecs_err("SDL_InitSubSystem(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
+	}
 
 	ecs_system(world,
 	{.entity     = ecs_entity(world, {.name = "System_EgDisplaysUpdate"}),
