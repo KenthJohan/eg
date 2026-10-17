@@ -15,7 +15,7 @@ static void Orientation_Rotate1(ecs_iter_t *it)
 		// Normalize quaternion against floating point error
 		qf32_normalize((float *)q, (float *)q, 0.000001f);
 
-		float dt = it->delta_time * 3.0f;            // TODO: Put proper timestep
+		float dt = it->delta_time;                   // TODO: Put proper timestep
 		float dp[4];                                 // Quaternion delta pitch rotation
 		float dy[4];                                 // Quaternion delta yaw rotation
 		float dr[4];                                 // Quaternion delta roll rotation
@@ -39,7 +39,7 @@ static void Orientation_Rotate2(ecs_iter_t *it)
 		// Normalize quaternion against floating point error
 		qf32_normalize((float *)q, (float *)q, 0.000001f);
 
-		float dt = it->delta_time * 3.0f;            // TODO: Put proper timestep
+		float dt = it->delta_time;                   // TODO: Put proper timestep
 		float dp[4];                                 // Quaternion delta pitch rotation
 		float dy[4];                                 // Quaternion delta yaw rotation
 		float dr[4];                                 // Quaternion delta roll rotation
@@ -103,7 +103,8 @@ static void Position3_Move(ecs_iter_t *it)
 		dir[1] = V3_DOT((float *)v, r.c1);
 		dir[2] = V3_DOT((float *)v, r.c2);
 
-		v3f32_mul((float *)dir, (float *)dir, it->delta_time);
+		float dt = it->delta_time;
+		v3f32_mul((float *)dir, (float *)dir, dt);
 		v3f32_add((float *)p, (float *)p, dir);
 	}
 }
