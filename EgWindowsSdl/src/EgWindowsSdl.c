@@ -159,6 +159,7 @@ static void System_Events_Update(ecs_iter_t *it)
 	while (SDL_PollEvent(&event)) {
 		// SDLTest_CommonEvent(state, &event, &done);
 		switch (event.type) {
+		case SDL_EVENT_TERMINATING:
 		case SDL_EVENT_QUIT:
 			ecs_add(it->world, ecs_id(EgWindows), EgWindowsQuit);
 			break;
