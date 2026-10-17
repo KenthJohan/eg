@@ -15,15 +15,16 @@ static void Orientation_Rotate1(ecs_iter_t *it)
 		// Normalize quaternion against floating point error
 		qf32_normalize((float *)q, (float *)q, 0.000001f);
 
-		float dp[4];                            // Quaternion delta pitch rotation
-		float dy[4];                            // Quaternion delta yaw rotation
-		float dr[4];                            // Quaternion delta roll rotation
-		qf32_xyza(dp, 1.0f, 0.0f, 0.0f, r->dx); // Make delta pitch quaternion
-		qf32_xyza(dy, 0.0f, 1.0f, 0.0f, r->dy); // Make delta yaw quaternion
-		qf32_xyza(dr, 0.0f, 0.0f, 1.0f, r->dz); // Make delta roll quaternion
-		qf32_mul((float *)q, (float *)q, dr);   // Apply roll delta rotation
-		qf32_mul((float *)q, (float *)q, dy);   // Apply yaw delta rotation
-		qf32_mul((float *)q, (float *)q, dp);   // Apply pitch delta rotation
+		float dt = it->delta_time * 3.0f;            // TODO: Put proper timestep
+		float dp[4];                                 // Quaternion delta pitch rotation
+		float dy[4];                                 // Quaternion delta yaw rotation
+		float dr[4];                                 // Quaternion delta roll rotation
+		qf32_xyza(dp, 1.0f, 0.0f, 0.0f, r->dx * dt); // Make delta pitch quaternion
+		qf32_xyza(dy, 0.0f, 1.0f, 0.0f, r->dy * dt); // Make delta yaw quaternion
+		qf32_xyza(dr, 0.0f, 0.0f, 1.0f, r->dz * dt); // Make delta roll quaternion
+		qf32_mul((float *)q, (float *)q, dr);        // Apply roll delta rotation
+		qf32_mul((float *)q, (float *)q, dy);        // Apply yaw delta rotation
+		qf32_mul((float *)q, (float *)q, dp);        // Apply pitch delta rotation
 	}
 }
 
@@ -38,15 +39,16 @@ static void Orientation_Rotate2(ecs_iter_t *it)
 		// Normalize quaternion against floating point error
 		qf32_normalize((float *)q, (float *)q, 0.000001f);
 
-		float dp[4];                            // Quaternion delta pitch rotation
-		float dy[4];                            // Quaternion delta yaw rotation
-		float dr[4];                            // Quaternion delta roll rotation
-		qf32_xyza(dp, 1.0f, 0.0f, 0.0f, r->dx); // Make delta pitch quaternion
-		qf32_xyza(dy, 0.0f, 1.0f, 0.0f, r->dy); // Make delta yaw quaternion
-		qf32_xyza(dr, 0.0f, 0.0f, 1.0f, r->dz); // Make delta roll quaternion
-		qf32_mul((float *)q, dr, (float *)q);   // Apply roll delta rotation
-		qf32_mul((float *)q, dy, (float *)q);   // Apply yaw delta rotation
-		qf32_mul((float *)q, dp, (float *)q);   // Apply pitch delta rotation
+		float dt = it->delta_time * 3.0f;            // TODO: Put proper timestep
+		float dp[4];                                 // Quaternion delta pitch rotation
+		float dy[4];                                 // Quaternion delta yaw rotation
+		float dr[4];                                 // Quaternion delta roll rotation
+		qf32_xyza(dp, 1.0f, 0.0f, 0.0f, r->dx * dt); // Make delta pitch quaternion
+		qf32_xyza(dy, 0.0f, 1.0f, 0.0f, r->dy * dt); // Make delta yaw quaternion
+		qf32_xyza(dr, 0.0f, 0.0f, 1.0f, r->dz * dt); // Make delta roll quaternion
+		qf32_mul((float *)q, dr, (float *)q);        // Apply roll delta rotation
+		qf32_mul((float *)q, dy, (float *)q);        // Apply yaw delta rotation
+		qf32_mul((float *)q, dp, (float *)q);        // Apply pitch delta rotation
 	}
 }
 

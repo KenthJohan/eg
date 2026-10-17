@@ -112,11 +112,11 @@ void b2JointId_Destroy(ecs_iter_t *it)
 
 static void b2WorldId_Step(ecs_iter_t *it)
 {
-	float      timeStep     = 1.0f / 60.0f;
 	int        subStepCount = 4;
+	float      dt           = it->delta_time * 0.01f; // TODO: Put proper timestep
 	b2WorldId *w            = ecs_field(it, b2WorldId, 0);
 	for (int i = 0; i < it->count; ++i, ++w) {
-		b2World_Step(w[0], timeStep, subStepCount);
+		b2World_Step(w[0], dt, subStepCount);
 	}
 }
 
