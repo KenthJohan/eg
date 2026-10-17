@@ -129,12 +129,18 @@ static void handle_window_event(ecs_world_t *world, SDL_WindowEvent *event)
 		return;
 	}
 	ecs_entity_t e = ev[0];
+
+	EgWindowsWindow const *cw = ecs_get(world, e, EgWindowsWindow);
 	switch (event->type) {
 	case SDL_EVENT_WINDOW_RESIZED:
 		ecs_add(world, e, EgWindowsEventResize);
 		break;
 	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-		ecs_add(world, e, EgWindowsCloseRequest);
+		if (cw->terminate_on_close) {
+			ecs_quit(world);
+		} else {
+			ecs_add(world, e, EgWindowsCloseRequest);
+		}
 		break;
 	default:
 		break;
@@ -161,7 +167,7 @@ static void System_Events_Update(ecs_iter_t *it)
 		switch (event.type) {
 		case SDL_EVENT_TERMINATING:
 		case SDL_EVENT_QUIT:
-			ecs_add(it->world, ecs_id(EgWindows), EgWindowsQuit);
+			ecs_quit(it->world);
 			break;
 		case SDL_EVENT_WINDOW_RESIZED:
 		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
