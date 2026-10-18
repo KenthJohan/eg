@@ -11,11 +11,11 @@
 ECS_COMPONENT_DECLARE(EgUiBoundsResizable);
 ECS_COMPONENT_DECLARE(EgUiBoundsEdgeRequest);
 
-static void EgUiBoundsAnchorKind_Dir(EgUiFreeformsAnchorKind kind, float *x, float *y)
+static void EgUiBoundsAt_Dir(EgUiAt kind, float *x, float *y)
 {
 	static const float dir[][2] = {{0, 0}, {-1, 1}, {0, 1}, {1, 1}, {-1, 0}, {1, 0}, {-1, -1}, {0, -1}, {1, -1}};
-	if ((int)kind < 0 || (int)kind > EgUiFreeformsAnchorKindBottomRight) {
-		kind = EgUiFreeformsAnchorKindMiddle;
+	if ((int)kind < 0 || (int)kind > EgUiAtBottomRight) {
+		kind = EgUiAtMiddle;
 	}
 	*x = dir[kind][0];
 	*y = dir[kind][1];
@@ -123,7 +123,7 @@ static void EgUiBounds_ResolveRequest(EgUiBoundsResizable const *z, EgShapesRect
 	float scale_h = 1.0f;
 	if (anchor) {
 		float pivot_x, pivot_y;
-		EgUiBoundsAnchorKind_Dir(anchor->pivot, &pivot_x, &pivot_y);
+		EgUiBoundsAt_Dir(anchor->pivot, &pivot_x, &pivot_y);
 		if (pivot_x > 0.0f)
 			r = 0.0f;
 		if (pivot_x < 0.0f)
@@ -153,7 +153,7 @@ static void EgUiBounds_ClampToParent(EgShapesRectangle const *parent, Position2 
 	float               pivot_x   = 1.0f;
 	float               pivot_y   = 1.0f;
 	if (anchor)
-		EgUiBoundsAnchorKind_Dir(anchor->pivot, &pivot_x, &pivot_y);
+		EgUiBoundsAt_Dir(anchor->pivot, &pivot_x, &pivot_y);
 	if (*dw > 0.0f) {
 		float available = 0.0f;
 		if (anchor && pivot_x == 0.0f) {
@@ -193,19 +193,19 @@ static void EgUiBoundsResizable_ApplyFlow(ecs_iter_t *it)
 		// Edges facing the flow origin touch the previous sibling; a grab there is shared with it
 		// and would grow this child while the sibling is being shrunk.
 		EgUiBoundsEdgeRequest flow_req = req[i];
-		EgUiDirection         dirs[2]  = {flow->direction, flow->wrap};
+		EgUiDir               dirs[2]  = {flow->direction, flow->wrap};
 		for (int d = 0; d < 2; ++d) {
 			switch (dirs[d]) {
-			case EgUiDirectionRight:
+			case EgUiDirRight:
 				flow_req.left = 0.0f;
 				break;
-			case EgUiDirectionLeft:
+			case EgUiDirLeft:
 				flow_req.right = 0.0f;
 				break;
-			case EgUiDirectionUp:
+			case EgUiDirUp:
 				flow_req.bottom = 0.0f;
 				break;
-			case EgUiDirectionDown:
+			case EgUiDirDown:
 				flow_req.top = 0.0f;
 				break;
 			default:

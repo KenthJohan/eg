@@ -40,7 +40,7 @@ void FreeformLayout_test_anchor_positions_child_from_parent_pivot(void)
 	ecs_set(world, child, EgShapesRectangle, {.w = 20.0f, .h = 10.0f});
 	ecs_set(world, child, Scale2, {1.0f, 1.0f});
 	ecs_set(world, child, Position2, {0.0f, 0.0f});
-	ecs_set(world, child, EgUiFreeformsAnchor, {.parent = EgUiFreeformsAnchorKindTopRight, .pivot = EgUiFreeformsAnchorKindTopRight, .x = -10.0f, .y = -5.0f});
+	ecs_set(world, child, EgUiFreeformsAnchor, {.parent = EgUiAtTopRight, .pivot = EgUiAtTopRight, .x = -10.0f, .y = -5.0f});
 
 	ecs_progress(world, 0.0f);
 	const Position2 *pos = ecs_get(world, child, Position2);
@@ -52,13 +52,13 @@ void FreeformLayout_test_flow_parent_does_not_apply_freeform_anchor(void)
 {
 	ecs_entity_t parent = ecs_new(world);
 	ecs_set(world, parent, EgShapesRectangle, {.w = 100.0f, .h = 80.0f});
-	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirectionNone});
+	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirNone});
 
 	ecs_entity_t child = ecs_new_w_pair(world, EcsChildOf, parent);
 	ecs_set(world, child, EgShapesRectangle, {.w = 20.0f, .h = 10.0f});
 	ecs_set(world, child, Scale2, {1.0f, 1.0f});
 	ecs_set(world, child, Position2, {7.0f, 9.0f});
-	ecs_set(world, child, EgUiFreeformsAnchor, {.parent = EgUiFreeformsAnchorKindTopRight, .pivot = EgUiFreeformsAnchorKindTopRight});
+	ecs_set(world, child, EgUiFreeformsAnchor, {.parent = EgUiAtTopRight, .pivot = EgUiAtTopRight});
 
 	ecs_progress(world, 0.0f);
 	const Position2 *pos = ecs_get(world, child, Position2);
@@ -80,7 +80,7 @@ void FreeformLayout_test_resizing_anchored_child_rebuilds_position(void)
 	ecs_set(world, child, Rotation2, {0.0f});
 	ecs_set(world, child, Scale2, {1.0f, 1.0f});
 	ecs_set(world, child, WorldTransform3, {.matrix = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {20.0f, 20.0f, 1.0f}}});
-	ecs_set(world, child, EgUiFreeformsAnchor, {.parent = EgUiFreeformsAnchorKindTopRight, .pivot = EgUiFreeformsAnchorKindTopRight, .x = -10.0f, .y = -10.0f});
+	ecs_set(world, child, EgUiFreeformsAnchor, {.parent = EgUiAtTopRight, .pivot = EgUiAtTopRight, .x = -10.0f, .y = -10.0f});
 	ecs_set(world, child, EgUiButtonsBorder, {.key = MOUSE_LEFT_KEY, .margin = 5.0f});
 	ecs_set(world, child, EgUiBoundsResizable, {.min_w = 20.0f, .min_h = 20.0f});
 	ecs_set(world, mouse, Position2, {0.0f, 20.0f});

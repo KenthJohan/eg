@@ -94,7 +94,7 @@ void Resizable_test_flow_shrink_to_min_does_not_expand_next_sibling(void)
 {
 	ecs_entity_t parent = ecs_new(world);
 	ecs_set(world, parent, EgShapesRectangle, {.w = 200.0f, .h = 100.0f});
-	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirectionRight, .wrap = EgUiDirectionDown});
+	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirRight, .wrap = EgUiDirDown});
 	ecs_set(world, parent, Position2, {0.0f, 0.0f});
 	ecs_set(world, parent, Rotation2, {0.0f});
 	ecs_set(world, parent, Scale2, {1.0f, 1.0f});

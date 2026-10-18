@@ -5,7 +5,7 @@
 #include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgUiFlowsFlow);
-ECS_COMPONENT_DECLARE(EgUiDirection);
+ECS_COMPONENT_DECLARE(EgUiDir);
 ECS_TAG_DECLARE(EgUiFlowsFlowUnplaced);
 
 #define EG_UI_FLOWS_LAYOUT_EPSILON 1e-4f
@@ -60,22 +60,22 @@ EgShapesRectangle const *child)
 	return pos;
 }
 
-static bool EgUiFlowsFlow_GetAxis(EgUiDirection direction, int *axis, float *sign)
+static bool EgUiFlowsFlow_GetAxis(EgUiDir direction, int *axis, float *sign)
 {
 	switch (direction) {
-	case EgUiDirectionRight:
+	case EgUiDirRight:
 		*axis = 0;
 		*sign = 1.0f;
 		return true;
-	case EgUiDirectionLeft:
+	case EgUiDirLeft:
 		*axis = 0;
 		*sign = -1.0f;
 		return true;
-	case EgUiDirectionUp:
+	case EgUiDirUp:
 		*axis = 1;
 		*sign = 1.0f;
 		return true;
-	case EgUiDirectionDown:
+	case EgUiDirDown:
 		*axis = 1;
 		*sign = -1.0f;
 		return true;
@@ -198,26 +198,14 @@ void EgUiFlowsImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgUiFlows");
 
 	ECS_COMPONENT_DEFINE(world, EgUiFlowsFlow);
-	ECS_COMPONENT_DEFINE(world, EgUiDirection);
 	ECS_TAG_DEFINE(world, EgUiFlowsFlowUnplaced);
-
-	ecs_enum_init(world,
-	&(ecs_enum_desc_t){
-	.entity    = ecs_id(EgUiDirection),
-	.constants = {
-	{.name = "None", .value = EgUiDirectionNone},
-	{.name = "Right", .value = EgUiDirectionRight},
-	{.name = "Left", .value = EgUiDirectionLeft},
-	{.name = "Up", .value = EgUiDirectionUp},
-	{.name = "Down", .value = EgUiDirectionDown},
-	}});
 
 	ecs_struct_init(world,
 	&(ecs_struct_desc_t){
 	.entity  = ecs_id(EgUiFlowsFlow),
 	.members = {
-	{.name = "direction", .type = ecs_id(EgUiDirection)},
-	{.name = "wrap", .type = ecs_id(EgUiDirection)},
+	{.name = "direction", .type = ecs_id(EgUiDir)},
+	{.name = "wrap", .type = ecs_id(EgUiDir)},
 	{.name = "cursor_primary", .type = ecs_id(ecs_f32_t)},
 	{.name = "cursor_wrap", .type = ecs_id(ecs_f32_t)},
 	{.name = "line_wrap_extent", .type = ecs_id(ecs_f32_t)},
