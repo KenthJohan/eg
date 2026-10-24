@@ -7,7 +7,6 @@
 #include "EgUi/EgUiFreeforms.h"
 
 ECS_COMPONENT_DECLARE(EgUiFreeformsLayout);
-ECS_COMPONENT_DECLARE(EgUiAt);
 ECS_COMPONENT_DECLARE(EgUiFreeformsAnchor);
 
 static void EgUiAt_Dir(EgUiAt kind, float *x, float *y)

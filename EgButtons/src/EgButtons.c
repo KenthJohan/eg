@@ -44,7 +44,7 @@ static void System_Toggle(ecs_iter_t *it)
 			continue;
 		}
 		printf("toggle(%s,%s)\n", ecs_get_name(it->world, a->entity), ecs_get_name(it->world, a->toggle));
-		ecsx_toggle(it->world, a->entity, a->relation, a->toggle);
+		ecsx_toggle(it->stage, a->entity, a->relation, a->toggle);
 	}
 	ecs_log_set_level(0);
 }

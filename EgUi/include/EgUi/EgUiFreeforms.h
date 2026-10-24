@@ -16,7 +16,6 @@ typedef struct {
 } EgUiFreeformsAnchor;
 
 extern ECS_COMPONENT_DECLARE(EgUiFreeformsLayout);
-extern ECS_COMPONENT_DECLARE(EgUiAt);
 extern ECS_COMPONENT_DECLARE(EgUiFreeformsAnchor);
 
 void EgUiFreeformsImport(ecs_world_t *world);

@@ -64,7 +64,7 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 		.group_by = EcsChildOf,
 		});
 
-		ecs_set(it->world, it->entities[i], EgWindowsOpenGLContext,
+		ecs_set(it->stage, it->entities[i], EgWindowsOpenGLContext,
 		{
 		.gl_context    = context,
 		.gl_version    = gl_version,

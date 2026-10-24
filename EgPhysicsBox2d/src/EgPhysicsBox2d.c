@@ -18,7 +18,7 @@ static void b2WorldId_Create(ecs_iter_t *it)
 		b2WorldDef worldDef = b2DefaultWorldDef();
 		worldDef.gravity    = (b2Vec2){def->gravity_x, def->gravity_y};
 		b2WorldId bw        = b2CreateWorld(&worldDef);
-		ecs_set_ptr(it->world, it->entities[i], b2WorldId, &bw);
+		ecs_set_ptr(it->stage, it->entities[i], b2WorldId, &bw);
 	}
 	ecs_log_set_level(-1);
 }
@@ -35,7 +35,7 @@ static void b2BodyId_Create(ecs_iter_t *it)
 		body_def.position  = (b2Pos){x->matrix.c2[0], x->matrix.c2[1]};
 		body_def.userData  = (void *)(uintptr_t)it->entities[i]; // Use the ECS entity as user data
 		b2BodyId body      = b2CreateBody(bw[0], &body_def);
-		ecs_set_ptr(it->world, it->entities[i], b2BodyId, &body);
+		ecs_set_ptr(it->stage, it->entities[i], b2BodyId, &body);
 	}
 	ecs_log_set_level(-1);
 }
@@ -62,7 +62,7 @@ static void b2ShapeId_Create(ecs_iter_t *it)
 		shape_def.density           = def->density;
 		shape_def.material.friction = def->friction;
 		b2ShapeId shape             = b2CreatePolygonShape(body[0], &shape_def, &poly);
-		ecs_set_ptr(it->world, it->entities[i], b2ShapeId, &shape);
+		ecs_set_ptr(it->stage, it->entities[i], b2ShapeId, &shape);
 	}
 	ecs_log_set_level(-1);
 }
@@ -89,7 +89,7 @@ static void b2JointId_Create(ecs_iter_t *it)
 		jointDef.maxSpringForce = 100.0f * mg;
 
 		b2JointId joint = b2CreateMotorJoint(bw[0], &jointDef);
-		ecs_set_ptr(it->world, it->entities[i], b2JointId, &joint);
+		ecs_set_ptr(it->stage, it->entities[i], b2JointId, &joint);
 	}
 	ecs_log_set_level(-1);
 }

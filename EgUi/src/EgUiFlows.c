@@ -1,11 +1,9 @@
-#include "EgUi.h"
-
+#include "EgUi/EgUiFlows.h"
 #include <EgShapes.h>
 #include <EgSpatials.h>
 #include <ecsx.h>
 
 ECS_COMPONENT_DECLARE(EgUiFlowsFlow);
-ECS_COMPONENT_DECLARE(EgUiDir);
 ECS_TAG_DECLARE(EgUiFlowsFlowUnplaced);
 
 #define EG_UI_FLOWS_LAYOUT_EPSILON 1e-4f

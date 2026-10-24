@@ -20,7 +20,7 @@ static void EgUiButtonsButton_Update(ecs_iter_t *it)
 		bool held  = !!(EgButtonsState_get(s, b->key) & EG_BUTTONS_STATE_HELD);
 		b->hovered = EG_INTERSECTS_RECTANGLE_BORDER_IS_INSIDE(*r);
 		b->held    = (b->held && held) || (b->hovered && held);
-		ecs_modified_id(it->world, it->entities[i], ecs_id(EgUiButtonsButton));
+		ecs_modified_id(it->stage, it->entities[i], ecs_id(EgUiButtonsButton));
 	}
 }
 
@@ -70,7 +70,7 @@ static void EgUiButtonsBorder_Update(ecs_iter_t *it)
 		if ((hover != b->hover) || (grab != b->grab)) {
 			b->hover = hover;
 			b->grab  = grab;
-			ecs_modified_id(it->world, e, ecs_id(EgUiButtonsBorderButton));
+			ecs_modified_id(it->stage, e, ecs_id(EgUiButtonsBorderButton));
 		}
 	}
 }

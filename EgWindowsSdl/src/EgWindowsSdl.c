@@ -59,7 +59,7 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 			// Map the SDL_WindowID to the ecs_entity_t:
 			SDL_WindowID id = SDL_GetWindowID(window);
 			ecs_map_insert(&static_window_map, id, e);
-			ecs_set(world, e, EgWindowsWindow, {.object = window});
+			ecs_set(it->stage, e, EgWindowsWindow, {.object = window});
 			ecs_trace("SDL_CreateWindowWithProperties() -> %p", window);
 		}
 		ecs_log_pop_1();
@@ -293,15 +293,18 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	{.name = "dummy", .type = ecs_id(ecs_i32_t)},
 	}});
 
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "System_EgWindowsWindow_Create"}),
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "System_EgWindowsWindow_Create"}),
 	.phase       = EcsOnUpdate,
+	.immediate   = true,
 	.callback    = System_EgWindowsWindow_Create,
 	.query.terms = {
 	{.id = ecs_id(EgWindowsWindowCreateInfo), .src.id = EcsSelf},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf},
 	{.id = ecs_id(EgWindowsWindow), .oper = EcsNot}, // Adds this
-	}});
+	},
+	});
 
 	ecs_system(world,
 	{.entity     = ecs_entity(world, {.name = "System_EgWindowsWindow_Rectangle"}),
