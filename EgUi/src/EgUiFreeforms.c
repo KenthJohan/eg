@@ -43,7 +43,6 @@ void EgUiFreeformsImport(ecs_world_t *world)
 {
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
-	ECS_IMPORT(world, EgUiFlows);
 
 	ECS_MODULE(world, EgUiFreeforms);
 	ecs_set_name_prefix(world, "EgUiFreeforms");
@@ -83,6 +82,5 @@ void EgUiFreeformsImport(ecs_world_t *world)
 	{.id = ecs_id(Scale2), .inout = EcsIn},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
-	{.id = ecs_id(EgUiFlowsFlow), .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	}});
 }

@@ -39,7 +39,7 @@
 			"teardown": true,
 			"testcases": [
 				"test_anchor_positions_child_from_parent_pivot",
-				"test_flow_parent_does_not_apply_freeform_anchor",
+				"test_anchored_child_of_flow_is_not_flowed",
 				"test_resizing_anchored_child_rebuilds_position"
 			]
 		}, {

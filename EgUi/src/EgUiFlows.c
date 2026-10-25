@@ -1,4 +1,5 @@
 #include "EgUi/EgUiFlows.h"
+#include "EgUi/EgUiFreeforms.h"
 #include <EgShapes.h>
 #include <EgSpatials.h>
 #include <ecsx.h>
@@ -191,6 +192,7 @@ void EgUiFlowsImport(ecs_world_t *world)
 {
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
+	ECS_IMPORT(world, EgUiFreeforms);
 
 	ECS_MODULE(world, EgUiFlows);
 	ecs_set_name_prefix(world, "EgUiFlows");
@@ -226,12 +228,15 @@ void EgUiFlowsImport(ecs_world_t *world)
 	.phase       = EcsOnUpdate,
 	.callback    = EgUiFlowsFlow_Update,
 	.query.terms = {
-	{.id = ecs_id(EgUiFlowsFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
-	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgUiFlowsFlow), .src = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOut},
+	{.id = ecs_id(EgShapesRectangle), .src = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsIn},
 	{.id = ecs_id(Position2), .inout = EcsOut},
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	{.id = ecs_id(EgUiFlowsFlowUnplaced), .oper = EcsOptional},
 	{.id = EcsDisabled, .oper = EcsOptional},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	// Anchored children (such as resize strips) are placed by their anchor
+	{.id = ecs_id(EgUiFreeformsAnchor), .oper = EcsNot},
+	{.first.id = EcsChildOf, .second = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOutNone},
 	}});
 }

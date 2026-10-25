@@ -29,7 +29,7 @@ void MouseHitTesting_test_disabled_ancestor_clears_hover(void);
 void FreeformLayout_setup(void);
 void FreeformLayout_teardown(void);
 void FreeformLayout_test_anchor_positions_child_from_parent_pivot(void);
-void FreeformLayout_test_flow_parent_does_not_apply_freeform_anchor(void);
+void FreeformLayout_test_anchored_child_of_flow_is_not_flowed(void);
 void FreeformLayout_test_resizing_anchored_child_rebuilds_position(void);
 
 // Testsuite 'Resizable'
@@ -88,8 +88,8 @@ bake_test_case FreeformLayout_testcases[] = {
         FreeformLayout_test_anchor_positions_child_from_parent_pivot
     },
     {
-        "test_flow_parent_does_not_apply_freeform_anchor",
-        FreeformLayout_test_flow_parent_does_not_apply_freeform_anchor
+        "test_anchored_child_of_flow_is_not_flowed",
+        FreeformLayout_test_anchored_child_of_flow_is_not_flowed
     },
     {
         "test_resizing_anchored_child_rebuilds_position",
