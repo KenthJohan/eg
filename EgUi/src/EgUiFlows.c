@@ -122,7 +122,7 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 	float primary_sign;
 	int   wrap_axis = 0;
 	float wrap_sign = 0.0f;
-	
+
 	if (!EgUiFlowsFlow_GetAxis(flow->direction, &primary_axis, &primary_sign)) {
 		for (int i = 0; i < it->count; ++i) {
 			if (ecs_has_id(it->world, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced))) {

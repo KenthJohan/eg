@@ -30,9 +30,9 @@ static ecs_entity_t EgUiScriptEvents_PickTarget(ecs_world_t *world, ecs_query_t 
 	ecs_iter_t  *it         = &qit;
 	while (ecs_query_next(it)) {
 		EgUiLocalMousePosition const *l = ecs_field_self(it, EgUiLocalMousePosition, 1);
-		Position2 const             *p = ecs_field_shared(it, Position2, 2);
-		ctx->screen_x                        = p->x;
-		ctx->screen_y                        = p->y;
+		Position2 const              *p = ecs_field_shared(it, Position2, 2);
+		ctx->screen_x                   = p->x;
+		ctx->screen_y                   = p->y;
 		for (int32_t i = 0; i < it->count; ++i) {
 			if (!l[i].inside) {
 				continue;
@@ -96,7 +96,7 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 	}
 
 	// Entities get the event in their own local space, then it propagates to the ancestors.
-	for (ecs_entity_t t = target;; ) {
+	for (ecs_entity_t t = target;;) {
 		if (t) {
 			EgUiLocalMousePosition const *l = ecs_get(w, t, EgUiLocalMousePosition);
 			e.local_x                       = l ? l->x : 0.0f;
@@ -144,13 +144,13 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 	// Runs every frame (not only on hits) so leave and release reach the script.
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-	.entity        = ecs_entity(world, {.name = "EgUiScriptEvents_Emit"}),
-	.phase         = EcsPreStore,
-	.callback      = EgUiScriptEvents_Emit,
-	.immediate     = true,
-	.ctx           = ctx,
-	.ctx_free      = EgUiScriptEventsContext_Free,
-	.query.terms   = {
+	.entity      = ecs_entity(world, {.name = "EgUiScriptEvents_Emit"}),
+	.phase       = EcsPreStore,
+	.callback    = EgUiScriptEvents_Emit,
+	.immediate   = true,
+	.ctx         = ctx,
+	.ctx_free    = EgUiScriptEventsContext_Free,
+	.query.terms = {
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsIn},
 	}});
 }
