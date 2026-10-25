@@ -2,7 +2,13 @@
 
 #include <flecs.h>
 
-#include "EgUi/EgUiButtons.h"
+
+enum {
+	EG_UI_EDGE_LEFT   = 1,
+	EG_UI_EDGE_RIGHT  = 2,
+	EG_UI_EDGE_BOTTOM = 4,
+	EG_UI_EDGE_TOP    = 8,
+};
 
 typedef struct {
 	float   min_w;

@@ -1,7 +1,6 @@
 #include "EgUi.h"
 
 #include <EgButtons.h>
-#include <EgIntersects.h>
 #include <ecsx.h>
 #include <math.h>
 
@@ -198,9 +197,7 @@ void EgUiBoundsImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgButtons);
-	ECS_IMPORT(world, EgIntersects);
 	ECS_IMPORT(world, EgUiLocalMouse);
-	ECS_IMPORT(world, EgUiButtons);
 	ECS_IMPORT(world, EgUiFlows);
 	ECS_IMPORT(world, EgUiFreeforms);
 

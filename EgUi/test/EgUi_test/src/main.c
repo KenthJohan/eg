@@ -20,7 +20,7 @@ void FlowLayout_test_manually_disabled_child_stays_disabled(void);
 void MouseHitTesting_setup(void);
 void MouseHitTesting_teardown(void);
 void MouseHitTesting_test_axis_aligned_hit_and_clear(void);
-void MouseHitTesting_test_rectangle_border_inside_macro(void);
+void MouseHitTesting_test_local_mouse_inside_flag(void);
 void MouseHitTesting_test_rotated_scaled_hit(void);
 void MouseHitTesting_test_overlapping_rectangles_all_hover(void);
 void MouseHitTesting_test_disabled_ancestor_clears_hover(void);
@@ -65,8 +65,8 @@ bake_test_case MouseHitTesting_testcases[] = {
         MouseHitTesting_test_axis_aligned_hit_and_clear
     },
     {
-        "test_rectangle_border_inside_macro",
-        MouseHitTesting_test_rectangle_border_inside_macro
+        "test_local_mouse_inside_flag",
+        MouseHitTesting_test_local_mouse_inside_flag
     },
     {
         "test_rotated_scaled_hit",

@@ -1,6 +1,5 @@
 #include <bake_test.h>
 #include <EgButtons.h>
-#include <EgIntersects.h>
 #include <EgShapes.h>
 #include <EgSpatials.h>
 #include <EgUi.h>
@@ -18,7 +17,7 @@ void MouseHitTesting_setup(void)
 
 static bool is_hovered(ecs_entity_t e)
 {
-	return ecs_get(world, e, EgUiButtonsButton)->hovered;
+	return ecs_get(world, e, EgUiLocalMousePosition)->inside;
 }
 
 void MouseHitTesting_teardown(void)
@@ -41,8 +40,7 @@ float basis_xy, float basis_yy)
 {
 	ecs_entity_t rect = ecs_new_w_pair(world, EcsChildOf, root);
 	ecs_add_pair(world, rect, EgUiMouse, mouse);
-	ecs_set(world, rect, EgUiButtonsButton, {0});
-	ecs_set(world, rect, EgIntersectsRectangleBorder, {0});
+	ecs_set(world, rect, EgUiLocalMousePosition, {0});
 	ecs_set(world, rect, EgShapesRectangle, {.w = w, .h = h});
 	ecs_set(world, rect, WorldTransform3, {.matrix = {{basis_xx, basis_xy, 0.0f}, {basis_yx, basis_yy, 0.0f}, {center_x, center_y, 1.0f}}});
 	return rect;
@@ -68,7 +66,7 @@ void MouseHitTesting_test_axis_aligned_hit_and_clear(void)
 	test_assert(is_hovered(rect));
 }
 
-void MouseHitTesting_test_rectangle_border_inside_macro(void)
+void MouseHitTesting_test_local_mouse_inside_flag(void)
 {
 	ecs_entity_t mouse;
 	ecs_entity_t root = make_root(&mouse);
@@ -77,25 +75,18 @@ void MouseHitTesting_test_rectangle_border_inside_macro(void)
 	ecs_set(world, mouse, Position2, {11.0f, 20.5f});
 
 	ecs_progress(world, 0.0f);
-	EgIntersectsRectangleBorder const *border = ecs_get(world, rect, EgIntersectsRectangleBorder);
-	test_assert(fabsf(border->left - 3.0f) < 1e-4f);
-	test_assert(fabsf(border->right - 1.0f) < 1e-4f);
-	test_assert(fabsf(border->bottom - 1.5f) < 1e-4f);
-	test_assert(fabsf(border->top - 0.5f) < 1e-4f);
-	test_assert(fabsf(border->minimum - 0.5f) < 1e-4f);
-	test_assert(EG_INTERSECTS_RECTANGLE_BORDER_IS_INSIDE(*border));
+	EgUiLocalMousePosition const *l = ecs_get(world, rect, EgUiLocalMousePosition);
+	test_assert(fabsf(l->x - 1.0f) < 1e-4f);
+	test_assert(fabsf(l->y - 0.5f) < 1e-4f);
+	test_assert(l->inside);
 
 	ecs_set(world, mouse, Position2, {12.0f, 21.0f});
 	ecs_progress(world, 0.0f);
-	border = ecs_get(world, rect, EgIntersectsRectangleBorder);
-	test_assert(fabsf(border->minimum) < 1e-4f);
-	test_assert(EG_INTERSECTS_RECTANGLE_BORDER_IS_INSIDE(*border));
+	test_assert(ecs_get(world, rect, EgUiLocalMousePosition)->inside);
 
 	ecs_set(world, mouse, Position2, {12.01f, 21.0f});
 	ecs_progress(world, 0.0f);
-	border = ecs_get(world, rect, EgIntersectsRectangleBorder);
-	test_assert(fabsf(border->minimum + 0.01f) < 1e-4f);
-	test_assert(!EG_INTERSECTS_RECTANGLE_BORDER_IS_INSIDE(*border));
+	test_assert(!ecs_get(world, rect, EgUiLocalMousePosition)->inside);
 }
 
 void MouseHitTesting_test_rotated_scaled_hit(void)

@@ -1,6 +1,5 @@
 #include <bake_test.h>
 #include <EgButtons.h>
-#include <EgIntersects.h>
 #include <EgShapes.h>
 #include <EgSpatials.h>
 #include <EgUi.h>
@@ -37,7 +36,6 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 	ecs_entity_t child     = ecs_new_w_pair(world, EcsChildOf, parent);
 	ecs_add_pair(world, child, EgUiMouse, mouse);
 	ecs_set(world, child, EgShapesRectangle, {.w = 80.0f, .h = 40.0f});
-	ecs_set(world, child, EgIntersectsRectangleBorder, {0});
 	ecs_set(world, child, Position2, {0.0f, 0.0f});
 	ecs_set(world, child, Rotation2, {0.0f});
 	ecs_set(world, child, Scale2, {1.0f, 1.0f});
@@ -84,7 +82,6 @@ static ecs_entity_t make_flow_resizable(ecs_entity_t parent, float w, float h)
 	ecs_entity_t e = ecs_new_w_pair(world, EcsChildOf, parent);
 	ecs_add_pair(world, e, EgUiMouse, mouse);
 	ecs_set(world, e, EgShapesRectangle, {.w = w, .h = h});
-	ecs_set(world, e, EgIntersectsRectangleBorder, {0});
 	ecs_set(world, e, Position2, {0.0f, 0.0f});
 	ecs_set(world, e, Rotation2, {0.0f});
 	ecs_set(world, e, Scale2, {1.0f, 1.0f});

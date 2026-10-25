@@ -3,7 +3,6 @@
 #include <EgUi.h>
 
 #include <EgButtons.h>
-#include <EgIntersects.h>
 #include <EgSpatials.h>
 #include <ecsx.h>
 
@@ -30,12 +29,12 @@ static ecs_entity_t EgUiScriptEvents_PickTarget(ecs_world_t *world, ecs_query_t 
 	ecs_iter_t   qit        = ecs_query_iter(world, query);
 	ecs_iter_t  *it         = &qit;
 	while (ecs_query_next(it)) {
-		EgIntersectsRectangleBorder const *b = ecs_field_self(it, EgIntersectsRectangleBorder, 1);
-		Position2 const                   *p = ecs_field_shared(it, Position2, 3);
+		EgUiLocalMousePosition const *l = ecs_field_self(it, EgUiLocalMousePosition, 1);
+		Position2 const             *p = ecs_field_shared(it, Position2, 2);
 		ctx->screen_x                        = p->x;
 		ctx->screen_y                        = p->y;
 		for (int32_t i = 0; i < it->count; ++i) {
-			if (!EG_INTERSECTS_RECTANGLE_BORDER_IS_INSIDE(b[i])) {
+			if (!l[i].inside) {
 				continue;
 			}
 			int32_t depth = ecs_get_depth(world, it->entities[i], EcsChildOf);
@@ -125,7 +124,6 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 {
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgButtons);
-	ECS_IMPORT(world, EgIntersects);
 	ECS_IMPORT(world, EgUiLocalMouse);
 	ECS_IMPORT(world, FlecsScriptEvent);
 
@@ -138,7 +136,6 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 	ctx->targets                 = ecs_query(world,
 	{.terms = {
 	 {.id = EgUiScriptEventsTarget},
-	 {.id = ecs_id(EgIntersectsRectangleBorder), .src.id = EcsSelf, .inout = EcsIn},
 	 {.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
 	 {.id = ecs_id(Position2), .trav = EgUiMouse, .src.id = EcsUp, .inout = EcsIn},
 	 {.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
