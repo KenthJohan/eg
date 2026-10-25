@@ -36,7 +36,8 @@ void FreeformLayout_test_resizing_anchored_child_rebuilds_position(void);
 void Resizable_setup(void);
 void Resizable_teardown(void);
 void Resizable_test_right_edge_stops_at_parent_boundary(void);
-void Resizable_test_disabled_entity_cancels_drag(void);
+void Resizable_test_request_is_cleared_after_use(void);
+void Resizable_test_disabled_entity_request_is_cleared(void);
 void Resizable_test_flow_shrink_to_min_does_not_expand_next_sibling(void);
 
 bake_test_case FlowLayout_testcases[] = {
@@ -102,8 +103,12 @@ bake_test_case Resizable_testcases[] = {
         Resizable_test_right_edge_stops_at_parent_boundary
     },
     {
-        "test_disabled_entity_cancels_drag",
-        Resizable_test_disabled_entity_cancels_drag
+        "test_request_is_cleared_after_use",
+        Resizable_test_request_is_cleared_after_use
+    },
+    {
+        "test_disabled_entity_request_is_cleared",
+        Resizable_test_disabled_entity_request_is_cleared
     },
     {
         "test_flow_shrink_to_min_does_not_expand_next_sibling",
@@ -137,7 +142,7 @@ static bake_test_suite suites[] = {
         "Resizable",
         Resizable_setup,
         Resizable_teardown,
-        3,
+        4,
         Resizable_testcases
     }
 };

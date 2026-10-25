@@ -7,17 +7,18 @@
 typedef struct {
 	float   min_w;
 	float   min_h;
-	uint8_t edge; // Edges grabbed at drag start; zero when not dragging
-	float   offset_x;
-	float   offset_y;
 } EgUiBoundsResizable;
 
-// Requested outward growth per edge (negative shrinks); consumers decide whether and how much to honor.
+// One-shot request to move edges to absolute positions in the entity's local space (the space of its
+// Rectangle, origin at the center). Only edges set in `edges` (EG_UI_EDGE_* mask) are read; consumers
+// decide whether and how much to honor. Producers write it, EgUiBoundsEdgeRequest_Reset clears it
+// after the Apply systems ran.
 typedef struct {
-	float left;
-	float right;
-	float bottom;
-	float top;
+	uint32_t edges;
+	float    left;
+	float    right;
+	float    bottom;
+	float    top;
 } EgUiBoundsEdgeRequest;
 
 extern ECS_COMPONENT_DECLARE(EgUiBoundsResizable);

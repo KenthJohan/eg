@@ -42,11 +42,10 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 	ecs_set(world, child, Rotation2, {0.0f});
 	ecs_set(world, child, Scale2, {1.0f, 1.0f});
 	ecs_set(world, child, WorldTransform3, {.matrix = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}});
-	ecs_set(world, child, EgUiButtonsBorder, {.key = MOUSE_LEFT_KEY, .margin = 5.0f});
 	ecs_set(world, child, EgUiBoundsResizable, {.min_w = 20.0f, .min_h = 10.0f});
 
 	ecs_progress(world, 0.0f);
-	ecs_set(world, mouse, Position2, {60.0f, 0.0f});
+	ecs_set(world, child, EgUiBoundsEdgeRequest, {.edges = EG_UI_EDGE_RIGHT, .right = 60.0f});
 	ecs_progress(world, 0.0f);
 
 	const EgShapesRectangle *rect = ecs_get(world, child, EgShapesRectangle);
@@ -55,16 +54,29 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 	test_assert(fabsf(pos->x - 5.0f) < EPSILON);
 }
 
-void Resizable_test_disabled_entity_cancels_drag(void)
+void Resizable_test_request_is_cleared_after_use(void)
 {
 	ecs_entity_t child = ecs_new(world);
-	ecs_set(world, child, EgUiBoundsResizable, {.edge = EG_UI_EDGE_RIGHT});
+	ecs_set(world, child, EgUiBoundsResizable, {.min_w = 20.0f, .min_h = 10.0f});
+	ecs_set(world, child, EgUiBoundsEdgeRequest, {.edges = EG_UI_EDGE_RIGHT | EG_UI_EDGE_TOP, .right = 5.0f, .top = 3.0f});
+
+	ecs_progress(world, 0.0f);
+
+	const EgUiBoundsEdgeRequest *req = ecs_get(world, child, EgUiBoundsEdgeRequest);
+	test_assert(req->edges == 0 && req->left == 0.0f && req->right == 0.0f && req->bottom == 0.0f && req->top == 0.0f);
+}
+
+void Resizable_test_disabled_entity_request_is_cleared(void)
+{
+	ecs_entity_t child = ecs_new(world);
+	ecs_set(world, child, EgUiBoundsResizable, {.min_w = 20.0f, .min_h = 10.0f});
+	ecs_set(world, child, EgUiBoundsEdgeRequest, {.edges = EG_UI_EDGE_RIGHT, .right = 5.0f});
 	ecs_enable(world, child, false);
 
 	ecs_progress(world, 0.0f);
 
-	const EgUiBoundsResizable *resizable = ecs_get(world, child, EgUiBoundsResizable);
-	test_assert(resizable->edge == 0);
+	const EgUiBoundsEdgeRequest *req = ecs_get(world, child, EgUiBoundsEdgeRequest);
+	test_assert(req->edges == 0 && req->right == 0.0f);
 }
 
 static ecs_entity_t make_flow_resizable(ecs_entity_t parent, float w, float h)
@@ -77,7 +89,6 @@ static ecs_entity_t make_flow_resizable(ecs_entity_t parent, float w, float h)
 	ecs_set(world, e, Rotation2, {0.0f});
 	ecs_set(world, e, Scale2, {1.0f, 1.0f});
 	ecs_set(world, e, WorldTransform3, {.matrix = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}});
-	ecs_set(world, e, EgUiButtonsBorder, {.key = MOUSE_LEFT_KEY, .margin = 5.0f});
 	ecs_set(world, e, EgUiBoundsResizable, {.min_w = 20.0f, .min_h = 10.0f});
 	return e;
 }
@@ -102,17 +113,12 @@ void Resizable_test_flow_shrink_to_min_does_not_expand_next_sibling(void)
 	ecs_entity_t a = make_flow_resizable(parent, 40.0f, 40.0f);
 	ecs_entity_t b = make_flow_resizable(parent, 60.0f, 30.0f);
 
-	// A spans x -100..-60 in the flow; grab its right edge, then drag left past A's minimum width.
+	// A spans x -100..-60 in the flow; shrink its right edge well past its minimum width.
 	ecs_progress(world, 0.0f);
 	sync_world_transform(a);
 	sync_world_transform(b);
-	ecs_set(world, mouse, Position2, {-60.0f, 30.0f});
-	ecs_singleton_set(world, EgButtonsState, {.mouse = {[1] = EG_BUTTONS_STATE_HELD | EG_BUTTONS_STATE_PRESSED}});
-	ecs_progress(world, 0.0f);
-	ecs_progress(world, 0.0f);
-	ecs_singleton_set(world, EgButtonsState, {.mouse = {[1] = EG_BUTTONS_STATE_HELD}});
 	for (int i = 0; i < 12; ++i) {
-		ecs_set(world, mouse, Position2, {-60.0f - 5.0f * (float)(i + 1), 30.0f});
+		ecs_set(world, a, EgUiBoundsEdgeRequest, {.edges = EG_UI_EDGE_RIGHT, .right = -100.0f});
 		sync_world_transform(a);
 		sync_world_transform(b);
 		ecs_progress(world, 0.0f);
@@ -123,3 +129,4 @@ void Resizable_test_flow_shrink_to_min_does_not_expand_next_sibling(void)
 	test_assert(fabsf(ra->w - 20.0f) < EPSILON);
 	test_assert(fabsf(rb->w - 60.0f) < EPSILON);
 }
+

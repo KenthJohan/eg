@@ -48,7 +48,8 @@
 			"teardown": true,
 			"testcases": [
 				"test_right_edge_stops_at_parent_boundary",
-				"test_disabled_entity_cancels_drag",
+				"test_request_is_cleared_after_use",
+				"test_disabled_entity_request_is_cleared",
 				"test_flow_shrink_to_min_does_not_expand_next_sibling"
 			]
 		}]

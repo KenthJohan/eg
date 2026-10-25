@@ -162,15 +162,15 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 
 		if (!EgUiFlows_ParentClearanceFits(clearance)) {
 			if (!flow_unplaced) {
-				ecs_add_id(it->world, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced));
-				ecs_enable(it->world, it->entities[i], false);
+				ecs_add_id(it->stage, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced));
+				ecs_enable(it->stage, it->entities[i], false);
 			}
 			continue;
 		}
 
 		if (flow_unplaced) {
-			ecs_remove_id(it->world, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced));
-			ecs_enable(it->world, it->entities[i], true);
+			ecs_remove_id(it->stage, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced));
+			ecs_enable(it->stage, it->entities[i], true);
 		}
 
 		child_positions[i] = candidate_pos;

@@ -17,6 +17,7 @@ ECS_TAG_DECLARE(EgUiScriptEventsTarget);
 typedef struct {
 	ecs_query_t *targets;
 	uint8_t      prev_mouse[EG_BUTTONS_MOUSE_MAX];
+	ecs_entity_t pressed;
 	float        screen_x;
 	float        screen_y;
 } EgUiScriptEventsContext;
@@ -55,6 +56,23 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 
 	ecs_entity_t target = EgUiScriptEvents_PickTarget(w, ctx->targets, ctx);
 
+	// Pointer capture: while a button is held the target stays the entity that received the press.
+	bool any_held  = false;
+	bool prev_held = false;
+	for (int32_t i = 1; i < EG_BUTTONS_MOUSE_MAX; ++i) {
+		any_held |= !!(s->mouse[i] & EG_BUTTONS_STATE_HELD);
+		prev_held |= !!(ctx->prev_mouse[i] & EG_BUTTONS_STATE_HELD);
+	}
+	if (any_held && !prev_held) {
+		ctx->pressed = target;
+	} else if (any_held && ctx->pressed && ecs_is_alive(w, ctx->pressed)) {
+		target = ctx->pressed;
+	} else if (!any_held) {
+		if (prev_held && ctx->pressed && ecs_is_alive(w, ctx->pressed)) {
+			target = ctx->pressed; // Release goes to the captured entity too
+		}
+		ctx->pressed = 0;
+	}
 	EcsScriptMouseEvent e = {
 	.target   = target,
 	.screen_x = ctx->screen_x,
