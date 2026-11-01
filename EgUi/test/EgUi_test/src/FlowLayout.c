@@ -70,6 +70,22 @@ void FlowLayout_test_none_direction_leaves_children_untouched(void)
 	assert_pos(a, 7.0f, 9.0f);
 }
 
+void FlowLayout_test_only_direct_children_are_laid_out(void)
+{
+	ecs_entity_t parent = ecs_new(world);
+	ecs_set(world, parent, EgShapesRectangle, {.w = 100, .h = 100});
+	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirRight, .wrap = EgUiDirDown});
+
+	ecs_entity_t child = make_child(parent, 40, 40);
+	ecs_entity_t grandchild = make_child(child, 20, 20);
+	ecs_set(world, grandchild, Position2, {7.0f, 9.0f});
+
+	ecs_progress(world, 0);
+
+	assert_pos(child, -30.0f, 30.0f);
+	assert_pos(grandchild, 7.0f, 9.0f);
+}
+
 void FlowLayout_test_oversized_child_is_skipped_and_retried(void)
 {
 	ecs_entity_t parent = ecs_new(world);

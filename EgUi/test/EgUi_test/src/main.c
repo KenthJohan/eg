@@ -13,6 +13,7 @@ void FlowLayout_setup(void);
 void FlowLayout_teardown(void);
 void FlowLayout_test_children_flow_right_then_wrap_down(void);
 void FlowLayout_test_none_direction_leaves_children_untouched(void);
+void FlowLayout_test_only_direct_children_are_laid_out(void);
 void FlowLayout_test_oversized_child_is_skipped_and_retried(void);
 void FlowLayout_test_manually_disabled_child_stays_disabled(void);
 
@@ -48,6 +49,10 @@ bake_test_case FlowLayout_testcases[] = {
     {
         "test_none_direction_leaves_children_untouched",
         FlowLayout_test_none_direction_leaves_children_untouched
+    },
+    {
+        "test_only_direct_children_are_laid_out",
+        FlowLayout_test_only_direct_children_are_laid_out
     },
     {
         "test_oversized_child_is_skipped_and_retried",
@@ -121,7 +126,7 @@ static bake_test_suite suites[] = {
         "FlowLayout",
         FlowLayout_setup,
         FlowLayout_teardown,
-        4,
+        5,
         FlowLayout_testcases
     },
     {

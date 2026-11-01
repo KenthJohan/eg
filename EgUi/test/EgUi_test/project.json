@@ -19,6 +19,7 @@
 			"testcases": [
 				"test_children_flow_right_then_wrap_down",
 				"test_none_direction_leaves_children_untouched",
+				"test_only_direct_children_are_laid_out",
 				"test_oversized_child_is_skipped_and_retried",
 				"test_manually_disabled_child_stays_disabled"
 			]
