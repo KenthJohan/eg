@@ -31,6 +31,15 @@ static ecs_entity_t make_child(ecs_entity_t parent, float w, float h)
 	return e;
 }
 
+static ecs_entity_t make_non_fragmenting_child(ecs_entity_t parent, float w, float h)
+{
+	ecs_entity_t e = ecs_new(world);
+	ecs_set(world, e, EcsParent, {.value = parent});
+	ecs_set(world, e, EgShapesRectangle, {.w = w, .h = h});
+	ecs_set(world, e, Position2, {0.0f, 0.0f});
+	return e;
+}
+
 static void assert_pos(ecs_entity_t e, float x, float y)
 {
 	const Position2 *p = ecs_get(world, e, Position2);
@@ -86,6 +95,21 @@ void FlowLayout_test_only_direct_children_are_laid_out(void)
 	assert_pos(grandchild, 7.0f, 9.0f);
 }
 
+void FlowLayout_test_non_fragmenting_children_are_laid_out(void)
+{
+	ecs_entity_t parent = ecs_new(world);
+	ecs_set(world, parent, EgShapesRectangle, {.w = 100, .h = 100});
+	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirRight, .wrap = EgUiDirDown});
+
+	ecs_entity_t a = make_non_fragmenting_child(parent, 40, 40);
+	ecs_entity_t b = make_non_fragmenting_child(parent, 40, 40);
+
+	ecs_progress(world, 0);
+
+	assert_pos(a, -30.0f, 30.0f);
+	assert_pos(b, 10.0f, 30.0f);
+}
+
 void FlowLayout_test_oversized_child_is_skipped_and_retried(void)
 {
 	ecs_entity_t parent = ecs_new(world);
@@ -119,4 +143,20 @@ void FlowLayout_test_manually_disabled_child_stays_disabled(void)
 	test_assert(ecs_has_id(world, disabled, EcsDisabled));
 	test_assert(!ecs_has_id(world, disabled, ecs_id(EgUiFlowsFlowUnplaced)));
 	assert_pos(visible, -30.0f, 30.0f);
+}
+
+void FlowLayout_test_disabled_ancestor_skips_flow(void)
+{
+	ecs_entity_t ancestor = ecs_new(world);
+	ecs_enable(world, ancestor, false);
+
+	ecs_entity_t parent = ecs_new(world);
+	ecs_add_pair(world, parent, EcsChildOf, ancestor);
+	ecs_set(world, parent, EgShapesRectangle, {.w = 100, .h = 100});
+	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirRight, .wrap = EgUiDirDown});
+	ecs_entity_t child = make_child(parent, 40, 40);
+
+	ecs_progress(world, 0);
+
+	assert_pos(child, 0.0f, 0.0f);
 }

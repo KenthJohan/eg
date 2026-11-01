@@ -105,14 +105,27 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 			flows[i].line_wrap_extent  = 0.0f;
 			flows[i].line_has_children = false;
 
-			ecs_iter_t children = ecs_query_iter(it->stage, children_query);
-			ecs_iter_set_group(&children, it->entities[i]);
-			while (ecs_query_next(&children)) {
-				for (int j = 0; j < children.count; ++j) {
-					ecs_entity_t child = children.entities[j];
-					if (ecs_has_id(it->world, child, ecs_id(EgUiFlowsFlowUnplaced))) {
-						ecs_remove_id(it->stage, child, ecs_id(EgUiFlowsFlowUnplaced));
-						ecs_enable(it->stage, child, true);
+			for (int group_index = 0; group_index < 2; ++group_index) {
+				uint64_t group = group_index == 0 ? it->entities[i] : 0;
+				if (group_index != 0) {
+					const ecs_query_group_info_t *group_info =
+					ecs_query_get_group_info(children_query, group);
+					if (group_info == NULL || group_info->table_count == 0) {
+						continue;
+					}
+				}
+				ecs_iter_t children = ecs_query_iter(it->stage, children_query);
+				ecs_iter_set_group(&children, group);
+				while (ecs_query_next(&children)) {
+					for (int j = 0; j < children.count; ++j) {
+						ecs_entity_t child = children.entities[j];
+						if (ecs_get_parent(it->world, child) != it->entities[i]) {
+							continue;
+						}
+						if (ecs_has_id(it->world, child, ecs_id(EgUiFlowsFlowUnplaced))) {
+							ecs_remove_id(it->stage, child, ecs_id(EgUiFlowsFlowUnplaced));
+							ecs_enable(it->stage, child, true);
+						}
 					}
 				}
 			}
@@ -127,63 +140,76 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 		float line_extent    = 0.0f;
 		bool  line_has_children = false;
 
-		ecs_iter_t children = ecs_query_iter(it->stage, children_query);
-		ecs_iter_set_group(&children, it->entities[i]);
-		while (ecs_query_next(&children)) {
-			Position2         *child_positions = ecs_field_w_size(&children, sizeof(Position2), 0);
-			EgShapesRectangle *child_rects     = ecs_field_w_size(&children, sizeof(EgShapesRectangle), 1);
-			for (int j = 0; j < children.count; ++j) {
-				ecs_entity_t child = children.entities[j];
-				bool flow_unplaced = ecs_has_id(it->world, child, ecs_id(EgUiFlowsFlowUnplaced));
-				if (ecs_has_id(it->world, child, EcsDisabled) && !flow_unplaced) {
+		for (int group_index = 0; group_index < 2; ++group_index) {
+			uint64_t group = group_index == 0 ? it->entities[i] : 0;
+			if (group_index != 0) {
+				const ecs_query_group_info_t *group_info =
+				ecs_query_get_group_info(children_query, group);
+				if (group_info == NULL || group_info->table_count == 0) {
 					continue;
 				}
-
-				float child_size[2] = {child_rects[j].w, child_rects[j].h};
-				float candidate_primary = cursor_primary;
-				float candidate_wrap = cursor_wrap;
-				float candidate_extent = line_extent;
-				bool candidate_has_children = line_has_children;
-				Position2 candidate_pos = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign,
-				wrap_axis, wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[j]);
-				EgUiParentClearance clearance = EgUiFlows_ParentClearanceCompute(
-				&bounds[i], candidate_pos, &child_rects[j]);
-
-				if (can_wrap && candidate_has_children &&
-				    EgUiFlowsFlow_PrimaryOverflows(clearance, primary_axis, primary_sign)) {
-					candidate_wrap += wrap_sign * candidate_extent;
-					candidate_primary = primary_sign > 0.0f ? -primary_limit : primary_limit;
-					candidate_extent = 0.0f;
-					candidate_has_children = false;
-					candidate_pos = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
-					wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[j]);
-					clearance = EgUiFlows_ParentClearanceCompute(
-					&bounds[i], candidate_pos, &child_rects[j]);
-				}
-
-				if (!EgUiFlows_ParentClearanceFits(clearance)) {
-					if (!flow_unplaced) {
-						ecs_add_id(it->stage, child, ecs_id(EgUiFlowsFlowUnplaced));
-						ecs_enable(it->stage, child, false);
+			}
+			ecs_iter_t children = ecs_query_iter(it->stage, children_query);
+			ecs_iter_set_group(&children, group);
+			while (ecs_query_next(&children)) {
+				Position2         *child_positions = ecs_field_w_size(&children, sizeof(Position2), 0);
+				EgShapesRectangle *child_rects     = ecs_field_w_size(&children, sizeof(EgShapesRectangle), 1);
+				for (int j = 0; j < children.count; ++j) {
+					ecs_entity_t child = children.entities[j];
+					if (ecs_get_parent(it->world, child) != it->entities[i]) {
+						continue;
 					}
-					continue;
-				}
+					bool flow_unplaced = ecs_has_id(it->world, child, ecs_id(EgUiFlowsFlowUnplaced));
+					if (ecs_has_id(it->world, child, EcsDisabled) && !flow_unplaced) {
+						continue;
+					}
 
-				if (flow_unplaced) {
-					ecs_remove_id(it->stage, child, ecs_id(EgUiFlowsFlowUnplaced));
-					ecs_enable(it->stage, child, true);
-				}
+					float child_size[2] = {child_rects[j].w, child_rects[j].h};
+					float candidate_primary = cursor_primary;
+					float candidate_wrap = cursor_wrap;
+					float candidate_extent = line_extent;
+					bool candidate_has_children = line_has_children;
+					Position2 candidate_pos = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign,
+					wrap_axis, wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[j]);
+					EgUiParentClearance clearance = EgUiFlows_ParentClearanceCompute(
+					&bounds[i], candidate_pos, &child_rects[j]);
 
-				child_positions[j] = candidate_pos;
-				candidate_primary += primary_sign * child_size[primary_axis];
-				if (can_wrap && child_size[wrap_axis] > candidate_extent) {
-					candidate_extent = child_size[wrap_axis];
-				}
+					if (can_wrap && candidate_has_children &&
+					    EgUiFlowsFlow_PrimaryOverflows(clearance, primary_axis, primary_sign)) {
+						candidate_wrap += wrap_sign * candidate_extent;
+						candidate_primary = primary_sign > 0.0f ? -primary_limit : primary_limit;
+						candidate_extent = 0.0f;
+						candidate_has_children = false;
+						candidate_pos = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
+						wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[j]);
+						clearance = EgUiFlows_ParentClearanceCompute(
+						&bounds[i], candidate_pos, &child_rects[j]);
+					}
 
-				cursor_primary = candidate_primary;
-				cursor_wrap = candidate_wrap;
-				line_extent = candidate_extent;
-				line_has_children = true;
+					if (!EgUiFlows_ParentClearanceFits(clearance)) {
+						if (!flow_unplaced) {
+							ecs_add_id(it->stage, child, ecs_id(EgUiFlowsFlowUnplaced));
+							ecs_enable(it->stage, child, false);
+						}
+						continue;
+					}
+
+					if (flow_unplaced) {
+						ecs_remove_id(it->stage, child, ecs_id(EgUiFlowsFlowUnplaced));
+						ecs_enable(it->stage, child, true);
+					}
+
+					child_positions[j] = candidate_pos;
+					candidate_primary += primary_sign * child_size[primary_axis];
+					if (can_wrap && child_size[wrap_axis] > candidate_extent) {
+						candidate_extent = child_size[wrap_axis];
+					}
+
+					cursor_primary = candidate_primary;
+					cursor_wrap = candidate_wrap;
+					line_extent = candidate_extent;
+					line_has_children = true;
+				}
 			}
 		}
 
@@ -228,7 +254,6 @@ void EgUiFlowsImport(ecs_world_t *world)
 			{ecs_childof(EcsWildcard), .inout = EcsInOutFilter},
 			{.id = ecs_id(EgUiFlowsFlowUnplaced), .oper = EcsOptional},
 			{.id = EcsDisabled, .oper = EcsOptional},
-			{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 			{.id = ecs_id(EgUiFreeformsAnchor), .oper = EcsNot},
 		},
 	});
@@ -246,5 +271,6 @@ void EgUiFlowsImport(ecs_world_t *world)
 		.query.terms = {
 			{.id = ecs_id(EgUiFlowsFlow), .src.id = EcsSelf, .inout = EcsInOut},
 			{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
+			{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 		}});
 }

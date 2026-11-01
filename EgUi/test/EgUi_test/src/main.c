@@ -14,8 +14,10 @@ void FlowLayout_teardown(void);
 void FlowLayout_test_children_flow_right_then_wrap_down(void);
 void FlowLayout_test_none_direction_leaves_children_untouched(void);
 void FlowLayout_test_only_direct_children_are_laid_out(void);
+void FlowLayout_test_non_fragmenting_children_are_laid_out(void);
 void FlowLayout_test_oversized_child_is_skipped_and_retried(void);
 void FlowLayout_test_manually_disabled_child_stays_disabled(void);
+void FlowLayout_test_disabled_ancestor_skips_flow(void);
 
 // Testsuite 'MouseHitTesting'
 void MouseHitTesting_setup(void);
@@ -55,12 +57,20 @@ bake_test_case FlowLayout_testcases[] = {
         FlowLayout_test_only_direct_children_are_laid_out
     },
     {
+        "test_non_fragmenting_children_are_laid_out",
+        FlowLayout_test_non_fragmenting_children_are_laid_out
+    },
+    {
         "test_oversized_child_is_skipped_and_retried",
         FlowLayout_test_oversized_child_is_skipped_and_retried
     },
     {
         "test_manually_disabled_child_stays_disabled",
         FlowLayout_test_manually_disabled_child_stays_disabled
+    },
+    {
+        "test_disabled_ancestor_skips_flow",
+        FlowLayout_test_disabled_ancestor_skips_flow
     }
 };
 
@@ -126,7 +136,7 @@ static bake_test_suite suites[] = {
         "FlowLayout",
         FlowLayout_setup,
         FlowLayout_teardown,
-        5,
+        7,
         FlowLayout_testcases
     },
     {
