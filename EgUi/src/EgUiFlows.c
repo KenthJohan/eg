@@ -117,6 +117,9 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 	EgShapesRectangle *parent_rect     = ecs_field_shared(it, EgShapesRectangle, 1);
 	Position2         *child_positions = ecs_field_self(it, Position2, 2);
 	EgShapesRectangle *child_rects     = ecs_field_self(it, EgShapesRectangle, 3);
+	// Up-traversal matches any ancestor; only direct children of the flow are laid out.
+	ecs_entity_t flow_src = ecs_field_src(it, 0);
+	ecs_entity_t rect_src = ecs_field_src(it, 1);
 
 	int   primary_axis;
 	float primary_sign;
@@ -125,6 +128,9 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 
 	if (!EgUiFlowsFlow_GetAxis(flow->direction, &primary_axis, &primary_sign)) {
 		for (int i = 0; i < it->count; ++i) {
+			if (ecs_get_parent(it->world, it->entities[i]) != flow_src) {
+				continue;
+			}
 			if (ecs_has_id(it->world, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced))) {
 				ecs_remove_id(it->world, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced));
 				ecs_enable(it->world, it->entities[i], true);
@@ -136,6 +142,10 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 	float primary_limit = (primary_axis == 0 ? parent_rect->w : parent_rect->h) * 0.5f;
 
 	for (int i = 0; i < it->count; ++i) {
+		ecs_entity_t parent = ecs_get_parent(it->world, it->entities[i]);
+		if (parent != flow_src || parent != rect_src) {
+			continue;
+		}
 		bool flow_unplaced = ecs_has_id(it->world, it->entities[i], ecs_id(EgUiFlowsFlowUnplaced));
 
 		if (ecs_has_id(it->world, it->entities[i], EcsDisabled) && !flow_unplaced) {
@@ -228,8 +238,8 @@ void EgUiFlowsImport(ecs_world_t *world)
 	.phase       = EcsOnUpdate,
 	.callback    = EgUiFlowsFlow_Update,
 	.query.terms = {
-	{.id = ecs_id(EgUiFlowsFlow), .src = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOut},
-	{.id = ecs_id(EgShapesRectangle), .src = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsIn},
+	{.id = ecs_id(EgUiFlowsFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOut},
+	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(Position2), .inout = EcsOut},
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
 	{.id = ecs_id(EgUiFlowsFlowUnplaced), .oper = EcsOptional},
@@ -237,6 +247,5 @@ void EgUiFlowsImport(ecs_world_t *world)
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	// Anchored children (such as resize strips) are placed by their anchor
 	{.id = ecs_id(EgUiFreeformsAnchor), .oper = EcsNot},
-	{.first.id = EcsChildOf, .second = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOutNone},
 	}});
 }

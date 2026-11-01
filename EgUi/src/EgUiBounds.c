@@ -120,7 +120,14 @@ static void EgUiBoundsResizable_ApplyFlow(ecs_iter_t *it)
 	EgUiFreeformsAnchor const   *anchor = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgUiFreeformsAnchor, 5) : NULL;
 	EgUiBoundsEdgeRequest const *req    = ecs_field_self(it, EgUiBoundsEdgeRequest, 6);
 	EgUiFlowsFlow const         *flow   = ecs_field(it, EgUiFlowsFlow, 4);
+	// Up-traversal matches any ancestor; only direct children of the flow are resized.
+	ecs_entity_t parent_src = ecs_field_src(it, 3);
+	ecs_entity_t flow_src   = ecs_field_src(it, 4);
 	for (int32_t i = 0; i < it->count; ++i) {
+		ecs_entity_t parent_entity = ecs_get_parent(it->world, it->entities[i]);
+		if (parent_entity != parent_src || parent_entity != flow_src) {
+			continue;
+		}
 		uint8_t edge;
 		float   dw, dh;
 		// Edges facing the flow origin touch the previous sibling; a grab there is shared with it
@@ -165,13 +172,20 @@ static void EgUiBoundsResizable_ApplyFreeforms(ecs_iter_t *it)
 	EgShapesRectangle const     *parent = ecs_field_is_set(it, 5) ? ecs_field_shared(it, EgShapesRectangle, 5) : NULL;
 	EgUiFreeformsAnchor const   *anchor = ecs_field_is_set(it, 7) ? ecs_field_self(it, EgUiFreeformsAnchor, 6) : NULL;
 	EgUiBoundsEdgeRequest const *req    = ecs_field_self(it, EgUiBoundsEdgeRequest, 7);
+	// Up-traversal matches any ancestor; only direct children of the layout are resized.
+	ecs_entity_t layout_src = ecs_field_src(it, 8);
+	ecs_entity_t parent_src = parent ? ecs_field_src(it, 5) : 0;
 	for (int32_t i = 0; i < it->count; ++i) {
+		ecs_entity_t parent_entity = ecs_get_parent(it->world, it->entities[i]);
+		if (parent_entity != layout_src) {
+			continue;
+		}
 		uint8_t edge;
 		float   dw, dh;
 		EgUiBounds_ResolveRequest(&z[i], &rect[i], anchor ? &anchor[i] : NULL, &req[i], &edge, &dw, &dh);
 		if (dw == 0.0f && dh == 0.0f)
 			continue;
-		if (parent)
+		if (parent && parent_src == parent_entity)
 			EgUiBounds_ClampToParent(parent, pos[i], &rect[i], anchor ? &anchor[i] : NULL, edge, &dw, &dh);
 
 		float sx = (edge & EG_UI_EDGE_RIGHT) ? 0.5f : (edge & EG_UI_EDGE_LEFT) ? -0.5f :
@@ -237,11 +251,10 @@ void EgUiBoundsImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .inout = EcsInOut},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
-	{.id = ecs_id(EgUiFlowsFlow), .src = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsIn},
+	{.id = ecs_id(EgUiFlowsFlow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgUiFreeformsAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	{.id = ecs_id(EgUiBoundsEdgeRequest), .inout = EcsIn},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
-	{.first.id = EcsChildOf, .second = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOutNone},
 	}});
 
 	ecs_system_init(world,
@@ -259,9 +272,8 @@ void EgUiBoundsImport(ecs_world_t *world)
 	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn, .oper = EcsOptional},
 	{.id = ecs_id(EgUiFreeformsAnchor), .src.id = EcsSelf, .inout = EcsIn, .oper = EcsOptional},
 	{.id = ecs_id(EgUiBoundsEdgeRequest), .inout = EcsIn},
-	{.id = ecs_id(EgUiFreeformsLayout), .src = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOutNone},
+	{.id = ecs_id(EgUiFreeformsLayout), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsInOutNone},
 	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
-	{.first.id = EcsChildOf, .second = {.id = EcsIsVariable, .name = "parent"}, .inout = EcsInOutNone},
 	}});
 
 	ecs_system_init(world,

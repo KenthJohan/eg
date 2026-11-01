@@ -103,7 +103,8 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 			e.local_y                       = l ? l->y : 0.0f;
 		}
 		e.target = t;
-		if (!ecs_script_mouse_event(w, &e) || !t) {
+		ecs_script_event_result_t r = ecs_script_mouse_event(w, &e);
+		if (r.stopped || !t) {
 			break;
 		}
 		t = ecs_get_parent(w, t);
@@ -125,7 +126,7 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgButtons);
 	ECS_IMPORT(world, EgUiLocalMouse);
-	ECS_IMPORT(world, FlecsScriptEvent);
+	ECS_IMPORT(world, FlecsScriptInput);
 
 	ECS_MODULE(world, EgUiScriptEvents);
 	ecs_set_name_prefix(world, "EgUiScriptEvents");
