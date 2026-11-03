@@ -78,7 +78,10 @@ static void UnprojectUpdate(ecs_iter_t *it)
 	Position2 const      *p      = ecs_field_shared(it, Position2, 3);        // NDC Position
 
 	for (int i = 0; i < it->count; ++i, ++out, ++unproj) {
-		unproj->pixelScale = cam->pixelScale;
+		if (unproj->pixelScale != cam->pixelScale) {
+			unproj->pixelScale = cam->pixelScale;
+			ecs_modified_id(it->world, it->entities[i], ecs_id(EgCamerasUnproject));
+		}
 		float xy[2];
 		int   success = m4f32_camera_unproject_xy(&cam->vp, p->x, p->y, xy);
 		if (success) {
@@ -133,6 +136,7 @@ void EgCamerasImport(ecs_world_t *world)
 	{.entity     = ecs_entity(world, {.name = "UnprojectUpdate"}),
 	.phase       = EcsOnUpdate,
 	.callback    = UnprojectUpdate,
+	.immediate   = true,
 	.query.terms = {
 	{.id = ecs_id(EgCamerasUnproject), .src.id = EcsSelf, .inout = EcsInOut},
 	{.id = ecs_id(Position2), .src.id = EcsSelf, .inout = EcsOut},
