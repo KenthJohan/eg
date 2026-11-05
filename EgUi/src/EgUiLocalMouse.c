@@ -12,11 +12,11 @@ ECS_COMPONENT_DECLARE(EgUiLocalMousePosition);
 // Transforms the shared mouse position into each entity's local space once for other systems.
 static void EgUiLocalMousePosition_Update(ecs_iter_t *it)
 {
-	Position2 const          *p0         = ecs_field_shared(it, Position2, 0);
-	WorldTransform3 const    *x          = ecs_field_self(it, WorldTransform3, 1);
-	EgUiLocalMousePosition   *l          = ecs_field_self(it, EgUiLocalMousePosition, 2);
-	EgCamerasUnproject const *u          = ecs_field_is_set(it, 3) ? ecs_field_shared(it, EgCamerasUnproject, 3) : NULL;
-	EgShapesRectangle const  *r          = ecs_field_is_set(it, 4) ? ecs_field_self(it, EgShapesRectangle, 4) : NULL;
+	Position2 const          *p0         = ecs_field_shared(it, Position2, 1);
+	WorldTransform3 const    *x          = ecs_field_self(it, WorldTransform3, 2);
+	EgUiLocalMousePosition   *l          = ecs_field_self(it, EgUiLocalMousePosition, 3);
+	EgCamerasUnproject const *u          = ecs_field_is_set(it, 4) ? ecs_field_shared(it, EgCamerasUnproject, 4) : NULL;
+	EgShapesRectangle const  *r          = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgShapesRectangle, 5) : NULL;
 	float                     pixelScale = (u != NULL && u->pixelScale > 0.0f) ? u->pixelScale : 1.0f;
 	for (int32_t i = 0; i < it->count; ++i) {
 		float dx     = p0->x - x[i].matrix.c2[0];
@@ -72,10 +72,12 @@ void EgUiLocalMouseImport(ecs_world_t *world)
 	.phase       = EcsPreStore,
 	.callback    = EgUiLocalMousePosition_Update,
 	.query.terms = {
-	{.id = ecs_id(Position2), .trav = EgUiMouse, .src.id = EcsUp, .inout = EcsIn},
+	// The GUI root holds (EgUiMouse, camera mouse); descendants find it by traversing up.
+	{.first.id = EgUiMouse, .second.name = "$mouse", .src.id = EcsSelf | EcsUp, .trav = EcsChildOf, .inout = EcsInOutNone},
+	{.id = ecs_id(Position2), .src.name = "$mouse", .inout = EcsIn},
 	{.id = ecs_id(WorldTransform3), .inout = EcsIn},
 	{.id = ecs_id(EgUiLocalMousePosition), .inout = EcsInOut},
-	{.id = ecs_id(EgCamerasUnproject), .trav = EgUiMouse, .src.id = EcsUp, .oper = EcsOptional, .inout = EcsIn},
+	{.id = ecs_id(EgCamerasUnproject), .src.name = "$mouse", .oper = EcsOptional, .inout = EcsIn},
 	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .oper = EcsOptional, .inout = EcsIn},
 	}});
 

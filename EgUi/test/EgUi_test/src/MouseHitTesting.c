@@ -31,7 +31,9 @@ static ecs_entity_t make_root(ecs_entity_t *mouse)
 	*mouse = ecs_new(world);
 	ecs_set(world, *mouse, Position2, {0.0f, 0.0f});
 
-	return ecs_new(world);
+	ecs_entity_t root = ecs_new(world);
+	ecs_add_pair(world, root, EgUiMouse, *mouse);
+	return root;
 }
 
 static ecs_entity_t make_rect(ecs_entity_t root, ecs_entity_t mouse,
@@ -39,7 +41,6 @@ float w, float h, float center_x, float center_y, float basis_xx, float basis_yx
 float basis_xy, float basis_yy)
 {
 	ecs_entity_t rect = ecs_new_w_pair(world, EcsChildOf, root);
-	ecs_add_pair(world, rect, EgUiMouse, mouse);
 	ecs_set(world, rect, EgUiLocalMousePosition, {0});
 	ecs_set(world, rect, EgShapesRectangle, {.w = w, .h = h});
 	ecs_set(world, rect, WorldTransform3, {.matrix = {{basis_xx, basis_xy, 0.0f}, {basis_yx, basis_yy, 0.0f}, {center_x, center_y, 1.0f}}});

@@ -30,7 +30,7 @@ static ecs_entity_t EgUiScriptEvents_PickTarget(ecs_world_t *world, ecs_query_t 
 	ecs_iter_t  *it         = &qit;
 	while (ecs_query_next(it)) {
 		EgUiLocalMousePosition const *l = ecs_field_self(it, EgUiLocalMousePosition, 1);
-		Position2 const              *p = ecs_field_shared(it, Position2, 2);
+		Position2 const              *p = ecs_field_shared(it, Position2, 3);
 		ctx->screen_x                   = p->x;
 		ctx->screen_y                   = p->y;
 		for (int32_t i = 0; i < it->count; ++i) {
@@ -138,7 +138,8 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 	{.terms = {
 	 {.id = EgUiScriptEventsTarget},
 	 {.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
-	 {.id = ecs_id(Position2), .trav = EgUiMouse, .src.id = EcsUp, .inout = EcsIn},
+	 {.first.id = EgUiMouse, .second.name = "$mouse", .src.id = EcsSelf | EcsUp, .trav = EcsChildOf, .inout = EcsInOutNone},
+	 {.id = ecs_id(Position2), .src.name = "$mouse", .inout = EcsIn},
 	 {.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
 	 }});
 
