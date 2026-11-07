@@ -11,6 +11,24 @@ cmake --build build
 sudo cmake --install build --prefix /usr/local
 ```
 
+## Troubleshooting SDL3 on GNOME Wayland
+
+When running an SDL3 application from the VS Code Snap, you may see:
+
+```
+GLib-GIO-ERROR: Settings schema 'org.gnome.settings-daemon.plugins.xsettings' does not contain a key named 'antialiasing'
+```
+
+The application can inherit incompatible GTK/GSettings paths from VS Code.
+Update the VS Code Snap and restart VS Code:
+
+```
+sudo snap refresh code
+```
+
+Alternatively, install the [official VS Code .deb package](https://code.visualstudio.com/download)
+instead of the Snap to avoid inheriting the Snap-specific environment.
+
 
 # Install SPIRV-Cross
 
