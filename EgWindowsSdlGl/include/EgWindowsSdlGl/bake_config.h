@@ -23,6 +23,7 @@
 #include <EgSpatials.h>
 #include <EgButtons.h>
 #include <EgBase.h>
+#include <ecsx.h>
 #include <EgWindows.h>
 #include <flecs.h>
 

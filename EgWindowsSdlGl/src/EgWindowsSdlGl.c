@@ -15,39 +15,42 @@
 #include <EgButtons.h>
 #include <EgBase.h>
 #include <EgWindows.h>
+#include <ecsx.h>
 
 static void System_Render(ecs_iter_t *it)
 {
-	EgWindowsWindow        *cw   = ecs_field(it, EgWindowsWindow, 0);        // self, in
-	EgWindowsOpenGLContext *gl   = ecs_field(it, EgWindowsOpenGLContext, 1); // self, in
-	EgShapesRectangle      *rect = ecs_field(it, EgShapesRectangle, 2);      // self, in
-	for (int i = 0; i < it->count; ++i) {
-		SDL_GL_MakeCurrent(cw[i].object, gl[i].gl_context);
-		glViewport(0, 0, (GLsizei)rect[i].w, (GLsizei)rect[i].h);
+	EgWindowsWindow        *w = ecs_field_self(it, EgWindowsWindow, 0);
+	EgWindowsOpenGLContext *g = ecs_field_self(it, EgWindowsOpenGLContext, 1);
+	EgShapesRectangle      *r = ecs_field_self(it, EgShapesRectangle, 2);
+	for (int i = 0; i < it->count; ++i, ++w, ++g, ++r) {
+		ecs_entity_t e = it->entities[i];
+		SDL_GL_MakeCurrent(w->object, g->gl_context);
+		glViewport(0, 0, (GLsizei)r->w, (GLsizei)r->h);
 		glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Blue
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		ecs_iter_t it2 = ecs_query_iter(it->world, gl[i].inner_systems);
-		ecs_iter_set_group(&it2, it->entities[i]);
+		ecs_iter_t it2 = ecs_query_iter(it->world, g->inner_systems);
+		ecs_iter_set_group(&it2, e);
 		while (ecs_query_next(&it2)) {
 			for (int j = 0; j < it2.count; ++j) {
-				// ecs_trace("inner entity: %s", ecs_get_name(it2.world, it2.entities[j]));
+				ecs_log(-1, "inner entity: %ju, %s", (intmax_t)it2.entities[j], ecs_get_name(it2.world, it2.entities[j]));
 				ecs_run(it2.world, it2.entities[j], 0.0f, NULL);
 			}
 		}
 
-		SDL_GL_SwapWindow(cw[i].object);
+		SDL_GL_SwapWindow(w->object);
 	} // END FOR LOOP
 }
 
 static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 {
-	EgWindowsWindow              *cw   = ecs_field(it, EgWindowsWindow, 0);              // self, in
-	EgWindowsOpenGLContextCreate *info = ecs_field(it, EgWindowsOpenGLContextCreate, 1); // self, in
+	EgWindowsWindow              *w   = ecs_field_self(it, EgWindowsWindow, 0);
+	EgWindowsOpenGLContextCreate *g = ecs_field_self(it, EgWindowsOpenGLContextCreate, 1);
 
-	(void)info; // Unused parameter
+	(void)g; // Unused parameter
+
 	for (int i = 0; i < it->count; ++i) {
-		SDL_GLContext context = SDL_GL_CreateContext(cw[i].object);
+		SDL_GLContext context = SDL_GL_CreateContext(w->object);
 		if (context == NULL) {
 			ecs_err("SDL_GL_CreateContext() failed: %s", SDL_GetError());
 			ecs_add(it->world, it->entities[i], EcsAlertWarning);
@@ -85,7 +88,7 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 
 	const int compiled = SDL_VERSION;
 	const int linked   = SDL_GetVersion();
-	ecs_log(-1, "EgDisplaysSdl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
+	ecs_log(-1, "EgWindowsSdlGl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
 	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
 	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
 
