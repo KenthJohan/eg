@@ -49,7 +49,7 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 
 	(void)g; // Unused parameter
 
-	for (int i = 0; i < it->count; ++i) {
+	for (int i = 0; i < it->count; ++i, ++w, ++g) {
 		SDL_GLContext context = SDL_GL_CreateContext(w->object);
 		if (context == NULL) {
 			ecs_err("SDL_GL_CreateContext() failed: %s", SDL_GetError());
