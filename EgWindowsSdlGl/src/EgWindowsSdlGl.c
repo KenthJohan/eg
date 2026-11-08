@@ -17,6 +17,16 @@
 #include <EgWindows.h>
 #include <ecsx.h>
 
+static void inner_systems_run(ecs_iter_t *it)
+{
+	while (ecs_query_next(it)) {
+		for (int i = 0; i < it->count; ++i) {
+			ecs_entity_t e = it->entities[i];
+			ecs_run(it->world, e, 0.0f, NULL);
+		}
+	}
+}
+
 static void System_Render(ecs_iter_t *it)
 {
 	EgWindowsWindow        *w = ecs_field_self(it, EgWindowsWindow, 0);
@@ -31,12 +41,7 @@ static void System_Render(ecs_iter_t *it)
 
 		ecs_iter_t it2 = ecs_query_iter(it->world, g->inner_systems);
 		ecs_iter_set_group(&it2, e);
-		while (ecs_query_next(&it2)) {
-			for (int j = 0; j < it2.count; ++j) {
-				// ecs_log(-1, "inner entity: %ju, %s", (intmax_t)it2.entities[j], ecs_get_name(it2.world, it2.entities[j]));
-				ecs_run(it2.world, it2.entities[j], 0.0f, NULL);
-			}
-		}
+		inner_systems_run(&it2);
 
 		SDL_GL_SwapWindow(w->object);
 	} // END FOR LOOP
