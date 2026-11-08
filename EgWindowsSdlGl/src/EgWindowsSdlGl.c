@@ -33,7 +33,7 @@ static void System_Render(ecs_iter_t *it)
 		ecs_iter_set_group(&it2, e);
 		while (ecs_query_next(&it2)) {
 			for (int j = 0; j < it2.count; ++j) {
-				ecs_log(-1, "inner entity: %ju, %s", (intmax_t)it2.entities[j], ecs_get_name(it2.world, it2.entities[j]));
+				// ecs_log(-1, "inner entity: %ju, %s", (intmax_t)it2.entities[j], ecs_get_name(it2.world, it2.entities[j]));
 				ecs_run(it2.world, it2.entities[j], 0.0f, NULL);
 			}
 		}
@@ -44,12 +44,14 @@ static void System_Render(ecs_iter_t *it)
 
 static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 {
-	EgWindowsWindow              *w   = ecs_field_self(it, EgWindowsWindow, 0);
+	EgWindowsWindow              *w = ecs_field_self(it, EgWindowsWindow, 0);
 	EgWindowsOpenGLContextCreate *g = ecs_field_self(it, EgWindowsOpenGLContextCreate, 1);
 
 	(void)g; // Unused parameter
 
 	for (int i = 0; i < it->count; ++i, ++w, ++g) {
+		ecs_entity_t e = it->entities[i];
+
 		SDL_GLContext context = SDL_GL_CreateContext(w->object);
 		if (context == NULL) {
 			ecs_err("SDL_GL_CreateContext() failed: %s", SDL_GetError());
@@ -67,7 +69,7 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 		.group_by = EcsChildOf,
 		});
 
-		ecs_set(it->stage, it->entities[i], EgWindowsOpenGLContext,
+		ecs_set(it->stage, e, EgWindowsOpenGLContext,
 		{
 		.gl_context    = context,
 		.gl_version    = gl_version,
