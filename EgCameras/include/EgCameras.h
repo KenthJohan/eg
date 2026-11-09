@@ -6,7 +6,7 @@ typedef struct
 {
 	float      fov;
 	ecs_bool_t pixel_coords;
-	float      pixelScale;
+	float      pixel_scale;
 	m4f32      view;
 	m4f32      projection;
 	m4f32      vp; // View-Projection Matrix
@@ -14,7 +14,7 @@ typedef struct
 
 typedef struct
 {
-	float pixelScale; // Output: world units per pixel of the camera, copied from EgCamerasState
+	float pixel_scale; // Output: world units per pixel of the camera, copied from EgCamerasState
 } EgCamerasUnproject;
 
 extern ECS_COMPONENT_DECLARE(EgCamerasState);

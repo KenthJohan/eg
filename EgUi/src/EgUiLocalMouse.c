@@ -12,20 +12,20 @@ ECS_COMPONENT_DECLARE(EgUiLocalMousePosition);
 // Transforms the shared mouse position into each entity's local space once for other systems.
 static void EgUiLocalMousePosition_Update(ecs_iter_t *it)
 {
-	Position2 const          *p0         = ecs_field_shared(it, Position2, 1);
-	WorldTransform3 const    *x          = ecs_field_self(it, WorldTransform3, 2);
-	EgUiLocalMousePosition   *l          = ecs_field_self(it, EgUiLocalMousePosition, 3);
-	EgCamerasUnproject const *u          = ecs_field_is_set(it, 4) ? ecs_field_shared(it, EgCamerasUnproject, 4) : NULL;
-	EgShapesRectangle const  *r          = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgShapesRectangle, 5) : NULL;
-	float                     pixelScale = (u != NULL && u->pixelScale > 0.0f) ? u->pixelScale : 1.0f;
+	Position2 const          *p0          = ecs_field_shared(it, Position2, 1);
+	WorldTransform3 const    *x           = ecs_field_self(it, WorldTransform3, 2);
+	EgUiLocalMousePosition   *l           = ecs_field_self(it, EgUiLocalMousePosition, 3);
+	EgCamerasUnproject const *u           = ecs_field_is_set(it, 4) ? ecs_field_shared(it, EgCamerasUnproject, 4) : NULL;
+	EgShapesRectangle const  *r           = ecs_field_is_set(it, 5) ? ecs_field_self(it, EgShapesRectangle, 5) : NULL;
+	float                     pixel_scale = (u != NULL && u->pixel_scale > 0.0f) ? u->pixel_scale : 1.0f;
 	for (int32_t i = 0; i < it->count; ++i) {
 		float dx     = p0->x - x[i].matrix.c2[0];
 		float dy     = p0->y - x[i].matrix.c2[1];
 		float det    = m3f32_det(&x[i].matrix);
 		float sx     = hypotf(x[i].matrix.c0[0], x[i].matrix.c0[1]);
 		float sy     = hypotf(x[i].matrix.c1[0], x[i].matrix.c1[1]);
-		l[i].pixel_x = sx > 1e-8f ? pixelScale / sx : pixelScale;
-		l[i].pixel_y = sy > 1e-8f ? pixelScale / sy : pixelScale;
+		l[i].pixel_x = sx > 1e-8f ? pixel_scale / sx : pixel_scale;
+		l[i].pixel_y = sy > 1e-8f ? pixel_scale / sy : pixel_scale;
 		l[i].inside  = false;
 		if (fabsf(det) < 1e-8f) {
 			continue;

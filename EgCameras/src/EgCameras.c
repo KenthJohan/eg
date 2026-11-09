@@ -4,7 +4,6 @@
 #include <EgShapes.h>
 #include <EgWindows.h>
 #include <egmath.h>
-#include <assert.h>
 #include <ecsx.h>
 #include <math.h>
 
@@ -62,9 +61,9 @@ static void CameraUpdate(ecs_iter_t *it)
 		// View-space distance to the world origin (z=0 plane), valid for any camera position or rotation.
 		float depth = fabsf(cam->view.c3[2]);
 		if (r->h > 1.0f && denom > 0.0f && depth > 1e-4f) {
-			cam->pixelScale = (depth * denom) / r->h;
+			cam->pixel_scale = (depth * denom) / r->h;
 		} else {
-			cam->pixelScale = 1.0f;
+			cam->pixel_scale = 1.0f;
 		}
 		m4f32_mul(&cam->vp, &cam->projection, &cam->view);
 	}
@@ -72,21 +71,21 @@ static void CameraUpdate(ecs_iter_t *it)
 
 static void UnprojectUpdate(ecs_iter_t *it)
 {
-	EgCamerasUnproject   *unproj = ecs_field_self(it, EgCamerasUnproject, 0); // Receives the camera pixel scale
-	Position2            *out    = ecs_field_self(it, Position2, 1);          // Outputs unprojected position in world space (XY plane)
-	EgCamerasState const *cam    = ecs_field_shared(it, EgCamerasState, 2);   // Camera state (view, projection, vp)
-	Position2 const      *p      = ecs_field_shared(it, Position2, 3);        // NDC Position
+	EgCamerasUnproject   *u = ecs_field_self(it, EgCamerasUnproject, 0); // Receives the camera pixel_scale
+	Position2            *p    = ecs_field_self(it, Position2, 1);          // Outputs unprojected position in world space (XY plane)
+	EgCamerasState const *c0      = ecs_field_shared(it, EgCamerasState, 2);   // Camera state (view, projection, vp)
+	Position2 const      *p0      = ecs_field_shared(it, Position2, 3);        // NDC Position
 
-	for (int i = 0; i < it->count; ++i, ++out, ++unproj) {
-		if (unproj->pixelScale != cam->pixelScale) {
-			unproj->pixelScale = cam->pixelScale;
+	for (int i = 0; i < it->count; ++i, ++p, ++u) {
+		if (u->pixel_scale != c0->pixel_scale) {
+			u->pixel_scale = c0->pixel_scale;
 			ecs_modified_id(it->world, it->entities[i], ecs_id(EgCamerasUnproject));
 		}
 		float xy[2];
-		int   success = m4f32_camera_unproject_xy(&cam->vp, p->x, p->y, xy);
+		int   success = m4f32_camera_unproject_xy(&c0->vp, p0->x, p0->y, xy);
 		if (success) {
-			out->x = xy[0];
-			out->y = xy[1];
+			p->x = xy[0];
+			p->y = xy[1];
 		}
 	}
 }
@@ -94,6 +93,7 @@ static void UnprojectUpdate(ecs_iter_t *it)
 ECS_CTOR(EgCamerasState, ptr, {
 	ptr->fov          = 45;
 	ptr->pixel_coords = false;
+	ptr->pixel_scale  = 1.0f;
 })
 
 void EgCamerasImport(ecs_world_t *world)
@@ -106,7 +106,7 @@ void EgCamerasImport(ecs_world_t *world)
 
 	ECS_COMPONENT_DEFINE(world, EgCamerasState);
 	ECS_COMPONENT_DEFINE(world, EgCamerasUnproject);
-	ecs_struct(world, {.entity = ecs_id(EgCamerasUnproject), .members = {{.name = "pixelScale", .type = ecs_id(ecs_f32_t)}}});
+	ecs_struct(world, {.entity = ecs_id(EgCamerasUnproject), .members = {{.name = "pixel_scale", .type = ecs_id(ecs_f32_t)}}});
 
 	ecs_set_hooks(world, EgCamerasState, {.ctor = ecs_ctor(EgCamerasState)});
 
@@ -115,7 +115,7 @@ void EgCamerasImport(ecs_world_t *world)
 	.members = {
 	{.name = "fov", .type = ecs_id(ecs_f32_t)},
 	{.name = "pixel_coords", .type = ecs_id(ecs_bool_t)},
-	{.name = "pixelScale", .type = ecs_id(ecs_f32_t)},
+	{.name = "pixel_scale", .type = ecs_id(ecs_f32_t)},
 	{.name = "view", .type = ecs_id(Transform4)},
 	{.name = "projection", .type = ecs_id(Transform4)},
 	{.name = "vp", .type = ecs_id(Transform4)},
