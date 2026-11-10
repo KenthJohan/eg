@@ -1,0 +1,26 @@
+{
+	"id": "EgDraws_test",
+	"type": "application",
+	"value": {
+		"description": "Regression tests for EgDraws vertex generation",
+		"public": false,
+		"use": ["EgDraws", "EgBase", "EgShapes", "EgSpatials", "flecs"]
+	},
+	"test": {
+		"testsuites": [{
+			"id": "Verts",
+			"setup": true,
+			"teardown": true,
+			"testcases": [
+				"test_attributes_and_append",
+				"test_shape_counts_and_degenerate_inputs",
+				"test_pixel_scale",
+				"test_text",
+				"test_collectors"
+			]
+		}]
+	},
+	"lang.c": {
+		"lib": ["EgDraws", "EgBase", "EgShapes", "EgSpatials", "flecs", "m"]
+	}
+}

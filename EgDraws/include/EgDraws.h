@@ -31,6 +31,7 @@ typedef struct {
 	float y;
 } EgDraws_Vec2;
 
+// Collector colors are 0xAARRGGBB; alpha 0 is treated as opaque.
 typedef struct {
 	float    thickness;
 	uint32_t color;
@@ -53,6 +54,7 @@ void EgDraws_List_Destroy(EgDraws_List *list);
 // Drops all vertices but keeps the allocated capacity.
 void EgDraws_List_Clear(EgDraws_List *list);
 
+// Shape generation is internal; the former EgDraws_List_Add* functions are no longer provided.
 // Returns the vertex vector for z, growing the list as needed. Negative z clamps to 0. NULL on allocation failure.
 ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z);
 
@@ -60,31 +62,6 @@ ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z);
 void EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src);
 
 void EgDraws_List_SetPixelScale(EgDraws_List *list, float pixelScale);
-
-// Colors are 0xAARRGGBB with alpha 0 meaning opaque.
-void EgDraws_List_AddTriangle(EgDraws_List *list, int32_t z, const m3f32 *transform, float x0, float y0, float x1, float y1, float x2, float y2, uint32_t color);
-
-void EgDraws_List_AddText(EgDraws_List *list, int32_t z, const m3f32 *transform, float fontSize, uint32_t color, const char *string); // fontSize in pixels
-
-void EgDraws_List_AddLine(EgDraws_List *list, int32_t z, const m3f32 *transform, float x1, float y1, float x2, float y2, float thickness, uint32_t color);
-
-void EgDraws_List_AddPoint(EgDraws_List *list, int32_t z, const m3f32 *transform, float size, uint32_t color);
-
-void EgDraws_List_AddCircle(EgDraws_List *list, int32_t z, const m3f32 *transform, float radius, uint32_t color);
-
-void EgDraws_List_AddCircleOutline(EgDraws_List *list, int32_t z, const m3f32 *transform, float radius, float thickness, uint32_t color);
-
-void EgDraws_List_AddCapsuleOutline(EgDraws_List *list, int32_t z, const m3f32 *transform, float x1, float y1, float x2, float y2, float radius, float thickness, uint32_t color);
-
-void EgDraws_List_AddTransform(EgDraws_List *list, int32_t z, const m3f32 *transform, float scale, uint32_t color);
-
-void EgDraws_List_AddRectangle(EgDraws_List *list, int32_t z, const m3f32 *transform, float width, float height, uint32_t color);
-
-void EgDraws_List_AddRectangleOutline(EgDraws_List *list, int32_t z, const m3f32 *transform, float width, float height, float thickness, uint32_t color);
-
-void EgDraws_List_AddBounds(EgDraws_List *list, int32_t z, const m3f32 *transform, float minX, float minY, float maxX, float maxY, uint32_t color);
-
-void EgDraws_List_AddPolygon(EgDraws_List *list, int32_t z, const m3f32 *transform, const EgDraws_Vec2 *vertices, int vertexCount, uint32_t color);
 
 // Single-channel EG_DRAWS_ATLAS_WIDTH x EG_DRAWS_ATLAS_HEIGHT glyph bitmap, baked once; NULL if no font was found.
 const unsigned char *EgDraws_Font_GetBitmap(void);

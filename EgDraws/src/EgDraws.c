@@ -1,4 +1,5 @@
 #include "EgDraws.h"
+#include "verts.h"
 
 #include <EgBase.h>
 #include <EgShapes.h>
@@ -130,9 +131,26 @@ void EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src)
 	}
 }
 
-static void EgDraws_AddRectangle(EgDraws_List *l, int32_t z, const EgShapesRectangle *r, const m3f32 *transform, uint32_t color)
+static ecs_vec_t *EgDraws_BeginVertices(EgDraws_List *list, int32_t z, const m3f32 *transform, uint32_t color, verts_config_t *config)
 {
-	EgDraws_List_AddRectangle(l, z, transform, r->w, r->h, color);
+	ecs_vec_t *vertices = EgDraws_List_GetLayer(list, z);
+	if (vertices == NULL) {
+		ecs_err("EgDraws: failed to allocate layer %d", z);
+		return NULL;
+	}
+
+	*config = (verts_config_t){
+		.pixscale = list->pixelScale,
+		.transform = *transform,
+		.r = (uint8_t)(color >> 16),
+		.g = (uint8_t)(color >> 8),
+		.b = (uint8_t)color,
+		.a = (uint8_t)(color >> 24),
+	};
+	if (config->a == 0) {
+		config->a = 255;
+	}
+	return vertices;
 }
 
 static void EgDraws_List_Reset(ecs_iter_t *it)
@@ -151,8 +169,15 @@ static void EgDraws_Solid_Collect2D(ecs_iter_t *it)
 	WorldTransform3 const   *w  = ecs_field_self(it, WorldTransform3, 3);
 	EgDraws_Z const      *zs = ecs_field_self(it, EgDraws_Z, 4); // Optional
 	for (int i = 0; i < it->count; ++i, ++s, ++r, ++w) {
-		float z = zs != NULL ? zs[i].z : 0;
-		EgDraws_List_AddRectangle(l0, z, &w->matrix, r->w, r->h, s->color);
+		if (r->w <= 0.0f || r->h <= 0.0f) {
+			continue;
+		}
+		int32_t z = zs != NULL ? zs[i].z : 0;
+		verts_config_t config;
+		ecs_vec_t *vertices = EgDraws_BeginVertices(l0, z, &w->matrix, s->color, &config);
+		if (vertices != NULL) {
+			verts_add_rectangle(vertices, &config, r->w, r->h);
+		}
 	}
 }
 
@@ -164,8 +189,15 @@ static void EgDraws_Border_Collect2D(ecs_iter_t *it)
 	WorldTransform3 const   *w  = ecs_field_self(it, WorldTransform3, 3);
 	EgDraws_Z const      *zs = ecs_field_self(it, EgDraws_Z, 4); // Optional
 	for (int i = 0; i < it->count; ++i, ++b, ++r, ++w) {
-		float z = zs != NULL ? zs[i].z : 0;
-		EgDraws_List_AddRectangleOutline(l0, z, &w->matrix, r->w, r->h, b->thickness, b->color);
+		if (r->w <= 0.0f || r->h <= 0.0f || b->thickness <= 0.0f) {
+			continue;
+		}
+		int32_t z = zs != NULL ? zs[i].z : 0;
+		verts_config_t config;
+		ecs_vec_t *vertices = EgDraws_BeginVertices(l0, z, &w->matrix, b->color, &config);
+		if (vertices != NULL) {
+			verts_add_rectangle_outline(vertices, &config, r->w, r->h, b->thickness);
+		}
 	}
 }
 
@@ -178,12 +210,16 @@ static void EgDraws_List_CollectText(ecs_iter_t *it)
 	EgDraws_Z const    *z_optional = ecs_field_self(it, EgDraws_Z, 4);
 
 	for (int i = 0; i < it->count; ++i, ++t, ++f, ++x) {
-		float z = z_optional != NULL ? z_optional[i].z : 0;
-		if (t->value == NULL || t->value[0] == '\0') {
+		int32_t z = z_optional != NULL ? z_optional[i].z : 0;
+		if (t->value == NULL || t->value[0] == '\0' || EgDraws_Font_GetBitmap() == NULL) {
 			continue;
 		}
 		float fontSize = f->font_size > 0.0f ? f->font_size : 24.0f;
-		EgDraws_List_AddText(l0, z, &(x->matrix), fontSize, f->color, t->value);
+		verts_config_t config;
+		ecs_vec_t *vertices = EgDraws_BeginVertices(l0, z, &x->matrix, f->color, &config);
+		if (vertices != NULL) {
+			verts_add_text(vertices, &config, fontSize, t->value);
+		}
 	}
 }
 
