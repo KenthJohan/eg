@@ -14,7 +14,7 @@
 #define FONT_LINE_HEIGHT (FONT_BAKE_SIZE * 1.2f)
 
 typedef struct {
-	ecs_vec_t *layer;
+	ecs_vec_t *vertices;
 	float             pixelScale;
 	m3f32             transform;
 	uint8_t           r;
@@ -135,16 +135,16 @@ static void sAddTriangle(const sBatch_t *batch, float x0, float y0, float x1, fl
 {
 	const float whiteU = 0.5f / EG_DRAWS_ATLAS_WIDTH;
 	const float whiteV = 0.5f / EG_DRAWS_ATLAS_HEIGHT;
-	sAppendVertex(batch->layer, x0, y0, &batch->transform, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, x1, y1, &batch->transform, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, x2, y2, &batch->transform, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->vertices, x0, y0, &batch->transform, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->vertices, x1, y1, &batch->transform, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->vertices, x2, y2, &batch->transform, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
 }
 
 static void sAddSolidQuad(const sBatch_t *batch, float x0, float y0, float x1, float y1)
 {
 	const float whiteU = 0.5f / EG_DRAWS_ATLAS_WIDTH;
 	const float whiteV = 0.5f / EG_DRAWS_ATLAS_HEIGHT;
-	sAddQuad(batch->layer, x0, y0, x1, y1, &batch->transform, whiteU, whiteV, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
+	sAddQuad(batch->vertices, x0, y0, x1, y1, &batch->transform, whiteU, whiteV, whiteU, whiteV, batch->r, batch->g, batch->b, batch->a);
 }
 
 // Fetches the z layer, stores the transform applied to appended vertices and decodes the color.
@@ -153,8 +153,8 @@ static int sBeginBatch(sBatch_t *batch, EgDraws_List *list, int32_t z, const m3f
 	if (transform == NULL) {
 		return 0;
 	}
-	batch->layer = EgDraws_List_GetLayer(list, z);
-	if (batch->layer == NULL) {
+	batch->vertices = EgDraws_List_GetLayer(list, z);
+	if (batch->vertices == NULL) {
 		return 0;
 	}
 
@@ -215,12 +215,12 @@ static void sAddTextQuad(const sBatch_t *batch, const m3f32 *transform, float x0
 	}
 
 	m3f32 identity = M3_IDENTITY;
-	sAppendVertex(batch->layer, transformed[0][0], transformed[0][1], &identity, u0, v0, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[1][0], transformed[1][1], &identity, u1, v0, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[2][0], transformed[2][1], &identity, u1, v1, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[0][0], transformed[0][1], &identity, u0, v0, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[2][0], transformed[2][1], &identity, u1, v1, batch->r, batch->g, batch->b, batch->a);
-	sAppendVertex(batch->layer, transformed[3][0], transformed[3][1], &identity, u0, v1, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->vertices, transformed[0][0], transformed[0][1], &identity, u0, v0, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->vertices, transformed[1][0], transformed[1][1], &identity, u1, v0, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->vertices, transformed[2][0], transformed[2][1], &identity, u1, v1, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->vertices, transformed[0][0], transformed[0][1], &identity, u0, v0, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->vertices, transformed[2][0], transformed[2][1], &identity, u1, v1, batch->r, batch->g, batch->b, batch->a);
+	sAppendVertex(batch->vertices, transformed[3][0], transformed[3][1], &identity, u0, v1, batch->r, batch->g, batch->b, batch->a);
 }
 
 void EgDraws_List_AddText(EgDraws_List *list, int32_t z, const m3f32 *transform, float fontSize, uint32_t color, const char *string)

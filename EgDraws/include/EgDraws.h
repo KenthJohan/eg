@@ -15,11 +15,13 @@ typedef struct {
 	uint8_t rgba[4];
 } EgDraws_Vertex;
 
+typedef struct {
+	ecs_vec_t vertices; // ecs_vec_t<EgDraws_Vertex>
+} gverts_t;
+
 // Put on a root entity; shapes that depend on it append triangles here each frame. Layer index is z, drawn in ascending order.
 typedef struct {
-	ecs_vec_t *layers; // layers<ecs_vec_t>, each vector contains EgDraws_Vertex
-	int32_t           layerCount;
-	int32_t           layerCapacity;
+	ecs_vec_t layers; // ecs_vec_t<gverts_t>
 	float             pixelScale; // World units per pixel; scales line thickness, point size and outlines.
 } EgDraws_List;
 

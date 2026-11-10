@@ -14,13 +14,12 @@ ECS_COMPONENT_DECLARE(EgDraws_Solid);
 
 static void EgDraws_List_Free(EgDraws_List *l)
 {
-	for (int32_t i = 0; i < l->layerCount; ++i) {
-		ecs_vec_fini_t(NULL, &l->layers[i], EgDraws_Vertex);
+	int32_t layerCount = ecs_vec_count(&l->layers);
+	gverts_t *layers = ecs_vec_first_t(&l->layers, gverts_t);
+	for (int32_t i = 0; i < layerCount; ++i) {
+		ecs_vec_fini_t(NULL, &layers[i].vertices, EgDraws_Vertex);
 	}
-	free(l->layers);
-	l->layers        = NULL;
-	l->layerCount    = 0;
-	l->layerCapacity = 0;
+	ecs_vec_fini_t(NULL, &l->layers, gverts_t);
 }
 
 static void EgDraws_List_ctor(void *ptr, int32_t count, const ecs_type_info_t *ti)
@@ -50,9 +49,7 @@ static void EgDraws_List_move(void *dst_ptr, void *src_ptr, int32_t count, const
 	for (int32_t i = 0; i < count; ++i) {
 		EgDraws_List_Free(&dst[i]);
 		dst[i]               = src[i];
-		src[i].layers        = NULL;
-		src[i].layerCount    = 0;
-		src[i].layerCapacity = 0;
+		src[i].layers        = (ecs_vec_t){0};
 	}
 }
 
@@ -76,8 +73,9 @@ void EgDraws_List_Destroy(EgDraws_List *list)
 
 void EgDraws_List_Clear(EgDraws_List *list)
 {
-	for (int32_t i = 0; i < list->layerCount; ++i) {
-		ecs_vec_clear(&list->layers[i]);
+	gverts_t *layers = ecs_vec_first_t(&list->layers, gverts_t);
+	for (int32_t i = 0, count = ecs_vec_count(&list->layers); i < count; ++i) {
+		ecs_vec_clear(&layers[i].vertices);
 	}
 }
 
@@ -92,45 +90,39 @@ ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z)
 		z = 0;
 	}
 
-	if (z >= list->layerCount) {
-		if (z >= list->layerCapacity) {
-			int32_t cap = list->layerCapacity > 0 ? list->layerCapacity : 4;
-			while (cap <= z) {
-				cap *= 2;
-			}
-			ecs_vec_t *layers = realloc(list->layers, (size_t)cap * sizeof(ecs_vec_t));
-			if (layers == NULL) {
-				return NULL;
-			}
-			list->layers        = layers;
-			list->layerCapacity = cap;
+	int32_t layerCount = ecs_vec_count(&list->layers);
+	if (z >= layerCount) {
+		int32_t newLayerCount = z + 1 - layerCount;
+		gverts_t *newLayers = ecs_vec_grow_t(NULL, &list->layers, gverts_t, newLayerCount);
+		if (newLayers == NULL) {
+			return NULL;
 		}
-		int32_t firstNewLayer = list->layerCount;
-		memset(list->layers + firstNewLayer, 0, (size_t)(z + 1 - firstNewLayer) * sizeof(ecs_vec_t));
-		for (int32_t i = firstNewLayer; i <= z; ++i) {
-			ecs_vec_init_t(NULL, &list->layers[i], EgDraws_Vertex, 0);
+		memset(newLayers, 0, (size_t)newLayerCount * sizeof(gverts_t));
+		for (int32_t i = 0; i < newLayerCount; ++i) {
+			ecs_vec_init_t(NULL, &newLayers[i].vertices, EgDraws_Vertex, 0);
 		}
-		list->layerCount = z + 1;
 	}
 
-	return &list->layers[z];
+	gverts_t *layer = ecs_vec_get_t(&list->layers, gverts_t, z);
+	return layer != NULL ? &layer->vertices : NULL;
 }
 
 void EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src)
 {
-	for (int32_t z = 0; z < src->layerCount; ++z) {
-		const ecs_vec_t *s = &src->layers[z];
+	const gverts_t *srcLayers = ecs_vec_first_t(&src->layers, gverts_t);
+	for (int32_t z = 0, layerCount = ecs_vec_count(&src->layers); z < layerCount; ++z) {
+		const ecs_vec_t *s = &srcLayers[z].vertices;
 		int32_t srcCount = ecs_vec_count(s);
 		if (srcCount == 0) {
 			continue;
 		}
 
-		ecs_vec_t *d = EgDraws_List_GetLayer(dst, z);
-		if (d == NULL) {
+		ecs_vec_t *dstVertices = EgDraws_List_GetLayer(dst, z);
+		if (dstVertices == NULL) {
 			return;
 		}
 
-		EgDraws_Vertex *vertices = ecs_vec_grow_t(NULL, d, EgDraws_Vertex, srcCount);
+		EgDraws_Vertex *vertices = ecs_vec_grow_t(NULL, dstVertices, EgDraws_Vertex, srcCount);
 		if (vertices == NULL) {
 			return;
 		}
@@ -221,8 +213,6 @@ void EgDraws_Import(ecs_world_t *world)
 	{.entity = ecs_id(EgDraws_List),
 	.members = {
 	{.name = "layers", .type = ecs_id(ecs_uptr_t)},
-	{.name = "layerCount", .type = ecs_id(ecs_i32_t)},
-	{.name = "layerCapacity", .type = ecs_id(ecs_i32_t)},
 	{.name = "pixelScale", .type = ecs_id(ecs_f32_t)},
 	}});
 
