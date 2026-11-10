@@ -14,7 +14,7 @@
 #define FONT_LINE_HEIGHT (FONT_BAKE_SIZE * 1.2f)
 
 typedef struct {
-	EgDraws_Layer *layer;
+	ecs_vec_t *layer;
 	float             pixelScale;
 	m3f32             transform;
 	uint8_t           r;
@@ -101,19 +101,13 @@ const unsigned char *EgDraws_Font_GetBitmap(void)
 	return sFontState == 1 ? sBitmap : NULL;
 }
 
-static void sAppendVertex(EgDraws_Layer *l, float x, float y, const m3f32 *transform, float u, float v, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static void sAppendVertex(ecs_vec_t *l, float x, float y, const m3f32 *transform, float u, float v, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-	if (l->count >= l->capacity) {
-		int32_t            cap  = l->capacity > 0 ? l->capacity * 2 : 256;
-		EgDraws_Vertex *data = realloc(l->data, (size_t)cap * sizeof(EgDraws_Vertex));
-		if (data == NULL) {
-			return;
-		}
-		l->data     = data;
-		l->capacity = cap;
+	EgDraws_Vertex *dst = ecs_vec_append_t(NULL, l, EgDraws_Vertex);
+	if (dst == NULL) {
+		return;
 	}
 
-	EgDraws_Vertex *dst         = &l->data[l->count++];
 	float              position[3] = {x, y, 1.0f};
 	float              transformed[3];
 	m3f32_mulv(transform, position, transformed);
@@ -127,7 +121,7 @@ static void sAppendVertex(EgDraws_Layer *l, float x, float y, const m3f32 *trans
 	dst->rgba[3]     = a;
 }
 
-static void sAddQuad(EgDraws_Layer *l, float x0, float y0, float x1, float y1, const m3f32 *transform, float u0, float v0, float u1, float v1, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static void sAddQuad(ecs_vec_t *l, float x0, float y0, float x1, float y1, const m3f32 *transform, float u0, float v0, float u1, float v1, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
 	sAppendVertex(l, x0, y0, transform, u0, v0, r, g, b, a);
 	sAppendVertex(l, x1, y0, transform, u1, v0, r, g, b, a);

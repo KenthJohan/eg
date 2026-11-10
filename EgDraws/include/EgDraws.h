@@ -15,16 +15,9 @@ typedef struct {
 	uint8_t rgba[4];
 } EgDraws_Vertex;
 
-// Triangles drawn at one z level.
-typedef struct {
-	EgDraws_Vertex *data;
-	int32_t            count;
-	int32_t            capacity;
-} EgDraws_Layer;
-
 // Put on a root entity; shapes that depend on it append triangles here each frame. Layer index is z, drawn in ascending order.
 typedef struct {
-	EgDraws_Layer *layers;
+	ecs_vec_t *layers; // layers<ecs_vec_t>, each vector contains EgDraws_Vertex
 	int32_t           layerCount;
 	int32_t           layerCapacity;
 	float             pixelScale; // World units per pixel; scales line thickness, point size and outlines.
@@ -62,8 +55,8 @@ void EgDraws_List_Destroy(EgDraws_List *list);
 // Drops all vertices but keeps the allocated capacity.
 void EgDraws_List_Clear(EgDraws_List *list);
 
-// Returns the layer for z, growing the list as needed. Negative z clamps to 0. NULL on allocation failure.
-EgDraws_Layer *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z);
+// Returns the vertex vector for z, growing the list as needed. Negative z clamps to 0. NULL on allocation failure.
+ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z);
 
 // Appends every layer of src to the same z level in dst.
 void EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src);

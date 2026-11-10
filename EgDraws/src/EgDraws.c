@@ -15,7 +15,7 @@ ECS_COMPONENT_DECLARE(EgDraws_Solid);
 static void EgDraws_List_Free(EgDraws_List *l)
 {
 	for (int32_t i = 0; i < l->layerCount; ++i) {
-		free(l->layers[i].data);
+		ecs_vec_fini_t(NULL, &l->layers[i], EgDraws_Vertex);
 	}
 	free(l->layers);
 	l->layers        = NULL;
@@ -77,7 +77,7 @@ void EgDraws_List_Destroy(EgDraws_List *list)
 void EgDraws_List_Clear(EgDraws_List *list)
 {
 	for (int32_t i = 0; i < list->layerCount; ++i) {
-		list->layers[i].count = 0;
+		ecs_vec_clear(&list->layers[i]);
 	}
 }
 
@@ -86,7 +86,7 @@ void EgDraws_List_SetPixelScale(EgDraws_List *list, float pixelScale)
 	list->pixelScale = pixelScale > 0.0f ? pixelScale : 1.0f;
 }
 
-EgDraws_Layer *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z)
+ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z)
 {
 	if (z < 0) {
 		z = 0;
@@ -98,14 +98,18 @@ EgDraws_Layer *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z)
 			while (cap <= z) {
 				cap *= 2;
 			}
-			EgDraws_Layer *layers = realloc(list->layers, (size_t)cap * sizeof(EgDraws_Layer));
+			ecs_vec_t *layers = realloc(list->layers, (size_t)cap * sizeof(ecs_vec_t));
 			if (layers == NULL) {
 				return NULL;
 			}
 			list->layers        = layers;
 			list->layerCapacity = cap;
 		}
-		memset(list->layers + list->layerCount, 0, (size_t)(z + 1 - list->layerCount) * sizeof(EgDraws_Layer));
+		int32_t firstNewLayer = list->layerCount;
+		memset(list->layers + firstNewLayer, 0, (size_t)(z + 1 - firstNewLayer) * sizeof(ecs_vec_t));
+		for (int32_t i = firstNewLayer; i <= z; ++i) {
+			ecs_vec_init_t(NULL, &list->layers[i], EgDraws_Vertex, 0);
+		}
 		list->layerCount = z + 1;
 	}
 
@@ -115,31 +119,23 @@ EgDraws_Layer *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z)
 void EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src)
 {
 	for (int32_t z = 0; z < src->layerCount; ++z) {
-		const EgDraws_Layer *s = &src->layers[z];
-		if (s->count == 0) {
+		const ecs_vec_t *s = &src->layers[z];
+		int32_t srcCount = ecs_vec_count(s);
+		if (srcCount == 0) {
 			continue;
 		}
 
-		EgDraws_Layer *d = EgDraws_List_GetLayer(dst, z);
+		ecs_vec_t *d = EgDraws_List_GetLayer(dst, z);
 		if (d == NULL) {
 			return;
 		}
 
-		if (d->count + s->count > d->capacity) {
-			int32_t cap = d->capacity > 0 ? d->capacity : 256;
-			while (cap < d->count + s->count) {
-				cap *= 2;
-			}
-			EgDraws_Vertex *data = realloc(d->data, (size_t)cap * sizeof(EgDraws_Vertex));
-			if (data == NULL) {
-				return;
-			}
-			d->data     = data;
-			d->capacity = cap;
+		EgDraws_Vertex *vertices = ecs_vec_grow_t(NULL, d, EgDraws_Vertex, srcCount);
+		if (vertices == NULL) {
+			return;
 		}
 
-		memcpy(d->data + d->count, s->data, (size_t)s->count * sizeof(EgDraws_Vertex));
-		d->count += s->count;
+		memcpy(vertices, ecs_vec_first(s), (size_t)srcCount * sizeof(EgDraws_Vertex));
 	}
 }
 
