@@ -13,6 +13,8 @@
 			"teardown": true,
 			"testcases": [
 				"test_attributes_and_append",
+				"test_quad_geometry",
+				"test_curved_geometry",
 				"test_shape_counts_and_degenerate_inputs",
 				"test_pixel_scale",
 				"test_text",

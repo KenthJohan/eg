@@ -1,128 +1,41 @@
 #include "verts.h"
+#include "font.h"
 
 #include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "stb_truetype.h"
+#define EG_PI 3.14159265358979323846f
+#define CIRCLE_SEGMENTS 32
+#define CAPSULE_CAP_SEGMENTS 24
 
-#define EG_PI            3.14159265358979323846f
-#define FONT_FIRST_CHAR  32
-#define FONT_CHAR_COUNT  96
-#define FONT_BAKE_SIZE   32.0f
-#define FONT_LINE_HEIGHT (FONT_BAKE_SIZE * 1.2f)
-
-static stbtt_bakedchar sGlyphs[FONT_CHAR_COUNT];
-static unsigned char   sBitmap[EG_DRAWS_ATLAS_WIDTH * EG_DRAWS_ATLAS_HEIGHT];
-static int             sFontState; // 0 = not baked, 1 = ok, -1 = failed
-
-static unsigned char *sReadBinaryFile(const char *path, size_t *outSize)
+static void sAppendVertex(ecs_vec_t *vertices, const verts_config_t *config, const m3f32 *transform, float x, float y, float u, float v)
 {
-	FILE *file = fopen(path, "rb");
-	if (file == NULL) {
-		return NULL;
-	}
-
-	if (fseek(file, 0, SEEK_END) != 0) {
-		fclose(file);
-		return NULL;
-	}
-
-	long size = ftell(file);
-	if (size <= 0 || fseek(file, 0, SEEK_SET) != 0) {
-		fclose(file);
-		return NULL;
-	}
-
-	unsigned char *bytes = malloc((size_t)size);
-	if (bytes == NULL) {
-		fclose(file);
-		return NULL;
-	}
-
-	if (fread(bytes, 1, (size_t)size, file) != (size_t)size) {
-		fclose(file);
-		free(bytes);
-		return NULL;
-	}
-
-	fclose(file);
-	*outSize = (size_t)size;
-	return bytes;
-}
-
-static unsigned char *sLoadSystemFont(size_t *outSize)
-{
-	const char *candidates[] = {
-	"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-	"/usr/share/fonts/TTF/DejaVuSans.ttf",
-	"/usr/share/fonts/dejavu/DejaVuSans.ttf",
-	"C:/Windows/Fonts/arial.ttf",
-	"/System/Library/Fonts/Supplemental/Arial.ttf",
-	};
-
-	for (size_t i = 0; i < sizeof(candidates) / sizeof(candidates[0]); ++i) {
-		unsigned char *fontData = sReadBinaryFile(candidates[i], outSize);
-		if (fontData != NULL) {
-			return fontData;
-		}
-	}
-
-	return NULL;
-}
-
-const unsigned char *EgDraws_Font_GetBitmap(void)
-{
-	if (sFontState == 0) {
-		size_t         fontSize = 0;
-		unsigned char *fontData = sLoadSystemFont(&fontSize);
-		if (fontData == NULL) {
-			fprintf(stderr, "EgDraws: failed to locate a default TrueType font\n");
-			sFontState = -1;
-		} else {
-			memset(sBitmap, 0, sizeof(sBitmap));
-			int rowUsed = stbtt_BakeFontBitmap(fontData, 0, FONT_BAKE_SIZE, sBitmap, EG_DRAWS_ATLAS_WIDTH, EG_DRAWS_ATLAS_HEIGHT, FONT_FIRST_CHAR, FONT_CHAR_COUNT, sGlyphs);
-			free(fontData);
-			sFontState = rowUsed > 0 ? 1 : -1;
-			if (sFontState < 0) {
-				fprintf(stderr, "EgDraws: failed to bake the default font atlas\n");
-			}
-		}
-	}
-
-	return sFontState == 1 ? sBitmap : NULL;
-}
-
-static void sAppendVertex(ecs_vec_t *l, float x, float y, const m3f32 *transform, float u, float v, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
-{
-	EgDraws_Vertex *dst = ecs_vec_append_t(NULL, l, EgDraws_Vertex);
+	EgDraws_Vertex *dst = ecs_vec_append_t(NULL, vertices, EgDraws_Vertex);
 	if (dst == NULL) {
 		ecs_err("EgDraws: failed to append vertex");
 		return;
 	}
 
-	float              position[3] = {x, y, 1.0f};
-	float              transformed[3];
+	float position[3] = {x, y, 1.0f};
+	float transformed[3];
 	m3f32_mulv(transform, position, transformed);
 	dst->position[0] = transformed[0];
 	dst->position[1] = transformed[1];
 	dst->uv[0]       = u;
 	dst->uv[1]       = v;
-	dst->rgba[0]     = r;
-	dst->rgba[1]     = g;
-	dst->rgba[2]     = b;
-	dst->rgba[3]     = a;
+	dst->rgba[0]     = config->r;
+	dst->rgba[1]     = config->g;
+	dst->rgba[2]     = config->b;
+	dst->rgba[3]     = config->a;
 }
 
-static void sAddQuad(ecs_vec_t *l, float x0, float y0, float x1, float y1, const m3f32 *transform, float u0, float v0, float u1, float v1, uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+static void sAddQuad(ecs_vec_t *v, const verts_config_t *config, const m3f32 *transform, const float positions[4][3], float u0, float v0, float u1, float v1)
 {
-	sAppendVertex(l, x0, y0, transform, u0, v0, r, g, b, a);
-	sAppendVertex(l, x1, y0, transform, u1, v0, r, g, b, a);
-	sAppendVertex(l, x1, y1, transform, u1, v1, r, g, b, a);
-	sAppendVertex(l, x0, y0, transform, u0, v0, r, g, b, a);
-	sAppendVertex(l, x1, y1, transform, u1, v1, r, g, b, a);
-	sAppendVertex(l, x0, y1, transform, u0, v1, r, g, b, a);
+	sAppendVertex(v, config, transform, positions[0][0], positions[0][1], u0, v0);
+	sAppendVertex(v, config, transform, positions[1][0], positions[1][1], u1, v0);
+	sAppendVertex(v, config, transform, positions[2][0], positions[2][1], u1, v1);
+	sAppendVertex(v, config, transform, positions[0][0], positions[0][1], u0, v0);
+	sAppendVertex(v, config, transform, positions[2][0], positions[2][1], u1, v1);
+	sAppendVertex(v, config, transform, positions[3][0], positions[3][1], u0, v1);
 }
 
 static int sValid(ecs_vec_t *v, const verts_config_t *config)
@@ -143,16 +56,20 @@ static void sAddTriangle(ecs_vec_t *v, const verts_config_t *config, float x0, f
 {
 	const float whiteU = 0.5f / EG_DRAWS_ATLAS_WIDTH;
 	const float whiteV = 0.5f / EG_DRAWS_ATLAS_HEIGHT;
-	sAppendVertex(v, x0, y0, &config->transform, whiteU, whiteV, config->r, config->g, config->b, config->a);
-	sAppendVertex(v, x1, y1, &config->transform, whiteU, whiteV, config->r, config->g, config->b, config->a);
-	sAppendVertex(v, x2, y2, &config->transform, whiteU, whiteV, config->r, config->g, config->b, config->a);
+	sAppendVertex(v, config, &config->transform, x0, y0, whiteU, whiteV);
+	sAppendVertex(v, config, &config->transform, x1, y1, whiteU, whiteV);
+	sAppendVertex(v, config, &config->transform, x2, y2, whiteU, whiteV);
 }
 
 static void sAddSolidQuad(ecs_vec_t *v, const verts_config_t *config, float x0, float y0, float x1, float y1)
 {
 	const float whiteU = 0.5f / EG_DRAWS_ATLAS_WIDTH;
 	const float whiteV = 0.5f / EG_DRAWS_ATLAS_HEIGHT;
-	sAddQuad(v, x0, y0, x1, y1, &config->transform, whiteU, whiteV, whiteU, whiteV, config->r, config->g, config->b, config->a);
+	const float positions[4][3] = {
+		{x0, y0, 1.0f}, {x1, y0, 1.0f},
+		{x1, y1, 1.0f}, {x0, y1, 1.0f}
+	};
+	sAddQuad(v, config, &config->transform, positions, whiteU, whiteV, whiteU, whiteV);
 }
 
 void verts_add_triangle(ecs_vec_t *v, const verts_config_t *config, float x0, float y0, float x1, float y1, float x2, float y2)
@@ -198,13 +115,9 @@ static void sAddTextQuad(ecs_vec_t *v, const verts_config_t *config, float x0, f
 		m3f32_mulv(&config->transform, positions[i], transformed[i]);
 	}
 
-	m3f32 identity = M3_IDENTITY;
-	sAppendVertex(v, transformed[0][0], transformed[0][1], &identity, u0, v0, config->r, config->g, config->b, config->a);
-	sAppendVertex(v, transformed[1][0], transformed[1][1], &identity, u1, v0, config->r, config->g, config->b, config->a);
-	sAppendVertex(v, transformed[2][0], transformed[2][1], &identity, u1, v1, config->r, config->g, config->b, config->a);
-	sAppendVertex(v, transformed[0][0], transformed[0][1], &identity, u0, v0, config->r, config->g, config->b, config->a);
-	sAppendVertex(v, transformed[2][0], transformed[2][1], &identity, u1, v1, config->r, config->g, config->b, config->a);
-	sAppendVertex(v, transformed[3][0], transformed[3][1], &identity, u0, v1, config->r, config->g, config->b, config->a);
+	/* Keep the existing identity transform after transforming text corners. */
+	const m3f32 identity = M3_IDENTITY;
+	sAddQuad(v, config, &identity, transformed, u0, v0, u1, v1);
 }
 
 void verts_add_text(ecs_vec_t *v, const verts_config_t *config, float fontSize, const char *string)
@@ -248,7 +161,7 @@ void verts_add_text(ecs_vec_t *v, const verts_config_t *config, float fontSize, 
 		}
 
 		stbtt_aligned_quad q;
-		stbtt_GetBakedQuad(sGlyphs, EG_DRAWS_ATLAS_WIDTH, EG_DRAWS_ATLAS_HEIGHT, codepoint - FONT_FIRST_CHAR, &cursorX, &cursorY, &q, 1);
+		font_get_quad(codepoint, &cursorX, &cursorY, &q);
 
 		float dx0 = q.x0 - startX;
 		float dy0 = q.y0 - cursorY;
@@ -293,7 +206,7 @@ void verts_add_circle(ecs_vec_t *v, const verts_config_t *config, float radius)
 		return;
 	}
 
-	int segments = 32;
+	int segments = CIRCLE_SEGMENTS;
 	for (int i = 0; i < segments; ++i) {
 		float angle0 = (float)i * (2.0f * EG_PI / (float)segments);
 		float angle1 = (float)(i + 1) * (2.0f * EG_PI / (float)segments);
@@ -310,7 +223,7 @@ void verts_add_circle_outline(ecs_vec_t *v, const verts_config_t *config, float 
 		return;
 	}
 
-	int   segments        = 32;
+	int   segments        = CIRCLE_SEGMENTS;
 	float scaledThickness = thickness * sPixelScale(config);
 	float innerRadius     = radius - scaledThickness * 0.5f;
 	float outerRadius     = radius + scaledThickness * 0.5f;
@@ -381,7 +294,7 @@ void verts_add_capsule_outline(ecs_vec_t *v, const verts_config_t *config, float
 
 	sAddLine(v, config, x1, y1, x2, y2, thickness);
 
-	int   segments    = 24;
+	int   segments    = CAPSULE_CAP_SEGMENTS;
 	float innerRadius = radius - thickness * sPixelScale(config) * 0.5f;
 	sAddCap(v, config, centerX + nx * halfLength, centerY + ny * halfLength, EG_PI, radius, innerRadius, segments);
 	sAddCap(v, config, centerX - nx * halfLength, centerY - ny * halfLength, 0.0f, radius, innerRadius, segments);

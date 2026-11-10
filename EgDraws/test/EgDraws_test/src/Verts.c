@@ -62,6 +62,85 @@ void Verts_test_attributes_and_append(void)
 	}
 }
 
+void Verts_test_quad_geometry(void)
+{
+	config.transform = (m3f32){{1.5f, 0.25f, 0}, {-0.5f, 2.0f, 0}, {4, -3, 1}};
+	verts_add_rectangle(&vertices, &config, 4, 2);
+	test_int(ecs_vec_count(&vertices), 6);
+	EgDraws_Vertex *v = ecs_vec_first_t(&vertices, EgDraws_Vertex);
+	const float local[6][3] = {
+		{-2, -1, 1}, {2, -1, 1}, {2, 1, 1},
+		{-2, -1, 1}, {2, 1, 1}, {-2, 1, 1}
+	};
+	for (int i = 0; i < 6; ++i) {
+		float expected[3];
+		m3f32_mulv(&config.transform, local[i], expected);
+		test_assert(close_to(v[i].position[0], expected[0]));
+		test_assert(close_to(v[i].position[1], expected[1]));
+		test_assert(close_to(v[i].uv[0], 0.5f / EG_DRAWS_ATLAS_WIDTH));
+		test_assert(close_to(v[i].uv[1], 0.5f / EG_DRAWS_ATLAS_HEIGHT));
+	}
+
+	if (EgDraws_Font_GetBitmap() == NULL) {
+		return;
+	}
+	ecs_vec_clear(&vertices);
+	m3f32 transform = config.transform;
+	config.transform = (m3f32)M3_IDENTITY;
+	verts_add_text(&vertices, &config, 24, "A");
+	test_int(ecs_vec_count(&vertices), 6);
+	EgDraws_Vertex original[6];
+	memcpy(original, ecs_vec_first(&vertices), sizeof(original));
+	ecs_vec_clear(&vertices);
+	config.transform = transform;
+	verts_add_text(&vertices, &config, 24, "A");
+	test_int(ecs_vec_count(&vertices), 6);
+	v = ecs_vec_first_t(&vertices, EgDraws_Vertex);
+	for (int i = 0; i < 6; ++i) {
+		float local_position[3] = {original[i].position[0], original[i].position[1], 1};
+		float expected[3];
+		m3f32_mulv(&transform, local_position, expected);
+		test_assert(close_to(v[i].position[0], expected[0]));
+		test_assert(close_to(v[i].position[1], expected[1]));
+		test_assert(v[i].uv[0] == original[i].uv[0]);
+		test_assert(v[i].uv[1] == original[i].uv[1]);
+		test_assert(memcmp(v[i].rgba, original[i].rgba, sizeof(v[i].rgba)) == 0);
+	}
+}
+
+void Verts_test_curved_geometry(void)
+{
+	const float pi = 3.14159265358979323846f;
+	verts_add_circle(&vertices, &config, 2);
+	test_int(ecs_vec_count(&vertices), 96);
+	EgDraws_Vertex *v = ecs_vec_first_t(&vertices, EgDraws_Vertex);
+	test_assert(close_to(v[0].position[0], 0));
+	test_assert(close_to(v[0].position[1], 0));
+	test_assert(close_to(v[1].position[0], 2));
+	test_assert(close_to(v[2].position[0], 2 * cosf(pi / 16)));
+	test_assert(close_to(v[2].position[1], 2 * sinf(pi / 16)));
+
+	ecs_vec_clear(&vertices);
+	verts_add_circle_outline(&vertices, &config, 2, 2);
+	test_int(ecs_vec_count(&vertices), 192);
+	v = ecs_vec_first_t(&vertices, EgDraws_Vertex);
+	test_assert(close_to(v[0].position[0], 2.25f));
+	test_assert(close_to(v[1].position[0], 2.25f * cosf(pi / 16)));
+	test_assert(close_to(v[1].position[1], 2.25f * sinf(pi / 16)));
+	test_assert(close_to(v[2].position[0], 1.75f * cosf(pi / 16)));
+	test_assert(close_to(v[5].position[0], 1.75f));
+
+	ecs_vec_clear(&vertices);
+	verts_add_capsule_outline(&vertices, &config, 0, 0, 2, 0, 1, 2);
+	test_int(ecs_vec_count(&vertices), 294);
+	v = ecs_vec_first_t(&vertices, EgDraws_Vertex);
+	test_assert(close_to(v[0].position[1], 0.25f));
+	test_assert(close_to(v[6].position[0], 1));
+	test_assert(close_to(v[6].position[1], 0));
+	test_assert(close_to(v[8].position[0], 2 + 0.75f * cosf(pi + pi / 24)));
+	test_assert(close_to(v[8].position[1], 0.75f * sinf(pi + pi / 24)));
+}
+
 void Verts_test_shape_counts_and_degenerate_inputs(void)
 {
 	EgDraws_Vec2 polygon[] = {{0, 0}, {2, 0}, {2, 1}, {0, 1}};

@@ -12,6 +12,8 @@
 void Verts_setup(void);
 void Verts_teardown(void);
 void Verts_test_attributes_and_append(void);
+void Verts_test_quad_geometry(void);
+void Verts_test_curved_geometry(void);
 void Verts_test_shape_counts_and_degenerate_inputs(void);
 void Verts_test_pixel_scale(void);
 void Verts_test_text(void);
@@ -21,6 +23,14 @@ bake_test_case Verts_testcases[] = {
     {
         "test_attributes_and_append",
         Verts_test_attributes_and_append
+    },
+    {
+        "test_quad_geometry",
+        Verts_test_quad_geometry
+    },
+    {
+        "test_curved_geometry",
+        Verts_test_curved_geometry
     },
     {
         "test_shape_counts_and_degenerate_inputs",
@@ -45,7 +55,7 @@ static bake_test_suite suites[] = {
         "Verts",
         Verts_setup,
         Verts_teardown,
-        5,
+        7,
         Verts_testcases
     }
 };
