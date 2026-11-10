@@ -4,7 +4,7 @@ set -euo pipefail
 IGNORE_FILES=(
     "EgFs/test/EgFs_test/src/main.c"
     "EgGpusSdl/test/EgGpusSdl_test/src/main.c"
-    "EgShapedraw/src/stb_truetype.h"
+    "EgDraws/src/stb_truetype.h"
     "EgSpatialsSystems/test/EgSpatialsSystems_test/src/main.c"
     "EgSpirv/test/EgSpirv_test/src/main.c"
     "EgUi/test/EgUi_test/src/main.c"

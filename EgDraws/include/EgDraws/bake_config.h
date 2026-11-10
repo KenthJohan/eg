@@ -14,8 +14,8 @@
  * dependencies will automatically show up in this file. Include bake_config.h
  * in your main project file. Do not edit! */
 
-#ifndef EGSHAPEDRAW_BAKE_CONFIG_H
-#define EGSHAPEDRAW_BAKE_CONFIG_H
+#ifndef EGDRAWS_BAKE_CONFIG_H
+#define EGDRAWS_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
 #include <EgShapes.h>
@@ -25,18 +25,18 @@
 #include <flecs.h>
 
 /* Convenience macro for exporting symbols */
-#ifndef egshapedraw_STATIC
-#if defined(egshapedraw_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
-  #define EGSHAPEDRAW_API __declspec(dllexport)
-#elif defined(egshapedraw_EXPORTS)
-  #define EGSHAPEDRAW_API __attribute__((__visibility__("default")))
+#ifndef egdraws_STATIC
+#if defined(egdraws_EXPORTS) && (defined(_MSC_VER) || defined(__MINGW32__))
+  #define EGDRAWS_API __declspec(dllexport)
+#elif defined(egdraws_EXPORTS)
+  #define EGDRAWS_API __attribute__((__visibility__("default")))
 #elif defined(_MSC_VER)
-  #define EGSHAPEDRAW_API __declspec(dllimport)
+  #define EGDRAWS_API __declspec(dllimport)
 #else
-  #define EGSHAPEDRAW_API
+  #define EGDRAWS_API
 #endif
 #else
-  #define EGSHAPEDRAW_API
+  #define EGDRAWS_API
 #endif
 
 #endif
