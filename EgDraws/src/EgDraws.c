@@ -15,11 +15,11 @@ ECS_COMPONENT_DECLARE(EgDraws_Solid);
 static void EgDraws_List_Free(EgDraws_List *l)
 {
 	int32_t layerCount = ecs_vec_count(&l->layers);
-	gverts_t *layers = ecs_vec_first_t(&l->layers, gverts_t);
+	ecs_vec_t *layers = ecs_vec_first_t(&l->layers, ecs_vec_t);
 	for (int32_t i = 0; i < layerCount; ++i) {
-		ecs_vec_fini_t(NULL, &layers[i].vertices, EgDraws_Vertex);
+		ecs_vec_fini_t(NULL, &layers[i], EgDraws_Vertex);
 	}
-	ecs_vec_fini_t(NULL, &l->layers, gverts_t);
+	ecs_vec_fini_t(NULL, &l->layers, ecs_vec_t);
 }
 
 static void EgDraws_List_ctor(void *ptr, int32_t count, const ecs_type_info_t *ti)
@@ -73,9 +73,9 @@ void EgDraws_List_Destroy(EgDraws_List *list)
 
 void EgDraws_List_Clear(EgDraws_List *list)
 {
-	gverts_t *layers = ecs_vec_first_t(&list->layers, gverts_t);
+	ecs_vec_t *layers = ecs_vec_first_t(&list->layers, ecs_vec_t);
 	for (int32_t i = 0, count = ecs_vec_count(&list->layers); i < count; ++i) {
-		ecs_vec_clear(&layers[i].vertices);
+		ecs_vec_clear(&layers[i]);
 	}
 }
 
@@ -93,25 +93,24 @@ ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z)
 	int32_t layerCount = ecs_vec_count(&list->layers);
 	if (z >= layerCount) {
 		int32_t newLayerCount = z + 1 - layerCount;
-		gverts_t *newLayers = ecs_vec_grow_t(NULL, &list->layers, gverts_t, newLayerCount);
+		ecs_vec_t *newLayers = ecs_vec_grow_t(NULL, &list->layers, ecs_vec_t, newLayerCount);
 		if (newLayers == NULL) {
 			return NULL;
 		}
-		memset(newLayers, 0, (size_t)newLayerCount * sizeof(gverts_t));
+		memset(newLayers, 0, (size_t)newLayerCount * sizeof(ecs_vec_t));
 		for (int32_t i = 0; i < newLayerCount; ++i) {
-			ecs_vec_init_t(NULL, &newLayers[i].vertices, EgDraws_Vertex, 0);
+			ecs_vec_init_t(NULL, &newLayers[i], EgDraws_Vertex, 0);
 		}
 	}
 
-	gverts_t *layer = ecs_vec_get_t(&list->layers, gverts_t, z);
-	return layer != NULL ? &layer->vertices : NULL;
+	return ecs_vec_get_t(&list->layers, ecs_vec_t, z);
 }
 
 void EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src)
 {
-	const gverts_t *srcLayers = ecs_vec_first_t(&src->layers, gverts_t);
+	const ecs_vec_t *srcLayers = ecs_vec_first_t(&src->layers, ecs_vec_t);
 	for (int32_t z = 0, layerCount = ecs_vec_count(&src->layers); z < layerCount; ++z) {
-		const ecs_vec_t *s = &srcLayers[z].vertices;
+		const ecs_vec_t *s = &srcLayers[z];
 		int32_t srcCount = ecs_vec_count(s);
 		if (srcCount == 0) {
 			continue;
