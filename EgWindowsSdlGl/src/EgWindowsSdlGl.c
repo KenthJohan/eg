@@ -17,6 +17,8 @@
 #include <EgWindows.h>
 #include <ecsx.h>
 
+ECS_COMPONENT_DECLARE(EgWindowsSdlGlFrameCallback);
+
 static void inner_systems_run(ecs_iter_t *it)
 {
 	while (ecs_query_next(it)) {
@@ -34,7 +36,13 @@ static void System_Render(ecs_iter_t *it)
 	EgShapesRectangle      *r = ecs_field_self(it, EgShapesRectangle, 2);
 	for (int i = 0; i < it->count; ++i, ++w, ++g, ++r) {
 		ecs_entity_t e = it->entities[i];
-		SDL_GL_MakeCurrent(w->object, g->gl_context);
+		const EgWindowsSdlGlFrameCallback *callback = ecs_get(it->world, e, EgWindowsSdlGlFrameCallback);
+		void (*complete)(ecs_world_t*, ecs_entity_t, bool) = callback ? callback->complete : NULL;
+		if (!SDL_GL_MakeCurrent(w->object, g->gl_context)) {
+			ecs_err("EgWindowsSdlGl: cannot make window context current: %s", SDL_GetError());
+			if (complete) complete(it->world, e, false);
+			continue;
+		}
 		glViewport(0, 0, (GLsizei)r->w, (GLsizei)r->h);
 		glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Blue
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -43,7 +51,9 @@ static void System_Render(ecs_iter_t *it)
 		ecs_iter_set_group(&it2, e);
 		inner_systems_run(&it2);
 
-		SDL_GL_SwapWindow(w->object);
+		bool displayed = SDL_GL_SwapWindow(w->object);
+		if (!displayed) ecs_err("EgWindowsSdlGl: cannot swap window: %s", SDL_GetError());
+		if (complete) complete(it->world, e, displayed);
 	} // END FOR LOOP
 }
 
@@ -92,6 +102,7 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 
 	ECS_MODULE(world, EgWindowsSdlGl);
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
+	ECS_COMPONENT_DEFINE(world, EgWindowsSdlGlFrameCallback);
 
 	const int compiled = SDL_VERSION;
 	const int linked   = SDL_GetVersion();
