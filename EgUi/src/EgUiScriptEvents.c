@@ -3,7 +3,6 @@
 #include <EgUi.h>
 
 #include <EgButtons.h>
-#include <EgSpatials.h>
 #include <ecsx.h>
 
 ECS_TAG_DECLARE(EgUiScriptEventsTarget);
@@ -15,38 +14,10 @@ ECS_COMPONENT_DECLARE(EgUiScriptEventsPicker);
 #define EG_UI_SCANCODE_LGUI   227
 
 typedef struct {
-	ecs_query_t *targets;
 	uint8_t      prev_mouse[EG_BUTTONS_MOUSE_MAX];
-	ecs_entity_t pressed;
 	float        screen_x;
 	float        screen_y;
 } EgUiScriptEventsContext;
-
-// Finds the hit target: deepest in the hierarchy, last in query order on ties.
-static ecs_entity_t EgUiScriptEvents_PickTarget(ecs_world_t *world, ecs_query_t *query, EgUiScriptEventsContext *ctx)
-{
-	ecs_entity_t best       = 0;
-	int32_t      best_depth = -1;
-	ecs_iter_t   qit        = ecs_query_iter(world, query);
-	ecs_iter_t  *it         = &qit;
-	while (ecs_query_next(it)) {
-		EgUiLocalMousePosition const *l = ecs_field_self(it, EgUiLocalMousePosition, 1);
-		Position2 const              *p = ecs_field_shared(it, Position2, 3);
-		ctx->screen_x                   = p->x;
-		ctx->screen_y                   = p->y;
-		for (int32_t i = 0; i < it->count; ++i) {
-			if (!l[i].inside) {
-				continue;
-			}
-			int32_t depth = ecs_get_depth(world, it->entities[i], EcsChildOf);
-			if (depth >= best_depth) {
-				best_depth = depth;
-				best       = it->entities[i];
-			}
-		}
-	}
-	return best;
-}
 
 static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 {
@@ -56,28 +27,9 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 
 	ecs_entity_t target = 0;
 	EgUiScriptEventsPicker const *picker = ecs_singleton_get(w, EgUiScriptEventsPicker);
-	bool gpu = picker && picker->pick &&
-		picker->pick(w, &target, &ctx->screen_x, &ctx->screen_y, picker->ctx);
-	if (!gpu) {
-		target = EgUiScriptEvents_PickTarget(w, ctx->targets, ctx);
-	}
-
-	// Pointer capture: while a button is held the target stays the entity that received the press.
-	bool any_held  = false;
-	bool prev_held = false;
-	for (int32_t i = 1; i < EG_BUTTONS_MOUSE_MAX; ++i) {
-		any_held |= !!(s->mouse[i] & EG_BUTTONS_STATE_HELD);
-		prev_held |= !!(ctx->prev_mouse[i] & EG_BUTTONS_STATE_HELD);
-	}
-	if (!gpu && any_held && !prev_held) {
-		ctx->pressed = target;
-	} else if (!gpu && any_held && ctx->pressed && ecs_is_alive(w, ctx->pressed)) {
-		target = ctx->pressed;
-	} else if (!gpu && !any_held) {
-		if (prev_held && ctx->pressed && ecs_is_alive(w, ctx->pressed)) {
-			target = ctx->pressed; // Release goes to the captured entity too
-		}
-		ctx->pressed = 0;
+	if (picker && picker->pick &&
+		!picker->pick(w, &target, &ctx->screen_x, &ctx->screen_y, picker->ctx)) {
+		target = 0;
 	}
 	EcsScriptMouseEvent e = {
 	.target   = target,
@@ -102,45 +54,22 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 		ctx->prev_mouse[i] = s->mouse[i];
 	}
 
-	if (gpu) {
-		if (target) {
-			EgUiLocalMousePosition const *l = ecs_get(w, target, EgUiLocalMousePosition);
-			e.local_x = l ? l->x : e.screen_x;
-			e.local_y = l ? l->y : e.screen_y;
-		}
-		ecs_script_mouse_event(w, &e);
-		return;
+	if (target) {
+		EgUiLocalMousePosition const *l = ecs_get(w, target, EgUiLocalMousePosition);
+		e.local_x = l ? l->x : e.screen_x;
+		e.local_y = l ? l->y : e.screen_y;
 	}
-
-	// Entities get the event in their own local space, then it propagates to the ancestors.
-	for (ecs_entity_t t = target;;) {
-		if (t) {
-			EgUiLocalMousePosition const *l = ecs_get(w, t, EgUiLocalMousePosition);
-			e.local_x                       = l ? l->x : 0.0f;
-			e.local_y                       = l ? l->y : 0.0f;
-		}
-		e.target                    = t;
-		ecs_script_event_result_t r = ecs_script_mouse_event(w, &e);
-		if (r.stopped || !t) {
-			break;
-		}
-		t = ecs_get_parent(w, t);
-		if (!t) {
-			break;
-		}
-	}
+	ecs_script_mouse_event(w, &e);
 }
 
 static void EgUiScriptEventsContext_Free(void *ptr)
 {
 	EgUiScriptEventsContext *ctx = ptr;
-	ecs_query_fini(ctx->targets);
 	ecs_os_free(ctx);
 }
 
 void EgUiScriptEventsImport(ecs_world_t *world)
 {
-	ECS_IMPORT(world, EgSpatials);
 	ECS_IMPORT(world, EgButtons);
 	ECS_IMPORT(world, EgUiLocalMouse);
 	ECS_IMPORT(world, FlecsScriptInput);
@@ -152,14 +81,6 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgUiScriptEventsPicker);
 
 	EgUiScriptEventsContext *ctx = ecs_os_calloc_t(EgUiScriptEventsContext);
-	ctx->targets                 = ecs_query(world,
-	                {.terms = {
-     {.id = EgUiScriptEventsTarget},
-     {.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
-     {.first.id = EgUiMouse, .second.name = "$mouse", .src.id = EcsSelf | EcsUp, .trav = EcsChildOf, .inout = EcsInOutNone},
-     {.id = ecs_id(Position2), .src.name = "$mouse", .inout = EcsIn},
-     {.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
-     }});
 
 	// Runs every frame (not only on hits) so leave and release reach the script.
 	ecs_system_init(world,

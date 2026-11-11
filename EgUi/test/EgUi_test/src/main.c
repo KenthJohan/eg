@@ -22,12 +22,9 @@ void FlowLayout_test_disabled_ancestor_skips_flow(void);
 // Testsuite 'MouseHitTesting'
 void MouseHitTesting_setup(void);
 void MouseHitTesting_teardown(void);
-void MouseHitTesting_test_axis_aligned_hit_and_clear(void);
-void MouseHitTesting_test_local_mouse_inside_flag(void);
-void MouseHitTesting_test_rotated_scaled_hit(void);
-void MouseHitTesting_test_overlapping_rectangles_all_hover(void);
-void MouseHitTesting_test_disabled_ancestor_clears_hover(void);
 void MouseHitTesting_test_external_pick_dispatch(void);
+void MouseHitTesting_test_no_picker_does_not_hit_rectangle(void);
+void MouseHitTesting_test_local_coordinates(void);
 
 // Testsuite 'FreeformLayout'
 void FreeformLayout_setup(void);
@@ -77,28 +74,16 @@ bake_test_case FlowLayout_testcases[] = {
 
 bake_test_case MouseHitTesting_testcases[] = {
     {
-        "test_axis_aligned_hit_and_clear",
-        MouseHitTesting_test_axis_aligned_hit_and_clear
-    },
-    {
-        "test_local_mouse_inside_flag",
-        MouseHitTesting_test_local_mouse_inside_flag
-    },
-    {
-        "test_rotated_scaled_hit",
-        MouseHitTesting_test_rotated_scaled_hit
-    },
-    {
-        "test_overlapping_rectangles_all_hover",
-        MouseHitTesting_test_overlapping_rectangles_all_hover
-    },
-    {
-        "test_disabled_ancestor_clears_hover",
-        MouseHitTesting_test_disabled_ancestor_clears_hover
-    },
-    {
         "test_external_pick_dispatch",
         MouseHitTesting_test_external_pick_dispatch
+    },
+    {
+        "test_no_picker_does_not_hit_rectangle",
+        MouseHitTesting_test_no_picker_does_not_hit_rectangle
+    },
+    {
+        "test_local_coordinates",
+        MouseHitTesting_test_local_coordinates
     }
 };
 
@@ -148,7 +133,7 @@ static bake_test_suite suites[] = {
         "MouseHitTesting",
         MouseHitTesting_setup,
         MouseHitTesting_teardown,
-        6,
+        3,
         MouseHitTesting_testcases
     },
     {

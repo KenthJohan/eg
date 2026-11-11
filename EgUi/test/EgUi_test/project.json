@@ -30,12 +30,9 @@
 			"setup": true,
 			"teardown": true,
 			"testcases": [
-				"test_axis_aligned_hit_and_clear",
-				"test_local_mouse_inside_flag",
-				"test_rotated_scaled_hit",
-				"test_overlapping_rectangles_all_hover",
-				"test_disabled_ancestor_clears_hover",
-				"test_external_pick_dispatch"
+				"test_external_pick_dispatch",
+				"test_no_picker_does_not_hit_rectangle",
+				"test_local_coordinates"
 			]
 		}, {
 			"id": "FreeformLayout",

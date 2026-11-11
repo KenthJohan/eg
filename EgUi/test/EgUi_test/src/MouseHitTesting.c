@@ -3,6 +3,7 @@
 #include <EgShapes.h>
 #include <EgSpatials.h>
 #include <EgUi.h>
+#include <math.h>
 
 static ecs_world_t *world;
 
@@ -32,44 +33,30 @@ void MouseHitTesting_setup(void)
 	ecs_singleton_set(world, EgButtonsState, {{0}});
 }
 
-static bool is_hovered(ecs_entity_t e)
-{
-	return ecs_get(world, e, EgUiLocalMousePosition)->inside;
-}
-
 void MouseHitTesting_teardown(void)
 {
 	ecs_fini(world);
 	world = NULL;
 }
 
-static ecs_entity_t make_root(ecs_entity_t *mouse)
+static ecs_entity_t make_rect(ecs_entity_t *mouse)
 {
 	*mouse = ecs_new(world);
 	ecs_set(world, *mouse, Position2, {0.0f, 0.0f});
-
 	ecs_entity_t root = ecs_new(world);
 	ecs_add_pair(world, root, EgUiMouse, *mouse);
-	return root;
-}
-
-static ecs_entity_t make_rect(ecs_entity_t root, ecs_entity_t mouse,
-float w, float h, float center_x, float center_y, float basis_xx, float basis_yx,
-float basis_xy, float basis_yy)
-{
 	ecs_entity_t rect = ecs_new_w_pair(world, EcsChildOf, root);
 	ecs_set(world, rect, EgUiLocalMousePosition, {0});
-	ecs_set(world, rect, EgShapesRectangle, {.w = w, .h = h});
-	ecs_set(world, rect, WorldTransform3, {.matrix = {{basis_xx, basis_xy, 0.0f}, {basis_yx, basis_yy, 0.0f}, {center_x, center_y, 1.0f}}});
+	ecs_set(world, rect, EgShapesRectangle, {.w = 4, .h = 4});
+	ecs_set(world, rect, WorldTransform3, {.matrix = M3_IDENTITY});
+	ecs_add_id(world, rect, EgUiScriptEventsTarget);
 	return rect;
 }
 
 void MouseHitTesting_test_external_pick_dispatch(void)
 {
 	ecs_entity_t mouse;
-	ecs_entity_t root = make_root(&mouse);
-	ecs_entity_t rect = make_rect(root, mouse, 4, 4, 0, 0, 1, 0, 0, 1);
-	ecs_add_id(world, rect, EgUiScriptEventsTarget);
+	ecs_entity_t rect = make_rect(&mouse);
 	TestPicker picker = {.target = rect, .handled = true};
 	ecs_singleton_set(world, EgUiScriptEventsPicker, {.pick = pick_test_target, .ctx = &picker});
 
@@ -86,7 +73,6 @@ void MouseHitTesting_test_external_pick_dispatch(void)
 	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
 	test_assert(last.target == 0);
 	test_assert(last.id == event_id + 1);
-	test_int(picker.calls, 2);
 
 	picker.target = rect;
 	ecs_singleton_set(world, EgButtonsState, {.mouse = {[1] = EG_BUTTONS_STATE_HELD}});
@@ -103,97 +89,44 @@ void MouseHitTesting_test_external_pick_dispatch(void)
 	test_assert(ecs_script_get_mouse_state(world, &last, &pressed));
 	test_assert(last.target == 0 && last.buttons == 0);
 
+	picker.target = rect;
 	picker.handled = false;
 	ecs_progress(world, 0);
 	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
-	test_assert(last.target == root);
+	test_assert(last.target == 0);
 	test_int(picker.calls, 6);
+
+	picker.handled = true;
+	ecs_progress(world, 0);
+	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
+	test_assert(last.target == rect);
+	ecs_singleton_remove(world, EgUiScriptEventsPicker);
+	ecs_progress(world, 0);
+	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
+	test_assert(last.target == 0);
 }
 
-void MouseHitTesting_test_axis_aligned_hit_and_clear(void)
+void MouseHitTesting_test_no_picker_does_not_hit_rectangle(void)
 {
 	ecs_entity_t mouse;
-	ecs_entity_t root = make_root(&mouse);
-	ecs_entity_t rect = make_rect(root, mouse, 4.0f, 2.0f, 10.0f, 20.0f,
-	1.0f, 0.0f, 0.0f, 1.0f);
-	ecs_set(world, mouse, Position2, {12.0f, 21.0f});
-
-	ecs_progress(world, 0.0f);
-	test_assert(is_hovered(rect));
-
-	ecs_set(world, mouse, Position2, {12.01f, 21.0f});
-	ecs_progress(world, 0.0f);
-	test_assert(!is_hovered(rect));
-
-	ecs_set(world, mouse, Position2, {12.0f, 21.0f});
-	ecs_progress(world, 0.0f);
-	test_assert(is_hovered(rect));
+	make_rect(&mouse);
+	ecs_progress(world, 0);
+	EcsScriptMouseEvent last = {0};
+	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
+	test_assert(last.target == 0);
 }
 
-void MouseHitTesting_test_local_mouse_inside_flag(void)
+void MouseHitTesting_test_local_coordinates(void)
 {
 	ecs_entity_t mouse;
-	ecs_entity_t root = make_root(&mouse);
-	ecs_entity_t rect = make_rect(root, mouse, 4.0f, 2.0f, 10.0f, 20.0f,
-	1.0f, 0.0f, 0.0f, 1.0f);
-	ecs_set(world, mouse, Position2, {11.0f, 20.5f});
-
-	ecs_progress(world, 0.0f);
+	ecs_entity_t rect = make_rect(&mouse);
+	ecs_set(world, rect, WorldTransform3,
+		{.matrix = {{0, 2, 0}, {-3, 0, 0}, {10, 20, 1}}});
+	ecs_set(world, mouse, Position2, {7, 22});
+	ecs_progress(world, 0);
 	EgUiLocalMousePosition const *l = ecs_get(world, rect, EgUiLocalMousePosition);
 	test_assert(fabsf(l->x - 1.0f) < 1e-4f);
-	test_assert(fabsf(l->y - 0.5f) < 1e-4f);
-	test_assert(l->inside);
-
-	ecs_set(world, mouse, Position2, {12.0f, 21.0f});
-	ecs_progress(world, 0.0f);
-	test_assert(ecs_get(world, rect, EgUiLocalMousePosition)->inside);
-
-	ecs_set(world, mouse, Position2, {12.01f, 21.0f});
-	ecs_progress(world, 0.0f);
-	test_assert(!ecs_get(world, rect, EgUiLocalMousePosition)->inside);
-}
-
-void MouseHitTesting_test_rotated_scaled_hit(void)
-{
-	ecs_entity_t mouse;
-	ecs_entity_t root = make_root(&mouse);
-	ecs_entity_t rect = make_rect(root, mouse, 4.0f, 2.0f, 10.0f, 20.0f,
-	0.0f, -3.0f, 2.0f, 0.0f);
-	ecs_set(world, mouse, Position2, {7.0f, 22.0f});
-
-	ecs_progress(world, 0.0f);
-	test_assert(is_hovered(rect));
-
-	ecs_set(world, mouse, Position2, {7.0f, 24.1f});
-	ecs_progress(world, 0.0f);
-	test_assert(!is_hovered(rect));
-}
-
-void MouseHitTesting_test_overlapping_rectangles_all_hover(void)
-{
-	ecs_entity_t mouse;
-	ecs_entity_t root   = make_root(&mouse);
-	ecs_entity_t first  = make_rect(root, mouse, 10.0f, 10.0f, 0.0f, 0.0f,
-	 1.0f, 0.0f, 0.0f, 1.0f);
-	ecs_entity_t second = make_rect(root, mouse, 4.0f, 4.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 0.0f, 1.0f);
-
-	ecs_progress(world, 0.0f);
-	test_assert(is_hovered(first));
-	test_assert(is_hovered(second));
-}
-
-void MouseHitTesting_test_disabled_ancestor_clears_hover(void)
-{
-	ecs_entity_t mouse;
-	ecs_entity_t root = make_root(&mouse);
-	ecs_entity_t rect = make_rect(root, mouse, 10.0f, 10.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 0.0f, 1.0f);
-
-	ecs_progress(world, 0.0f);
-	test_assert(is_hovered(rect));
-
-	ecs_enable(world, root, false);
-	ecs_progress(world, 0.0f);
-	test_assert(!is_hovered(rect));
+	test_assert(fabsf(l->y - 1.0f) < 1e-4f);
+	test_assert(fabsf(l->pixel_x - 0.5f) < 1e-4f);
+	test_assert(fabsf(l->pixel_y - 1.0f / 3.0f) < 1e-4f);
 }

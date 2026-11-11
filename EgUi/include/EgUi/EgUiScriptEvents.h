@@ -8,7 +8,7 @@
 extern ECS_TAG_DECLARE(EgUiScriptEventsTarget);
 
 // Return true when the provider handled the event, including a background hit.
-// Return false to use the normal CPU target selection.
+// Return false when no picking target is available; no CPU fallback is used.
 typedef bool (*EgUiScriptEventsPickFn)(ecs_world_t *world, ecs_entity_t *target,
 	float *screen_x, float *screen_y, void *ctx);
 
