@@ -85,7 +85,7 @@ void FlowLayout_test_only_direct_children_are_laid_out(void)
 	ecs_set(world, parent, EgShapesRectangle, {.w = 100, .h = 100});
 	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirRight, .wrap = EgUiDirDown});
 
-	ecs_entity_t child = make_child(parent, 40, 40);
+	ecs_entity_t child      = make_child(parent, 40, 40);
 	ecs_entity_t grandchild = make_child(child, 20, 20);
 	ecs_set(world, grandchild, Position2, {7.0f, 9.0f});
 
@@ -117,7 +117,7 @@ void FlowLayout_test_oversized_child_is_skipped_and_retried(void)
 	ecs_set(world, parent, EgUiFlowsFlow, {.direction = EgUiDirRight, .wrap = EgUiDirDown});
 	ecs_entity_t first     = make_child(parent, 40, 40);
 	ecs_entity_t oversized = make_child(parent, 120, 40);
-	ecs_entity_t last = make_child(parent, 40, 40);
+	ecs_entity_t last      = make_child(parent, 40, 40);
 
 	ecs_progress(world, 0);
 	test_assert(ecs_has_id(world, oversized, EcsDisabled));

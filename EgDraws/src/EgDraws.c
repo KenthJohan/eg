@@ -15,8 +15,8 @@ ECS_COMPONENT_DECLARE(EgDraws_Solid);
 
 static void EgDraws_List_Free(EgDraws_List *l)
 {
-	int32_t layerCount = ecs_vec_count(&l->layers);
-	ecs_vec_t *layers = ecs_vec_first_t(&l->layers, ecs_vec_t);
+	int32_t    layerCount = ecs_vec_count(&l->layers);
+	ecs_vec_t *layers     = ecs_vec_first_t(&l->layers, ecs_vec_t);
 	for (int32_t i = 0; i < layerCount; ++i) {
 		ecs_vec_fini_t(NULL, &layers[i], EgDraws_Vertex);
 	}
@@ -49,8 +49,8 @@ static void EgDraws_List_move(void *dst_ptr, void *src_ptr, int32_t count, const
 	EgDraws_List *src = src_ptr;
 	for (int32_t i = 0; i < count; ++i) {
 		EgDraws_List_Free(&dst[i]);
-		dst[i]               = src[i];
-		src[i].layers        = (ecs_vec_t){0};
+		dst[i]        = src[i];
+		src[i].layers = (ecs_vec_t){0};
 	}
 }
 
@@ -93,8 +93,8 @@ ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z)
 
 	int32_t layerCount = ecs_vec_count(&list->layers);
 	if (z >= layerCount) {
-		int32_t newLayerCount = z + 1 - layerCount;
-		ecs_vec_t *newLayers = ecs_vec_grow_t(NULL, &list->layers, ecs_vec_t, newLayerCount);
+		int32_t    newLayerCount = z + 1 - layerCount;
+		ecs_vec_t *newLayers     = ecs_vec_grow_t(NULL, &list->layers, ecs_vec_t, newLayerCount);
 		if (newLayers == NULL) {
 			return NULL;
 		}
@@ -111,8 +111,8 @@ void EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src)
 {
 	const ecs_vec_t *srcLayers = ecs_vec_first_t(&src->layers, ecs_vec_t);
 	for (int32_t z = 0, layerCount = ecs_vec_count(&src->layers); z < layerCount; ++z) {
-		const ecs_vec_t *s = &srcLayers[z];
-		int32_t srcCount = ecs_vec_count(s);
+		const ecs_vec_t *s        = &srcLayers[z];
+		int32_t          srcCount = ecs_vec_count(s);
 		if (srcCount == 0) {
 			continue;
 		}
@@ -140,12 +140,12 @@ static ecs_vec_t *EgDraws_BeginVertices(EgDraws_List *list, int32_t z, const m3f
 	}
 
 	*config = (verts_config_t){
-		.pixscale = list->pixelScale,
-		.transform = *transform,
-		.r = (uint8_t)(color >> 16),
-		.g = (uint8_t)(color >> 8),
-		.b = (uint8_t)color,
-		.a = (uint8_t)(color >> 24),
+	.pixscale  = list->pixelScale,
+	.transform = *transform,
+	.r         = (uint8_t)(color >> 16),
+	.g         = (uint8_t)(color >> 8),
+	.b         = (uint8_t)color,
+	.a         = (uint8_t)(color >> 24),
 	};
 	if (config->a == 0) {
 		config->a = 255;
@@ -163,18 +163,18 @@ static void EgDraws_List_Reset(ecs_iter_t *it)
 
 static void EgDraws_Solid_Collect2D(ecs_iter_t *it)
 {
-	EgDraws_List         *l0 = ecs_field_shared(it, EgDraws_List, 0);
-	EgDraws_Solid const  *s  = ecs_field_self(it, EgDraws_Solid, 1);
+	EgDraws_List            *l0 = ecs_field_shared(it, EgDraws_List, 0);
+	EgDraws_Solid const     *s  = ecs_field_self(it, EgDraws_Solid, 1);
 	EgShapesRectangle const *r  = ecs_field_self(it, EgShapesRectangle, 2);
 	WorldTransform3 const   *w  = ecs_field_self(it, WorldTransform3, 3);
-	EgDraws_Z const      *zs = ecs_field_self(it, EgDraws_Z, 4); // Optional
+	EgDraws_Z const         *zs = ecs_field_self(it, EgDraws_Z, 4); // Optional
 	for (int i = 0; i < it->count; ++i, ++s, ++r, ++w) {
 		if (r->w <= 0.0f || r->h <= 0.0f) {
 			continue;
 		}
-		int32_t z = zs != NULL ? zs[i].z : 0;
+		int32_t        z = zs != NULL ? zs[i].z : 0;
 		verts_config_t config;
-		ecs_vec_t *vertices = EgDraws_BeginVertices(l0, z, &w->matrix, s->color, &config);
+		ecs_vec_t     *vertices = EgDraws_BeginVertices(l0, z, &w->matrix, s->color, &config);
 		if (vertices != NULL) {
 			verts_add_rectangle(vertices, &config, r->w, r->h);
 		}
@@ -183,18 +183,18 @@ static void EgDraws_Solid_Collect2D(ecs_iter_t *it)
 
 static void EgDraws_Border_Collect2D(ecs_iter_t *it)
 {
-	EgDraws_List         *l0 = ecs_field_shared(it, EgDraws_List, 0);
-	EgDraws_Border const *b  = ecs_field_self(it, EgDraws_Border, 1);
+	EgDraws_List            *l0 = ecs_field_shared(it, EgDraws_List, 0);
+	EgDraws_Border const    *b  = ecs_field_self(it, EgDraws_Border, 1);
 	EgShapesRectangle const *r  = ecs_field_self(it, EgShapesRectangle, 2);
 	WorldTransform3 const   *w  = ecs_field_self(it, WorldTransform3, 3);
-	EgDraws_Z const      *zs = ecs_field_self(it, EgDraws_Z, 4); // Optional
+	EgDraws_Z const         *zs = ecs_field_self(it, EgDraws_Z, 4); // Optional
 	for (int i = 0; i < it->count; ++i, ++b, ++r, ++w) {
 		if (r->w <= 0.0f || r->h <= 0.0f || b->thickness <= 0.0f) {
 			continue;
 		}
-		int32_t z = zs != NULL ? zs[i].z : 0;
+		int32_t        z = zs != NULL ? zs[i].z : 0;
 		verts_config_t config;
-		ecs_vec_t *vertices = EgDraws_BeginVertices(l0, z, &w->matrix, b->color, &config);
+		ecs_vec_t     *vertices = EgDraws_BeginVertices(l0, z, &w->matrix, b->color, &config);
 		if (vertices != NULL) {
 			verts_add_rectangle_outline(vertices, &config, r->w, r->h, b->thickness);
 		}
@@ -203,20 +203,20 @@ static void EgDraws_Border_Collect2D(ecs_iter_t *it)
 
 static void EgDraws_List_CollectText(ecs_iter_t *it)
 {
-	EgDraws_List       *l0         = ecs_field_shared(it, EgDraws_List, 0);
+	EgDraws_List          *l0         = ecs_field_shared(it, EgDraws_List, 0);
 	EgBaseText const      *t          = ecs_field_self(it, EgBaseText, 1);
 	EgBaseFont const      *f          = ecs_field_self(it, EgBaseFont, 2);
 	WorldTransform3 const *x          = ecs_field_self(it, WorldTransform3, 3);
-	EgDraws_Z const    *z_optional = ecs_field_self(it, EgDraws_Z, 4);
+	EgDraws_Z const       *z_optional = ecs_field_self(it, EgDraws_Z, 4);
 
 	for (int i = 0; i < it->count; ++i, ++t, ++f, ++x) {
 		int32_t z = z_optional != NULL ? z_optional[i].z : 0;
 		if (t->value == NULL || t->value[0] == '\0' || EgDraws_Font_GetBitmap() == NULL) {
 			continue;
 		}
-		float fontSize = f->font_size > 0.0f ? f->font_size : 24.0f;
+		float          fontSize = f->font_size > 0.0f ? f->font_size : 24.0f;
 		verts_config_t config;
-		ecs_vec_t *vertices = EgDraws_BeginVertices(l0, z, &x->matrix, f->color, &config);
+		ecs_vec_t     *vertices = EgDraws_BeginVertices(l0, z, &x->matrix, f->color, &config);
 		if (vertices != NULL) {
 			verts_add_text(vertices, &config, fontSize, t->value);
 		}

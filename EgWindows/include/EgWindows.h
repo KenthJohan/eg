@@ -4,7 +4,7 @@
 typedef struct
 {
 	void *object;
-	bool terminate_on_close;
+	bool  terminate_on_close;
 } EgWindowsWindow;
 
 typedef struct

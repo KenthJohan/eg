@@ -2,7 +2,6 @@
 
 #include <flecs.h>
 
-
 enum {
 	EG_UI_EDGE_LEFT   = 1,
 	EG_UI_EDGE_RIGHT  = 2,
@@ -11,8 +10,8 @@ enum {
 };
 
 typedef struct {
-	float   min_w;
-	float   min_h;
+	float min_w;
+	float min_h;
 } EgUiBoundsResizable;
 
 // One-shot request to move edges to absolute positions in the entity's local space (the space of its

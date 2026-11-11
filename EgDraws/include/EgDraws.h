@@ -17,8 +17,8 @@ typedef struct {
 
 // Put on a root entity; shapes that depend on it append triangles here each frame. Layer index is z, drawn in ascending order.
 typedef struct {
-	ecs_vec_t layers; // ecs_vec_t<ecs_vec_t<EgDraws_Vertex>>
-	float             pixelScale; // World units per pixel; scales line thickness, point size and outlines.
+	ecs_vec_t layers;     // ecs_vec_t<ecs_vec_t<EgDraws_Vertex>>
+	float     pixelScale; // World units per pixel; scales line thickness, point size and outlines.
 } EgDraws_List;
 
 // Optional per-entity z level for collected shapes; defaults to 0.

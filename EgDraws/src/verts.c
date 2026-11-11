@@ -3,8 +3,8 @@
 
 #include <math.h>
 
-#define EG_PI 3.14159265358979323846f
-#define CIRCLE_SEGMENTS 32
+#define EG_PI                3.14159265358979323846f
+#define CIRCLE_SEGMENTS      32
 #define CAPSULE_CAP_SEGMENTS 24
 
 static void sAppendVertex(ecs_vec_t *vertices, const verts_config_t *config, const m3f32 *transform, float x, float y, float u, float v)
@@ -63,12 +63,11 @@ static void sAddTriangle(ecs_vec_t *v, const verts_config_t *config, float x0, f
 
 static void sAddSolidQuad(ecs_vec_t *v, const verts_config_t *config, float x0, float y0, float x1, float y1)
 {
-	const float whiteU = 0.5f / EG_DRAWS_ATLAS_WIDTH;
-	const float whiteV = 0.5f / EG_DRAWS_ATLAS_HEIGHT;
+	const float whiteU          = 0.5f / EG_DRAWS_ATLAS_WIDTH;
+	const float whiteV          = 0.5f / EG_DRAWS_ATLAS_HEIGHT;
 	const float positions[4][3] = {
-		{x0, y0, 1.0f}, {x1, y0, 1.0f},
-		{x1, y1, 1.0f}, {x0, y1, 1.0f}
-	};
+	{x0, y0, 1.0f}, {x1, y0, 1.0f},
+	{x1, y1, 1.0f}, {x0, y1, 1.0f}};
 	sAddQuad(v, config, &config->transform, positions, whiteU, whiteV, whiteU, whiteV);
 }
 

@@ -66,7 +66,7 @@ static void ExampleRoot(int argc, char *argv[])
 	ecs_add(world, mid, Child);
 	ecs_add(world, leaf, Child);
 
-	PrintMatches(world, Child,"EcsUp query (expects mid and leaf):", "Variable query (expects only mid):");
+	PrintMatches(world, Child, "EcsUp query (expects mid and leaf):", "Variable query (expects only mid):");
 	printf("\n");
 	ecs_fini(world);
 }
@@ -88,7 +88,7 @@ static void ExampleRoot2(int argc, char *argv[])
 	ecs_add(world, mid2, Child);
 	ecs_add(world, leaf, Child);
 
-	PrintMatches(world, Child,"EcsUp query (expects mid1, mid2, and leaf2):","Variable query (expects mid1 and mid2):");
+	PrintMatches(world, Child, "EcsUp query (expects mid1, mid2, and leaf2):", "Variable query (expects mid1 and mid2):");
 	printf("\n");
 	ecs_fini(world);
 }

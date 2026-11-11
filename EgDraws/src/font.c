@@ -6,8 +6,8 @@
 #include <string.h>
 
 static stbtt_bakedchar sGlyphs[FONT_CHAR_COUNT];
-static unsigned char sBitmap[EG_DRAWS_ATLAS_WIDTH * EG_DRAWS_ATLAS_HEIGHT];
-static int sFontState; // 0 = not baked, 1 = ok, -1 = failed
+static unsigned char   sBitmap[EG_DRAWS_ATLAS_WIDTH * EG_DRAWS_ATLAS_HEIGHT];
+static int             sFontState; // 0 = not baked, 1 = ok, -1 = failed
 
 static unsigned char *sReadBinaryFile(const char *path, size_t *outSize)
 {
@@ -67,7 +67,7 @@ static unsigned char *sLoadSystemFont(size_t *outSize)
 const unsigned char *EgDraws_Font_GetBitmap(void)
 {
 	if (sFontState == 0) {
-		size_t fontSize = 0;
+		size_t         fontSize = 0;
 		unsigned char *fontData = sLoadSystemFont(&fontSize);
 		if (fontData == NULL) {
 			fprintf(stderr, "EgDraws: failed to locate a default TrueType font\n");
@@ -89,5 +89,5 @@ const unsigned char *EgDraws_Font_GetBitmap(void)
 void font_get_quad(int codepoint, float *cursorX, float *cursorY, stbtt_aligned_quad *quad)
 {
 	stbtt_GetBakedQuad(sGlyphs, EG_DRAWS_ATLAS_WIDTH, EG_DRAWS_ATLAS_HEIGHT,
-		codepoint - FONT_FIRST_CHAR, cursorX, cursorY, quad, 1);
+	codepoint - FONT_FIRST_CHAR, cursorX, cursorY, quad, 1);
 }

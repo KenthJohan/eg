@@ -268,7 +268,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	ecs_log(-1, "EgDisplaysSdl imported (compiled SDL version: %d.%d.%d, linked SDL version: %d.%d.%d)",
 	SDL_VERSIONNUM_MAJOR(compiled), SDL_VERSIONNUM_MINOR(compiled), SDL_VERSIONNUM_MICRO(compiled),
 	SDL_VERSIONNUM_MAJOR(linked), SDL_VERSIONNUM_MINOR(linked), SDL_VERSIONNUM_MICRO(linked));
-	
+
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
 		ecs_err("SDL_InitSubSystem(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
 	}

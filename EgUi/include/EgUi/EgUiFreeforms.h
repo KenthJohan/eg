@@ -11,8 +11,8 @@ typedef struct {
 typedef struct {
 	EgUiAt parent;
 	EgUiAt pivot;
-	float                   x;
-	float                   y;
+	float  x;
+	float  y;
 } EgUiFreeformsAnchor;
 
 extern ECS_COMPONENT_DECLARE(EgUiFreeformsLayout);

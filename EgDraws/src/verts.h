@@ -3,8 +3,8 @@
 #include "EgDraws.h"
 
 typedef struct {
-	float pixscale;
-	m3f32 transform;
+	float   pixscale;
+	m3f32   transform;
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;

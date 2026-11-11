@@ -102,7 +102,7 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 			e.local_x                       = l ? l->x : 0.0f;
 			e.local_y                       = l ? l->y : 0.0f;
 		}
-		e.target = t;
+		e.target                    = t;
 		ecs_script_event_result_t r = ecs_script_mouse_event(w, &e);
 		if (r.stopped || !t) {
 			break;
@@ -135,13 +135,13 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 
 	EgUiScriptEventsContext *ctx = ecs_os_calloc_t(EgUiScriptEventsContext);
 	ctx->targets                 = ecs_query(world,
-	{.terms = {
-	 {.id = EgUiScriptEventsTarget},
-	 {.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
-	 {.first.id = EgUiMouse, .second.name = "$mouse", .src.id = EcsSelf | EcsUp, .trav = EcsChildOf, .inout = EcsInOutNone},
-	 {.id = ecs_id(Position2), .src.name = "$mouse", .inout = EcsIn},
-	 {.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
-	 }});
+	                {.terms = {
+     {.id = EgUiScriptEventsTarget},
+     {.id = ecs_id(EgUiLocalMousePosition), .src.id = EcsSelf, .inout = EcsIn},
+     {.first.id = EgUiMouse, .second.name = "$mouse", .src.id = EcsSelf | EcsUp, .trav = EcsChildOf, .inout = EcsInOutNone},
+     {.id = ecs_id(Position2), .src.name = "$mouse", .inout = EcsIn},
+     {.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+     }});
 
 	// Runs every frame (not only on hits) so leave and release reach the script.
 	ecs_system_init(world,

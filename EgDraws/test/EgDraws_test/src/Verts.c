@@ -8,8 +8,8 @@
 
 #include "../../../src/verts.h"
 
-static ecs_world_t *world;
-static ecs_vec_t vertices;
+static ecs_world_t   *world;
+static ecs_vec_t      vertices;
 static verts_config_t config;
 
 void Verts_setup(void)
@@ -17,10 +17,12 @@ void Verts_setup(void)
 	world = ecs_init();
 	ecs_vec_init_t(NULL, &vertices, EgDraws_Vertex, 0);
 	config = (verts_config_t){
-		.pixscale = 0.25f,
-		.transform = M3_IDENTITY,
-		.r = 18, .g = 52, .b = 86, .a = 0
-	};
+	.pixscale  = 0.25f,
+	.transform = M3_IDENTITY,
+	.r         = 18,
+	.g         = 52,
+	.b         = 86,
+	.a         = 0};
 }
 
 void Verts_teardown(void)
@@ -67,11 +69,10 @@ void Verts_test_quad_geometry(void)
 	config.transform = (m3f32){{1.5f, 0.25f, 0}, {-0.5f, 2.0f, 0}, {4, -3, 1}};
 	verts_add_rectangle(&vertices, &config, 4, 2);
 	test_int(ecs_vec_count(&vertices), 6);
-	EgDraws_Vertex *v = ecs_vec_first_t(&vertices, EgDraws_Vertex);
-	const float local[6][3] = {
-		{-2, -1, 1}, {2, -1, 1}, {2, 1, 1},
-		{-2, -1, 1}, {2, 1, 1}, {-2, 1, 1}
-	};
+	EgDraws_Vertex *v           = ecs_vec_first_t(&vertices, EgDraws_Vertex);
+	const float     local[6][3] = {
+    {-2, -1, 1}, {2, -1, 1}, {2, 1, 1},
+    {-2, -1, 1}, {2, 1, 1}, {-2, 1, 1}};
 	for (int i = 0; i < 6; ++i) {
 		float expected[3];
 		m3f32_mulv(&config.transform, local[i], expected);
@@ -85,7 +86,7 @@ void Verts_test_quad_geometry(void)
 		return;
 	}
 	ecs_vec_clear(&vertices);
-	m3f32 transform = config.transform;
+	m3f32 transform  = config.transform;
 	config.transform = (m3f32)M3_IDENTITY;
 	verts_add_text(&vertices, &config, 24, "A");
 	test_int(ecs_vec_count(&vertices), 6);
@@ -273,10 +274,10 @@ void Verts_test_collectors(void)
 		v = ecs_vec_first_t(layer1, EgDraws_Vertex);
 		test_int(v[0].rgba[3], 255);
 		config.pixscale = 0.5f;
-		config.r = 0x11;
-		config.g = 0x22;
-		config.b = 0x33;
-		config.a = 255;
+		config.r        = 0x11;
+		config.g        = 0x22;
+		config.b        = 0x33;
+		config.a        = 255;
 		verts_add_text(&vertices, &config, 24, "A");
 		test_int(ecs_vec_count(&vertices), 6);
 		test_assert(memcmp(ecs_vec_first(&vertices), v, 6 * sizeof(*v)) == 0);

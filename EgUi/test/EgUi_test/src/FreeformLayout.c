@@ -79,7 +79,7 @@ void FreeformLayout_test_resizing_anchored_child_rebuilds_position(void)
 	ecs_set(world, parent, EgShapesRectangle, {.w = 100.0f, .h = 100.0f});
 	ecs_set(world, parent, EgUiFreeformsLayout, {.dummy = 0});
 
-	ecs_entity_t child     = ecs_new_w_pair(world, EcsChildOf, parent);
+	ecs_entity_t child = ecs_new_w_pair(world, EcsChildOf, parent);
 	ecs_add_pair(world, child, EgUiMouse, mouse);
 	ecs_set(world, child, EgShapesRectangle, {.w = 40.0f, .h = 40.0f});
 	ecs_set(world, child, Position2, {0.0f, 0.0f});

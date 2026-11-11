@@ -132,12 +132,12 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 			continue;
 		}
 
-		bool  can_wrap      = EgUiFlowsFlow_GetAxis(flows[i].wrap, &wrap_axis, &wrap_sign) && wrap_axis != primary_axis;
-		float primary_limit = (primary_axis == 0 ? bounds[i].w : bounds[i].h) * 0.5f;
-		float wrap_limit    = (wrap_axis == 0 ? bounds[i].w : bounds[i].h) * 0.5f;
-		float cursor_primary = primary_sign > 0.0f ? -primary_limit : primary_limit;
-		float cursor_wrap    = can_wrap ? (wrap_sign > 0.0f ? -wrap_limit : wrap_limit) : 0.0f;
-		float line_extent    = 0.0f;
+		bool  can_wrap          = EgUiFlowsFlow_GetAxis(flows[i].wrap, &wrap_axis, &wrap_sign) && wrap_axis != primary_axis;
+		float primary_limit     = (primary_axis == 0 ? bounds[i].w : bounds[i].h) * 0.5f;
+		float wrap_limit        = (wrap_axis == 0 ? bounds[i].w : bounds[i].h) * 0.5f;
+		float cursor_primary    = primary_sign > 0.0f ? -primary_limit : primary_limit;
+		float cursor_wrap       = can_wrap ? (wrap_sign > 0.0f ? -wrap_limit : wrap_limit) : 0.0f;
+		float line_extent       = 0.0f;
 		bool  line_has_children = false;
 
 		for (int group_index = 0; group_index < 2; ++group_index) {
@@ -164,26 +164,26 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 						continue;
 					}
 
-					float child_size[2] = {child_rects[j].w, child_rects[j].h};
-					float candidate_primary = cursor_primary;
-					float candidate_wrap = cursor_wrap;
-					float candidate_extent = line_extent;
-					bool candidate_has_children = line_has_children;
-					Position2 candidate_pos = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign,
-					wrap_axis, wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[j]);
-					EgUiParentClearance clearance = EgUiFlows_ParentClearanceCompute(
-					&bounds[i], candidate_pos, &child_rects[j]);
+					float               child_size[2]          = {child_rects[j].w, child_rects[j].h};
+					float               candidate_primary      = cursor_primary;
+					float               candidate_wrap         = cursor_wrap;
+					float               candidate_extent       = line_extent;
+					bool                candidate_has_children = line_has_children;
+					Position2           candidate_pos          = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign,
+					                   wrap_axis, wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[j]);
+					EgUiParentClearance clearance              = EgUiFlows_ParentClearanceCompute(
+                    &bounds[i], candidate_pos, &child_rects[j]);
 
 					if (can_wrap && candidate_has_children &&
 					    EgUiFlowsFlow_PrimaryOverflows(clearance, primary_axis, primary_sign)) {
 						candidate_wrap += wrap_sign * candidate_extent;
-						candidate_primary = primary_sign > 0.0f ? -primary_limit : primary_limit;
-						candidate_extent = 0.0f;
+						candidate_primary      = primary_sign > 0.0f ? -primary_limit : primary_limit;
+						candidate_extent       = 0.0f;
 						candidate_has_children = false;
-						candidate_pos = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
-						wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[j]);
-						clearance = EgUiFlows_ParentClearanceCompute(
-						&bounds[i], candidate_pos, &child_rects[j]);
+						candidate_pos          = EgUiFlowsFlow_GetPosition(primary_axis, primary_sign, wrap_axis,
+						         wrap_sign, can_wrap, candidate_primary, candidate_wrap, &child_rects[j]);
+						clearance              = EgUiFlows_ParentClearanceCompute(
+                        &bounds[i], candidate_pos, &child_rects[j]);
 					}
 
 					if (!EgUiFlows_ParentClearanceFits(clearance)) {
@@ -205,17 +205,17 @@ static void EgUiFlowsFlow_Update(ecs_iter_t *it)
 						candidate_extent = child_size[wrap_axis];
 					}
 
-					cursor_primary = candidate_primary;
-					cursor_wrap = candidate_wrap;
-					line_extent = candidate_extent;
+					cursor_primary    = candidate_primary;
+					cursor_wrap       = candidate_wrap;
+					line_extent       = candidate_extent;
 					line_has_children = true;
 				}
 			}
 		}
 
-		flows[i].cursor_primary = cursor_primary;
-		flows[i].cursor_wrap = cursor_wrap;
-		flows[i].line_wrap_extent = line_extent;
+		flows[i].cursor_primary    = cursor_primary;
+		flows[i].cursor_wrap       = cursor_wrap;
+		flows[i].line_wrap_extent  = line_extent;
 		flows[i].line_has_children = line_has_children;
 	}
 }
@@ -246,16 +246,16 @@ void EgUiFlowsImport(ecs_world_t *world)
 
 	ecs_query_t *children_query = ecs_query(world,
 	{
-		.cache_kind = EcsQueryCacheAuto,
-		.group_by = EcsChildOf,
-		.terms = {
-			{.id = ecs_id(Position2), .inout = EcsInOut},
-			{.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
-			{ecs_childof(EcsWildcard), .inout = EcsInOutFilter},
-			{.id = ecs_id(EgUiFlowsFlowUnplaced), .oper = EcsOptional},
-			{.id = EcsDisabled, .oper = EcsOptional},
-			{.id = ecs_id(EgUiFreeformsAnchor), .oper = EcsNot},
-		},
+	.cache_kind = EcsQueryCacheAuto,
+	.group_by   = EcsChildOf,
+	.terms      = {
+    {.id = ecs_id(Position2), .inout = EcsInOut},
+    {.id = ecs_id(EgShapesRectangle), .inout = EcsIn},
+    {ecs_childof(EcsWildcard), .inout = EcsInOutFilter},
+    {.id = ecs_id(EgUiFlowsFlowUnplaced), .oper = EcsOptional},
+    {.id = EcsDisabled, .oper = EcsOptional},
+    {.id = ecs_id(EgUiFreeformsAnchor), .oper = EcsNot},
+    },
 	});
 	if (children_query == NULL) {
 		ecs_err("Failed to create grouped flow child query");
@@ -264,13 +264,13 @@ void EgUiFlowsImport(ecs_world_t *world)
 
 	ecs_system_init(world,
 	&(ecs_system_desc_t){
-		.entity      = ecs_entity(world, {.name = "EgUiFlowsFlow_Update"}),
-		.phase       = EcsOnUpdate,
-		.callback    = EgUiFlowsFlow_Update,
-		.ctx         = children_query,
-		.query.terms = {
-			{.id = ecs_id(EgUiFlowsFlow), .src.id = EcsSelf, .inout = EcsInOut},
-			{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
-			{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
-		}});
+	.entity      = ecs_entity(world, {.name = "EgUiFlowsFlow_Update"}),
+	.phase       = EcsOnUpdate,
+	.callback    = EgUiFlowsFlow_Update,
+	.ctx         = children_query,
+	.query.terms = {
+	{.id = ecs_id(EgUiFlowsFlow), .src.id = EcsSelf, .inout = EcsInOut},
+	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf, .inout = EcsIn},
+	{.id = EcsDisabled, .trav = EcsChildOf, .src.id = EcsUp, .oper = EcsNot},
+	}});
 }

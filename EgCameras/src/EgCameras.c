@@ -71,10 +71,10 @@ static void CameraUpdate(ecs_iter_t *it)
 
 static void UnprojectUpdate(ecs_iter_t *it)
 {
-	EgCamerasUnproject   *u = ecs_field_self(it, EgCamerasUnproject, 0); // Receives the camera pixel_scale
-	Position2            *p    = ecs_field_self(it, Position2, 1);          // Outputs unprojected position in world space (XY plane)
-	EgCamerasState const *c0      = ecs_field_shared(it, EgCamerasState, 2);   // Camera state (view, projection, vp)
-	Position2 const      *p0      = ecs_field_shared(it, Position2, 3);        // NDC Position
+	EgCamerasUnproject   *u  = ecs_field_self(it, EgCamerasUnproject, 0); // Receives the camera pixel_scale
+	Position2            *p  = ecs_field_self(it, Position2, 1);          // Outputs unprojected position in world space (XY plane)
+	EgCamerasState const *c0 = ecs_field_shared(it, EgCamerasState, 2);   // Camera state (view, projection, vp)
+	Position2 const      *p0 = ecs_field_shared(it, Position2, 3);        // NDC Position
 
 	for (int i = 0; i < it->count; ++i, ++p, ++u) {
 		if (u->pixel_scale != c0->pixel_scale) {

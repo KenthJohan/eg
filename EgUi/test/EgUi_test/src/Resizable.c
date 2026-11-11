@@ -33,7 +33,7 @@ void Resizable_test_right_edge_stops_at_parent_boundary(void)
 	ecs_entity_t parent = ecs_new(world);
 	ecs_set(world, parent, EgShapesRectangle, {.w = 100.0f, .h = 100.0f});
 	ecs_add(world, parent, EgUiFreeformsLayout);
-	ecs_entity_t child     = ecs_new_w_pair(world, EcsChildOf, parent);
+	ecs_entity_t child = ecs_new_w_pair(world, EcsChildOf, parent);
 	ecs_add_pair(world, child, EgUiMouse, mouse);
 	ecs_set(world, child, EgShapesRectangle, {.w = 80.0f, .h = 40.0f});
 	ecs_set(world, child, Position2, {0.0f, 0.0f});
@@ -93,8 +93,8 @@ static ecs_entity_t make_flow_resizable(ecs_entity_t parent, float w, float h)
 // Stand-in for the script-driven world transform: parent sits at the origin
 static void sync_world_transform(ecs_entity_t e)
 {
-	const Position2 *p = ecs_get(world, e, Position2);
-	WorldTransform3 wt = {.matrix = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {p->x, p->y, 1.0f}}};
+	const Position2 *p  = ecs_get(world, e, Position2);
+	WorldTransform3  wt = {.matrix = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {p->x, p->y, 1.0f}}};
 	ecs_set_id(world, e, ecs_id(WorldTransform3), sizeof(wt), &wt);
 }
 
@@ -126,4 +126,3 @@ void Resizable_test_flow_shrink_to_min_does_not_expand_next_sibling(void)
 	test_assert(fabsf(ra->w - 20.0f) < EPSILON);
 	test_assert(fabsf(rb->w - 60.0f) < EPSILON);
 }
-
