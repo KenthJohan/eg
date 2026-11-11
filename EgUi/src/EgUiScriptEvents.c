@@ -7,6 +7,7 @@
 #include <ecsx.h>
 
 ECS_TAG_DECLARE(EgUiScriptEventsTarget);
+ECS_COMPONENT_DECLARE(EgUiScriptEventsPicker);
 
 #define EG_UI_SCANCODE_LCTRL  224
 #define EG_UI_SCANCODE_LSHIFT 225
@@ -53,7 +54,13 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 	ecs_world_t             *w   = it->world;
 	EgButtonsState const    *s   = ecs_field(it, EgButtonsState, 0);
 
-	ecs_entity_t target = EgUiScriptEvents_PickTarget(w, ctx->targets, ctx);
+	ecs_entity_t target = 0;
+	EgUiScriptEventsPicker const *picker = ecs_singleton_get(w, EgUiScriptEventsPicker);
+	bool gpu = picker && picker->pick &&
+		picker->pick(w, &target, &ctx->screen_x, &ctx->screen_y, picker->ctx);
+	if (!gpu) {
+		target = EgUiScriptEvents_PickTarget(w, ctx->targets, ctx);
+	}
 
 	// Pointer capture: while a button is held the target stays the entity that received the press.
 	bool any_held  = false;
@@ -62,11 +69,11 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 		any_held |= !!(s->mouse[i] & EG_BUTTONS_STATE_HELD);
 		prev_held |= !!(ctx->prev_mouse[i] & EG_BUTTONS_STATE_HELD);
 	}
-	if (any_held && !prev_held) {
+	if (!gpu && any_held && !prev_held) {
 		ctx->pressed = target;
-	} else if (any_held && ctx->pressed && ecs_is_alive(w, ctx->pressed)) {
+	} else if (!gpu && any_held && ctx->pressed && ecs_is_alive(w, ctx->pressed)) {
 		target = ctx->pressed;
-	} else if (!any_held) {
+	} else if (!gpu && !any_held) {
 		if (prev_held && ctx->pressed && ecs_is_alive(w, ctx->pressed)) {
 			target = ctx->pressed; // Release goes to the captured entity too
 		}
@@ -93,6 +100,16 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 			e.button = i - 1;
 		}
 		ctx->prev_mouse[i] = s->mouse[i];
+	}
+
+	if (gpu) {
+		if (target) {
+			EgUiLocalMousePosition const *l = ecs_get(w, target, EgUiLocalMousePosition);
+			e.local_x = l ? l->x : e.screen_x;
+			e.local_y = l ? l->y : e.screen_y;
+		}
+		ecs_script_mouse_event(w, &e);
+		return;
 	}
 
 	// Entities get the event in their own local space, then it propagates to the ancestors.
@@ -132,6 +149,7 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgUiScriptEvents");
 
 	ECS_TAG_DEFINE(world, EgUiScriptEventsTarget);
+	ECS_COMPONENT_DEFINE(world, EgUiScriptEventsPicker);
 
 	EgUiScriptEventsContext *ctx = ecs_os_calloc_t(EgUiScriptEventsContext);
 	ctx->targets                 = ecs_query(world,

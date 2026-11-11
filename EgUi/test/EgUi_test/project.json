@@ -34,7 +34,8 @@
 				"test_local_mouse_inside_flag",
 				"test_rotated_scaled_hit",
 				"test_overlapping_rectangles_all_hover",
-				"test_disabled_ancestor_clears_hover"
+				"test_disabled_ancestor_clears_hover",
+				"test_external_pick_dispatch"
 			]
 		}, {
 			"id": "FreeformLayout",

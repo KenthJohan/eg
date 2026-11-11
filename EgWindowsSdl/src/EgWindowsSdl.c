@@ -112,13 +112,21 @@ static void System_EgWindowsWindow_Mouse_Normalized(ecs_iter_t *it)
 {
 	Position2 const         *wp = ecs_field_shared(it, Position2, 0);         // Input: Window position in world space
 	Position2               *mp = ecs_field_self(it, Position2, 1);           // Output: Mouse position in normalized device coordinates (NDC)
-	EgShapesRectangle const *r  = ecs_field_shared(it, EgShapesRectangle, 2); // Input: Window rectangle (width, height)
+	EgWindowsWindow const   *window = ecs_field_shared(it, EgWindowsWindow, 2);
+	int width, height;
+	if (!SDL_GetWindowSize(window->object, &width, &height)) {
+		ecs_err("SDL_GetWindowSize failed: %s", SDL_GetError());
+		return;
+	}
+	if (width <= 0 || height <= 0) {
+		return;
+	}
 	for (int i = 0; i < it->count; ++i, ++mp) {
 		float x;
 		float y;
 		SDL_GetGlobalMouseState(&x, &y);
-		mp->x = (2.0f * (x - wp->x) / r[i].w) - 1.0f;
-		mp->y = 1.0f - (2.0f * (y - wp->y) / r[i].h);
+		mp->x = (2.0f * (x - wp->x) / width) - 1.0f;
+		mp->y = 1.0f - (2.0f * (y - wp->y) / height);
 	}
 }
 
@@ -172,7 +180,7 @@ static void System_Events_Update(ecs_iter_t *it)
 			break;
 		case SDL_EVENT_WINDOW_RESIZED:
 		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-			handle_window_event(it->world, &event.window);
+			handle_window_event(it->stage, &event.window);
 			break;
 
 		// Fire repeatedly when a key is held down
@@ -340,7 +348,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	.query.terms = {
 	{.id = ecs_id(Position2), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_pair(ecs_id(Position2), Normalized), .src.id = EcsSelf, .inout = EcsOut},
-	{.id = ecs_id(EgShapesRectangle), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
+	{.id = ecs_id(EgWindowsWindow), .trav = EcsChildOf, .src.id = EcsUp, .inout = EcsIn},
 	{.id = ecs_id(EgWindowsMouse), .src.id = EcsSelf, .inout = EcsIn},
 	}});
 

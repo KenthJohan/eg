@@ -13,6 +13,7 @@ typedef struct {
 	float   position[2];
 	float   uv[2];
 	uint8_t rgba[4];
+	uint32_t pick_id;
 } EgDraws_Vertex;
 
 // Put on a root entity; shapes that depend on it append triangles here each frame. Layer index is z, drawn in ascending order.

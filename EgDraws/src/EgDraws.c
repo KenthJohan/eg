@@ -176,6 +176,7 @@ static void EgDraws_Solid_Collect2D(ecs_iter_t *it)
 		verts_config_t config;
 		ecs_vec_t     *vertices = EgDraws_BeginVertices(l0, z, &w->matrix, s->color, &config);
 		if (vertices != NULL) {
+			config.pick_id = (uint32_t)it->entities[i];
 			verts_add_rectangle(vertices, &config, r->w, r->h);
 		}
 	}
@@ -196,6 +197,7 @@ static void EgDraws_Border_Collect2D(ecs_iter_t *it)
 		verts_config_t config;
 		ecs_vec_t     *vertices = EgDraws_BeginVertices(l0, z, &w->matrix, b->color, &config);
 		if (vertices != NULL) {
+			config.pick_id = (uint32_t)it->entities[i];
 			verts_add_rectangle_outline(vertices, &config, r->w, r->h, b->thickness);
 		}
 	}
@@ -218,6 +220,7 @@ static void EgDraws_List_CollectText(ecs_iter_t *it)
 		verts_config_t config;
 		ecs_vec_t     *vertices = EgDraws_BeginVertices(l0, z, &x->matrix, f->color, &config);
 		if (vertices != NULL) {
+			config.pick_id = (uint32_t)it->entities[i];
 			verts_add_text(vertices, &config, fontSize, t->value);
 		}
 	}

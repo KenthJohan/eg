@@ -26,6 +26,7 @@ static void sAppendVertex(ecs_vec_t *vertices, const verts_config_t *config, con
 	dst->rgba[1]     = config->g;
 	dst->rgba[2]     = config->b;
 	dst->rgba[3]     = config->a;
+	dst->pick_id     = config->pick_id;
 }
 
 static void sAddQuad(ecs_vec_t *v, const verts_config_t *config, const m3f32 *transform, const float positions[4][3], float u0, float v0, float u1, float v1)

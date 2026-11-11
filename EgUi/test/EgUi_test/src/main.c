@@ -27,6 +27,7 @@ void MouseHitTesting_test_local_mouse_inside_flag(void);
 void MouseHitTesting_test_rotated_scaled_hit(void);
 void MouseHitTesting_test_overlapping_rectangles_all_hover(void);
 void MouseHitTesting_test_disabled_ancestor_clears_hover(void);
+void MouseHitTesting_test_external_pick_dispatch(void);
 
 // Testsuite 'FreeformLayout'
 void FreeformLayout_setup(void);
@@ -94,6 +95,10 @@ bake_test_case MouseHitTesting_testcases[] = {
     {
         "test_disabled_ancestor_clears_hover",
         MouseHitTesting_test_disabled_ancestor_clears_hover
+    },
+    {
+        "test_external_pick_dispatch",
+        MouseHitTesting_test_external_pick_dispatch
     }
 };
 
@@ -143,7 +148,7 @@ static bake_test_suite suites[] = {
         "MouseHitTesting",
         MouseHitTesting_setup,
         MouseHitTesting_teardown,
-        5,
+        6,
         MouseHitTesting_testcases
     },
     {

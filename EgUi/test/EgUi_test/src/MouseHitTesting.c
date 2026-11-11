@@ -6,6 +6,23 @@
 
 static ecs_world_t *world;
 
+typedef struct {
+	ecs_entity_t target;
+	bool handled;
+	int calls;
+} TestPicker;
+
+static bool pick_test_target(ecs_world_t *w, ecs_entity_t *target, float *x, float *y, void *ctx)
+{
+	(void)w;
+	TestPicker *picker = ctx;
+	++picker->calls;
+	*target = picker->target;
+	*x = 13;
+	*y = 17;
+	return picker->handled;
+}
+
 void MouseHitTesting_setup(void)
 {
 	world = ecs_init();
@@ -45,6 +62,52 @@ float basis_xy, float basis_yy)
 	ecs_set(world, rect, EgShapesRectangle, {.w = w, .h = h});
 	ecs_set(world, rect, WorldTransform3, {.matrix = {{basis_xx, basis_xy, 0.0f}, {basis_yx, basis_yy, 0.0f}, {center_x, center_y, 1.0f}}});
 	return rect;
+}
+
+void MouseHitTesting_test_external_pick_dispatch(void)
+{
+	ecs_entity_t mouse;
+	ecs_entity_t root = make_root(&mouse);
+	ecs_entity_t rect = make_rect(root, mouse, 4, 4, 0, 0, 1, 0, 0, 1);
+	ecs_add_id(world, rect, EgUiScriptEventsTarget);
+	TestPicker picker = {.target = rect, .handled = true};
+	ecs_singleton_set(world, EgUiScriptEventsPicker, {.pick = pick_test_target, .ctx = &picker});
+
+	ecs_progress(world, 0);
+	EcsScriptMouseEvent last = {0};
+	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
+	test_assert(last.target == rect);
+	test_assert(last.screen_x == 13 && last.screen_y == 17);
+	uint64_t event_id = last.id;
+	test_int(picker.calls, 1);
+
+	picker.target = 0;
+	ecs_progress(world, 0);
+	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
+	test_assert(last.target == 0);
+	test_assert(last.id == event_id + 1);
+	test_int(picker.calls, 2);
+
+	picker.target = rect;
+	ecs_singleton_set(world, EgButtonsState, {.mouse = {[1] = EG_BUTTONS_STATE_HELD}});
+	ecs_progress(world, 0);
+	ecs_entity_t pressed = 0;
+	test_assert(ecs_script_get_mouse_state(world, &last, &pressed));
+	test_assert(last.target == rect && pressed == rect && last.buttons == 1);
+	picker.target = 0;
+	ecs_progress(world, 0);
+	test_assert(ecs_script_get_mouse_state(world, &last, &pressed));
+	test_assert(last.target == 0 && pressed == rect);
+	ecs_singleton_set(world, EgButtonsState, {{0}});
+	ecs_progress(world, 0);
+	test_assert(ecs_script_get_mouse_state(world, &last, &pressed));
+	test_assert(last.target == 0 && last.buttons == 0);
+
+	picker.handled = false;
+	ecs_progress(world, 0);
+	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
+	test_assert(last.target == root);
+	test_int(picker.calls, 6);
 }
 
 void MouseHitTesting_test_axis_aligned_hit_and_clear(void)

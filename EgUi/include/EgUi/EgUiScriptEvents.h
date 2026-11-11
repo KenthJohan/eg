@@ -7,4 +7,16 @@
 // Script name: eg.ui.scriptevents.Target
 extern ECS_TAG_DECLARE(EgUiScriptEventsTarget);
 
+// Return true when the provider handled the event, including a background hit.
+// Return false to use the normal CPU target selection.
+typedef bool (*EgUiScriptEventsPickFn)(ecs_world_t *world, ecs_entity_t *target,
+	float *screen_x, float *screen_y, void *ctx);
+
+typedef struct {
+	EgUiScriptEventsPickFn pick;
+	void *ctx;
+} EgUiScriptEventsPicker;
+
+extern ECS_COMPONENT_DECLARE(EgUiScriptEventsPicker);
+
 void EgUiScriptEventsImport(ecs_world_t *world);

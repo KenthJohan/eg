@@ -22,7 +22,8 @@ void Verts_setup(void)
 	.r         = 18,
 	.g         = 52,
 	.b         = 86,
-	.a         = 0};
+	.a         = 0,
+	.pick_id   = UINT32_C(0xf1234567)};
 }
 
 void Verts_teardown(void)
@@ -61,6 +62,7 @@ void Verts_test_attributes_and_append(void)
 		test_int(v[i].rgba[1], 52);
 		test_int(v[i].rgba[2], 86);
 		test_int(v[i].rgba[3], 0);
+		test_assert(v[i].pick_id == UINT32_C(0xf1234567));
 	}
 }
 
@@ -265,23 +267,43 @@ void Verts_test_collectors(void)
 	test_int(v[0].rgba[1], 0x34);
 	test_int(v[0].rgba[2], 0x56);
 	test_int(v[0].rgba[3], 255);
+	for (int i = 0; i < ecs_vec_count(layer0); ++i) {
+		test_assert(v[i].pick_id == (uint32_t)solid);
+	}
 	v = ecs_vec_first_t(layer2, EgDraws_Vertex);
 	test_int(v[0].rgba[0], 0xab);
 	test_int(v[0].rgba[3], 0x7f);
+	for (int i = 0; i < ecs_vec_count(layer2); ++i) {
+		test_assert(v[i].pick_id == (uint32_t)border);
+	}
 	test_assert(close_to(v[0].position[1], -1.5f));
 	if (EgDraws_Font_GetBitmap() != NULL) {
 		test_int(ecs_vec_count(layer1), 6);
 		v = ecs_vec_first_t(layer1, EgDraws_Vertex);
 		test_int(v[0].rgba[3], 255);
+		for (int i = 0; i < ecs_vec_count(layer1); ++i) {
+			test_assert(v[i].pick_id == (uint32_t)text);
+		}
 		config.pixscale = 0.5f;
 		config.r        = 0x11;
 		config.g        = 0x22;
 		config.b        = 0x33;
 		config.a        = 255;
+		config.pick_id  = (uint32_t)text;
 		verts_add_text(&vertices, &config, 24, "A");
 		test_int(ecs_vec_count(&vertices), 6);
 		test_assert(memcmp(ecs_vec_first(&vertices), v, 6 * sizeof(*v)) == 0);
 	}
+	EgDraws_List *copy = EgDraws_List_Create();
+	test_assert(copy != NULL);
+	EgDraws_List_Append(copy, list);
+	ecs_vec_t *copied_layer = EgDraws_List_GetLayer(copy, 0);
+	test_int(ecs_vec_count(copied_layer), 6);
+	v = ecs_vec_first_t(copied_layer, EgDraws_Vertex);
+	for (int i = 0; i < ecs_vec_count(copied_layer); ++i) {
+		test_assert(v[i].pick_id == (uint32_t)solid);
+	}
+	EgDraws_List_Destroy(copy);
 	ecs_progress(world, 0);
 	test_int(ecs_vec_count(EgDraws_List_GetLayer(list, 0)), 6);
 	test_int(ecs_vec_count(EgDraws_List_GetLayer(list, 2)), 24);

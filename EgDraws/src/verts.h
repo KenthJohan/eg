@@ -9,6 +9,7 @@ typedef struct {
 	uint8_t g;
 	uint8_t b;
 	uint8_t a;
+	uint32_t pick_id;
 } verts_config_t;
 
 /* Append EgDraws_Vertex values to an initialized vector; RGBA is used verbatim.
