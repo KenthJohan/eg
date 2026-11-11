@@ -25,6 +25,8 @@ void MouseHitTesting_teardown(void);
 void MouseHitTesting_test_external_pick_dispatch(void);
 void MouseHitTesting_test_no_picker_does_not_hit_rectangle(void);
 void MouseHitTesting_test_local_coordinates(void);
+void MouseHitTesting_test_capture_drag_release(void);
+void MouseHitTesting_test_capture_cancellation(void);
 
 // Testsuite 'FreeformLayout'
 void FreeformLayout_setup(void);
@@ -84,6 +86,14 @@ bake_test_case MouseHitTesting_testcases[] = {
     {
         "test_local_coordinates",
         MouseHitTesting_test_local_coordinates
+    },
+    {
+        "test_capture_drag_release",
+        MouseHitTesting_test_capture_drag_release
+    },
+    {
+        "test_capture_cancellation",
+        MouseHitTesting_test_capture_cancellation
     }
 };
 
@@ -133,7 +143,7 @@ static bake_test_suite suites[] = {
         "MouseHitTesting",
         MouseHitTesting_setup,
         MouseHitTesting_teardown,
-        3,
+        5,
         MouseHitTesting_testcases
     },
     {

@@ -32,7 +32,9 @@
 			"testcases": [
 				"test_external_pick_dispatch",
 				"test_no_picker_does_not_hit_rectangle",
-				"test_local_coordinates"
+				"test_local_coordinates",
+				"test_capture_drag_release",
+				"test_capture_cancellation"
 			]
 		}, {
 			"id": "FreeformLayout",

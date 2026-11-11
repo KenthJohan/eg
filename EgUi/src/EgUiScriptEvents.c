@@ -6,6 +6,7 @@
 #include <ecsx.h>
 
 ECS_TAG_DECLARE(EgUiScriptEventsTarget);
+ECS_TAG_DECLARE(EgUiScriptEventsCapture);
 ECS_COMPONENT_DECLARE(EgUiScriptEventsPicker);
 
 #define EG_UI_SCANCODE_LCTRL  224
@@ -14,10 +15,35 @@ ECS_COMPONENT_DECLARE(EgUiScriptEventsPicker);
 #define EG_UI_SCANCODE_LGUI   227
 
 typedef struct {
+	ecs_world_t *world;
 	uint8_t      prev_mouse[EG_BUTTONS_MOUSE_MAX];
 	float        screen_x;
 	float        screen_y;
+	ecs_entity_t captured;
+	uint32_t suppressed;
+	EgUiScriptEventsPicker capture_provider;
+	bool capture_started;
 } EgUiScriptEventsContext;
+
+static bool EgUiScriptEvents_CaptureEligible(ecs_world_t *world, ecs_entity_t entity)
+{
+	if (!ecs_is_alive(world, entity) || !ecs_has_id(world, entity, EgUiScriptEventsTarget) ||
+		!ecs_has_id(world, entity, EgUiScriptEventsCapture)) return false;
+	for (ecs_entity_t e = entity; e; e = ecs_get_parent(world, e)) {
+		if (ecs_has_id(world, e, EcsDisabled)) return false;
+	}
+	return true;
+}
+
+static void EgUiScriptEvents_EndCapture(EgUiScriptEventsContext *ctx, ecs_world_t *world)
+{
+	if (ctx->capture_started && ctx->capture_provider.capture_end) {
+		ctx->capture_provider.capture_end(world, ctx->capture_provider.ctx);
+	}
+	ctx->captured = 0;
+	ctx->capture_started = false;
+	ctx->capture_provider = (EgUiScriptEventsPicker){0};
+}
 
 static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 {
@@ -42,9 +68,11 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 	.meta     = !!(s->scancode[EG_UI_SCANCODE_LGUI] & EG_BUTTONS_STATE_HELD),
 	};
 
+	uint32_t previous = 0;
 	// SDL mouse buttons are 1-based (1 = left), flecs buttons are 0-based.
 	for (int32_t i = 1; i < EG_BUTTONS_MOUSE_MAX && i <= 32; ++i) {
 		bool held = !!(s->mouse[i] & EG_BUTTONS_STATE_HELD);
+		if (ctx->prev_mouse[i] & EG_BUTTONS_STATE_HELD) previous |= 1u << (i - 1);
 		if (held) {
 			e.buttons |= 1u << (i - 1);
 		}
@@ -54,17 +82,49 @@ static void EgUiScriptEvents_Emit(ecs_iter_t *it)
 		ctx->prev_mouse[i] = s->mouse[i];
 	}
 
-	if (target) {
-		EgUiLocalMousePosition const *l = ecs_get(w, target, EgUiLocalMousePosition);
+	uint32_t physical = e.buttons;
+	ctx->suppressed &= physical;
+	e.buttons &= ~ctx->suppressed;
+	if (!ctx->captured && !(previous & ~ctx->suppressed) && (e.buttons & 1u) &&
+		target && EgUiScriptEvents_CaptureEligible(w, target)) {
+		ctx->captured = target;
+		if (picker) ctx->capture_provider = *picker;
+		if (ctx->capture_provider.capture_begin) {
+			ctx->capture_started = true;
+			if (!ctx->capture_provider.capture_begin(w, ctx->capture_provider.ctx)) {
+				ecs_warn("EgUi: platform mouse capture unavailable; dragging may stop outside the window");
+			}
+		}
+	}
+
+	bool end_capture = false;
+	if (ctx->captured) {
+		bool alive = ecs_is_alive(w, ctx->captured);
+		bool valid = alive && EgUiScriptEvents_CaptureEligible(w, ctx->captured);
+		if (valid && ctx->capture_started && ctx->capture_provider.capture_valid) {
+			valid = ctx->capture_provider.capture_valid(w, ctx->capture_provider.ctx);
+		}
+		end_capture = !valid || !(physical & 1u);
+		ctx->suppressed |= physical & ~1u;
+		if (!valid) ctx->suppressed |= physical & 1u;
+		e.buttons = end_capture ? 0 : 1;
+		e.button = 0;
+		e.target = alive ? ctx->captured : 0;
+	}
+
+	if (e.target) {
+		EgUiLocalMousePosition const *l = ecs_get(w, e.target, EgUiLocalMousePosition);
 		e.local_x = l ? l->x : e.screen_x;
 		e.local_y = l ? l->y : e.screen_y;
 	}
 	ecs_script_mouse_event(w, &e);
+	if (end_capture) EgUiScriptEvents_EndCapture(ctx, w);
 }
 
 static void EgUiScriptEventsContext_Free(void *ptr)
 {
 	EgUiScriptEventsContext *ctx = ptr;
+	if (ctx->captured) EgUiScriptEvents_EndCapture(ctx, ctx->world);
 	ecs_os_free(ctx);
 }
 
@@ -78,9 +138,11 @@ void EgUiScriptEventsImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgUiScriptEvents");
 
 	ECS_TAG_DEFINE(world, EgUiScriptEventsTarget);
+	ECS_TAG_DEFINE(world, EgUiScriptEventsCapture);
 	ECS_COMPONENT_DEFINE(world, EgUiScriptEventsPicker);
 
 	EgUiScriptEventsContext *ctx = ecs_os_calloc_t(EgUiScriptEventsContext);
+	ctx->world = world;
 
 	// Runs every frame (not only on hits) so leave and release reach the script.
 	ecs_system_init(world,

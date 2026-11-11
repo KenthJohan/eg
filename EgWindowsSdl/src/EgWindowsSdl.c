@@ -182,6 +182,13 @@ static void System_Events_Update(ecs_iter_t *it)
 		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
 			handle_window_event(it->stage, &event.window);
 			break;
+		case SDL_EVENT_WINDOW_FOCUS_LOST:
+			for (int i = 1; i < EG_BUTTONS_MOUSE_MAX; ++i) {
+				if (s->mouse[i] & EG_BUTTONS_STATE_HELD) {
+					s->mouse[i] = EG_BUTTONS_STATE_RELEASED;
+				}
+			}
+			break;
 
 		// Fire repeatedly when a key is held down
 		// SDL_EVENT_KEY_DOWN can repeat.
