@@ -38,17 +38,9 @@ typedef struct
 	float        w1;
 } EgButtonsIncrementer;
 
-typedef struct
-{
-	ecs_entity_t entity;
-	ecs_entity_t relation;
-	ecs_entity_t toggle;
-} EgButtonsActionToggleEntity;
-
 extern ECS_COMPONENT_DECLARE(EgButtonsDevice);
 extern ECS_COMPONENT_DECLARE(EgButtonsState);
 extern ECS_COMPONENT_DECLARE(EgButtonsBinding);
 extern ECS_COMPONENT_DECLARE(EgButtonsIncrementer);
-extern ECS_COMPONENT_DECLARE(EgButtonsActionToggleEntity);
 
 void EgButtonsImport(ecs_world_t *world);

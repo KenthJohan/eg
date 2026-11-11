@@ -10,8 +10,6 @@ ECS_COMPONENT_DECLARE(EgButtonsDevice);
 ECS_COMPONENT_DECLARE(EgButtonsState);
 ECS_COMPONENT_DECLARE(EgButtonsBinding);
 ECS_COMPONENT_DECLARE(EgButtonsIncrementer);
-ECS_COMPONENT_DECLARE(EgButtonsActionToggleEntity);
-ECS_COMPONENT_DECLARE(EgButtonsEngageRule);
 
 /**
  * Get the state of a button.
@@ -31,29 +29,6 @@ uint8_t EgButtonsState_get(EgButtonsState *buttons, uint32_t key)
 	}
 	return set[s][b];
 }
-
-static void System_Toggle(ecs_iter_t *it)
-{
-	ecs_log_set_level(1);
-	EgButtonsState              *buttons = ecs_field(it, EgButtonsState, 0);              // singleton
-	EgButtonsBinding            *b       = ecs_field(it, EgButtonsBinding, 1);            // self
-	EgButtonsActionToggleEntity *a       = ecs_field(it, EgButtonsActionToggleEntity, 2); // self
-	for (int i = 0; i < it->count; ++i, ++a, ++b) {
-		bool state = !!(EgButtonsState_get(buttons, b->button0) & b->mask);
-		if (!state) {
-			continue;
-		}
-		printf("toggle(%s,%s)\n", ecs_get_name(it->world, a->entity), ecs_get_name(it->world, a->toggle));
-		ecsx_toggle(it->stage, a->entity, a->relation, a->toggle);
-	}
-	ecs_log_set_level(0);
-}
-
-/*
-char *str = ecs_ptr_to_expr(it->world, a->comonent, ptr);
-printf("%s\n", str); // {x: 10, y: 20}
-ecs_os_free(str);
-*/
 
 static void System_Bindings(ecs_iter_t *it)
 {
@@ -89,7 +64,6 @@ void EgButtonsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgButtonsState);
 	ECS_COMPONENT_DEFINE(world, EgButtonsBinding);
 	ECS_COMPONENT_DEFINE(world, EgButtonsIncrementer);
-	ECS_COMPONENT_DEFINE(world, EgButtonsActionToggleEntity);
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgButtonsState),
@@ -121,32 +95,6 @@ void EgButtonsImport(ecs_world_t *world)
 	{.name = "factor", .type = ecs_id(ecs_f32_t)},
 	{.name = "w0", .type = ecs_id(ecs_f32_t)},
 	{.name = "w1", .type = ecs_id(ecs_f32_t)},
-	}});
-
-	ecs_struct(world,
-	{.entity = ecs_id(EgButtonsActionToggleEntity),
-	.members = {
-	{.name = "entity", .type = ecs_id(ecs_entity_t)},
-	{.name = "relation", .type = ecs_id(ecs_entity_t)},
-	{.name = "toggle", .type = ecs_id(ecs_entity_t)},
-	}});
-
-	ecs_struct(world,
-	{.entity = ecs_id(EgButtonsEngageRule),
-	.members = {
-	{.name = "term", .type = ecs_id(ecs_id_t)},
-	{.name = "tag", .type = ecs_id(ecs_entity_t)},
-	{.name = "add", .type = ecs_id(ecs_bool_t)},
-	}});
-
-	ecs_system(world,
-	{.entity     = ecs_entity(world, {.name = "System_Toggle"}),
-	.phase       = EcsOnUpdate,
-	.callback    = System_Toggle,
-	.query.terms = {
-	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState)},
-	{.id = ecs_id(EgButtonsBinding), .src.id = EcsSelf},
-	{.id = ecs_id(EgButtonsActionToggleEntity), .src.id = EcsSelf},
 	}});
 
 	ecs_system(world,
