@@ -19,6 +19,20 @@
 
 ECS_COMPONENT_DECLARE(EgWindowsSdlGlFrameCallback);
 
+static EgWindowsGlBinding current_context(void)
+{
+	return (EgWindowsGlBinding){SDL_GL_GetCurrentWindow(), SDL_GL_GetCurrentContext()};
+}
+
+static bool make_current(EgWindowsGlBinding binding)
+{
+	if (!SDL_GL_MakeCurrent(binding.window, binding.context)) {
+		ecs_err("EgWindowsSdlGl: cannot make OpenGL context current: %s", SDL_GetError());
+		return false;
+	}
+	return true;
+}
+
 static void inner_systems_run(ecs_iter_t *it)
 {
 	while (ecs_query_next(it)) {
@@ -38,9 +52,12 @@ static void System_Render(ecs_iter_t *it)
 		ecs_entity_t e = it->entities[i];
 		const EgWindowsSdlGlFrameCallback *callback = ecs_get(it->world, e, EgWindowsSdlGlFrameCallback);
 		void (*complete)(ecs_world_t*, ecs_entity_t, bool) = callback ? callback->complete : NULL;
+		const EgWindowsFrameCallback *generic_callback = ecs_get(it->world, e, EgWindowsFrameCallback);
+		void (*generic_complete)(ecs_world_t*, ecs_entity_t, bool) = generic_callback ? generic_callback->complete : NULL;
 		if (!SDL_GL_MakeCurrent(w->object, g->gl_context)) {
 			ecs_err("EgWindowsSdlGl: cannot make window context current: %s", SDL_GetError());
 			if (complete) complete(it->world, e, false);
+			if (generic_complete && generic_complete != complete) generic_complete(it->world, e, false);
 			continue;
 		}
 		glViewport(0, 0, (GLsizei)r->w, (GLsizei)r->h);
@@ -54,6 +71,7 @@ static void System_Render(ecs_iter_t *it)
 		bool displayed = SDL_GL_SwapWindow(w->object);
 		if (!displayed) ecs_err("EgWindowsSdlGl: cannot swap window: %s", SDL_GetError());
 		if (complete) complete(it->world, e, displayed);
+		if (generic_complete && generic_complete != complete) generic_complete(it->world, e, displayed);
 	} // END FOR LOOP
 }
 
@@ -103,6 +121,7 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	ECS_MODULE(world, EgWindowsSdlGl);
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
 	ECS_COMPONENT_DEFINE(world, EgWindowsSdlGlFrameCallback);
+	ecs_singleton_set(world, EgWindowsGlBackend, {.current = current_context, .make_current = make_current});
 
 	const int compiled = SDL_VERSION;
 	const int linked   = SDL_GetVersion();

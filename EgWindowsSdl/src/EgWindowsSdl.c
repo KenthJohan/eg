@@ -1,3 +1,4 @@
+#include "EgWindowsSdl.h"
 #include "EgWindows.h"
 
 #include <stdlib.h>
@@ -23,6 +24,69 @@
 // We need to map the SDL_WindowID to the ecs_entity_t so we can look up the entity from the SDL_WindowID
 // This is needed for the SDL_EVENT_WINDOW_RESIZED event
 static ecs_map_t static_window_map;
+
+void EgWindowsSdlUpdateState(ecs_world_t *world)
+{
+	typedef struct {
+		ecs_entity_t entity;
+		EgWindowsWindowState state;
+	} WindowUpdate;
+	SDL_Window *mouse_focus = SDL_GetMouseFocus();
+	SDL_Window *keyboard_focus = SDL_GetKeyboardFocus();
+	EgWindowsInputState input = {.mouse_focus = mouse_focus != NULL};
+	float mouse_x, mouse_y;
+	SDL_GetMouseState(&mouse_x, &mouse_y);
+	WindowUpdate *updates = NULL;
+	size_t count = 0, capacity = 0;
+	ecs_iter_t it = ecs_each_id(world, ecs_id(EgWindowsWindow));
+	ecs_iter_t *iter = &it;
+	while (ecs_each_next(iter)) {
+		const EgWindowsWindow *windows = ecs_field(iter, EgWindowsWindow, 0);
+		for (int32_t i = 0; i < it.count; ++i) {
+			if (count == capacity) {
+				size_t next_capacity = capacity ? capacity * 2 : 4;
+				WindowUpdate *next = realloc(updates, next_capacity * sizeof(*next));
+				if (!next) {
+					ecs_err("EgWindowsSdl: cannot allocate window state updates");
+					ecs_iter_fini(iter);
+					free(updates);
+					ecs_singleton_set(world, EgWindowsInputState, {.mouse_focus = true});
+					return;
+				}
+				updates = next;
+				capacity = next_capacity;
+			}
+			SDL_Window *window = windows[i].object;
+			if (!window) {
+				ecs_err("EgWindowsSdl: window has no SDL object");
+				updates[count++] = (WindowUpdate){.entity = it.entities[i]};
+				continue;
+			}
+			SDL_WindowFlags flags = SDL_GetWindowFlags(window);
+			EgWindowsWindowState state = {
+				.object = window,
+				.mouse_focus = mouse_focus == window,
+				.keyboard_focus = keyboard_focus == window,
+				.hidden = !!(flags & SDL_WINDOW_HIDDEN),
+				.minimized = !!(flags & SDL_WINDOW_MINIMIZED),
+			};
+			if (state.mouse_focus) {
+				input.mouse_window = it.entities[i];
+				state.mouse_x = mouse_x;
+				state.mouse_y = mouse_y;
+			}
+			state.valid = SDL_GetWindowSize(window, &state.width, &state.height) &&
+				SDL_GetWindowSizeInPixels(window, &state.pixel_width, &state.pixel_height);
+			if (!state.valid) ecs_err("EgWindowsSdl: cannot get window size: %s", SDL_GetError());
+			updates[count++] = (WindowUpdate){.entity = it.entities[i], .state = state};
+		}
+	}
+	for (size_t i = 0; i < count; ++i) {
+		ecs_set_ptr(world, updates[i].entity, EgWindowsWindowState, &updates[i].state);
+	}
+	free(updates);
+	ecs_singleton_set_ptr(world, EgWindowsInputState, &input);
+}
 
 static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 {
@@ -255,6 +319,7 @@ static void System_Events_Update(ecs_iter_t *it)
 			break;
 		} // END SWITCH
 	} // END WHILE
+	EgWindowsSdlUpdateState(it->world);
 	// printf("EG_BUTTONS_STATE_RISING_EDGE: %i\n", s->scancode[SDL_SCANCODE_B] & EG_BUTTONS_STATE_RISING_EDGE);
 }
 
@@ -362,6 +427,7 @@ void EgWindowsSdlImport(ecs_world_t *world)
 	ecs_system(world,
 	{.entity     = ecs_entity(world, {.name = "System_Events_Update"}),
 	.phase       = EcsOnUpdate,
+	.immediate   = true,
 	.callback    = System_Events_Update,
 	.query.terms = {
 	{.id = ecs_id(EgButtonsState), .src.id = ecs_id(EgButtonsState), .inout = EcsInOut},

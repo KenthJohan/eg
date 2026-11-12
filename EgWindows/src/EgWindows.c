@@ -8,6 +8,10 @@
 #include <EgBase.h>
 
 ECS_COMPONENT_DECLARE(EgWindowsWindow);
+ECS_COMPONENT_DECLARE(EgWindowsWindowState);
+ECS_COMPONENT_DECLARE(EgWindowsInputState);
+ECS_COMPONENT_DECLARE(EgWindowsGlBackend);
+ECS_COMPONENT_DECLARE(EgWindowsFrameCallback);
 ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
 ECS_COMPONENT_DECLARE(EgWindowsOpenGLContext);
 ECS_COMPONENT_DECLARE(EgWindowsOpenGLContextCreate);
@@ -22,6 +26,10 @@ void EgWindowsImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgWindows");
 
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindow);
+	ECS_COMPONENT_DEFINE(world, EgWindowsWindowState);
+	ECS_COMPONENT_DEFINE(world, EgWindowsInputState);
+	ECS_COMPONENT_DEFINE(world, EgWindowsGlBackend);
+	ECS_COMPONENT_DEFINE(world, EgWindowsFrameCallback);
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindowCreateInfo);
 	ECS_COMPONENT_DEFINE(world, EgWindowsOpenGLContext);
 	ECS_COMPONENT_DEFINE(world, EgWindowsOpenGLContextCreate);
