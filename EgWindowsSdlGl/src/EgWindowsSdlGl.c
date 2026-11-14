@@ -50,16 +50,20 @@ static void System_Render(ecs_iter_t *it)
 	EgShapesRectangle      *r = ecs_field_self(it, EgShapesRectangle, 2);
 	for (int i = 0; i < it->count; ++i, ++w, ++g, ++r) {
 		ecs_entity_t e = it->entities[i];
+
 		const EgWindowsSdlGlFrameCallback *callback = ecs_get(it->world, e, EgWindowsSdlGlFrameCallback);
 		void (*complete)(ecs_world_t*, ecs_entity_t, bool) = callback ? callback->complete : NULL;
+
 		const EgWindowsFrameCallback *generic_callback = ecs_get(it->world, e, EgWindowsFrameCallback);
 		void (*generic_complete)(ecs_world_t*, ecs_entity_t, bool) = generic_callback ? generic_callback->complete : NULL;
+
 		if (!SDL_GL_MakeCurrent(w->object, g->gl_context)) {
 			ecs_err("EgWindowsSdlGl: cannot make window context current: %s", SDL_GetError());
 			if (complete) complete(it->world, e, false);
 			if (generic_complete && generic_complete != complete) generic_complete(it->world, e, false);
 			continue;
 		}
+		
 		glViewport(0, 0, (GLsizei)r->w, (GLsizei)r->h);
 		glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Blue
 		glClear(GL_COLOR_BUFFER_BIT);
