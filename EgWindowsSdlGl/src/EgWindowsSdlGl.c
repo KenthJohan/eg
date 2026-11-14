@@ -19,15 +19,17 @@
 
 ECS_COMPONENT_DECLARE(EgWindowsSdlGlFrameCallback);
 
-static EgWindowsGlBinding current_context(void)
+bool EgWindowsSdlGlCleanup(void *window, void *context, void (*destroy)(void *), void *resource)
 {
-	return (EgWindowsGlBinding){SDL_GL_GetCurrentWindow(), SDL_GL_GetCurrentContext()};
-}
-
-static bool make_current(EgWindowsGlBinding binding)
-{
-	if (!SDL_GL_MakeCurrent(binding.window, binding.context)) {
+	SDL_Window *previous_window = SDL_GL_GetCurrentWindow();
+	SDL_GLContext previous_context = SDL_GL_GetCurrentContext();
+	if (!SDL_GL_MakeCurrent(window, context)) {
 		ecs_err("EgWindowsSdlGl: cannot make OpenGL context current: %s", SDL_GetError());
+		return false;
+	}
+	destroy(resource);
+	if (!SDL_GL_MakeCurrent(previous_window, previous_context)) {
+		ecs_err("EgWindowsSdlGl: cannot restore OpenGL context: %s", SDL_GetError());
 		return false;
 	}
 	return true;
@@ -56,6 +58,8 @@ static void System_Render(ecs_iter_t *it)
 
 		const EgWindowsFrameCallback *generic_callback = ecs_get(it->world, e, EgWindowsFrameCallback);
 		void (*generic_complete)(ecs_world_t*, ecs_entity_t, bool) = generic_callback ? generic_callback->complete : NULL;
+		void (*generic_begin)(ecs_world_t*, ecs_entity_t) = generic_callback ? generic_callback->begin : NULL;
+		void (*generic_end)(ecs_world_t*, ecs_entity_t) = generic_callback ? generic_callback->end : NULL;
 
 		if (!SDL_GL_MakeCurrent(w->object, g->gl_context)) {
 			ecs_err("EgWindowsSdlGl: cannot make window context current: %s", SDL_GetError());
@@ -63,6 +67,7 @@ static void System_Render(ecs_iter_t *it)
 			if (generic_complete && generic_complete != complete) generic_complete(it->world, e, false);
 			continue;
 		}
+		if (generic_begin) generic_begin(it->world, e);
 		
 		glViewport(0, 0, (GLsizei)r->w, (GLsizei)r->h);
 		glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Blue
@@ -71,6 +76,7 @@ static void System_Render(ecs_iter_t *it)
 		ecs_iter_t it2 = ecs_query_iter(it->world, g->inner_systems);
 		ecs_iter_set_group(&it2, e);
 		inner_systems_run(&it2);
+		if (generic_end) generic_end(it->world, e);
 
 		bool displayed = SDL_GL_SwapWindow(w->object);
 		if (!displayed) ecs_err("EgWindowsSdlGl: cannot swap window: %s", SDL_GetError());
@@ -112,6 +118,7 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 		.gl_version    = gl_version,
 		.glsl_version  = glsl_version,
 		.inner_systems = q,
+		.cleanup       = EgWindowsSdlGlCleanup,
 		});
 	} // END FOR LOOP
 }
@@ -125,7 +132,6 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	ECS_MODULE(world, EgWindowsSdlGl);
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
 	ECS_COMPONENT_DEFINE(world, EgWindowsSdlGlFrameCallback);
-	ecs_singleton_set(world, EgWindowsGlBackend, {.current = current_context, .make_current = make_current});
 
 	const int compiled = SDL_VERSION;
 	const int linked   = SDL_GetVersion();

@@ -29,24 +29,14 @@ typedef struct
 	bool mouse_focus;
 } EgWindowsInputState;
 
-/* Opaque native handles, valid only while their window and context exist. */
-typedef struct
-{
-	void *window;
-	void *context;
-} EgWindowsGlBinding;
-
-typedef struct
-{
-	/* Backends report failures from make_current, including restoration. */
-	EgWindowsGlBinding (*current)(void);
-	bool (*make_current)(EgWindowsGlBinding binding);
-} EgWindowsGlBackend;
-
-/* Invoked after presentation, or with displayed=false on failure. */
+/* begin and end run with the window's GL context current before and after
+ * inner systems. complete runs after presentation, or with displayed=false
+ * on failure. */
 typedef struct
 {
 	void (*complete)(ecs_world_t *world, ecs_entity_t window, bool displayed);
+	void (*begin)(ecs_world_t *world, ecs_entity_t window);
+	void (*end)(ecs_world_t *world, ecs_entity_t window);
 } EgWindowsFrameCallback;
 
 typedef struct
@@ -63,6 +53,10 @@ typedef struct
 	char const  *gl_version;
 	char const  *glsl_version;
 	ecs_query_t *inner_systems;
+	/* Invoke destroy with this context current, then restore the prior context.
+	 * On failure destroy may already have run if restoring the prior context
+	 * failed; the callback must update its resource ownership itself. */
+	bool (*cleanup)(void *window, void *context, void (*destroy)(void *), void *resource);
 } EgWindowsOpenGLContext;
 
 typedef struct
@@ -78,7 +72,6 @@ typedef struct
 extern ECS_COMPONENT_DECLARE(EgWindowsWindow);
 extern ECS_COMPONENT_DECLARE(EgWindowsWindowState);
 extern ECS_COMPONENT_DECLARE(EgWindowsInputState);
-extern ECS_COMPONENT_DECLARE(EgWindowsGlBackend);
 extern ECS_COMPONENT_DECLARE(EgWindowsFrameCallback);
 extern ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgWindowsOpenGLContext);
