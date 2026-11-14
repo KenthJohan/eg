@@ -112,13 +112,23 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 			SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, 0);
 
 			if (create->enable_opengl) {
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-				SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+				if (!SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4) ||
+					!SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3) ||
+					!SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)) {
+					ecs_err("EgWindowsSdl: cannot request OpenGL 4.3 core: %s", SDL_GetError());
+					SDL_DestroyProperties(props);
+					ecs_enable(world, e, false);
+					ecs_log_pop_1();
+					continue;
+				}
 			}
 
 			SDL_Window *window = SDL_CreateWindowWithProperties(props);
+			SDL_DestroyProperties(props);
 			if (window == NULL) {
+				ecs_err("EgWindowsSdl: cannot create window: %s", SDL_GetError());
+				ecs_enable(world, e, false);
+				ecs_log_pop_1();
 				continue;
 			}
 			// Map the SDL_WindowID to the ecs_entity_t:

@@ -102,6 +102,18 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 			ecs_enable(it->world, it->entities[i], false);
 			continue;
 		}
+		GLint major = 0, minor = 0, profile = 0;
+		glGetIntegerv(GL_MAJOR_VERSION, &major);
+		glGetIntegerv(GL_MINOR_VERSION, &minor);
+		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
+		if (major < 4 || (major == 4 && minor < 3) || !(profile & GL_CONTEXT_CORE_PROFILE_BIT)) {
+			ecs_err("EgWindowsSdlGl: OpenGL 4.3 core required, got %d.%d (profile mask 0x%x)",
+				major, minor, (unsigned)profile);
+			SDL_GL_DestroyContext(context);
+			ecs_add(it->world, e, EcsAlertWarning);
+			ecs_enable(it->world, e, false);
+			continue;
+		}
 		char const *gl_version   = (char const *)glGetString(GL_VERSION);
 		char const *glsl_version = (char const *)glGetString(GL_SHADING_LANGUAGE_VERSION);
 
