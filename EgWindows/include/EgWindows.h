@@ -69,6 +69,8 @@ typedef struct
 	int32_t dummy;
 } EgWindowsMouse;
 
+
+
 extern ECS_COMPONENT_DECLARE(EgWindowsWindow);
 extern ECS_COMPONENT_DECLARE(EgWindowsWindowState);
 extern ECS_COMPONENT_DECLARE(EgWindowsInputState);
@@ -80,5 +82,6 @@ extern ECS_COMPONENT_DECLARE(EgWindowsMouse);
 extern ECS_TAG_DECLARE(EgWindowsEventResize);
 extern ECS_TAG_DECLARE(EgWindowsCloseRequest);
 extern ECS_DECLARE(EgWindows);
+
 
 void EgWindowsImport(ecs_world_t *world);
