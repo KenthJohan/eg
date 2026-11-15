@@ -17,8 +17,6 @@
 #include <EgWindows.h>
 #include <ecsx.h>
 
-ECS_COMPONENT_DECLARE(EgWindowsSdlGlFrameCallback);
-
 bool EgWindowsSdlGlCleanup(void *window, void *context, void (*destroy)(void *), void *resource)
 {
 	SDL_Window *previous_window = SDL_GL_GetCurrentWindow();
@@ -53,9 +51,6 @@ static void System_Render(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++w, ++g, ++r) {
 		ecs_entity_t e = it->entities[i];
 
-		const EgWindowsSdlGlFrameCallback *callback = ecs_get(it->world, e, EgWindowsSdlGlFrameCallback);
-		void (*complete)(ecs_world_t*, ecs_entity_t, bool) = callback ? callback->complete : NULL;
-
 		const EgWindowsFrameCallback *generic_callback = ecs_get(it->world, e, EgWindowsFrameCallback);
 		void (*generic_complete)(ecs_world_t*, ecs_entity_t, bool) = generic_callback ? generic_callback->complete : NULL;
 		void (*generic_begin)(ecs_world_t*, ecs_entity_t) = generic_callback ? generic_callback->begin : NULL;
@@ -63,8 +58,7 @@ static void System_Render(ecs_iter_t *it)
 
 		if (!SDL_GL_MakeCurrent(w->object, g->gl_context)) {
 			ecs_err("EgWindowsSdlGl: cannot make window context current: %s", SDL_GetError());
-			if (complete) complete(it->world, e, false);
-			if (generic_complete && generic_complete != complete) generic_complete(it->world, e, false);
+			if (generic_complete) generic_complete(it->world, e, false);
 			continue;
 		}
 		if (generic_begin) generic_begin(it->world, e);
@@ -80,8 +74,7 @@ static void System_Render(ecs_iter_t *it)
 
 		bool displayed = SDL_GL_SwapWindow(w->object);
 		if (!displayed) ecs_err("EgWindowsSdlGl: cannot swap window: %s", SDL_GetError());
-		if (complete) complete(it->world, e, displayed);
-		if (generic_complete && generic_complete != complete) generic_complete(it->world, e, displayed);
+		if (generic_complete) generic_complete(it->world, e, displayed);
 	} // END FOR LOOP
 }
 
@@ -143,7 +136,6 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 
 	ECS_MODULE(world, EgWindowsSdlGl);
 	ecs_set_name_prefix(world, "EgWindowsSdlGl");
-	ECS_COMPONENT_DEFINE(world, EgWindowsSdlGlFrameCallback);
 
 	const int compiled = SDL_VERSION;
 	const int linked   = SDL_GetVersion();
