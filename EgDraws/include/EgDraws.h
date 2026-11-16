@@ -19,7 +19,7 @@ typedef struct {
 // Put on a root entity; shapes that depend on it append triangles here each frame. Layer index is z, drawn in ascending order.
 typedef struct {
 	ecs_vec_t layers;     // ecs_vec_t<ecs_vec_t<EgDraws_Vertex>>
-	float     pixelScale; // World units per pixel; scales line thickness, point size and outlines.
+	float     pixel_scale; // World units per pixel from the list's camera.
 } EgDraws_List;
 
 // Optional per-entity z level for collected shapes; defaults to 0.
@@ -61,8 +61,6 @@ ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z);
 
 // Appends every layer of src to the same z level in dst.
 void EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src);
-
-void EgDraws_List_SetPixelScale(EgDraws_List *list, float pixelScale);
 
 // Single-channel EG_DRAWS_ATLAS_WIDTH x EG_DRAWS_ATLAS_HEIGHT glyph bitmap, baked once; NULL if no font was found.
 const unsigned char *EgDraws_Font_GetBitmap(void);

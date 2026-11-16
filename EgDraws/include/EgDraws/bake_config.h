@@ -20,6 +20,7 @@
 /* Headers of public dependencies */
 #include <EgShapes.h>
 #include <EgSpatials.h>
+#include <EgCameras.h>
 #include <EgBase.h>
 #include <ecsx.h>
 #include <flecs.h>

@@ -7,6 +7,7 @@
 		"use": [
 			"EgShapes",
 			"EgSpatials",
+			"EgCameras",
 			"EgBase",
 			"ecsx",
 			"flecs"
@@ -21,6 +22,7 @@
 		"lib": [
 			"EgShapes",
 			"EgSpatials",
+			"EgCameras",
 			"EgBase",
 			"ecsx",
 			"flecs",

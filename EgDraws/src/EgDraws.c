@@ -2,6 +2,7 @@
 #include "verts.h"
 
 #include <EgBase.h>
+#include <EgCameras.h>
 #include <EgShapes.h>
 #include <EgSpatials.h>
 #include <ecsx.h>
@@ -26,10 +27,10 @@ static void EgDraws_List_Free(EgDraws_List *l)
 static void EgDraws_List_ctor(void *ptr, int32_t count, const ecs_type_info_t *ti)
 {
 	(void)ti;
-	EgDraws_List *l = ptr;
 	memset(ptr, 0, (size_t)count * sizeof(EgDraws_List));
+	EgDraws_List *lists = ptr;
 	for (int32_t i = 0; i < count; ++i) {
-		l[i].pixelScale = 1.0f;
+		lists[i].pixel_scale = 1.0f;
 	}
 }
 
@@ -56,11 +57,11 @@ static void EgDraws_List_move(void *dst_ptr, void *src_ptr, int32_t count, const
 
 EgDraws_List *EgDraws_List_Create(void)
 {
-	EgDraws_List *l = calloc(1, sizeof(*l));
-	if (l != NULL) {
-		l->pixelScale = 1.0f;
+	EgDraws_List *list = calloc(1, sizeof(EgDraws_List));
+	if (list != NULL) {
+		list->pixel_scale = 1.0f;
 	}
-	return l;
+	return list;
 }
 
 void EgDraws_List_Destroy(EgDraws_List *list)
@@ -78,11 +79,6 @@ void EgDraws_List_Clear(EgDraws_List *list)
 	for (int32_t i = 0, count = ecs_vec_count(&list->layers); i < count; ++i) {
 		ecs_vec_clear(&layers[i]);
 	}
-}
-
-void EgDraws_List_SetPixelScale(EgDraws_List *list, float pixelScale)
-{
-	list->pixelScale = pixelScale > 0.0f ? pixelScale : 1.0f;
 }
 
 ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z)
@@ -140,7 +136,7 @@ static ecs_vec_t *EgDraws_BeginVertices(EgDraws_List *list, int32_t z, const m3f
 	}
 
 	*config = (verts_config_t){
-	.pixscale  = list->pixelScale,
+	.pixscale  = list->pixel_scale,
 	.transform = *transform,
 	.r         = (uint8_t)(color >> 16),
 	.g         = (uint8_t)(color >> 8),
@@ -158,6 +154,22 @@ static void EgDraws_List_Reset(ecs_iter_t *it)
 	EgDraws_List *l = ecs_field_self(it, EgDraws_List, 0);
 	for (int i = 0; i < it->count; ++i) {
 		EgDraws_List_Clear(&l[i]);
+	}
+}
+
+static void EgDraws_List_UpdatePixelScale(ecs_iter_t *it)
+{
+	EgDraws_List       *lists = ecs_field_self(it, EgDraws_List, 0);
+	for (int32_t i = 0; i < it->count; ++i) {
+		ecs_entity_t camera_entity = ecs_get_target(
+			it->world, it->entities[i], EcsDependsOn, 0);
+		const EgCamerasState *camera =
+			ecs_get(it->world, camera_entity, EgCamerasState);
+		if (!camera) {
+			ecs_err("EgDraws: draw list has no camera dependency");
+			continue;
+		}
+		lists[i].pixel_scale = camera->pixel_scale;
 	}
 }
 
@@ -232,6 +244,7 @@ void EgDraws_Import(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgDraws_");
 
 	ECS_IMPORT(world, EgBase);
+	ECS_IMPORT(world, EgCameras);
 	ECS_IMPORT(world, EgShapes);
 	ECS_IMPORT(world, EgSpatials);
 
@@ -247,11 +260,25 @@ void EgDraws_Import(ecs_world_t *world)
 	.move = EgDraws_List_move,
 	});
 
+	ECS_COMPONENT(world, ecs_vec_t);
+
+	ecs_struct(world,
+	{.entity = ecs_id(ecs_vec_t),
+	.members = {
+	{.name = "element_size", .type = ecs_id(ecs_uptr_t)},
+	{.name = "count", .type = ecs_id(ecs_i32_t)},
+	{.name = "capacity", .type = ecs_id(ecs_i32_t)},
+#ifdef FLECS_SANITIZE
+	{.name = "elem_size", .type = ecs_id(ecs_size_t)},
+	{.name = "type_name", .type = ecs_id(ecs_string_t)},
+#endif
+	}});
+
 	ecs_struct(world,
 	{.entity = ecs_id(EgDraws_List),
 	.members = {
-	{.name = "layers", .type = ecs_id(ecs_uptr_t)},
-	{.name = "pixelScale", .type = ecs_id(ecs_f32_t)},
+	{.name = "layers", .type = ecs_id(ecs_vec_t)},
+	{.name = "pixel_scale", .type = ecs_id(ecs_f32_t)},
 	}});
 
 	ecs_struct(world,
@@ -278,6 +305,15 @@ void EgDraws_Import(ecs_world_t *world)
 	.entity      = ecs_entity(world, {.name = "EgDraws_List_Reset"}),
 	.phase       = EcsPreUpdate,
 	.callback    = EgDraws_List_Reset,
+	.query.terms = {
+	{.id = ecs_id(EgDraws_List), .src.id = EcsSelf, .inout = EcsInOut},
+	}});
+
+	ecs_system_init(world,
+	&(ecs_system_desc_t){
+	.entity      = ecs_entity(world, {.name = "EgDraws_List_UpdatePixelScale"}),
+	.phase       = EcsPostUpdate,
+	.callback    = EgDraws_List_UpdatePixelScale,
 	.query.terms = {
 	{.id = ecs_id(EgDraws_List), .src.id = EcsSelf, .inout = EcsInOut},
 	}});

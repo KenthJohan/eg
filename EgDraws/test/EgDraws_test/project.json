@@ -4,7 +4,7 @@
 	"value": {
 		"description": "Regression tests for EgDraws vertex generation",
 		"public": false,
-		"use": ["EgDraws", "EgBase", "EgShapes", "EgSpatials", "flecs"]
+		"use": ["EgDraws", "EgBase", "EgShapes", "EgSpatials", "EgCameras", "flecs"]
 	},
 	"test": {
 		"testsuites": [{
@@ -23,6 +23,6 @@
 		}]
 	},
 	"lang.c": {
-		"lib": ["EgDraws", "EgBase", "EgShapes", "EgSpatials", "flecs", "m"]
+		"lib": ["EgDraws", "EgBase", "EgShapes", "EgSpatials", "EgCameras", "flecs", "m"]
 	}
 }

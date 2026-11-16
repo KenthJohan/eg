@@ -1,5 +1,6 @@
 #include <bake_test.h>
 #include <EgBase.h>
+#include <EgCameras.h>
 #include <EgDraws.h>
 #include <EgShapes.h>
 #include <EgSpatials.h>
@@ -226,9 +227,11 @@ void Verts_test_collectors(void)
 {
 	EgDraws_Import(world);
 	ecs_entity_t root = ecs_new(world);
+	ecs_entity_t camera = ecs_new(world);
+	ecs_set(world, camera, EgCamerasState, {.pixel_scale = 0.5f});
+	ecs_add_pair(world, root, EcsDependsOn, camera);
 	ecs_add(world, root, EgDraws_List);
 	EgDraws_List *list = ecs_get_mut(world, root, EgDraws_List);
-	EgDraws_List_SetPixelScale(list, 0.5f);
 
 	ecs_entity_t solid = ecs_new_w_pair(world, EcsChildOf, root);
 	ecs_set(world, solid, EgDraws_Solid, {.color = 0x00123456});
