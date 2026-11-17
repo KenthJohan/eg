@@ -19,9 +19,12 @@
 #include <EgWindows.h>
 #include <ecsx.h>
 
-// https://github.com/SanderMertens/flecs/blob/57ebed1083274ee4875631a940452f08ff08aef9/test/collections/src/Map.c#L54
-// We need to map the SDL_WindowID to the ecs_entity_t so we can look up the entity from the SDL_WindowID
-// This is needed for the SDL_EVENT_WINDOW_RESIZED event
+
+/**
+ * SDL_WindowID -> ecs_entity_t.
+ * Maps SDL_WindowID keys to ecs_entity_t values so SDL events and focus
+ * information can be associated with the corresponding ECS window.
+ */
 static ecs_map_t static_window_map;
 
 static void System_EgWindowsWindow_UpdateState(ecs_iter_t *it)
