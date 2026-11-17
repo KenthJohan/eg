@@ -27,8 +27,8 @@ static void EgUiLocalMousePosition_Update(ecs_iter_t *it)
 		if (fabsf(det) < 1e-8f) {
 			continue;
 		}
-		l[i].x      = (dx * x[i].matrix.c1[1] - dy * x[i].matrix.c1[0]) / det;
-		l[i].y      = (dy * x[i].matrix.c0[0] - dx * x[i].matrix.c0[1]) / det;
+		l[i].x = (dx * x[i].matrix.c1[1] - dy * x[i].matrix.c1[0]) / det;
+		l[i].y = (dy * x[i].matrix.c0[0] - dx * x[i].matrix.c0[1]) / det;
 	}
 }
 

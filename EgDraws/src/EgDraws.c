@@ -159,12 +159,12 @@ static void EgDraws_List_Reset(ecs_iter_t *it)
 
 static void EgDraws_List_UpdatePixelScale(ecs_iter_t *it)
 {
-	EgDraws_List       *lists = ecs_field_self(it, EgDraws_List, 0);
+	EgDraws_List *lists = ecs_field_self(it, EgDraws_List, 0);
 	for (int32_t i = 0; i < it->count; ++i) {
 		ecs_entity_t camera_entity = ecs_get_target(
-			it->world, it->entities[i], EcsDependsOn, 0);
+		it->world, it->entities[i], EcsDependsOn, 0);
 		const EgCamerasState *camera =
-			ecs_get(it->world, camera_entity, EgCamerasState);
+		ecs_get(it->world, camera_entity, EgCamerasState);
 		if (!camera) {
 			ecs_err("EgDraws: draw list has no camera dependency");
 			continue;

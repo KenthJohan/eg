@@ -14,12 +14,12 @@ typedef struct
 typedef struct
 {
 	void *object;
-	int width, height;
-	int pixel_width, pixel_height;
+	int   width, height;
+	int   pixel_width, pixel_height;
 	float mouse_x, mouse_y;
-	bool mouse_focus, keyboard_focus;
-	bool hidden, minimized;
-	bool valid;
+	bool  mouse_focus, keyboard_focus;
+	bool  hidden, minimized;
+	bool  valid;
 } EgWindowsWindowState;
 
 typedef struct
@@ -69,8 +69,6 @@ typedef struct
 	int32_t dummy;
 } EgWindowsMouse;
 
-
-
 extern ECS_COMPONENT_DECLARE(EgWindowsWindow);
 extern ECS_COMPONENT_DECLARE(EgWindowsWindowState);
 extern ECS_COMPONENT_DECLARE(EgWindowsInputState);
@@ -82,6 +80,5 @@ extern ECS_COMPONENT_DECLARE(EgWindowsMouse);
 extern ECS_TAG_DECLARE(EgWindowsEventResize);
 extern ECS_TAG_DECLARE(EgWindowsCloseRequest);
 extern ECS_DECLARE(EgWindows);
-
 
 void EgWindowsImport(ecs_world_t *world);

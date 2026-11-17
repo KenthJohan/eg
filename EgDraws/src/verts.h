@@ -3,12 +3,12 @@
 #include "EgDraws.h"
 
 typedef struct {
-	float   pixscale;
-	m3f32   transform;
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t a;
+	float    pixscale;
+	m3f32    transform;
+	uint8_t  r;
+	uint8_t  g;
+	uint8_t  b;
+	uint8_t  a;
 	uint32_t pick_id;
 } verts_config_t;
 

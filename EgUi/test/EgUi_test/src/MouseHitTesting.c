@@ -9,11 +9,11 @@ static ecs_world_t *world;
 
 typedef struct {
 	ecs_entity_t target;
-	bool handled;
-	int calls;
-	int begins;
-	int ends;
-	bool valid;
+	bool         handled;
+	int          calls;
+	int          begins;
+	int          ends;
+	bool         valid;
 } TestPicker;
 
 static bool pick_test_target(ecs_world_t *w, ecs_entity_t *target, float *x, float *y, void *ctx)
@@ -22,8 +22,8 @@ static bool pick_test_target(ecs_world_t *w, ecs_entity_t *target, float *x, flo
 	TestPicker *picker = ctx;
 	++picker->calls;
 	*target = picker->target;
-	*x = 13;
-	*y = 17;
+	*x      = 13;
+	*y      = 17;
 	return picker->handled;
 }
 
@@ -79,8 +79,8 @@ static ecs_entity_t make_rect(ecs_entity_t *mouse)
 void MouseHitTesting_test_external_pick_dispatch(void)
 {
 	ecs_entity_t mouse;
-	ecs_entity_t rect = make_rect(&mouse);
-	TestPicker picker = {.target = rect, .handled = true};
+	ecs_entity_t rect   = make_rect(&mouse);
+	TestPicker   picker = {.target = rect, .handled = true};
 	ecs_singleton_set(world, EgUiScriptEventsPicker, {.pick = pick_test_target, .ctx = &picker});
 
 	ecs_progress(world, 0);
@@ -112,7 +112,7 @@ void MouseHitTesting_test_external_pick_dispatch(void)
 	test_assert(ecs_script_get_mouse_state(world, &last, &pressed));
 	test_assert(last.target == 0 && last.buttons == 0);
 
-	picker.target = rect;
+	picker.target  = rect;
 	picker.handled = false;
 	ecs_progress(world, 0);
 	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
@@ -144,7 +144,7 @@ void MouseHitTesting_test_local_coordinates(void)
 	ecs_entity_t mouse;
 	ecs_entity_t rect = make_rect(&mouse);
 	ecs_set(world, rect, WorldTransform3,
-		{.matrix = {{0, 2, 0}, {-3, 0, 0}, {10, 20, 1}}});
+	{.matrix = {{0, 2, 0}, {-3, 0, 0}, {10, 20, 1}}});
 	ecs_set(world, mouse, Position2, {7, 22});
 	ecs_progress(world, 0);
 	EgUiLocalMousePosition const *l = ecs_get(world, rect, EgUiLocalMousePosition);
@@ -156,7 +156,7 @@ void MouseHitTesting_test_local_coordinates(void)
 
 typedef struct {
 	int32_t drags;
-	float x;
+	float   x;
 } CaptureParentState;
 
 typedef struct {
@@ -164,9 +164,11 @@ typedef struct {
 } CaptureHandleState;
 
 static void capture_to_local(ecs_world_t *w, ecs_entity_t entity,
-	float sx, float sy, float *x, float *y, void *ctx)
+float sx, float sy, float *x, float *y, void *ctx)
 {
-	(void)sx; (void)sy; (void)ctx;
+	(void)sx;
+	(void)sy;
+	(void)ctx;
 	const EgUiLocalMousePosition *local = ecs_get(w, entity, EgUiLocalMousePosition);
 	if (local) {
 		*x = local->x;
@@ -177,33 +179,33 @@ static void capture_to_local(ecs_world_t *w, ecs_entity_t entity,
 static ecs_entity_t create_capture_script(ecs_entity_t *parent)
 {
 	ecs_entity_t script = ecs_script(world, {.code =
-		"using flecs.script\n"
-		"template CaptureHandle {\n"
-		"  eg.ui.script.events.Target\n"
-		"  eg.ui.script.events.Capture\n"
-		"  mut releases: i32 = 0\n"
-		"  async {\n"
-		"    while true {\n"
-		"      await on.release(this)\n"
-		"      releases = releases + 1\n"
-		"    }\n"
-		"  }\n"
-		"}\n"
-		"template CaptureParent {\n"
-		"  mut drags: i32 = 0\n"
-		"  mut x: f32 = 0\n"
-		"  async {\n"
-		"    while true {\n"
-		"      const e = await on.drag(this)\n"
-		"      drags = drags + 1\n"
-		"      x = e.local_x\n"
-		"    }\n"
-		"  }\n"
-		"  handle { CaptureHandle }\n"
-		"}\n"
-		"CaptureParent panel\n"});
+	                                         "using flecs.script\n"
+	                                         "template CaptureHandle {\n"
+	                                         "  eg.ui.script.events.Target\n"
+	                                         "  eg.ui.script.events.Capture\n"
+	                                         "  mut releases: i32 = 0\n"
+	                                         "  async {\n"
+	                                         "    while true {\n"
+	                                         "      await on.release(this)\n"
+	                                         "      releases = releases + 1\n"
+	                                         "    }\n"
+	                                         "  }\n"
+	                                         "}\n"
+	                                         "template CaptureParent {\n"
+	                                         "  mut drags: i32 = 0\n"
+	                                         "  mut x: f32 = 0\n"
+	                                         "  async {\n"
+	                                         "    while true {\n"
+	                                         "      const e = await on.drag(this)\n"
+	                                         "      drags = drags + 1\n"
+	                                         "      x = e.local_x\n"
+	                                         "    }\n"
+	                                         "  }\n"
+	                                         "  handle { CaptureHandle }\n"
+	                                         "}\n"
+	                                         "CaptureParent panel\n"});
 	test_assert(script != 0);
-	*parent = ecs_lookup(world, "panel");
+	*parent             = ecs_lookup(world, "panel");
 	ecs_entity_t handle = ecs_lookup(world, "panel.handle");
 	test_assert(*parent != 0 && handle != 0);
 	ecs_set(world, *parent, EgUiLocalMousePosition, {.x = 5});
@@ -216,10 +218,8 @@ void MouseHitTesting_test_capture_drag_release(void)
 {
 	ecs_entity_t parent;
 	ecs_entity_t handle = create_capture_script(&parent);
-	TestPicker picker = {.target = handle, .handled = true, .valid = true};
-	ecs_singleton_set(world, EgUiScriptEventsPicker, {
-		.pick = pick_test_target, .ctx = &picker, .capture_begin = capture_begin,
-		.capture_valid = capture_valid, .capture_end = capture_end});
+	TestPicker   picker = {.target = handle, .handled = true, .valid = true};
+	ecs_singleton_set(world, EgUiScriptEventsPicker, {.pick = pick_test_target, .ctx = &picker, .capture_begin = capture_begin, .capture_valid = capture_valid, .capture_end = capture_end});
 	ecs_singleton_set(world, EgButtonsState, {.mouse = {[1] = EG_BUTTONS_STATE_HELD}});
 	ecs_progress(world, 0);
 	test_int(picker.begins, 1);
@@ -234,7 +234,7 @@ void MouseHitTesting_test_capture_drag_release(void)
 	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
 	test_assert(last.target == handle && last.buttons == 1);
 	ecs_entity_t other = ecs_new(world);
-	picker.target = other;
+	picker.target      = other;
 	ecs_progress(world, 0);
 	test_assert(ecs_script_get_mouse_state(world, &last, NULL));
 	test_assert(last.target == handle && last.buttons == 1);
@@ -259,13 +259,11 @@ void MouseHitTesting_test_capture_cancellation(void)
 {
 	ecs_entity_t parent;
 	ecs_entity_t handle = create_capture_script(&parent);
-	TestPicker picker = {.target = handle, .handled = true, .valid = true};
-	ecs_singleton_set(world, EgUiScriptEventsPicker, {
-		.pick = pick_test_target, .ctx = &picker, .capture_begin = capture_begin,
-		.capture_valid = capture_valid, .capture_end = capture_end});
+	TestPicker   picker = {.target = handle, .handled = true, .valid = true};
+	ecs_singleton_set(world, EgUiScriptEventsPicker, {.pick = pick_test_target, .ctx = &picker, .capture_begin = capture_begin, .capture_valid = capture_valid, .capture_end = capture_end});
 	ecs_singleton_set(world, EgButtonsState, {.mouse = {[1] = EG_BUTTONS_STATE_HELD}});
 	ecs_progress(world, 0);
-	picker.valid = false;
+	picker.valid  = false;
 	picker.target = 0;
 	ecs_progress(world, 0);
 	const CaptureHandleState *h = ecs_get_id(world, handle, ecs_lookup(world, "CaptureHandle.mut"));
@@ -278,7 +276,7 @@ void MouseHitTesting_test_capture_cancellation(void)
 	test_assert(last.target == 0 && last.buttons == 0);
 	ecs_singleton_set(world, EgButtonsState, {{0}});
 	ecs_progress(world, 0);
-	picker.valid = true;
+	picker.valid  = true;
 	picker.target = handle;
 	ecs_singleton_set(world, EgButtonsState, {.mouse = {[1] = EG_BUTTONS_STATE_HELD}});
 	ecs_progress(world, 0);

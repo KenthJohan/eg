@@ -226,7 +226,7 @@ void Verts_test_text(void)
 void Verts_test_collectors(void)
 {
 	EgDraws_Import(world);
-	ecs_entity_t root = ecs_new(world);
+	ecs_entity_t root   = ecs_new(world);
 	ecs_entity_t camera = ecs_new(world);
 	ecs_set(world, camera, EgCamerasState, {.pixel_scale = 0.5f});
 	ecs_add_pair(world, root, EcsDependsOn, camera);

@@ -10,15 +10,15 @@
 
 // Vertex layout shared with the egg renderer.
 typedef struct {
-	float   position[2];
-	float   uv[2];
-	uint8_t rgba[4];
+	float    position[2];
+	float    uv[2];
+	uint8_t  rgba[4];
 	uint32_t pick_id;
 } EgDraws_Vertex;
 
 // Put on a root entity; shapes that depend on it append triangles here each frame. Layer index is z, drawn in ascending order.
 typedef struct {
-	ecs_vec_t layers;     // ecs_vec_t<ecs_vec_t<EgDraws_Vertex>>
+	ecs_vec_t layers;      // ecs_vec_t<ecs_vec_t<EgDraws_Vertex>>
 	float     pixel_scale; // World units per pixel from the list's camera.
 } EgDraws_List;
 

@@ -28,24 +28,24 @@ static ecs_map_t static_window_map;
 void EgWindowsSdlUpdateState(ecs_world_t *world)
 {
 	typedef struct {
-		ecs_entity_t entity;
+		ecs_entity_t         entity;
 		EgWindowsWindowState state;
 	} WindowUpdate;
-	SDL_Window *mouse_focus = SDL_GetMouseFocus();
-	SDL_Window *keyboard_focus = SDL_GetKeyboardFocus();
-	EgWindowsInputState input = {.mouse_focus = mouse_focus != NULL};
-	float mouse_x, mouse_y;
+	SDL_Window         *mouse_focus    = SDL_GetMouseFocus();
+	SDL_Window         *keyboard_focus = SDL_GetKeyboardFocus();
+	EgWindowsInputState input          = {.mouse_focus = mouse_focus != NULL};
+	float               mouse_x, mouse_y;
 	SDL_GetMouseState(&mouse_x, &mouse_y);
 	WindowUpdate *updates = NULL;
-	size_t count = 0, capacity = 0;
-	ecs_iter_t it = ecs_each_id(world, ecs_id(EgWindowsWindow));
-	ecs_iter_t *iter = &it;
+	size_t        count = 0, capacity = 0;
+	ecs_iter_t    it   = ecs_each_id(world, ecs_id(EgWindowsWindow));
+	ecs_iter_t   *iter = &it;
 	while (ecs_each_next(iter)) {
 		const EgWindowsWindow *windows = ecs_field(iter, EgWindowsWindow, 0);
 		for (int32_t i = 0; i < it.count; ++i) {
 			if (count == capacity) {
-				size_t next_capacity = capacity ? capacity * 2 : 4;
-				WindowUpdate *next = realloc(updates, next_capacity * sizeof(*next));
+				size_t        next_capacity = capacity ? capacity * 2 : 4;
+				WindowUpdate *next          = realloc(updates, next_capacity * sizeof(*next));
 				if (!next) {
 					ecs_err("EgWindowsSdl: cannot allocate window state updates");
 					ecs_iter_fini(iter);
@@ -53,7 +53,7 @@ void EgWindowsSdlUpdateState(ecs_world_t *world)
 					ecs_singleton_set(world, EgWindowsInputState, {.mouse_focus = true});
 					return;
 				}
-				updates = next;
+				updates  = next;
 				capacity = next_capacity;
 			}
 			SDL_Window *window = windows[i].object;
@@ -62,22 +62,23 @@ void EgWindowsSdlUpdateState(ecs_world_t *world)
 				updates[count++] = (WindowUpdate){.entity = it.entities[i]};
 				continue;
 			}
-			SDL_WindowFlags flags = SDL_GetWindowFlags(window);
+			SDL_WindowFlags      flags = SDL_GetWindowFlags(window);
 			EgWindowsWindowState state = {
-				.object = window,
-				.mouse_focus = mouse_focus == window,
-				.keyboard_focus = keyboard_focus == window,
-				.hidden = !!(flags & SDL_WINDOW_HIDDEN),
-				.minimized = !!(flags & SDL_WINDOW_MINIMIZED),
+			.object         = window,
+			.mouse_focus    = mouse_focus == window,
+			.keyboard_focus = keyboard_focus == window,
+			.hidden         = !!(flags & SDL_WINDOW_HIDDEN),
+			.minimized      = !!(flags & SDL_WINDOW_MINIMIZED),
 			};
 			if (state.mouse_focus) {
 				input.mouse_window = it.entities[i];
-				state.mouse_x = mouse_x;
-				state.mouse_y = mouse_y;
+				state.mouse_x      = mouse_x;
+				state.mouse_y      = mouse_y;
 			}
 			state.valid = SDL_GetWindowSize(window, &state.width, &state.height) &&
-				SDL_GetWindowSizeInPixels(window, &state.pixel_width, &state.pixel_height);
-			if (!state.valid) ecs_err("EgWindowsSdl: cannot get window size: %s", SDL_GetError());
+			              SDL_GetWindowSizeInPixels(window, &state.pixel_width, &state.pixel_height);
+			if (!state.valid)
+				ecs_err("EgWindowsSdl: cannot get window size: %s", SDL_GetError());
 			updates[count++] = (WindowUpdate){.entity = it.entities[i], .state = state};
 		}
 	}
@@ -113,8 +114,8 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 
 			if (create->enable_opengl) {
 				if (!SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4) ||
-					!SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3) ||
-					!SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)) {
+				    !SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3) ||
+				    !SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)) {
 					ecs_err("EgWindowsSdl: cannot request OpenGL 4.3 core: %s", SDL_GetError());
 					SDL_DestroyProperties(props);
 					ecs_enable(world, e, false);
@@ -184,10 +185,10 @@ static void System_EgWindowsWindow_Mouse_UnNormalized(ecs_iter_t *it)
 
 static void System_EgWindowsWindow_Mouse_Normalized(ecs_iter_t *it)
 {
-	Position2 const         *wp = ecs_field_shared(it, Position2, 0);         // Input: Window position in world space
-	Position2               *mp = ecs_field_self(it, Position2, 1);           // Output: Mouse position in normalized device coordinates (NDC)
-	EgWindowsWindow const   *window = ecs_field_shared(it, EgWindowsWindow, 2);
-	int width, height;
+	Position2 const       *wp     = ecs_field_shared(it, Position2, 0); // Input: Window position in world space
+	Position2             *mp     = ecs_field_self(it, Position2, 1);   // Output: Mouse position in normalized device coordinates (NDC)
+	EgWindowsWindow const *window = ecs_field_shared(it, EgWindowsWindow, 2);
+	int                    width, height;
 	if (!SDL_GetWindowSize(window->object, &width, &height)) {
 		ecs_err("SDL_GetWindowSize failed: %s", SDL_GetError());
 		return;

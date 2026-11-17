@@ -4,7 +4,6 @@
 
 bool EgWindowsSdlGlCleanup(void *window, void *context, void (*destroy)(void *), void *resource);
 
-void EgWindowsSdlGlMakeCurrent(EgWindowsWindow * window, EgWindowsOpenGLContext * context);
-
+void EgWindowsSdlGlMakeCurrent(EgWindowsWindow *window, EgWindowsOpenGLContext *context);
 
 void EgWindowsSdlGlImport(ecs_world_t *world);
