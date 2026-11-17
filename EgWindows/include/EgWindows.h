@@ -5,22 +5,16 @@ typedef struct
 {
 	void *object;
 	bool  terminate_on_close;
-} EgWindowsWindow;
-
-/* State is refreshed by the window backend after processing input events.
- * Sizes and mouse coordinates are in logical window units unless noted.
- * Coordinates are meaningful only when mouse_focus is true. object identifies
- * the native window for which this snapshot was collected. */
-typedef struct
-{
-	void *object;
+	/* Refreshed by the window backend after input events are processed.
+	 * Sizes and mouse coordinates are in logical window units unless noted.
+	 * Coordinates are meaningful only when mouse_focus is true. */
 	int   width, height;
 	int   pixel_width, pixel_height;
 	float mouse_x, mouse_y;
 	bool  mouse_focus, keyboard_focus;
 	bool  hidden, minimized;
 	bool  valid;
-} EgWindowsWindowState;
+} EgWindowsWindow;
 
 typedef struct
 {
@@ -70,7 +64,6 @@ typedef struct
 } EgWindowsMouse;
 
 extern ECS_COMPONENT_DECLARE(EgWindowsWindow);
-extern ECS_COMPONENT_DECLARE(EgWindowsWindowState);
 extern ECS_COMPONENT_DECLARE(EgWindowsInputState);
 extern ECS_COMPONENT_DECLARE(EgWindowsFrameCallback);
 extern ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);

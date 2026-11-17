@@ -8,7 +8,6 @@
 #include <EgBase.h>
 
 ECS_COMPONENT_DECLARE(EgWindowsWindow);
-ECS_COMPONENT_DECLARE(EgWindowsWindowState);
 ECS_COMPONENT_DECLARE(EgWindowsInputState);
 ECS_COMPONENT_DECLARE(EgWindowsFrameCallback);
 ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
@@ -25,7 +24,6 @@ void EgWindowsImport(ecs_world_t *world)
 	ecs_set_name_prefix(world, "EgWindows");
 
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindow);
-	ECS_COMPONENT_DEFINE(world, EgWindowsWindowState);
 	ECS_COMPONENT_DEFINE(world, EgWindowsInputState);
 	ECS_COMPONENT_DEFINE(world, EgWindowsFrameCallback);
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindowCreateInfo);
@@ -39,6 +37,18 @@ void EgWindowsImport(ecs_world_t *world)
 	{.entity = ecs_id(EgWindowsWindow),
 	.members = {
 	{.name = "object", .type = ecs_id(ecs_uptr_t)},
+	{.name = "terminate_on_close", .type = ecs_id(ecs_bool_t)},
+	{.name = "width", .type = ecs_id(ecs_i32_t)},
+	{.name = "height", .type = ecs_id(ecs_i32_t)},
+	{.name = "pixel_width", .type = ecs_id(ecs_i32_t)},
+	{.name = "pixel_height", .type = ecs_id(ecs_i32_t)},
+	{.name = "mouse_x", .type = ecs_id(ecs_f32_t)},
+	{.name = "mouse_y", .type = ecs_id(ecs_f32_t)},
+	{.name = "mouse_focus", .type = ecs_id(ecs_bool_t)},
+	{.name = "keyboard_focus", .type = ecs_id(ecs_bool_t)},
+	{.name = "hidden", .type = ecs_id(ecs_bool_t)},
+	{.name = "minimized", .type = ecs_id(ecs_bool_t)},
+	{.name = "valid", .type = ecs_id(ecs_bool_t)},
 	}});
 
 	ecs_struct(world,
