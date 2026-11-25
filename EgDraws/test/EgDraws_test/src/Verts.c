@@ -229,7 +229,7 @@ void Verts_test_collectors(void)
 	ecs_entity_t root   = ecs_new(world);
 	ecs_entity_t camera = ecs_new(world);
 	ecs_set(world, camera, EgCamerasState, {.pixel_scale = 0.5f});
-	ecs_add_pair(world, root, EcsDependsOn, camera);
+	ecs_add_pair(world, root, EgDraws_Camera, camera);
 	ecs_add(world, root, EgDraws_List);
 	EgDraws_List *list = ecs_get_mut(world, root, EgDraws_List);
 
@@ -259,6 +259,15 @@ void Verts_test_collectors(void)
 
 	ecs_progress(world, 0);
 	list = ecs_get_mut(world, root, EgDraws_List);
+	test_assert(!list->failed);
+	const EgDraws_Span *spans = ecs_vec_first_t(&list->spans, EgDraws_Span);
+	test_assert(ecs_vec_count(&list->spans) >= 2);
+	test_assert(spans[0].entity == solid);
+	test_int(spans[0].kind, EgDrawsPrimitiveSolid);
+	test_int(spans[0].first, 0);
+	test_int(spans[0].count, 6);
+	test_assert(spans[1].entity == border);
+	test_int(spans[1].kind, EgDrawsPrimitiveBorder);
 	test_int(ecs_vec_count(&list->layers), 3);
 	ecs_vec_t *layer0 = EgDraws_List_GetLayer(list, 0);
 	ecs_vec_t *layer1 = EgDraws_List_GetLayer(list, 1);
@@ -299,7 +308,13 @@ void Verts_test_collectors(void)
 	}
 	EgDraws_List *copy = EgDraws_List_Create();
 	test_assert(copy != NULL);
-	EgDraws_List_Append(copy, list);
+	test_assert(EgDraws_List_Append(copy, list));
+	test_int(ecs_vec_count(&copy->spans), ecs_vec_count(&list->spans));
+	test_assert(EgDraws_List_Append(copy, list));
+	const EgDraws_Span *copied_spans = ecs_vec_first_t(&copy->spans, EgDraws_Span);
+	test_int(copied_spans[ecs_vec_count(&list->spans)].first, 6);
+	EgDraws_List_Clear(copy);
+	test_assert(EgDraws_List_Append(copy, list));
 	ecs_vec_t *copied_layer = EgDraws_List_GetLayer(copy, 0);
 	test_int(ecs_vec_count(copied_layer), 6);
 	v = ecs_vec_first_t(copied_layer, EgDraws_Vertex);

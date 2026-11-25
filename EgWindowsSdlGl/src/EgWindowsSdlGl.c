@@ -33,31 +33,36 @@ bool EgWindowsSdlGlCleanup(void *window, void *context, void (*destroy)(void *),
 	return true;
 }
 
-static void inner_systems_run(ecs_iter_t *it)
-{
-	while (ecs_query_next(it)) {
-		for (int i = 0; i < it->count; ++i) {
-			ecs_entity_t e = it->entities[i];
-			ecs_run(it->world, e, 0.0f, NULL);
-		}
-	}
-}
-
 static void System_Render(ecs_iter_t *it)
 {
 	EgWindowsWindow        *w = ecs_field_self(it, EgWindowsWindow, 0);
 	EgWindowsOpenGLContext *g = ecs_field_self(it, EgWindowsOpenGLContext, 1);
-	EgShapesRectangle      *r = ecs_field_self(it, EgShapesRectangle, 2);
-	for (int i = 0; i < it->count; ++i, ++w, ++g, ++r) {
+	for (int i = 0; i < it->count; ++i, ++w, ++g) {
 		ecs_entity_t e = it->entities[i];
 
 		const EgWindowsFrameCallback *generic_callback              = ecs_get(it->world, e, EgWindowsFrameCallback);
+		const EgWindowsFrameExecutor *executor                      = ecs_get(it->world, e, EgWindowsFrameExecutor);
+		const EgWindowsNativeOwner *owner                            = ecs_get(it->world, e, EgWindowsNativeOwner);
 		void (*generic_complete)(ecs_world_t *, ecs_entity_t, bool) = generic_callback ? generic_callback->complete : NULL;
 		void (*generic_begin)(ecs_world_t *, ecs_entity_t)          = generic_callback ? generic_callback->begin : NULL;
 		void (*generic_end)(ecs_world_t *, ecs_entity_t)            = generic_callback ? generic_callback->end : NULL;
+		bool (*execute)(ecs_world_t *, ecs_entity_t)                = executor ? executor->execute : NULL;
+		void (*complete)(ecs_world_t *, ecs_entity_t, bool)        = executor ? executor->complete : NULL;
 
+		if (!w->object || !g->gl_context ||
+		    (owner && (owner->window != w->object || owner->context != g->gl_context))) {
+			ecs_err("EgWindowsSdlGl: invalid or replaced native window/context for entity %llu",
+				(unsigned long long)e);
+			if (complete)
+				complete(it->world, e, false);
+			if (generic_complete)
+				generic_complete(it->world, e, false);
+			continue;
+		}
 		if (!SDL_GL_MakeCurrent(w->object, g->gl_context)) {
 			ecs_err("EgWindowsSdlGl: cannot make window context current: %s", SDL_GetError());
+			if (complete)
+				complete(it->world, e, false);
 			if (generic_complete)
 				generic_complete(it->world, e, false);
 			continue;
@@ -65,19 +70,15 @@ static void System_Render(ecs_iter_t *it)
 		if (generic_begin)
 			generic_begin(it->world, e);
 
-		glViewport(0, 0, (GLsizei)r->w, (GLsizei)r->h);
-		glClearColor(0.0f, 0.0f, 1.0f, 1.0f); // Blue
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		ecs_iter_t it2 = ecs_query_iter(it->world, g->inner_systems);
-		ecs_iter_set_group(&it2, e);
-		inner_systems_run(&it2);
+		bool rendered = !execute || execute(it->world, e);
 		if (generic_end)
 			generic_end(it->world, e);
 
-		bool displayed = SDL_GL_SwapWindow(w->object);
-		if (!displayed)
+		bool displayed = rendered && SDL_GL_SwapWindow(w->object);
+		if (rendered && !displayed)
 			ecs_err("EgWindowsSdlGl: cannot swap window: %s", SDL_GetError());
+		if (complete)
+			complete(it->world, e, displayed);
 		if (generic_complete)
 			generic_complete(it->world, e, displayed);
 	} // END FOR LOOP
@@ -93,11 +94,11 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i, ++w, ++g) {
 		ecs_entity_t e = it->entities[i];
 
-		SDL_GLContext context = SDL_GL_CreateContext(w->object);
+		SDL_GLContext context = w->object ? SDL_GL_CreateContext(w->object) : NULL;
 		if (context == NULL) {
 			ecs_err("SDL_GL_CreateContext() failed: %s", SDL_GetError());
-			ecs_add(it->world, it->entities[i], EcsAlertWarning);
-			ecs_enable(it->world, it->entities[i], false);
+			ecs_add(it->stage, it->entities[i], EcsAlertWarning);
+			ecs_enable(it->stage, it->entities[i], false);
 			continue;
 		}
 		GLint major = 0, minor = 0, profile = 0;
@@ -108,26 +109,33 @@ static void System_EgWindowsOpenGLContext_Create(ecs_iter_t *it)
 			ecs_err("EgWindowsSdlGl: OpenGL 4.3 core required, got %d.%d (profile mask 0x%x)",
 			major, minor, (unsigned)profile);
 			SDL_GL_DestroyContext(context);
-			ecs_add(it->world, e, EcsAlertWarning);
-			ecs_enable(it->world, e, false);
+			ecs_add(it->stage, e, EcsAlertWarning);
+			ecs_enable(it->stage, e, false);
 			continue;
 		}
 		char const *gl_version   = (char const *)glGetString(GL_VERSION);
 		char const *glsl_version = (char const *)glGetString(GL_SHADING_LANGUAGE_VERSION);
-
-		ecs_query_t *q = ecs_query(it->world,
-		{
-		.terms = {
-		{.id = EcsSystem}},
-		.group_by = EcsChildOf,
-		});
+		EgWindowsNativeOwner *owner = ecs_get_mut(it->world, e, EgWindowsNativeOwner);
+		if (!owner) {
+			ecs_set(it->stage, e, EgWindowsNativeOwner,
+				{.window = w->object, .context = context});
+		} else if ((!owner->window && !owner->owns_window && !owner->context)) {
+			owner->window = w->object;
+			owner->context = context;
+		} else if (owner->window != w->object || owner->context) {
+			ecs_err("EgWindowsSdlGl: invalid native ownership while creating context");
+			SDL_GL_DestroyContext(context);
+			ecs_enable(it->stage, e, false);
+			continue;
+		} else {
+			owner->context = context;
+		}
 
 		ecs_set(it->stage, e, EgWindowsOpenGLContext,
 		{
 		.gl_context    = context,
 		.gl_version    = gl_version,
 		.glsl_version  = glsl_version,
-		.inner_systems = q,
 		.cleanup       = EgWindowsSdlGlCleanup,
 		});
 	} // END FOR LOOP
@@ -161,7 +169,6 @@ void EgWindowsSdlGlImport(ecs_world_t *world)
 	{
 	{.id = ecs_id(EgWindowsWindow), .src.id = EcsSelf},
 	{.id = ecs_id(EgWindowsOpenGLContext), .src.id = EcsSelf},
-	{.id = ecs_id(EgShapesRectangle), .src.id = EcsSelf},
 	}});
 
 	ecs_system(world,

@@ -10,6 +10,8 @@
 ECS_COMPONENT_DECLARE(EgWindowsWindow);
 ECS_COMPONENT_DECLARE(EgWindowsInputState);
 ECS_COMPONENT_DECLARE(EgWindowsFrameCallback);
+ECS_COMPONENT_DECLARE(EgWindowsFrameExecutor);
+ECS_COMPONENT_DECLARE(EgWindowsNativeOwner);
 ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
 ECS_COMPONENT_DECLARE(EgWindowsOpenGLContext);
 ECS_COMPONENT_DECLARE(EgWindowsOpenGLContextCreate);
@@ -26,6 +28,8 @@ void EgWindowsImport(ecs_world_t *world)
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindow);
 	ECS_COMPONENT_DEFINE(world, EgWindowsInputState);
 	ECS_COMPONENT_DEFINE(world, EgWindowsFrameCallback);
+	ECS_COMPONENT_DEFINE(world, EgWindowsFrameExecutor);
+	ECS_COMPONENT_DEFINE(world, EgWindowsNativeOwner);
 	ECS_COMPONENT_DEFINE(world, EgWindowsWindowCreateInfo);
 	ECS_COMPONENT_DEFINE(world, EgWindowsOpenGLContext);
 	ECS_COMPONENT_DEFINE(world, EgWindowsOpenGLContextCreate);
@@ -64,7 +68,6 @@ void EgWindowsImport(ecs_world_t *world)
 	{.name = "gl_context", .type = ecs_id(ecs_uptr_t)},
 	{.name = "gl_version", .type = ecs_id(ecs_string_t)},
 	{.name = "glsl_version", .type = ecs_id(ecs_string_t)},
-	{.name = "inner_systems", .type = ecs_id(ecs_uptr_t)},
 	}});
 
 	ecs_struct(world,

@@ -12,6 +12,8 @@ static void sAppendVertex(ecs_vec_t *vertices, const verts_config_t *config, con
 	EgDraws_Vertex *dst = ecs_vec_append_t(NULL, vertices, EgDraws_Vertex);
 	if (dst == NULL) {
 		ecs_err("EgDraws: failed to append vertex");
+		if (config->failed)
+			*config->failed = true;
 		return;
 	}
 

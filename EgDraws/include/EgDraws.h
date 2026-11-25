@@ -16,10 +16,26 @@ typedef struct {
 	uint32_t pick_id;
 } EgDraws_Vertex;
 
+typedef enum {
+	EgDrawsPrimitiveSolid,
+	EgDrawsPrimitiveBorder,
+	EgDrawsPrimitiveText
+} EgDraws_PrimitiveKind;
+
+typedef struct {
+	ecs_entity_t entity;
+	int32_t layer;
+	int32_t first;
+	int32_t count;
+	EgDraws_PrimitiveKind kind;
+} EgDraws_Span;
+
 // Put on a root entity; shapes that depend on it append triangles here each frame. Layer index is z, drawn in ascending order.
 typedef struct {
 	ecs_vec_t layers;      // ecs_vec_t<ecs_vec_t<EgDraws_Vertex>>
+	ecs_vec_t spans;       // ecs_vec_t<EgDraws_Span>
 	float     pixel_scale; // World units per pixel from the list's camera.
+	bool      failed;
 } EgDraws_List;
 
 // Optional per-entity z level for collected shapes; defaults to 0.
@@ -46,6 +62,8 @@ extern ECS_COMPONENT_DECLARE(EgDraws_List);
 extern ECS_COMPONENT_DECLARE(EgDraws_Z);
 extern ECS_COMPONENT_DECLARE(EgDraws_Border);
 extern ECS_COMPONENT_DECLARE(EgDraws_Solid);
+extern ECS_TAG_DECLARE(EgDraws_Camera);
+extern ECS_DECLARE(EgDraws_GeometryPhase);
 
 // Standalone list (not an ECS component); free with EgDraws_List_Destroy.
 EgDraws_List *EgDraws_List_Create(void);
@@ -60,7 +78,7 @@ void EgDraws_List_Clear(EgDraws_List *list);
 ecs_vec_t *EgDraws_List_GetLayer(EgDraws_List *list, int32_t z);
 
 // Appends every layer of src to the same z level in dst.
-void EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src);
+bool EgDraws_List_Append(EgDraws_List *dst, const EgDraws_List *src);
 
 // Single-channel EG_DRAWS_ATLAS_WIDTH x EG_DRAWS_ATLAS_HEIGHT glyph bitmap, baked once; NULL if no font was found.
 const unsigned char *EgDraws_Font_GetBitmap(void);

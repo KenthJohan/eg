@@ -24,7 +24,7 @@ typedef struct
 } EgWindowsInputState;
 
 /* begin and end run with the window's GL context current before and after
- * inner systems. complete runs after presentation, or with displayed=false
+ * the frame executor. complete runs after presentation, or with displayed=false
  * on failure. */
 typedef struct
 {
@@ -32,6 +32,24 @@ typedef struct
 	void (*begin)(ecs_world_t *world, ecs_entity_t window);
 	void (*end)(ecs_world_t *world, ecs_entity_t window);
 } EgWindowsFrameCallback;
+
+/* execute runs once with the window context current. False prevents presentation.
+ * complete receives the presentation outcome, including context failures. */
+typedef struct
+{
+	bool (*execute)(ecs_world_t *world, ecs_entity_t window);
+	void (*complete)(ecs_world_t *world, ecs_entity_t window, bool displayed);
+} EgWindowsFrameExecutor;
+
+/* Backend-owned native handles. release destroys context-dependent clients
+ * before the backend destroys the context and window. */
+typedef struct
+{
+	void *window;
+	void *context;
+	bool owns_window;
+	bool (*release)(ecs_world_t *world, ecs_entity_t entity, void *window, void *context);
+} EgWindowsNativeOwner;
 
 typedef struct
 {
@@ -46,7 +64,6 @@ typedef struct
 	void        *gl_context;
 	char const  *gl_version;
 	char const  *glsl_version;
-	ecs_query_t *inner_systems;
 	/* Invoke destroy with this context current, then restore the prior context.
 	 * On failure destroy may already have run if restoring the prior context
 	 * failed; the callback must update its resource ownership itself. */
@@ -66,6 +83,8 @@ typedef struct
 extern ECS_COMPONENT_DECLARE(EgWindowsWindow);
 extern ECS_COMPONENT_DECLARE(EgWindowsInputState);
 extern ECS_COMPONENT_DECLARE(EgWindowsFrameCallback);
+extern ECS_COMPONENT_DECLARE(EgWindowsFrameExecutor);
+extern ECS_COMPONENT_DECLARE(EgWindowsNativeOwner);
 extern ECS_COMPONENT_DECLARE(EgWindowsWindowCreateInfo);
 extern ECS_COMPONENT_DECLARE(EgWindowsOpenGLContext);
 extern ECS_COMPONENT_DECLARE(EgWindowsOpenGLContextCreate);

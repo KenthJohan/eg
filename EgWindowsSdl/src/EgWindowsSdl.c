@@ -25,7 +25,87 @@
  * Maps SDL_WindowID keys to ecs_entity_t values so SDL events and focus
  * information can be associated with the corresponding ECS window.
  */
-static ecs_map_t static_window_map;
+typedef struct {
+	ecs_map_t windows;
+} EgWindowsSdlState;
+
+ECS_COMPONENT_DECLARE(EgWindowsSdlState);
+
+static void EgWindowsSdlState_ctor(void *ptr, int32_t count, const ecs_type_info_t *ti)
+{
+	(void)ti;
+	EgWindowsSdlState *states = ptr;
+	for (int32_t i = 0; i < count; ++i)
+		ecs_map_init(&states[i].windows, NULL);
+}
+
+static void EgWindowsSdlState_dtor(void *ptr, int32_t count, const ecs_type_info_t *ti)
+{
+	(void)ti;
+	EgWindowsSdlState *states = ptr;
+	for (int32_t i = 0; i < count; ++i)
+		ecs_map_fini(&states[i].windows);
+}
+
+static void EgWindowsSdlState_move(void *dst, void *src, int32_t count, const ecs_type_info_t *ti)
+{
+	(void)ti;
+	EgWindowsSdlState *to = dst, *from = src;
+	for (int32_t i = 0; i < count; ++i) {
+		ecs_map_fini(&to[i].windows);
+		to[i] = from[i];
+		from[i] = (EgWindowsSdlState){0};
+	}
+}
+
+static void EgWindowsSdl_destroy_owned(ecs_world_t *world, ecs_entity_t entity,
+EgWindowsNativeOwner *owner)
+{
+	if (!owner || !owner->window)
+		return;
+	if (owner->release && !owner->release(world, entity, owner->window, owner->context)) {
+		ecs_err("EgWindowsSdl: cannot release GL resources for window %llu; native handles retained",
+			(unsigned long long)entity);
+		return;
+	}
+	if (owner->context) {
+		if (SDL_GL_GetCurrentContext() == owner->context && !SDL_GL_MakeCurrent(NULL, NULL)) {
+			ecs_err("EgWindowsSdl: cannot unbind context before destruction: %s", SDL_GetError());
+			return;
+		}
+		if (!SDL_GL_DestroyContext(owner->context)) {
+			ecs_err("EgWindowsSdl: cannot destroy GL context: %s", SDL_GetError());
+			return;
+		}
+		owner->context = NULL;
+		EgWindowsOpenGLContext *gl = ecs_get_mut(world, entity, EgWindowsOpenGLContext);
+		if (gl)
+			gl->gl_context = NULL;
+	}
+	SDL_Window *native = owner->window;
+	if (owner->owns_window) {
+		EgWindowsSdlState *state = ecs_singleton_get_mut(world, EgWindowsSdlState);
+		if (state)
+			ecs_map_remove(&state->windows, SDL_GetWindowID(native));
+		SDL_DestroyWindow(native);
+		EgWindowsWindow *window = ecs_get_mut(world, entity, EgWindowsWindow);
+		if (window) {
+			window->object = NULL;
+			window->valid = false;
+		}
+	}
+	owner->window = NULL;
+}
+
+static void EgWindowsSdl_remove_owned(ecs_iter_t *it)
+{
+	for (int32_t i = 0; i < it->count; ++i) {
+		EgWindowsNativeOwner *owner = it->event_id == ecs_id(EgWindowsNativeOwner) ?
+			ecs_field(it, EgWindowsNativeOwner, 0) + i :
+			ecs_get_mut(it->world, it->entities[i], EgWindowsNativeOwner);
+		EgWindowsSdl_destroy_owned(it->world, it->entities[i], owner);
+	}
+}
 
 static void System_EgWindowsWindow_UpdateState(ecs_iter_t *it)
 {
@@ -90,7 +170,7 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 				    !SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE)) {
 					ecs_err("EgWindowsSdl: cannot request OpenGL 4.3 core: %s", SDL_GetError());
 					SDL_DestroyProperties(props);
-					ecs_enable(world, e, false);
+					ecs_enable(it->stage, e, false);
 					ecs_log_pop_1();
 					continue;
 				}
@@ -100,13 +180,22 @@ static void System_EgWindowsWindow_Create(ecs_iter_t *it)
 			SDL_DestroyProperties(props);
 			if (window == NULL) {
 				ecs_err("EgWindowsSdl: cannot create window: %s", SDL_GetError());
-				ecs_enable(world, e, false);
+				ecs_enable(it->stage, e, false);
 				ecs_log_pop_1();
 				continue;
 			}
 			// Map the SDL_WindowID to the ecs_entity_t:
 			SDL_WindowID id = SDL_GetWindowID(window);
-			ecs_map_insert(&static_window_map, id, e);
+			EgWindowsSdlState *state = ecs_singleton_get_mut(world, EgWindowsSdlState);
+			if (!state) {
+				ecs_err("EgWindowsSdl: window map is unavailable");
+				SDL_DestroyWindow(window);
+				ecs_enable(it->stage, e, false);
+				ecs_log_pop_1();
+				continue;
+			}
+			ecs_map_insert(&state->windows, id, e);
+			ecs_set(it->stage, e, EgWindowsNativeOwner, {.window = window, .owns_window = true});
 			ecs_set(it->stage, e, EgWindowsWindow, {.object = window});
 			ecs_trace("SDL_CreateWindowWithProperties() -> %p", window);
 		}
@@ -121,9 +210,11 @@ static void System_EgWindowsWindow_Rectangle(ecs_iter_t *it)
 	EgWindowsWindow   *cw = ecs_field(it, EgWindowsWindow, 0);
 	EgShapesRectangle *cr = ecs_field(it, EgShapesRectangle, 1);
 	for (int i = 0; i < it->count; ++i) {
-		Uint32 w;
-		Uint32 h;
-		SDL_GetWindowSizeInPixels(cw[i].object, (int *)&w, (int *)&h);
+		int w, h;
+		if (!cw[i].object || !SDL_GetWindowSizeInPixels(cw[i].object, &w, &h)) {
+			ecs_err("EgWindowsSdl: cannot get framebuffer size: %s", SDL_GetError());
+			continue;
+		}
 		cr[i].w = w;
 		cr[i].h = h;
 	}
@@ -136,7 +227,10 @@ static void System_EgWindowsWindow_Position(ecs_iter_t *it)
 	for (int i = 0; i < it->count; ++i) {
 		int x;
 		int y;
-		SDL_GetWindowPosition(cw[i].object, (int *)&x, (int *)&y);
+		if (!cw[i].object || !SDL_GetWindowPosition(cw[i].object, &x, &y)) {
+			ecs_err("EgWindowsSdl: cannot get window position: %s", SDL_GetError());
+			continue;
+		}
 		cp[i].x = x;
 		cp[i].y = y;
 	}
@@ -179,7 +273,8 @@ static void System_EgWindowsWindow_Mouse_Normalized(ecs_iter_t *it)
 
 static void handle_window_event(ecs_world_t *world, SDL_WindowEvent *event)
 {
-	ecs_map_val_t *ev = ecs_map_get(&static_window_map, event->windowID);
+	EgWindowsSdlState *state = ecs_singleton_get_mut(world, EgWindowsSdlState);
+	ecs_map_val_t *ev = state ? ecs_map_get(&state->windows, event->windowID) : NULL;
 	if (ev == NULL) {
 		ecs_err("handle_window_event: No entity found for SDL_WindowID: %i", event->windowID);
 		return;
@@ -307,7 +402,8 @@ static void System_Events_Update(ecs_iter_t *it)
 	input->mouse_focus      = mouse_focus != NULL;
 	input->mouse_window     = 0;
 	if (mouse_focus) {
-		ecs_map_val_t *mapped = ecs_map_get(&static_window_map, SDL_GetWindowID(mouse_focus));
+		EgWindowsSdlState *state = ecs_singleton_get_mut(it->world, EgWindowsSdlState);
+		ecs_map_val_t *mapped = state ? ecs_map_get(&state->windows, SDL_GetWindowID(mouse_focus)) : NULL;
 		if (mapped) {
 			ecs_entity_t           entity = mapped[0];
 			const EgWindowsWindow *window = ecs_get(it->world, entity, EgWindowsWindow);
@@ -364,7 +460,18 @@ void EgWindowsSdlImport(ecs_world_t *world)
 		ecs_err("SDL_InitSubSystem(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
 	}
 
-	ecs_map_init(&static_window_map, NULL);
+	ECS_COMPONENT_DEFINE(world, EgWindowsSdlState);
+	ecs_set_hooks(world, EgWindowsSdlState, {
+		.ctor = EgWindowsSdlState_ctor, .dtor = EgWindowsSdlState_dtor,
+		.move = EgWindowsSdlState_move});
+	ecs_singleton_ensure(world, EgWindowsSdlState);
+
+	ecs_observer(world, {.query.terms = {{.id = ecs_id(EgWindowsNativeOwner)}},
+		.events = {EcsOnRemove}, .callback = EgWindowsSdl_remove_owned});
+	ecs_observer(world, {.query.terms = {{.id = ecs_id(EgWindowsWindow)}},
+		.events = {EcsOnRemove}, .callback = EgWindowsSdl_remove_owned});
+	ecs_observer(world, {.query.terms = {{.id = ecs_id(EgWindowsOpenGLContext)}},
+		.events = {EcsOnRemove}, .callback = EgWindowsSdl_remove_owned});
 
 	ecs_struct(world,
 	{.entity = ecs_id(EgWindowsWindowCreateInfo),
